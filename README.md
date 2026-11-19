@@ -4,9 +4,16 @@ Luma 是 DeepSeek Harness 桌面端的虚拟员工插件。进入侧栏的「Lum
 
 ## 安装桌面版
 
-1. 在本仓库的 [v0.4.3 发布页](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.4.3) 下载 Windows 桌面插件 ZIP。发布页附有 SHA-256 校验值。
-2. 将 ZIP 解压到长期保留的目录。在 DeepSeek Harness 的「插件」页面选择添加本地插件，选中解压后包含 `package.json` 的目录。
-3. 启用 Luma，点击左侧「Luma 办公室」。DSH 直接引用这个目录，安装后请保留它。
+使用有本仓库访问权限的 GitHub 账号登录 GitHub CLI。在 Windows PowerShell 中运行：
+
+```powershell
+gh release download v0.4.3 --repo myflww/luma-dsh-plugin --pattern "Get-Luma-DSH.ps1" --dir ".\Luma-0.4.3" --skip-existing
+& ".\Luma-0.4.3\Get-Luma-DSH.ps1"
+```
+
+脚本从私有 [v0.4.3 发布页](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.4.3) 自动补齐全部 56 个分卷、合并并校验，生成 `Luma-0.4.3/Luma-DSH-0.4.3-Windows.zip`。没有 GitHub CLI 时，可以用有权限的账号在发布页下载 `.001` 至 `.056` 以及 `Get-Luma-DSH.ps1`，把它们放在同一文件夹，再运行该脚本。合并时需要约 3.5 GiB 可用空间。
+
+将生成的 ZIP 解压到长期保留的目录。在 DeepSeek Harness 的「插件 → 添加插件 → 安装第三方插件」中选中包含 `package.json` 的目录并启用，随后点击左侧「Luma 办公室」。DSH 会直接引用这个目录。
 
 本版本适配 Windows 上的 DeepSeek Harness Desktop 0.2.2-rc.1。发布包内有插件、运行美术和可选云办公工作器，DSH 桌面客户端需单独安装。
 
