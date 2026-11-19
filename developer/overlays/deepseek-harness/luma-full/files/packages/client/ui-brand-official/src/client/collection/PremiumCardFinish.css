@@ -1,0 +1,73 @@
+.lumaPremiumCardFinish{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;fill:none;isolation:isolate;color:var(--premium-mid);contain:layout style}
+.lumaPremiumFoilRail{stroke-width:3;opacity:.84}
+.lumaPremiumEtchedRail{stroke-width:3;opacity:.48}
+.lumaPremiumCorner{stroke-width:1.6;opacity:.9}
+.lumaPremiumMotif{stroke:var(--premium-light);stroke-width:1.45;stroke-linecap:round;stroke-linejoin:round;opacity:.9}
+.lumaPremiumOrbit{stroke-width:1.1;opacity:.7}
+.lumaPremiumMovingGlint{stroke:var(--premium-light);stroke-width:4;stroke-dasharray:9 91;stroke-dashoffset:18;stroke-linecap:round;opacity:.85;filter:drop-shadow(0 0 3px var(--premium-mid));animation:lumaPremiumRailLight 11s linear infinite;animation-play-state:paused}
+.lumaPremiumSpark{fill:var(--premium-light);stroke:var(--premium-light);stroke-width:.3;opacity:.32;filter:drop-shadow(0 0 3px var(--premium-mid));animation:lumaPremiumSparkLight 5.5s ease-in-out var(--spark-delay) infinite;animation-play-state:paused}
+.lumaPremiumCardFinish[data-premium-finish='SSR'] .lumaPremiumFoilRail{stroke-width:5}
+.lumaPremiumCardFinish[data-premium-finish='SSR'] .lumaPremiumEtchedRail{stroke-width:5;opacity:.6}
+.lumaPremiumCardFinish[data-premium-finish='SSR'] .lumaPremiumMovingGlint{stroke-width:6;stroke-dasharray:13 87;animation-duration:9s}
+.lumaPremiumCardFinish[data-active='true'] .lumaPremiumMovingGlint,
+.lumaPremiumCardFinish[data-active='true'] .lumaPremiumSpark,
+button:hover .lumaPremiumCardFinish .lumaPremiumMovingGlint,
+button:hover .lumaPremiumCardFinish .lumaPremiumSpark,
+button:focus-visible .lumaPremiumCardFinish .lumaPremiumMovingGlint,
+button:focus-visible .lumaPremiumCardFinish .lumaPremiumSpark{animation-play-state:running}
+.lumaPremiumCardFinish[data-reduced='true'] .lumaPremiumMovingGlint,
+.lumaPremiumCardFinish[data-reduced='true'] .lumaPremiumSpark,
+.lumaPackOpeningResult[data-reduced='true'] .lumaPremiumMovingGlint,
+.lumaPackOpeningResult[data-reduced='true'] .lumaPremiumSpark{animation:none;filter:none}
+@keyframes lumaPremiumRailLight{to{stroke-dashoffset:-82}}
+@keyframes lumaPremiumSparkLight{0%,100%{opacity:.2}42%{opacity:.87}62%{opacity:.4}}
+@media(prefers-reduced-motion:reduce){.lumaPremiumCardFinish .lumaPremiumMovingGlint,.lumaPremiumCardFinish .lumaPremiumSpark{animation:none;filter:none}}
+@media(forced-colors:active){.lumaPremiumCardFinish{display:none}}
+
+/* Heirloom collection: actual cast-metal ornament, enamel recess and polished gem settings.
+   Every family has its own silhouette; transparent inner windows preserve the full source. */
+.lumaHeirloomFrame{overflow:hidden;--frame-light-strength:.66}
+.lumaFrameFoundation,.lumaFrameSculpture{stroke-linecap:round;stroke-linejoin:round;fill:none}
+.lumaFrameOuterShadow{stroke:var(--frame-enamel);stroke-width:10;opacity:.94}
+.lumaFrameOuterMetal{stroke-width:6.5}
+.lumaFrameEnamelLine{stroke-width:1.7;opacity:.78}
+.lumaFrameInnerDark{stroke:var(--premium-deep);stroke-width:2.3;opacity:.85}
+.lumaFrameInnerHairline{stroke:var(--premium-light);stroke-width:.8;opacity:.7}
+.lumaFrameTopReflection{stroke:var(--premium-light);stroke-width:1.5;opacity:.8}
+.lumaFrameBottomShade{stroke:var(--premium-deep);stroke-width:2;opacity:.9}
+.lumaFrameSculpture{filter:drop-shadow(1px 2px 1px rgb(8 10 15 / 65%))}
+.lumaFrameCast,.lumaFrameShell,.lumaFrameLily,.lumaFrameWing,.lumaFrameLeaf,.lumaFramePetal,.lumaFrameCrystal{fill:var(--frame-metal-paint);stroke:var(--premium-deep);stroke-width:.85;paint-order:stroke fill}
+.lumaFrameShell,.lumaFrameWing{stroke-width:1.4;stroke:var(--premium-mid)}
+.lumaFrameLeaf{stroke-width:1.1;stroke:var(--premium-light);fill:var(--frame-metal-paint)}
+.lumaFramePetal{stroke:var(--premium-light);stroke-width:.8}
+.lumaHeirloomFrame[data-motif='rose'] .lumaFramePetal{fill:var(--frame-gem-paint);stroke-width:1.1}
+.lumaFrameFine{stroke:var(--premium-light);stroke-width:1;fill:none;opacity:.84}
+.lumaFrameCrystal{stroke:var(--premium-light);stroke-width:1.3}
+.lumaFrameGem{fill:var(--frame-gem-paint);stroke:var(--premium-deep);stroke-width:1.2}
+.lumaFrameGemGlint{fill:#fffbea;stroke:none;opacity:.92}
+.lumaFramePearl{fill:var(--premium-light);stroke:var(--premium-mid);stroke-width:1}
+.lumaFrameInlay{fill:var(--frame-gem-paint);stroke:var(--premium-light);stroke-width:.8;opacity:.8}
+.lumaFramePrismTrace{stroke:var(--premium-mid);stroke-width:1.5;fill:none}
+.lumaFrameSideSetting{stroke:var(--premium-mid);stroke-width:1.3;fill:var(--frame-enamel);fill-opacity:.58}
+.lumaFrameMoonPhase{stroke:var(--premium-light);stroke-width:1;fill:var(--frame-enamel)}
+.lumaFrameCrest{stroke:var(--premium-light);stroke-width:1.6;fill:var(--frame-enamel);fill-opacity:.42;stroke-linecap:round;stroke-linejoin:round}
+.lumaFrameSelectiveFoil{stroke-width:10;opacity:var(--frame-holographic-strength,.6);mix-blend-mode:screen}
+.lumaHeirloomFrame[data-foil='luminous'] .lumaFrameSelectiveFoil{stroke-width:12}
+.lumaHeirloomFrame .lumaPremiumMovingGlint{stroke-width:2.5;stroke-dasharray:6 94;opacity:.85;filter:none;animation-duration:14s}
+.lumaFrameAngleReflection{stroke:var(--premium-light);stroke-width:1.4;opacity:var(--frame-angle-light,.5);fill:none}
+.lumaHeirloomFrame[data-premium-finish='SSR'] .lumaFrameOuterShadow{stroke-width:15}
+.lumaHeirloomFrame[data-premium-finish='SSR'] .lumaFrameOuterMetal{stroke-width:10}
+.lumaHeirloomFrame[data-premium-finish='SSR'] .lumaFrameEnamelLine{stroke-width:2.6}
+.lumaHeirloomFrame[data-premium-finish='SSR'] .lumaFrameInnerDark{stroke-width:3.5}
+.lumaHeirloomFrame[data-premium-finish='SSR'] .lumaFrameInnerHairline{stroke-width:1.1}
+.lumaHeirloomFrame[data-premium-finish='SSR'] .lumaPremiumMovingGlint{stroke-width:4;stroke-dasharray:9 91;animation-duration:12s}
+.lumaHeirloomFrame[data-motif='prism'] .lumaFrameInnerDark,.lumaHeirloomFrame[data-motif='prism'] .lumaFrameInnerHairline{stroke-dasharray:52 8 9 8}
+.lumaHeirloomFrame[data-motif='snow'] .lumaFrameOuterMetal{stroke-width:5.5}
+.lumaHeirloomFrame[data-motif='snow'][data-premium-finish='SSR'] .lumaFrameOuterMetal{stroke-width:8.5}
+.lumaHeirloomFrame[data-motif='flame'] .lumaFrameEnamelLine{stroke-width:3}
+.lumaHeirloomFrame[data-motif='flame'][data-premium-finish='SSR'] .lumaFrameEnamelLine{stroke-width:4.5}
+
+
+.lumaFrameDiffractionMark{fill:none;stroke-width:1.15;stroke-linecap:round;stroke-linejoin:round}
+.lumaFrameHolographicEtching{fill:none;stroke-width:9;opacity:var(--frame-holographic-strength,.6);mix-blend-mode:screen}
+.lumaHeirloomFrame[data-premium-finish='SSR'] .lumaFrameHolographicEtching{stroke-width:13}

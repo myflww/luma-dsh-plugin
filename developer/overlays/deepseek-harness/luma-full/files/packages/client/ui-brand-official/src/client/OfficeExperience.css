@@ -1,0 +1,1406 @@
+.lumaOfficeExperience,
+.lumaOfficeExperience * {
+  box-sizing: border-box;
+}.lumaOfficeExperience {
+  --luma-office-rail-width: clamp(76px, 5vw, 104px);
+  --luma-office-expanded-rail-width: 244px;
+  --luma-office-radius-sm: 12px;
+  --luma-office-radius-md: 16px;
+  --luma-office-radius-lg: 24px;
+  --luma-office-focus-ring: color-mix(in srgb, var(--luma-office-accent) 56%, transparent);
+  --luma-office-panel: var(--dsw-alias-bg-layer-1, #ffffff);
+  --luma-office-panel-raised: var(--dsw-alias-bg-layer-2, #f7f8fa);
+  --luma-office-shell: var(--dsw-alias-bg-layer-2, #ece8e1);
+  --luma-office-border: var(--dsw-alias-border-l2, #e3e5e9);
+  --luma-office-text: var(--dsw-alias-label-primary, #1e2028);
+  --luma-office-muted: var(--dsw-alias-label-secondary, #747b89);
+  --luma-office-caption: var(--dsw-alias-label-caption, #959ba6);
+  --luma-office-accent: var(--dsw-alias-state-business-primary, #5964ee);
+  --luma-office-hover: var(--dsw-alias-interactive-bg-hover, #f0f1ff);
+  --luma-office-active: var(--dsw-specific-sidebar-nav-item-active, #eef0ff);
+  --luma-office-drawer-width: min(336px, calc(100vw - var(--luma-office-rail-width) - 36px));
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: var(--luma-office-rail-width) minmax(0, 1fr);
+  overflow: hidden;
+  background: var(--luma-office-shell);
+  color: var(--luma-office-text);
+  font-family: Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  transition: grid-template-columns 220ms cubic-bezier(0.2, 0.72, 0.2, 1);
+}.lumaOfficeExperience.isLeftDrawerOpen {
+  grid-template-columns: var(--luma-office-expanded-rail-width) minmax(0, 1fr);
+}
+/* The workbench switcher's card is portalled and placed once, from the geometry
+   it reads as it mounts (ui-primitives Menu). A rail still animating its width
+   would hand it the collapsed track and leave it there — a 218px card over the
+   theater, where main's native view crops it. So the rail reaches its expanded
+   width in one step for exactly as long as that card is up. */ .lumaOfficeExperience.isWorkbenchMenuOpen {
+  transition: none;
+}/* A page opened from the pure Harness workbench keeps that workbench's chrome:
+   the workspace takes the whole frame and the office rail is not part of it.
+   Declared after .isLeftDrawerOpen so it wins that tie.
+   The rail's track is kept (at zero width) rather than dropped: .lumaOfficeWorkspace
+   is explicitly placed in column 2, and a one-column template would push it into
+   an implicit second column instead. */.lumaOfficeExperience.isWorkbenchPage {
+  grid-template-columns: 0 minmax(0, 1fr);
+}/* Author display rules must not override the native hidden contract. The
+   office stays mounted behind other surfaces, but never covers pure Harness. */.lumaOfficeExperience[hidden],
+.lumaOfficeRail[hidden],
+.lumaOfficeScenePreservationHost[hidden] {
+  display: none;
+}body[data-ds-dark-theme] .lumaOfficeExperience {
+  --luma-office-shell: var(--dsw-alias-bg-layer-2, #242426);
+}.lumaOfficeRail {
+  grid-column: 1;
+  grid-row: 1;
+  position: relative;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  padding: clamp(20px, 2vw, 28px) 12px 22px;
+  border-right: 1px solid var(--luma-office-border);
+  background: var(--luma-office-panel);
+  transition: border-color 180ms ease;
+}.lumaOfficeRail.isExpanded {
+  align-items: stretch;
+}.lumaOfficeBrand {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 44px;
+  flex: none;
+  gap: 12px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--luma-office-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}.lumaOfficeBrandMark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: var(--luma-office-radius-sm);
+  background: #10182c;
+  color: #ffffff;
+  box-shadow: 0 3px 8px rgb(15 24 45 / 12%);
+}.lumaOfficeBrand:hover .lumaOfficeBrandMark {
+  background: #253352;
+}.lumaOfficeBrandLabel,
+.lumaOfficeBrandChevron,
+.lumaOfficeNavLabel {
+  display: none;
+}/* Brand row: the workbench switcher trigger over the rail's expand toggle.
+   Collapsed it stacks (52px of content), expanded it is one row. */.lumaOfficeBrandRow {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}.lumaOfficeBrandRow.isExpanded {
+  flex-direction: row;
+  gap: 8px;
+}.lumaOfficeBrandRow .lumaOfficeWorkbenchMenu {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+}.lumaOfficeBrandRow.isExpanded .lumaOfficeWorkbenchMenu {
+  flex: 1;
+}.lumaOfficeBrandRow .lumaOfficeRailToggle {
+  margin-top: 0;
+}.lumaOfficeBrand.isOpen .lumaOfficeBrandMark {
+  background: #253352;
+}.isExpanded .lumaOfficeBrand {
+  justify-content: flex-start;
+  padding-inline: 4px;
+}.isExpanded .lumaOfficeBrandLabel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+  overflow: hidden;
+  font-size: 18px;
+  font-weight: 720;
+  letter-spacing: -0.03em;
+}.lumaOfficeBrandLabel > span {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--luma-office-muted);
+  letter-spacing: 0;
+  white-space: nowrap;
+}.isExpanded .lumaOfficeBrandChevron {
+  display: block;
+  flex: none;
+  color: var(--luma-office-caption);
+}.isExpanded .lumaOfficeNavLabel {
+  display: block;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 560;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}.isExpanded :is(.lumaOfficeNavButton, .lumaOfficeSettingsButton) {
+  width: 100%;
+  justify-content: flex-start;
+  gap: 14px;
+  padding-inline: 16px;
+}.lumaOfficeBrand svg {
+  color: inherit;
+}.lumaOfficeRailToggle, .lumaOfficeNavButton, .lumaOfficeSettingsButton, .lumaOfficeEditButton, .lumaOfficeHeaderScheduleButton, .lumaOfficeScheduleComposerHeader button, .lumaOfficeRightClose, .lumaOfficeEmployee, .lumaOfficeEmployeeStatus, .lumaOfficeTeamMember, .lumaOfficeLauncher, .lumaOfficeAddEmployeeButton, .lumaOfficeCatalogEmployee button, .lumaOfficeNameButton {
+  appearance: none;
+  border: 0;
+  font: inherit;
+}.lumaOfficeRailToggle, .lumaOfficeNavButton, .lumaOfficeSettingsButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  padding: 0;
+  border-radius: var(--luma-office-radius-md);
+  background: transparent;
+  color: var(--luma-office-text);
+  cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
+}.lumaOfficeRailToggle {
+  width: 46px;
+  height: 46px;
+  margin-top: 20px;
+  border: 1px solid var(--luma-office-border);
+  border-radius: 999px;
+  background: var(--luma-office-panel);
+}.lumaOfficeExperience :where(button, input, select, textarea):focus-visible {
+  outline: 3px solid var(--luma-office-focus-ring, rgb(103 111 239 / 56%));
+  outline-offset: 2px;
+}.lumaOfficeRailToggle:hover, .lumaOfficeNavButton:hover, .lumaOfficeSettingsButton:hover {
+  background: var(--luma-office-hover, var(--dsw-alias-button-floating-hover, #f0f1ff));
+  color: var(--luma-office-accent, var(--dsw-alias-state-business-primary, #5864ef));
+}.lumaOfficeRailToggle:active, .lumaOfficeNavButton:active, .lumaOfficeSettingsButton:active {
+  transform: scale(0.96);
+}.lumaOfficePrimaryNav {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(8px, 1.35vh, 16px);
+  width: 100%;
+  min-height: 0;
+  margin-top: 30px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}.lumaOfficeMessageNavIcon { flex: none; }.lumaOfficeNavButton { flex: none; }.lumaOfficeNavSpacer { flex: 1; min-height: 18px; }.lumaOfficeSettingsButton { margin-top: 4px; }.lumaOfficeNavButton.isActive {
+  background: var(--luma-office-active);
+  color: var(--luma-office-accent);
+}.lumaOfficeNavButton:disabled,
+.lumaOfficeNavButton:disabled:hover,
+.lumaOfficeNavButton:disabled:active {
+  background: transparent;
+  color: var(--luma-office-caption);
+  cursor: not-allowed;
+  opacity: 0.44;
+  transform: none;
+}.lumaOfficeNavIcon,
+.lumaOfficeGamepadIcon {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  flex: none;
+  background: currentColor;
+  -webkit-mask: var(--luma-nav-icon) center / contain no-repeat;
+  mask: var(--luma-nav-icon) center / contain no-repeat;
+}.lumaOfficeGamepadIcon { --luma-nav-icon: url('/luma-ui/icons/gamepad-lucide-v1.svg'); }.lumaOfficeNavIcon[data-icon='office'] { --luma-nav-icon: url('/luma-ui/icons/buildings-phosphor-v1.svg'); }.lumaOfficeNavButton.isActive .lumaOfficeNavIcon[data-icon='office'] { --luma-nav-icon: url('/luma-ui/icons/buildings-fill-phosphor-v1.svg'); }.lumaOfficeNavIcon[data-icon='canvas'] { --luma-nav-icon: url('/luma-ui/icons/infinity-phosphor-v1.svg'); }.lumaOfficeNavIcon[data-icon='tasks'] { --luma-nav-icon: url('/luma-ui/icons/list-checks-phosphor-v1.svg'); }.lumaOfficeNavIcon[data-icon='store'] { --luma-nav-icon: url('/luma-ui/icons/storefront-phosphor-v1.svg'); }.lumaOfficeNavIcon[data-icon='community'] { --luma-nav-icon: url('/luma-ui/icons/users-three-phosphor-v1.svg'); }.lumaOfficeNavIcon[data-icon='more'] { --luma-nav-icon: url('/luma-ui/icons/circles-four-phosphor-v1.svg'); }.lumaOfficeNavIcon[data-icon='harness'] { --luma-nav-icon: url('/luma-ui/icons/monitor-lucide-v1.svg'); }.lumaOfficeActorOverlay { position: absolute; width: 0; height: 0; pointer-events: none; }.lumaOfficeSpeechBubble {
+  position: absolute; bottom: 102px; left: 0; transform: translateX(-50%);
+  width: max-content; max-width: min(240px, calc(100vw - 24px)); box-sizing: border-box; display: flex; align-items: flex-start;
+  border: 1px solid var(--luma-office-border); border-radius: 16px;
+  background: var(--luma-office-panel, #fff); color: var(--luma-office-text, #24262b);
+  box-shadow: 0 6px 22px #00000014; pointer-events: auto;
+}.lumaOfficeSpeechReply { flex: 1; min-width: 0; border: 0; border-radius: 16px; background: transparent; color: inherit; text-align: left; padding: 12px 8px 12px 14px; font: inherit; cursor: pointer; }.lumaOfficeSpeechReply span { display: block; font-size: 13px; line-height: 1.55; overflow-wrap: anywhere; text-wrap: pretty; }.lumaOfficeSpeechSpeaker { display: block; margin-bottom: 5px; font-size: 11px; line-height: 1.4; font-weight: 600; color: var(--luma-office-muted); }.lumaOfficeSpeechReply small { display: block; font-size: 11px; color: var(--luma-office-accent); margin-top: 5px; }.lumaOfficeSpeechDismiss { flex: 0 0 32px; border: 0; background: transparent; color: inherit; padding: 8px; min-width: 32px; min-height: 32px; border-radius: 50%; cursor: pointer; }.lumaOfficeSpeechBubble button:focus-visible { outline: 2px solid var(--luma-office-accent); outline-offset: 3px; }.lumaOfficeSpeechPreference { display: flex; gap: 10px; align-items: flex-start; margin: 12px 0 0; padding-top: 12px; border-top: 1px solid var(--luma-office-border); font-size: 13px; cursor: pointer; }.lumaOfficeSpeechPreference small { display: block; font-size: 11px; opacity: .65; margin-top: 4px; }.lumaOfficeSpeechSaveStatus { padding-inline-start: 24px; }.lumaOfficeSpeechSaveStatus button { border: 0; border-radius: 8px; padding: 7px 10px; background: var(--luma-office-hover); color: var(--luma-office-accent); font: inherit; font-size: 12px; cursor: pointer; }.lumaOfficeSpeechSaveStatus button:focus-visible { outline: 2px solid var(--luma-office-accent); outline-offset: 3px; }.lumaPortraitOfficeReply { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-left: 2px solid #7291cd; border-radius: 7px; background: #7d94be12; font-size: 12px; }.lumaPortraitOfficeReply span { flex: 1; min-width: 0; overflow-wrap: anywhere; }.lumaPortraitOfficeReply button { border: 0; background: transparent; color: inherit; min-width: 28px; min-height: 28px; cursor: pointer; }.lumaOfficeMoreMenu {
+  position: absolute;
+  z-index: 30;
+  top: 82px;
+  left: calc(var(--luma-office-rail-width) + 10px);
+  width: min(330px, calc(100vw - var(--luma-office-rail-width) - 24px));
+  max-height: calc(100% - 108px);
+  overflow-y: auto;
+  border: 1px solid var(--luma-office-border);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--luma-office-panel) 94%, transparent);
+  box-shadow: 0 16px 50px rgb(12 21 42 / 16%);
+  backdrop-filter: blur(24px);
+}.isLeftDrawerOpen .lumaOfficeMoreMenu {
+  left: calc(var(--luma-office-expanded-rail-width) + 10px);
+}/* The More menu floats over the workspace's left edge. Publish how much of that
+   edge it covers so an opted-in surface can keep its content clear of it.
+   The measured width is the popup's own width plus its 10px offset from the
+   workspace edge; it is the same whether the rail is collapsed or expanded,
+   because the popup's left offset and the workspace's left edge move together. */.lumaOfficeExperience.isMoreMenuOpen .lumaOfficeWorkspace {
+  --luma-surface-clear-left: calc(min(330px, calc(100vw - var(--luma-office-rail-width) - 24px)) + 10px);
+}.lumaOfficeMoreHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 20px 12px;
+}.lumaOfficeMoreHeader strong { font-size: 17px; }.lumaOfficeMoreHeader p { margin: 5px 0 0; font-size: 12px; color: var(--luma-office-muted); }.lumaOfficeMoreHeader > button {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--luma-office-panel-raised);
+  color: var(--luma-office-muted);
+  cursor: pointer;
+}.lumaOfficeMoreItems { padding: 0 10px 10px; }.lumaOfficeMoreItem { display: flex; align-items: center; gap: 8px; padding: 4px 8px; border-radius: 12px; }.lumaOfficeMoreItem:hover { background: var(--luma-office-panel-raised); }.lumaOfficeMoreDestination {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 13px;
+  min-width: 0;
+  min-height: 52px;
+  padding: 6px 2px;
+  border: 0;
+  background: transparent;
+  color: var(--luma-office-text);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}.lumaOfficeMoreDestination > span:last-child { display: flex; flex-direction: column; gap: 4px; }.lumaOfficeMoreDestination strong { font-size: 13px; font-weight: 600; }.lumaOfficeMoreDestination small { font-size: 10px; color: var(--luma-office-muted); }.lumaOfficeMoreDestination:disabled { color: var(--luma-office-caption); cursor: not-allowed; }.lumaOfficePinButton {
+  min-height: 30px;
+  min-width: 48px;
+  padding: 0 10px;
+  border: 1px solid var(--luma-office-border);
+  border-radius: 9px;
+  background: var(--luma-office-hover);
+  color: var(--luma-office-accent);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}.lumaOfficePinButton.isPinned { color: var(--luma-office-muted); background: transparent; }.lumaOfficePinButton:hover { border-color: var(--luma-office-accent); color: var(--luma-office-accent); }.lumaOfficePreferencesHint { margin: 0; padding: 0 20px 15px; color: var(--luma-office-muted); font-size: 11px; }.lumaOfficeBrand:disabled, .lumaOfficePinButton:disabled { opacity: 0.55; cursor: wait; }.lumaOfficeSettingsButton {
+  flex: none;
+}.lumaOfficePrimaryNav .lumaOfficeNavButton[data-nav-key='store'] {
+  margin-top: 0;
+}.lumaOfficeSecondaryNav {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin: 12px 0 10px;
+  padding-top: 14px;
+  border-top: 1px solid #eceef2;
+}.lumaOfficeDrawerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 80px;
+  padding: 16px 20px 16px 24px;
+  border-bottom: 1px solid var(--luma-office-border);
+}.lumaOfficeDrawerHeader > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}.lumaOfficeDrawerHeader strong {
+  overflow: hidden;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}.lumaOfficeDrawerHeader span {
+  color: var(--luma-office-muted);
+  font-size: 12px;
+  line-height: 1.3;
+}.lumaOfficeDrawerNav {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  overflow-y: auto;
+}.lumaOfficeDrawerNav > p {
+  margin: 8px 10px 4px;
+  color: var(--luma-office-caption);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}.lumaOfficeDrawerNavIcon {
+  display: inline-flex;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--luma-office-radius-sm);
+  background: var(--luma-office-panel-raised);
+}.lumaOfficeDrawerFooter {
+  display: grid;
+  flex: none;
+  gap: 8px;
+  padding: 16px;
+  border-top: 1px solid var(--luma-office-border);
+}.lumaOfficeWorkspace {
+  grid-column: 2;
+  grid-row: 1;
+  position: relative;
+  /* Scene widgets stay below the navigation rail and its account menus. */
+  isolation: isolate;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--luma-office-shell);
+}.lumaOfficeScenePreservationHost {
+  position: absolute;
+  inset: 0;
+}.lumaOfficeSceneScroller {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  cursor: grab;
+  outline: none;
+  overscroll-behavior: none;
+  touch-action: pan-y;
+}.lumaOfficeSceneScroller::-webkit-scrollbar {
+  display: none;
+}.lumaOfficeSceneScroller[data-dragging='true'] {
+  cursor: grabbing;
+  user-select: none;
+}.lumaOfficeSceneScroller:focus-visible {
+  box-shadow: inset 0 0 0 3px rgb(93 101 234 / 38%);
+}.lumaOfficeSceneWorld {
+  position: relative;
+  flex: none;
+  height: 100%;
+  width: max(124%, calc(100% + 320px));
+  /* Scene-only matte: UI light/dark must not recolor the office world. */
+  background: #e0dad2;
+}.lumaOfficeSceneCanvas {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  isolation: isolate;
+  aspect-ratio: 1672 / 941;
+  transform: translateX(-50%);
+}.lumaOfficeSceneArtwork,
+.lumaOfficeWorkstationProp,
+.lumaOfficeChairForeground,
+.lumaOfficeMonitorLayer,
+.lumaOfficeSeatLayer,
+.lumaOfficeLightingComposition,
+.lumaOfficeLightingImage {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}.lumaOfficeSceneArtwork,
+.lumaOfficeWorkstationProp,
+.lumaOfficeChairForeground,
+.lumaOfficeLightingImage {
+  object-fit: contain;
+  object-position: center bottom;
+  pointer-events: none;
+  user-select: none;
+}.lumaOfficeSceneArtwork {
+  z-index: 0;
+  filter: var(--luma-office-art-filter, none);
+}.lumaOfficeWorkstationProp {
+  z-index: 1;
+  filter: var(--luma-office-art-filter, none);
+}.lumaOfficeLightingComposition {
+  /* The previous fully painted composition stays opaque underneath. Fading
+     both planes out at once would expose the page background between phases. */
+  pointer-events: none;
+}.lumaOfficeSceneCanvas[data-lighting-ready='false'] > :not(.lumaOfficeSceneArtwork):not(.lumaOfficeLightingUnavailable) {
+  /* Keep actor state mounted, but never show floating people/monitors before
+     the first complete backdrop and its foreground have decoded. */
+  visibility: hidden;
+}.lumaOfficeLightingComposition[data-lighting-incoming='true'] {
+  animation: lumaOfficeLightingArrive var(--luma-office-lighting-duration, 900ms) ease-in-out both;
+}@keyframes lumaOfficeLightingArrive {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}.lumaOfficeSceneCanvas[data-lighting-motion='false'] .lumaOfficeLightingComposition {
+  animation: none;
+}.lumaOfficeLightingUnavailable {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 85%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--luma-office-panel);
+  color: var(--luma-office-muted);
+  translate: -50% 0;
+  font-size: 13px;
+}.lumaOfficeLightingUnavailable button {
+  flex: none;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--luma-office-active);
+  color: var(--luma-office-accent);
+  font: inherit;
+  cursor: pointer;
+}.lumaOfficeLightingUnavailable button:focus-visible {
+  outline: 2px solid var(--luma-office-focus-ring);
+  outline-offset: 2px;
+}.lumaOfficeSceneCanvas[data-lighting-transition='true'][data-lighting-motion='true'] .lumaOfficeEmployee img,
+.lumaOfficeSceneCanvas[data-lighting-transition='true'][data-lighting-motion='true'] .lumaOfficeEmployeeWalkCanvas,
+.lumaOfficeSceneCanvas[data-lighting-transition='true'][data-lighting-motion='true'] .lumaOfficeEmployeeTypingCanvas {
+  transition: filter var(--luma-office-lighting-duration, 900ms) ease-in-out;
+}@media (prefers-reduced-motion: reduce) {.lumaOfficeLightingComposition[data-lighting-incoming='true'] { animation: none; }.lumaOfficeSceneCanvas[data-lighting-transition='true'] .lumaOfficeEmployee img,
+  .lumaOfficeSceneCanvas[data-lighting-transition='true'] .lumaOfficeEmployeeWalkCanvas,
+  .lumaOfficeSceneCanvas[data-lighting-transition='true'] .lumaOfficeEmployeeTypingCanvas { transition: none; }}.lumaOfficeMonitorLayer {
+  z-index: 2;
+  overflow: visible;
+  pointer-events: none;
+}
+/* Seat drop borders. Drawn only while an actor is dragged, so the room is
+   unchanged the rest of the time. The candidate border is exactly the border a
+   drop binds: what is highlighted is what the actor will take. */
+.lumaOfficeSeatLayer {
+  z-index: 3;
+  overflow: visible;
+  pointer-events: none;
+}
+.lumaOfficeSeatBox {
+  fill: rgb(126 170 255 / 10%);
+  stroke: rgb(233 240 255 / 58%);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+.lumaOfficeSeatBox[data-seat-state='candidate'] {
+  fill: rgb(126 170 255 / 28%);
+  stroke: #dce8ff;
+  stroke-width: 3;
+}
+.lumaOfficeSeatBox[data-seat-state='occupied'] {
+  fill: none;
+  stroke: rgb(226 232 244 / 26%);
+  stroke-width: 1.5;
+  stroke-dasharray: 7 6;
+}.lumaOfficeMonitorScreen {
+  /* The projected UI supplies its own paint; never tint every polygon blue. */
+  isolation: isolate;
+  opacity: 0.94;
+}.lumaOfficeMonitorGlassEdge {
+  fill: none;
+  stroke: rgb(211 231 238 / 45%);
+  stroke-width: 0.22;
+}.lumaOfficeMonitorScreen[data-monitor-state='working'] [data-screen-part='editor-cursor'] {
+  animation: lumaOfficeMonitorCursor 1.6s steps(1, end) infinite;
+}.lumaOfficeChairForeground {
+  /* Each atlas partition shares its workstation's foot depth with seated
+     actors. Its inline z-index must remain in the scene's actor stacking
+     context, so people in the front aisle paint above the chair. */
+  pointer-events: none;
+}@keyframes lumaOfficeMonitorCursor {
+  0%, 62%, 100% { opacity: 1; }
+  63%, 99% { opacity: 0.25; }
+}.lumaOfficeEmployee {
+  position: absolute;
+  width: clamp(60px, 4.9vw, 104px);
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  touch-action: none;
+  transform: translate(-50%, -98.5%);
+  transform-origin: 50% 100%;
+  transition: filter 160ms ease;
+}.lumaOfficeEmployee:hover,
+.lumaOfficeEmployee:focus-visible {
+  filter: drop-shadow(0 7px 8px rgb(64 56 44 / 22%));
+}.lumaOfficeEmployee:focus-visible {
+  outline: 3px solid var(--luma-office-focus-ring);
+  outline-offset: 5px;
+  border-radius: var(--luma-office-radius-sm);
+}.lumaOfficeEmployee img,
+.lumaOfficeEmployeeWalkCanvas,
+.lumaOfficeEmployeeTypingCanvas {
+  display: block;
+  width: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}.lumaOfficeEmployeeSprite {
+  display: block;
+  width: 100%;
+  transform-origin: 50% 100%;
+}/* A resting actor keeps a physical foot/seat anchor. Full-image bobbing and
+   scaleY "breathing" move that anchor and distort anatomy; only authored
+   whole-character frames may animate a pose. Hover must not enlarge it. *//* Match the scene's changing illumination without making white hair/cloth
+   translucent. Standing, walking and seated art use the same opaque grade. */.lumaOfficeSceneCanvas {
+  --luma-office-actor-light: brightness(.98) saturate(1.025) contrast(1.01) sepia(.025);
+}.lumaOfficeSceneCanvas[data-time-phase='noon'] {
+  --luma-office-actor-light: brightness(1) saturate(1.025) contrast(1.01);
+}.lumaOfficeSceneCanvas[data-time-phase='afternoon'] {
+  --luma-office-actor-light: brightness(.96) saturate(1.025) contrast(1.01) sepia(.035);
+}.lumaOfficeSceneCanvas[data-time-phase='dusk'] {
+  --luma-office-actor-light: brightness(.9) saturate(1.015) contrast(1.01) sepia(.065);
+}.lumaOfficeSceneCanvas[data-time-phase='night'],
+.lumaOfficeSceneCanvas[data-time-phase='closed'] {
+  --luma-office-actor-light: brightness(.84) saturate(.94) contrast(1.015);
+}.lumaOfficeEmployee img,
+.lumaOfficeEmployeeWalkCanvas {
+  height: auto;
+  filter: var(--luma-office-actor-light);
+}.lumaOfficeEmployeeWalkCanvas {
+  aspect-ratio: 592 / 724;
+  max-height: none;
+}.lumaOfficeEmployee img {
+  max-height: 160px;
+}.lumaOfficeEmployeeTypingCanvas {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 512 / 860;
+  filter: var(--luma-office-actor-light);
+}.lumaOfficeEmployeeTypingClip {
+  display: block;
+  width: 100%;
+  height: 100%;
+}.lumaOfficeReceptionCountertopArm {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  filter: var(--luma-office-actor-light);
+}.lumaOfficeEmployeeWorking {
+  overflow: visible;
+  border-radius: 12px;
+  transform-origin: 50% 100%;
+}.lumaOfficeEmployeeWorking:hover,
+.lumaOfficeEmployeeWorking:focus-visible {
+  filter: drop-shadow(0 6px 7px rgb(64 56 44 / 22%));
+}.lumaOfficeEmployee[data-travel-status='drag'] {
+  cursor: grabbing;
+  filter: drop-shadow(0 11px 11px rgb(64 56 44 / 28%));
+  transition: none;
+}.lumaOfficeEmployee[data-travel-status='working'] {
+  cursor: pointer;
+}.lumaOfficeReportStack {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid rgb(125 94 49 / 24%);
+  border-radius: var(--luma-office-radius-sm);
+  background: linear-gradient(160deg, #fffdf7, #ead8b7);
+  color: #88653d;
+  cursor: pointer;
+  transform: translate(-50%, -76%) rotate(-5deg);
+  box-shadow: 0 3px 7px rgb(71 49 25 / 20%);
+}.lumaOfficeReportStack:hover,
+.lumaOfficeReportStack:focus-visible {
+  color: #5c52d9;
+  transform: translate(-50%, -80%) rotate(-2deg) scale(1.06);
+  box-shadow: 0 5px 11px rgb(71 49 25 / 24%);
+}.lumaOfficeReportStack:focus-visible {
+  outline: 3px solid #6d73f4;
+  outline-offset: 3px;
+}.lumaOfficeReportStack > span {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  display: grid;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  place-items: center;
+  border: 2px solid #ffffff;
+  border-radius: 999px;
+  background: #616aef;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}.lumaOfficeHeaderTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}.lumaOfficeHeader h1 {
+  margin: 0;
+  font-size: clamp(22px, 1.35vw, 31px);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}.lumaOfficeNameButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  padding: 4px 7px 4px 2px;
+  border-radius: var(--luma-office-radius-sm);
+  background: transparent;
+  color: inherit;
+  cursor: text;
+}.lumaOfficeNameButton:hover,
+.lumaOfficeNameButton:focus-visible {
+  background: var(--luma-office-hover);
+  color: var(--luma-office-accent);
+}.lumaOfficeRenameForm {
+  display: flex;
+  min-width: 0;
+}.lumaOfficeRenameForm input {
+  width: min(360px, 54vw);
+  min-height: 44px;
+  padding: 4px 10px;
+  border: 1px solid var(--luma-office-accent);
+  border-radius: var(--luma-office-radius-sm);
+  outline: 3px solid color-mix(in srgb, var(--luma-office-accent) 22%, transparent);
+  background: var(--luma-office-panel-raised);
+  color: var(--luma-office-text);
+  font: inherit;
+  font-size: clamp(20px, 1.26vw, 29px);
+  font-weight: 700;
+}.lumaOfficeVisuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+  margin: -1px;
+  white-space: nowrap;
+}.lumaOfficeHeader p {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 11px 0 0 26px;
+  color: var(--luma-office-muted);
+  font-size: clamp(14px, 1vw, 18px);
+  line-height: 1.35;
+}.lumaOfficeEditButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: var(--luma-office-radius-sm);
+  background: transparent;
+  color: var(--luma-office-text);
+  cursor: pointer;
+}.lumaOfficeEditButton:hover {
+  background: var(--luma-office-hover);
+}.lumaOfficeHeaderScheduleButton {
+  position: absolute;
+  top: 50%;
+  right: clamp(20px, 1.55vw, 30px);
+  display: inline-flex;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--luma-office-border);
+  border-radius: var(--luma-office-radius-md);
+  background: var(--luma-office-panel-raised);
+  color: var(--luma-office-text);
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+}.lumaCollectionNavIcon { font-size: 27px; line-height: 1; }.lumaOfficeHeaderScheduleButton:hover,
+.lumaOfficeHeaderScheduleButton:focus-visible,
+.lumaOfficeHeaderScheduleButton[aria-expanded='true'] {
+  border-color: color-mix(in srgb, var(--luma-office-accent) 35%, var(--luma-office-border));
+  background: var(--luma-office-active);
+  color: var(--luma-office-accent);
+}.lumaOfficeHeaderScheduleButton:active {
+  transform: translateY(-50%) scale(0.96);
+}.lumaOfficeHeaderScheduleButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.44;
+}.lumaOfficeHeaderScheduleButton:focus-visible,
+.lumaOfficeScheduleComposerHeader button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--luma-office-accent) 34%, transparent);
+  outline-offset: 2px;
+}.lumaOfficeScheduleComposer {
+  position: absolute;
+  z-index: 8;
+  top: clamp(126px, 9.4vw, 154px);
+  right: clamp(22px, 1.8vw, 34px);
+  display: flex;
+  width: min(420px, calc(100% - 44px));
+  max-height: calc(100% - clamp(150px, 11vw, 182px));
+  flex-direction: column;
+  overflow: hidden auto;
+  border: 1px solid var(--luma-office-border);
+  border-radius: var(--luma-office-radius-lg);
+  background: var(--luma-office-panel);
+  color: var(--luma-office-text);
+  box-shadow: 0 20px 52px rgb(21 25 37 / 18%);
+  animation: lumaOfficeScheduleComposerIn 200ms cubic-bezier(0.2, 0.72, 0.2, 1);
+}@keyframes lumaOfficeScheduleComposerIn {
+  from { opacity: 0; transform: translateY(-8px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}.lumaOfficeScheduleComposerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 72px;
+  padding: 16px 16px 16px 24px;
+  border-bottom: 1px solid var(--luma-office-border);
+}.lumaOfficeScheduleComposerHeader > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}.lumaOfficeScheduleComposerHeader strong {
+  font-size: 16px;
+  line-height: 1.25;
+}.lumaOfficeScheduleComposerHeader span {
+  color: var(--luma-office-muted);
+  font-size: 11px;
+}.lumaOfficeScheduleComposerHeader button {
+  display: inline-flex;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: var(--luma-office-radius-sm);
+  background: transparent;
+  color: var(--luma-office-muted);
+  cursor: pointer;
+  transition: background-color 180ms ease, color 180ms ease;
+}.lumaOfficeScheduleComposerHeader button:hover {
+  background: var(--luma-office-hover);
+  color: var(--luma-office-accent);
+}.lumaOfficeScheduleComposer .lumaOfficeScheduleForm {
+  display: grid;
+  gap: 12px;
+  padding: 16px 18px 18px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}.lumaOfficeScheduleFeedbackToast {
+  position: absolute;
+  z-index: 9;
+  top: clamp(126px, 9.4vw, 154px);
+  right: clamp(22px, 1.8vw, 34px);
+  max-width: min(420px, calc(100% - 44px));
+  margin: 0;
+  padding: 11px 14px;
+  border: 1px solid color-mix(in srgb, var(--dsw-alias-state-success-primary, #228a54) 22%, transparent);
+  border-radius: var(--luma-office-radius-sm);
+  background: var(--dsw-alias-state-success-tertiary, #e6faed);
+  color: var(--dsw-alias-state-success-primary, #228a54);
+  font-size: 12px;
+  box-shadow: 0 10px 26px rgb(21 25 37 / 12%);
+}.lumaOfficeRightClose {
+  position: absolute;
+  z-index: 6;
+  top: clamp(140px, 10.2vw, 166px);
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(44px, 3.2vw, 58px);
+  height: clamp(58px, 4.4vw, 76px);
+  padding: 0;
+  border: 1px solid var(--luma-office-border);
+  border-right: 0;
+  border-radius: var(--luma-office-radius-lg) 0 0 var(--luma-office-radius-lg);
+  background: var(--luma-office-panel);
+  color: var(--luma-office-muted);
+  cursor: pointer;
+  box-shadow: 0 5px 16px rgb(44 48 58 / 7%);
+  transition: right 220ms cubic-bezier(0.2, 0.72, 0.2, 1), background-color 160ms ease, color 160ms ease;
+}.lumaOfficeRightClose[data-open='true'] {
+  right: var(--luma-office-drawer-width);
+}.lumaOfficeRightClose[data-open='true'] svg {
+  transform: rotate(180deg);
+}.lumaOfficeRightClose svg + svg,
+
+.lumaOfficeRightClose:hover {
+  background: var(--luma-office-hover);
+  color: var(--luma-office-accent);
+}.lumaOfficeEmployeeDrawer {
+  position: absolute;
+  z-index: 7;
+  top: clamp(126px, 9.2vw, 152px);
+  right: 0;
+  bottom: 16px;
+  display: flex;
+  width: var(--luma-office-drawer-width);
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--luma-office-border);
+  border-right: 0;
+  border-radius: 24px 0 0 24px;
+  background: color-mix(in srgb, var(--luma-office-panel) 97%, transparent);
+  color: var(--luma-office-text);
+  box-shadow: -18px 0 42px rgb(21 25 37 / 16%);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(calc(100% + 12px));
+  transition: opacity 180ms ease, transform 220ms cubic-bezier(0.2, 0.72, 0.2, 1), visibility 220ms;
+  visibility: hidden;
+  backdrop-filter: blur(24px) saturate(1.08);
+}.lumaOfficeEmployeeDrawer.isOpen {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
+  visibility: visible;
+}.lumaOfficeEmployeeList {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  overflow-y: auto;
+}.lumaOfficeTeamMemberCard {
+  border-radius: var(--luma-office-radius-md);
+  background: color-mix(in srgb, var(--luma-office-panel-raised) 78%, transparent);
+}.lumaOfficeTeamMemberCard > .lumaOfficeTeamMember {
+  background: transparent;
+}.lumaOfficeDesktopPetControls {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 8px;
+  padding: 8px 12px 12px;
+  color: var(--luma-office-muted);
+  font-size: 11px;
+}.lumaOfficeDesktopPetControls[hidden] {
+  display: none;
+}.lumaOfficeDesktopPetStatus[data-dispatched='true'] {
+  color: var(--luma-office-accent);
+}.lumaOfficeDesktopPetActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+}.lumaOfficeDesktopPetActions button,
+.lumaOfficePetSettingsNotice button {
+  min-height: 32px;
+  padding: 5px 10px;
+  border: 1px solid var(--luma-office-border);
+  border-radius: 9px;
+  color: var(--luma-office-accent);
+  background: var(--luma-office-active);
+  font: inherit;
+  cursor: pointer;
+}.lumaOfficeDesktopPetActions button:disabled,
+.lumaOfficeDesktopPetActions input:disabled {
+  opacity: 0.5;
+  cursor: default;
+}.lumaOfficeDesktopPetActions button:focus-visible,
+.lumaOfficeDesktopPetActions input:focus-visible,
+.lumaOfficePetSettingsNotice button:focus-visible {
+  outline: 2px solid var(--luma-office-focus-ring);
+  outline-offset: 2px;
+}.lumaOfficeDesktopPetActions label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}.lumaOfficeDesktopPetActions input {
+  accent-color: var(--luma-office-accent);
+}.lumaOfficePetSettingsNotice {
+  margin: 4px 16px 0;
+  color: var(--luma-office-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}.lumaOfficePetSettingsNotice button {
+  margin-left: 8px;
+}.lumaOfficeCharacterCatalogSummary > .lumaOfficeDesktopPetControls {
+  border-top: 1px solid var(--luma-office-border);
+  padding: 8px 0 0;
+}.lumaOfficeScheduleForm {
+  display: none;
+  padding: 16px;
+  border: 1px solid var(--luma-office-border);
+  border-radius: var(--luma-office-radius-md);
+  background: var(--luma-office-panel-raised);
+}.lumaOfficeScheduleForm.isOpen {
+  display: grid;
+  gap: 16px;
+}.lumaOfficeScheduleForm label,
+.lumaOfficeScheduleForm fieldset {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+}.lumaOfficeScheduleForm label > span,
+.lumaOfficeScheduleForm legend {
+  color: var(--luma-office-muted);
+  font-size: 10px;
+  font-weight: 650;
+}.lumaOfficeScheduleForm input,
+.lumaOfficeScheduleForm select,
+.lumaOfficeScheduleForm textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--luma-office-border);
+  border-radius: var(--luma-office-radius-sm);
+  outline: 0;
+  background: var(--luma-office-panel);
+  color: var(--luma-office-text);
+  font: inherit;
+  font-size: 11px;
+}.lumaOfficeScheduleForm input:focus-visible,
+.lumaOfficeScheduleForm select:focus-visible,
+.lumaOfficeScheduleForm textarea:focus-visible {
+  border-color: var(--luma-office-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--luma-office-accent) 20%, transparent);
+}.lumaOfficeScheduleForm textarea {
+  min-height: 88px;
+  resize: vertical;
+}.lumaOfficeScheduleFormRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}.lumaOfficeScheduleForm fieldset {
+  min-inline-size: 0;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+  border: 0;
+  margin: 0;
+}.lumaOfficeScheduleForm fieldset legend {
+  float: left;
+  min-width: 34px;
+}.lumaOfficeScheduleForm fieldset label {
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+  min-height: 44px;
+  padding-inline: 4px;
+  color: var(--luma-office-text);
+  font-size: 11px;
+}.lumaOfficeScheduleForm fieldset input {
+  width: 14px;
+  min-height: 14px;
+  padding: 0;
+  accent-color: var(--luma-office-accent);
+}.lumaOfficeScheduleFormActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}.lumaOfficeScheduleFormActions button {
+  appearance: none;
+  min-width: 72px;
+  height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--luma-office-radius-sm);
+  background: var(--luma-office-panel);
+  color: var(--luma-office-muted);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 650;
+  cursor: pointer;
+}.lumaOfficeScheduleFormActions button[type='submit'] {
+  background: var(--luma-office-accent);
+  color: var(--dsw-alias-label-primary-foreground, #ffffff);
+}.lumaOfficeScheduleFormActions button:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}.lumaOfficeScheduleFeedback {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: var(--luma-office-radius-sm);
+  font-size: 10px;
+  line-height: 1.4;
+}.lumaOfficeScheduleFeedback.isSuccess {
+  background: var(--dsw-alias-state-success-tertiary, #e6faed);
+  color: var(--dsw-alias-state-success-primary, #228a54);
+}.lumaOfficeScheduleFeedback.isError {
+  background: color-mix(in srgb, var(--dsw-alias-state-error-primary, #d33) 12%, var(--luma-office-panel));
+  color: var(--dsw-alias-state-error-primary, #c33);
+}.lumaOfficeEmployeeDrawerFooter {
+  position: relative;
+  flex: none;
+  padding: 16px;
+  border-top: 1px solid var(--luma-office-border);
+}.lumaOfficeAddEmployeeButton {
+  display: inline-flex;
+  width: 100%;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border-radius: var(--luma-office-radius-md);
+  background: var(--luma-office-active);
+  color: var(--luma-office-accent);
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
+}.lumaOfficeAddEmployeeButton:hover,
+.lumaOfficeAddEmployeeButton:focus-visible {
+  background: var(--luma-office-hover);
+}.lumaOfficeAddEmployeePanel {
+  position: absolute;
+  right: 16px;
+  bottom: calc(100% + 8px);
+  left: 16px;
+  max-height: min(380px, 48vh);
+  padding: 16px;
+  overflow-y: auto;
+  border: 1px solid var(--luma-office-border);
+  border-radius: var(--luma-office-radius-md);
+  background: var(--luma-office-panel);
+  box-shadow: 0 14px 36px rgb(20 23 34 / 20%);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition: opacity 160ms ease, transform 160ms ease, visibility 160ms;
+  visibility: hidden;
+}.lumaOfficeAddEmployeePanel.isOpen {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+  visibility: visible;
+}.lumaOfficeAddEmployeePanelHeading {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 3px 4px 10px;
+}.lumaOfficeAddEmployeePanelHeading strong {
+  font-size: 14px;
+}.lumaOfficeAddEmployeePanelHeading span,
+.lumaOfficeCatalogEmpty {
+  color: var(--luma-office-muted);
+  font-size: 11px;
+  line-height: 1.4;
+}.lumaOfficeCatalogEmployee {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 54px;
+  padding: 7px 8px;
+  border-radius: var(--luma-office-radius-md);
+  background: var(--luma-office-panel-raised);
+}.lumaOfficeCatalogEmployee + .lumaOfficeCatalogEmployee {
+  margin-top: 8px;
+}.lumaOfficeCatalogEmployee strong {
+  overflow: hidden;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}.lumaOfficeCatalogEmployee button {
+  min-width: 56px;
+  height: 44px;
+  padding: 0 12px;
+  border-radius: var(--luma-office-radius-sm);
+  background: var(--luma-office-active);
+  color: var(--luma-office-accent);
+  font-size: 11px;
+  font-weight: 650;
+  cursor: pointer;
+}.lumaOfficeCatalogEmployee button:disabled {
+  color: var(--luma-office-caption);
+  cursor: default;
+  opacity: 0.72;
+}.lumaOfficeCatalogEmpty {
+  margin: 10px 4px 2px;
+}.lumaOfficeEmployeeStatus {
+  position: absolute;
+  z-index: 5;
+  left: clamp(26px, 2.1vw, 42px);
+  bottom: clamp(28px, 2.1vw, 42px);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: clamp(236px, 15vw, 304px);
+  min-height: 82px;
+  padding: 16px 24px;
+  border: 1px solid color-mix(in srgb, var(--luma-office-border) 88%, transparent);
+  border-radius: var(--luma-office-radius-md);
+  background: color-mix(in srgb, var(--luma-office-panel) 94%, transparent);
+  color: var(--luma-office-text);
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgb(78 67 51 / 10%);
+  backdrop-filter: blur(12px);
+}.lumaOfficeTeamStatus {
+  position: absolute;
+  z-index: 5;
+  left: clamp(26px, 2.1vw, 42px);
+  bottom: clamp(28px, 2.1vw, 42px);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: clamp(244px, 17vw, 326px);
+  max-height: min(37vh, 310px);
+  padding: 8px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border: 1px solid color-mix(in srgb, var(--luma-office-border) 88%, transparent);
+  border-radius: var(--luma-office-radius-lg);
+  background: color-mix(in srgb, var(--luma-office-panel) 90%, transparent);
+  box-shadow: 0 12px 34px rgb(78 67 51 / 11%);
+  scrollbar-color: rgb(115 121 139 / 24%) transparent;
+  scrollbar-width: thin;
+  backdrop-filter: blur(15px) saturate(1.08);
+}.lumaOfficeTeamMember {
+  position: relative;
+  display: grid;
+  grid-template-columns: 50px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 68px;
+  padding: 8px 12px;
+  border-radius: var(--luma-office-radius-md);
+  background: color-mix(in srgb, var(--luma-office-panel-raised) 78%, transparent);
+  color: var(--luma-office-text);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}.lumaOfficeTeamMember:hover,
+.lumaOfficeTeamMember:focus-visible {
+  background: var(--luma-office-panel);
+  box-shadow: 0 6px 17px rgb(58 62 75 / 11%);
+  transform: translateY(-1px);
+}.lumaOfficeTeamMember:focus-visible {
+  outline: 3px solid var(--luma-office-focus-ring);
+  outline-offset: 2px;
+}.lumaOfficeTeamMember.isWorking {
+  background: color-mix(in srgb, var(--dsw-alias-state-success-tertiary, #e6faed) 72%, var(--luma-office-panel));
+  box-shadow: inset 3px 0 var(--dsw-alias-state-success-primary, #35bd79);
+}.lumaOfficeTeamMember.isWorking:hover,
+.lumaOfficeTeamMember.isWorking:focus-visible {
+  background: var(--luma-office-panel);
+  box-shadow: inset 3px 0 var(--dsw-alias-state-success-primary, #35bd79), 0 6px 17px rgb(58 62 75 / 11%);
+}.lumaOfficeEmployeeAvatar {
+  position: relative;
+  display: inline-flex;
+  width: 48px;
+  height: 48px;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  border: 2px solid color-mix(in srgb, var(--luma-office-panel) 82%, transparent);
+  border-radius: 999px;
+  background: var(--luma-office-panel-raised);
+  color: var(--luma-office-muted);
+  box-shadow: 0 4px 11px rgb(28 33 45 / 12%);
+}.lumaOfficeEmployeeAvatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+  object-position: center 20%;
+}.lumaOfficeEmployeePresence {
+  position: absolute;
+  right: -1px;
+  bottom: 0;
+  display: inline-flex;
+  border: 2px solid var(--luma-office-panel);
+  border-radius: 999px;
+}.lumaOfficeTeamMember > span:last-child,
+.lumaOfficeTeamMember > div:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}.lumaOfficeTeamMember strong {
+  overflow: hidden;
+  font-size: clamp(14px, 0.94vw, 17px);
+  font-weight: 700;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}.lumaOfficeTeamMember small {
+  overflow: hidden;
+  color: var(--luma-office-muted);
+  font-size: clamp(11px, 0.72vw, 14px);
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}.lumaOfficePersistenceHint {
+  position: absolute;
+  z-index: 6;
+  right: clamp(22px, 1.8vw, 34px);
+  bottom: clamp(24px, 1.9vw, 38px);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: min(430px, 42vw);
+  min-height: 40px;
+  padding: 8px 16px;
+  border: 1px solid color-mix(in srgb, var(--luma-office-border) 88%, transparent);
+  border-radius: var(--luma-office-radius-sm);
+  background: color-mix(in srgb, var(--luma-office-panel) 90%, transparent);
+  color: var(--luma-office-muted);
+  font-size: 12px;
+  line-height: 1.35;
+  box-shadow: 0 7px 22px rgb(57 63 75 / 9%);
+  backdrop-filter: blur(12px);
+  pointer-events: none;
+  user-select: none;
+}.lumaOfficePersistenceHint::before {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #45b97a;
+  content: "";
+}.lumaOfficePersistenceHint.isWarning {
+  border-color: rgb(205 143 56 / 22%);
+  background: rgb(255 249 235 / 94%);
+  color: #856535;
+}.lumaOfficePersistenceHint.isWarning::before {
+  background: #e2a33f;
+}.lumaOfficeEmployeeStatus:hover {
+  background: var(--luma-office-panel);
+  box-shadow: 0 12px 34px rgb(78 67 51 / 15%);
+}.lumaOfficeEmployeeStatus > span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}.lumaOfficeEmployeeStatus strong {
+  font-size: clamp(16px, 1.05vw, 21px);
+  font-weight: 700;
+  line-height: 1.2;
+}.lumaOfficeEmployeeStatus small {
+  overflow: hidden;
+  color: var(--luma-office-muted);
+  font-size: clamp(12px, 0.82vw, 16px);
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}.lumaOfficeSceneMode {
+  position: absolute;
+  z-index: 4;
+  right: 25px;
+  bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: rgb(80 82 88 / 48%);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  pointer-events: none;
+}.lumaOfficeLauncher {
+  position: absolute;
+  z-index: 5;
+  top: 18px;
+  left: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  padding: 0 17px;
+  border: 1px solid var(--dsw-alias-border-l2, #e2e5ea);
+  border-radius: var(--luma-office-radius-sm);
+  background: var(--dsw-alias-button-floating-fill, #ffffff);
+  color: var(--dsw-alias-label-primary, #242832);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 7px 20px rgb(19 26 43 / 12%);
+}.lumaOfficeLauncher:hover {
+  background: var(--dsw-alias-button-floating-hover, #f5f6fa);
+}@media (max-width: 980px) {.lumaOfficeExperience {
+    --luma-office-rail-width: 72px;
+  }.lumaOfficeRail {
+    padding-inline: 8px;
+  }.lumaOfficeBrand {
+    width: 100%;
+  }.lumaOfficeBrandMark {
+    width: 40px;
+    height: 40px;
+  }.lumaOfficeRailToggle,
+  .lumaOfficeNavButton,
+  .lumaOfficeSettingsButton {
+    width: 44px;
+    height: 44px;
+  }.lumaOfficeTeamStatus {
+    left: 18px;
+    bottom: 18px;
+    width: min(286px, calc(100% - 36px));
+  }.lumaOfficePersistenceHint {
+    right: 18px;
+    bottom: 18px;
+    max-width: min(360px, 48vw);
+  }}@media (max-height: 720px) {.lumaOfficePrimaryNav {
+    gap: 4px;
+    margin-top: 14px;
+  }.lumaOfficeHeader p {
+    margin-top: 6px;
+  }.lumaOfficeSecondaryNav {
+    gap: 3px;
+    margin-block: 4px;
+    padding-top: 7px;
+  }.lumaOfficeTeamStatus {
+    max-height: 190px;
+  }}@media (max-width: 720px) {.isLeftDrawerOpen .lumaOfficeMoreMenu {
+    right: 12px;
+    left: auto;
+    width: min(330px, calc(100% - 24px));
+  }.lumaOfficeTeamStatus {
+    right: 14px;
+    left: 14px;
+    bottom: 14px;
+    width: auto;
+    max-height: 148px;
+  }.lumaOfficePersistenceHint {
+    right: 14px;
+    bottom: 176px;
+    max-width: calc(100% - 28px);
+  }}@media (prefers-reduced-motion: reduce) {.lumaOfficeExperience, .lumaOfficeRailToggle, .lumaOfficeNavButton, .lumaOfficeSettingsButton, .lumaOfficeHeaderScheduleButton, .lumaOfficeScheduleComposer, .lumaOfficeScheduleComposerHeader button, .lumaOfficeRightClose, .lumaOfficeEmployeeDrawer, .lumaOfficeAddEmployeePanel, .lumaOfficeCatalogEmployee button, .lumaOfficeReportStack, .lumaOfficeTeamMember, .lumaOfficeEmployee {
+    transition: none;
+  }.lumaOfficeScheduleComposer {
+    animation: none;
+  }.lumaOfficeMonitorScreen[data-monitor-state='working'] [data-screen-part='editor-cursor'] {
+    animation: none;
+  }.lumaOfficeEmployeeSprite {
+    animation: none !important;
+  }.lumaOfficeSceneScroller {
+    scroll-behavior: auto;
+  }}
+
+/* Account-aware welcome and rejected locked-role choices; real tasks remain visible. */
+.lumaOnboardingAccessNotice { position: absolute; right: 24px; top: 18px; z-index: 30; max-width: min(460px, calc(100% - 36px)); padding: 12px 14px; border: 1px solid var(--luma-office-border); border-radius: 12px; background: var(--luma-office-panel); color: var(--luma-office-text); font-size: 12px; box-shadow: 0 8px 32px #0001; }
+.lumaOnboardingAccessNotice button { margin-left: 10px; border: 0; background: transparent; color: var(--luma-office-accent); cursor: pointer; }
+.lumaOnboardingOfficeEmpty { position: absolute; top: 24px; left: 50%; transform: translateX(-50%); z-index: 8; width: min(420px, calc(100% - 40px)); padding: 22px; border: 1px solid var(--luma-office-border); border-radius: 18px; background: var(--luma-office-panel); color: var(--luma-office-text); box-shadow: 0 8px 32px #0001; text-align: center; }
+.lumaOnboardingOfficeEmpty strong { font-size: 15px; }
+.lumaOnboardingOfficeEmpty p { font-size: 12px; line-height: 1.8; color: var(--luma-office-muted); }
+.lumaOnboardingOfficeEmpty button { min-height: 36px; padding: 8px 15px; border: 0; border-radius: 10px; background: var(--luma-office-accent); color: white; font: inherit; font-size: 12px; cursor: pointer; }

@@ -1,0 +1,34 @@
+{
+  "name": "@luma/dsh-plugin",
+  "version": "0.4.3",
+  "description": "Luma 星伴办公室 · 与八位虚拟员工一起工作，参观卧室，管理任务、记忆与收藏。",
+  "private": true,
+  "type": "module",
+  "main": "./native-desktop/server.mjs",
+  "exports": {
+    ".": "./native-desktop/server.mjs",
+    "./client": "./native-desktop/client.mjs",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": { "patch": "./cordis.patch.yml", "platforms": ["win32"] },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-layout",
+        "@deepseek-ai/dsh-client-ui-sidebar",
+        "@deepseek-ai/dsh-client-ui-session",
+        "@deepseek-ai/dsh-client-ui-workspace",
+        "@deepseek-ai/dsh-client-ui-conversation",
+        "@deepseek-ai/dsh-client-ui-agent-preset",
+        "@deepseek-ai/dsh-client-ui-settings"
+      ]
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-home-paths": "0.2.2-rc.1"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/dsh-home-paths": { "optional": true }
+  }
+}

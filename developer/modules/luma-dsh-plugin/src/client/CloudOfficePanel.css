@@ -1,0 +1,26 @@
+.lumaCloudDialog {
+  box-sizing: border-box;
+  width: min(480px, 94vw);
+  max-height: 87vh;
+  overflow: auto;
+  padding: 24px;
+  color: #303c37;
+  background: #fbfaf6;
+  border: 1px solid #c8d3c8;
+  border-radius: 16px;
+  box-shadow: 0 20px 80px #18291f40;
+  font: 14px/1.5 "Segoe UI", "Microsoft YaHei", sans-serif;
+}
+.lumaCloudDialog::backdrop { background: #1b2b274d; }
+.lumaCloudDialog > header { display: flex; justify-content: space-between; align-items: center; }
+.lumaCloudDialog h2 { margin: 0; font-size: 19px; }
+.lumaCloudDialog p, .lumaCloudConnection p { font-size: 12px; line-height: 1.75; overflow-wrap: anywhere; }
+.lumaCloudDialog label, .lumaCloudConnection label { display: grid; gap: 4px; margin: 12px 0; font-size: 13px; }
+.lumaCloudDialog input, .lumaCloudDialog textarea, .lumaCloudDialog select, .lumaCloudConnection input {
+  box-sizing: border-box; width: 100%; padding: 8px; border: 1px solid #cbd3c9; border-radius: 6px; background: white; color: #303c37; font: inherit;
+}
+.lumaCloudActions { display: flex; gap: 7px; flex-wrap: wrap; }
+.lumaCloudDialog ul { list-style: none; padding: 0; }
+.lumaCloudDialog li { display: grid; gap: 4px; justify-items: start; padding: 10px 0; border-top: 1px solid #dde2d9; }
+.lumaCloudDialog strong { overflow-wrap: anywhere; }
+.lumaCloudDialog small { color: #526454; }

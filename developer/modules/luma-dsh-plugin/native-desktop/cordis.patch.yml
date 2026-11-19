@@ -1,0 +1,3 @@
+- insert:
+    - id: luma-dsh-plugin
+      name: '@luma/dsh-plugin'

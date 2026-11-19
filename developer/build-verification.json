@@ -1,0 +1,16 @@
+{
+  "version": "0.4.3",
+  "verifiedLocalDate": "2026-11-20",
+  "platform": "Windows x64",
+  "node": "24.19.0",
+  "method": "New Git checkout outside the development workspace; npm ci from lockfile, compile client and server, restore verified public assets from release ZIP, run native tests and SHA-256 compare every assembled package file to the ZIP.",
+  "referenceZipSha256": "e949d369a89da2bf6ce01c2eabef4b8a3a95ced38db5ab625ea90c2bb0549c81",
+  "matchingFiles": 1777,
+  "matchingPublicAssets": 1753,
+  "nativeTestsPassed": 7,
+  "sha256": {
+    "cordis.patch.yml": "b7a092c816b56d835684448dc6843bc416f30636e458213153c4ff125c8de721",
+    "native-desktop/client.mjs": "308c55dd5bde41e977ab413eab111ba83a98f0bee0053fd6239ee265d6a81bdd",
+    "native-desktop/server.mjs": "e07b73c38641597b65f329a460ceef596cf256f32e9563d21594e8d1578144d0"
+  }
+}

@@ -1,0 +1,15 @@
+.lumaPouchArtwork,
+.lumaPouchArtworkBody,
+.lumaPouchArtworkFlight,
+.lumaPouchArtworkCap { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.lumaPouchArtwork img { display: block; width: 100%; height: 100%; object-fit: contain; user-select: none; }
+.lumaPouchArtworkCap { display: block; overflow: visible; }
+.lumaPouchArtworkFlight { transform-origin: var(--pouch-flight-origin); }
+.lumaPouchArtwork[data-phase=tearing] .lumaPouchArtworkFlight { animation: lumaPouchSealRelease 340ms cubic-bezier(.2,.5,.65,1) both; }
+.lumaPouchArtwork[data-phase=tearing] .lumaPouchArtworkFlight[data-automatic=true] { animation-duration: 250ms; animation-delay: 270ms; }
+@keyframes lumaPouchSealRelease {
+  from { transform: translate(0,0) rotate(0); opacity: 1; }
+  to { transform: translate(var(--pouch-flight-x),var(--pouch-flight-y)) rotate(var(--pouch-flight-angle)); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .lumaPouchArtwork *, .lumaPouchArtwork { animation: none !important; transition: none !important; } }
+

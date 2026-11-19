@@ -1,0 +1,153 @@
+.lumaCardLibrary, .lumaCardLibrary * { box-sizing: border-box; }
+.lumaCardLibraryRarity { display: inline-flex; align-items: center; padding: 2px 7px; border-radius: 5px; font-size: 10px; font-weight: 650; letter-spacing: .03em; color: #797f89; background: #797f8912; }
+.lumaCardLibraryRarity[data-rarity=R] { color: #327fbd; background: #327fbd14; }
+.lumaCardLibraryRarity[data-rarity=SR] { color: #9861ca; background: #9861ca14; }
+.lumaCardLibraryRarity[data-rarity=SSR] { color: #ae862e; background: #ae862e16; }
+.lumaCardLibrary {
+  --cl-bg: var(--dsw-alias-bg-base, #f7f7f6);
+  --cl-panel: var(--dsw-alias-bg-layer-1, #fff);
+  --cl-text: var(--dsw-alias-label-primary, #26262b);
+  --cl-muted: var(--dsw-alias-label-secondary, #72727d);
+  --cl-line: var(--dsw-alias-border-l2, #e4e3e8);
+  --cl-accent: var(--dsw-alias-state-business-primary, #746184);
+  --cl-soft: color-mix(in srgb, var(--cl-accent) 7%, var(--cl-panel));
+  position: absolute; inset: 0; overflow: auto; overscroll-behavior: contain;
+  scrollbar-gutter: stable; color: var(--cl-text); background: var(--cl-bg);
+  font: 14px/1.6 Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+}
+body[data-ds-dark-theme] .lumaCardLibrary {
+  --cl-bg: var(--dsw-alias-bg-base, #15151a);
+  --cl-panel: var(--dsw-alias-bg-layer-1, #1d1d24);
+  --cl-text: var(--dsw-alias-label-primary, #eeeaf2);
+  --cl-muted: var(--dsw-alias-label-secondary, #a5a0ac);
+  --cl-line: var(--dsw-alias-border-l2, #35323d);
+  --cl-accent: var(--dsw-alias-state-business-primary, #c6aedc);
+}
+.lumaCardLibrary button, .lumaCardLibrary input, .lumaCardLibrary select, .lumaCardLibrary textarea { font: inherit; }
+.lumaCardLibrary button { cursor: pointer; color: inherit; }
+.lumaCardLibrary button:disabled { cursor: default; opacity: .45; }
+.lumaCardLibrary :is(button, a, input, select, textarea):focus-visible { outline: 2px solid var(--cl-accent); outline-offset: 4px; }
+.lumaCardLibrary [hidden] { display: none !important; }
+.lumaCardLibrary button { touch-action: manipulation; }
+.lumaCardLibraryContent { max-width: 1800px; margin: auto; padding: 30px clamp(22px, 4vw, 64px) 64px; }
+.lumaCardLibraryTop { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 32px; }
+.lumaCardLibraryQuiet { border: 0; background: none; padding: 7px 0; color: var(--cl-muted) !important; border-radius: 4px; font-size: 12px !important; }
+.lumaCardLibraryQuiet:hover { color: var(--cl-text) !important; }
+.lumaCardLibraryWordmark { color: var(--cl-muted); font-size: 10px; font-weight: 600; letter-spacing: .18em; }
+.lumaCardLibraryHeading { display: flex; align-items: end; justify-content: space-between; gap: 22px; margin: 0 0 30px; }
+.lumaCardLibraryHeading h1 { font-size: clamp(26px, 2.4vw, 34px); line-height: 1.25; font-weight: 550; letter-spacing: -.025em; margin: 0 0 9px; }
+.lumaCardLibraryHeading p { color: var(--cl-muted); margin: 0; font-size: 12px; }
+.lumaCardLibraryStats { display: flex; gap: 26px; flex: none; }
+.lumaCardLibraryStats div { display: flex; align-items: baseline; gap: 7px; }
+.lumaCardLibraryStats strong { font-size: 27px; font-weight: 450; font-variant-numeric: tabular-nums; line-height: 1; }
+.lumaCardLibraryStats span { font-size: 11px; color: var(--cl-muted); }
+.lumaCardLibraryTabs { display: flex; align-items: center; gap: 27px; border-bottom: 1px solid var(--cl-line); margin-bottom: 24px; overflow-x: auto; }
+.lumaCardLibraryTabs button { flex: none; position: relative; border: 0; border-radius: 0; background: none; padding: 0 0 13px; color: var(--cl-muted); font-size: 13px; }
+.lumaCardLibraryTabs button[aria-pressed=true] { color: var(--cl-text); }
+.lumaCardLibraryTabs button[aria-pressed=true]::after { content: ''; position: absolute; height: 2px; background: var(--cl-accent); left: 0; right: 0; bottom: 0; }
+.lumaCardLibraryTabs small { margin-left: 7px; font-size: 10px; opacity: .75; font-variant-numeric: tabular-nums; }
+.lumaCardLibraryToolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 30px; }
+.lumaCardLibrarySearch { position: relative; display: block; flex: 1 1 240px; max-width: 430px; }
+.lumaCardLibrarySearch svg { position: absolute; left: 12px; top: 12px; color: var(--cl-muted); width: 16px; height: 16px; pointer-events: none; }
+.lumaCardLibrarySearch input { padding-left: 37px !important; width: 100%; }
+.lumaCardLibrary :is(input:not([type=checkbox]), select, textarea) { color: var(--cl-text); border: 1px solid var(--cl-line); border-radius: 7px; background: var(--cl-panel); min-width: 0; padding: 9px 11px; font-size: 12px; }
+.lumaCardLibrary :is(input, textarea)::placeholder { color: var(--cl-muted); opacity: .8; }
+.lumaCardLibraryToolbar select { height: 40px; max-width: 180px; }
+.lumaCardLibraryResultCount { margin-left: auto; font-size: 11px; color: var(--cl-muted); white-space: nowrap; }
+.lumaCardLibraryGroup + .lumaCardLibraryGroup { margin-top: 42px; padding-top: 28px; border-top: 1px solid var(--cl-line); }
+.lumaCardLibraryGroupHeading { display: flex; align-items: baseline; gap: 10px; margin: 0 0 20px; }
+.lumaCardLibraryGroupHeading h2 { margin: 0; font-size: 15px; font-weight: 550; }
+.lumaCardLibraryGroupHeading span { font-size: 11px; color: var(--cl-muted); }
+.lumaCardLibraryGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(185px, 1fr)); gap: 30px 25px; align-items: start; }
+.lumaCardLibraryCard { min-width: 0; }
+.lumaCardLibraryCard.is-landscape { grid-column: span 2; }
+.lumaCardLibraryOpen { display: block; width: 100%; padding: 0; border: 0; background: transparent; border-radius: 9px; text-align: left; }
+.lumaCardLibraryImage { position: relative; display: grid; place-items: center; width: 100%; margin: 0; overflow: hidden; border-radius: 8px; background: var(--cl-soft); }
+.lumaCardLibraryImage img { display: block; width: 100%; height: 100%; object-fit: contain; border-radius: inherit; }
+.lumaCardLibraryOpen .lumaCardLibraryImage { box-shadow: 0 4px 12px rgb(0 0 0 / 9%); transition: box-shadow 160ms ease, transform 160ms ease; }
+.lumaCardLibraryOpen:hover .lumaCardLibraryImage { transform: translateY(-3px); box-shadow: 0 9px 25px rgb(0 0 0 / 15%); }
+.lumaCardLibraryImageError { padding: 35px 18px; color: var(--cl-muted); font-size: 12px; text-align: center; }
+.lumaCardLibraryCardCaption { display: flex; align-items: start; justify-content: space-between; gap: 8px; padding-top: 13px; }
+.lumaCardLibraryCardCaption h3 { margin: 0 0 4px; font-size: 13px; font-weight: 550; line-height: 1.5; }
+.lumaCardLibraryCardCaption p { margin: 0; color: var(--cl-muted); font-size: 11px; }
+.lumaCardLibraryHeart { border: 0; background: transparent; flex: none; padding: 2px 1px 3px 6px; color: var(--cl-muted) !important; line-height: 1; border-radius: 3px; }
+.lumaCardLibraryHeart svg { width: 20px; height: 20px; }
+.lumaCardLibraryHeart[aria-pressed=true] { color: var(--cl-accent) !important; }
+.lumaCardLibraryVersion { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; margin-top: 9px; font-size: 10px; line-height: 1.7; color: var(--cl-muted); }
+.lumaCardLibraryBadge { padding: 1px 6px; border: 1px solid color-mix(in srgb, var(--cl-accent) 40%, var(--cl-line)); border-radius: 4px; color: var(--cl-accent); }
+.lumaCardLibraryTinyStars { color: var(--cl-accent); font-size: 10px; letter-spacing: 1px; }
+.lumaCardLibraryStatus { min-height: 20px; color: var(--cl-muted); font-size: 11px; margin: -14px 0 20px; }
+.lumaCardLibraryStatus:empty { display: none; }
+.lumaCardLibraryStatus.is-error { color: var(--dsw-alias-state-warning-primary, #a66e32); }
+.lumaCardLibraryEmpty { display: grid; justify-items: center; padding: 76px 20px; color: var(--cl-muted); text-align: center; }
+.lumaCardLibraryEmpty h2 { color: var(--cl-text); font-size: 18px; font-weight: 500; margin: 0 0 10px; }
+.lumaCardLibraryEmpty p { margin: 0; font-size: 12px; max-width: 420px; }
+.lumaCardLibraryButton { padding: 8px 13px; font-size: 12px !important; border: 1px solid var(--cl-line); border-radius: 7px; background: var(--cl-panel); white-space: nowrap; }
+.lumaCardLibraryButton:hover:not(:disabled) { background: var(--cl-soft); border-color: color-mix(in srgb, var(--cl-accent) 50%, var(--cl-line)); }
+.lumaCardLibraryButton.is-primary { background: var(--cl-accent); color: var(--cl-bg); border-color: var(--cl-accent); }
+.lumaCardLibraryButton.is-primary:hover:not(:disabled) { background: var(--cl-accent); }
+.lumaCardLibraryAlbums { display: flex; gap: 22px; align-items: stretch; margin-bottom: 29px; flex-wrap: wrap; }
+.lumaCardLibraryAlbumList { display: flex; flex-wrap: wrap; gap: 10px; }
+.lumaCardLibraryAlbum { text-align: left; min-width: 150px; padding: 13px 17px; border: 1px solid var(--cl-line); border-radius: 9px; background: var(--cl-panel); }
+.lumaCardLibraryAlbum[aria-pressed=true] { border-color: var(--cl-accent); background: var(--cl-soft); }
+.lumaCardLibraryAlbum strong { display: block; font-size: 12px; font-weight: 500; max-width: 230px; overflow-wrap: anywhere; }
+.lumaCardLibraryAlbum span { display: block; color: var(--cl-muted); font-size: 10px; margin-top: 5px; }
+.lumaCardLibraryInlineForm { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; }
+.lumaCardLibraryInlineForm input { width: min(230px, 100%); }
+.lumaCardLibraryAlbumTools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 25px; }
+.lumaCardLibraryAlbumTools h2 { font-size: 17px; font-weight: 500; margin: 0 auto 0 0; overflow-wrap: anywhere; }
+.lumaCardLibraryNotice { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; border: 1px solid var(--cl-line); background: var(--cl-soft); border-radius: 9px; padding: 14px 16px; margin: 0 0 22px; font-size: 12px; }
+.lumaCardLibraryNotice p { flex: 1 1 240px; margin: 0; }
+.lumaCardLibraryDetail { outline: none; }
+.lumaCardLibraryDetailNav { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 0 0 20px; }
+.lumaCardLibraryPager { display: flex; align-items: center; gap: 16px; }
+.lumaCardLibraryPager span { font-size: 11px; color: var(--cl-muted); font-variant-numeric: tabular-nums; }
+.lumaCardLibraryPager button { border: 1px solid var(--cl-line); border-radius: 6px; background: transparent; padding: 2px 10px; font-size: 18px; }
+.lumaCardLibraryDetailLayout { display: grid; grid-template-columns: minmax(0, 1fr) 290px; gap: clamp(28px, 4vw, 64px); align-items: start; }
+.lumaCardLibraryArtStage { min-width: 0; }
+.lumaCardLibraryArtViewport { display: grid; place-items: center; min-height: 440px; padding: 24px; border: 1px solid var(--cl-line); border-radius: 12px; background: var(--cl-panel); }
+.lumaCardLibraryArtViewport .lumaCardLibraryImage { width: min(100%, calc((100vh - 320px) * var(--cl-aspect))); max-height: none; box-shadow: 0 6px 28px rgb(0 0 0 / 10%); }
+.lumaCardLibraryArtViewport.is-landscape { min-height: 420px; }
+.lumaCardLibraryArtViewport.is-landscape .lumaCardLibraryImage { width: 100%; }
+.lumaCardLibraryArtTools { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 11px; margin-top: 18px; }
+.lumaCardLibraryArtTools button[aria-pressed=true] { border-color: var(--cl-accent); color: var(--cl-accent); background: var(--cl-soft); }
+.lumaCardLibraryArtHint { color: var(--cl-muted); text-align: center; margin: 11px 0 0; font-size: 10px; }
+.lumaCardLibraryDetails { padding: 12px 0 0; min-width: 0; }
+.lumaCardLibrarySeries { margin: 0 0 12px; color: var(--cl-accent); font-size: 11px; }
+.lumaCardLibraryDetails h1 { font-size: 25px; font-weight: 500; letter-spacing: -.025em; line-height: 1.4; margin: 0 0 7px; overflow-wrap: anywhere; }
+.lumaCardLibraryDetails .lumaCardLibraryIdentity { color: var(--cl-muted); font-size: 12px; margin: 0 0 15px; }
+.lumaCardLibraryDetails label { display: block; font-size: 12px; margin: 20px 0 8px; }
+.lumaCardLibraryDetails select, .lumaCardLibraryDetails textarea { width: 100%; }
+.lumaCardLibraryDetails textarea { resize: vertical; min-height: 105px; max-height: 340px; line-height: 1.8; }
+.lumaCardLibraryDetailActions { display: flex; align-items: center; gap: 10px; padding-bottom: 20px; border-bottom: 1px solid var(--cl-line); margin-top: 19px; }
+.lumaCardLibraryRating { display: flex; align-items: center; gap: 4px; }
+.lumaCardLibraryRating button { border: 0; background: transparent; padding: 3px 2px; font-size: 27px; line-height: 1.2; color: var(--cl-muted); }
+.lumaCardLibraryRating button.is-filled { color: var(--cl-accent); }
+.lumaCardLibraryRating .lumaCardLibraryQuiet { font-size: 10px !important; margin-left: 10px; }
+.lumaCardLibraryNoteFooter { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; }
+.lumaCardLibraryNoteFooter span { font-size: 10px; color: var(--cl-muted); }
+.lumaCardLibraryMembership { border-top: 1px solid var(--cl-line); margin-top: 24px; padding-top: 19px; }
+.lumaCardLibraryMembership h2 { margin: 0 0 9px; font-size: 12px; font-weight: 500; }
+.lumaCardLibraryMembership label { display: flex; align-items: start; gap: 9px; font-size: 12px; margin: 10px 0; overflow-wrap: anywhere; }
+.lumaCardLibraryMembership input { accent-color: var(--cl-accent); margin-top: 3px; }
+.lumaCardLibraryMembership p { font-size: 11px; color: var(--cl-muted); }
+.lumaCardLibraryMembership .lumaCardLibraryInlineForm { margin-top: 14px; }
+.lumaCardLibraryMembership .lumaCardLibraryInlineForm input { width: 100%; flex: 1 1 120px; }
+.lumaCardLibrarySr { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+@media (min-width: 1650px) { .lumaCardLibraryGrid { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 34px; } .lumaCardLibraryDetailLayout { grid-template-columns: minmax(0, 1fr) 320px; } }
+@media (max-width: 900px) { .lumaCardLibraryContent { padding: 22px 24px 40px; } .lumaCardLibraryDetailLayout { grid-template-columns: minmax(0, 1fr) 250px; gap: 25px; } .lumaCardLibraryGrid { grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 25px 18px; } .lumaCardLibraryArtViewport { padding: 16px; min-height: 350px; } }
+@media (max-width: 680px) {
+  .lumaCardLibraryContent { padding: 20px 18px 36px; } .lumaCardLibraryTop { margin-bottom: 25px; }
+  .lumaCardLibraryHeading { align-items: start; gap: 14px; } .lumaCardLibraryStats { gap: 13px; flex-wrap: wrap; justify-content: end; } .lumaCardLibraryStats strong { font-size: 22px; }
+  .lumaCardLibraryHeading p { max-width: 220px; } .lumaCardLibraryTabs { gap: 22px; }
+  .lumaCardLibraryToolbar { gap: 10px; } .lumaCardLibrarySearch { max-width: none; flex-basis: 100%; } .lumaCardLibraryToolbar select { max-width: calc(50% - 5px); flex: 1 1 120px; }
+  .lumaCardLibraryGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 27px 15px; }
+  .lumaCardLibraryDetailLayout { grid-template-columns: minmax(0, 1fr); gap: 24px; } .lumaCardLibraryDetails { padding: 0 2px; }
+  .lumaCardLibraryArtViewport, .lumaCardLibraryArtViewport.is-landscape { min-height: 0; padding: 17px; }
+  .lumaCardLibraryArtViewport .lumaCardLibraryImage { width: min(100%, 330px); } .lumaCardLibraryArtViewport.is-landscape .lumaCardLibraryImage { width: 100%; }
+  .lumaCardLibraryGroup + .lumaCardLibraryGroup { margin-top: 30px; } .lumaCardLibraryDetails h1 { font-size: 24px; }
+}
+@media (prefers-reduced-motion: reduce) { .lumaCardLibrary *, .lumaCardLibrary *::before, .lumaCardLibrary *::after { scroll-behavior: auto !important; transition: none !important; } .lumaCardLibraryOpen:hover .lumaCardLibraryImage { transform: none; } }
+
+.lumaCardLibraryStoreLinks { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 16px; }
+@media (max-width: 620px) { .lumaCardLibraryTop { flex-wrap: wrap; } .lumaCardLibraryStoreLinks { gap: 10px; } }

@@ -1,0 +1,46 @@
+.lumaEmployeeTitle { display: flex; align-items: center; gap: 10px; min-width: 88px; }
+.lumaEmployeeTitle h2, .lumaEmployeeTitle span { overflow-wrap: anywhere; }
+.lumaEmployeeTitle .lumaMessageAvatar { width: 38px; height: 38px; }
+.lumaMessagesConversation { container: luma-conversation / inline-size; }
+@container luma-conversation (max-width: 38rem) {
+  .lumaMessageToolbar { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px 16px; }
+  .lumaEmployeeTitle { min-width: 0; }
+  .lumaEmployeeTitle > div { min-width: 0; }
+  .lumaEmployeeTitle h2 { margin-bottom: 2px; }
+  .lumaMessageTools { justify-content: flex-start; }
+}
+.lumaEmployeeGreeting { max-width: 440px; margin: clamp(20px,6vh,92px) auto 30px; text-align: center; }
+.lumaEmployeeGreeting .lumaMessageAvatar { width: 82px; height: 82px; border: 3px solid white; box-shadow: 0 4px 18px #284d3117; }
+.lumaEmployeeGreeting h3 { margin: 12px 0 5px; font-size: 20px; }
+.lumaEmployeeGreeting p { color: #657366; line-height: 1.8; font-size: 14px; white-space: pre-wrap; }
+.lumaDeskModes { display: flex; align-items: center; gap: 4px; margin-bottom: 9px; }
+.lumaDeskModes button { font-size: 12px; padding: 5px 12px; border-radius: 12px; }
+.lumaDeskModes button[aria-pressed="true"] { color: #244f46; border-color: #aec5b5; background: #e3eee6; }
+.lumaDeskTeam { display: flex; flex-wrap: wrap; gap: 5px 10px; margin: 0 0 8px; border: 1px solid #d6ded4; border-radius: 8px; min-width: 0; padding: 8px 10px; }
+.lumaDeskTeam legend { color: #567062; font-size: 11px; }.lumaDeskTeam b, .lumaDeskTeam label { font-size: 12px; }
+.lumaDeskTeam label { display: inline-flex; align-items: center; gap: 4px; }.lumaDeskTeam input { accent-color: #416b61; }
+.lumaTeamServices { flex: 1 0 100%; display: flex; align-items: center; flex-wrap: wrap; gap: 5px 8px; padding-top: 7px; border-top: 1px solid #d6ded4; }
+.lumaTeamServices > span { color: #526354; font-size: 12px; }
+.lumaTeamServices button { padding: 5px 9px; color: #31584d; }
+.lumaDeskJob { max-width: 820px; margin: 0 auto 18px; border: 1px solid #dedfd5; border-radius: 14px; background: #fff; overflow: hidden; }
+.lumaDeskJob > header { padding: 10px 16px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; background: #f0f3ec; font-size: 12px; }
+.lumaDeskJob > header time { color: #627367; }.lumaDeskJob > header span { margin-left: auto; color: #465f52; }
+.lumaDeskJob > header button { padding: 2px 7px; }.lumaDeskJob [data-status="failed"] { color: #97492f; }
+.lumaDeskJob .lumaDeskRequest { margin: 0; padding: 13px 16px; border-bottom: 1px solid #eceee5; }
+.lumaDeskJob p { font-size: 14px; line-height: 1.85; white-space: pre-wrap; overflow-wrap: anywhere; }
+.lumaDeskJob ol, .lumaAgentMemories { list-style: none; margin: 0; padding: 0; }
+.lumaDeskJob li { display: flex; gap: 10px; padding: 13px 16px; }.lumaDeskJob li + li { border-top: 1px solid #eceee5; }
+.lumaDeskJob li > div { min-width: 0; flex: 1; }.lumaDeskJob li header { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.lumaDeskJob li strong { font-size: 13px; }.lumaDeskJob li span:not(.lumaMessageAvatar), .lumaDeskJob li small { font-size: 11px; color: #617065; }
+.lumaDeskJob li p { margin: 7px 0 0; }.lumaDeskJob .lumaDeskError { color: #8a422d; margin: 4px 16px 14px; }
+.lumaDeskJob .lumaExportStep { font-size: 11px; margin-top: 6px; padding: 4px 8px; }
+.lumaAgentMemories li { margin: 10px 0; padding: 10px; border-radius: 8px; border: 1px solid #dbe3d6; background: #fff; }
+.lumaAgentMemories time { font-size: 10px; color: #627367; }.lumaAgentMemories li p { color: #394a3c; white-space: pre-wrap; overflow-wrap: anywhere; }
+.lumaMessageHistory.is-novel .lumaDeskJob .lumaMessageAvatar { display: none; }
+@container luma-panel (max-width: 650px) {
+ .lumaEmployeeTitle { align-items: center; gap: 6px; }.lumaEmployeeTitle .lumaMessageAvatar { display: none; }
+ .lumaEmployeeGreeting { margin: 18px auto; }.lumaEmployeeGreeting .lumaMessageAvatar { width: 64px; height: 64px; }
+ .lumaMessageComposer { max-height: 50%; overflow: auto; }.lumaDeskTeam { gap: 4px 8px; }.lumaDeskModes button { font-size: 11px; }
+ .lumaDeskJob li { padding: 10px; }.lumaDeskJob li .lumaMessageAvatar { width: 30px; height: 30px; }
+ .lumaRoleEditor { position: absolute; z-index: 5; inset: 0 0 0 auto; }
+}

@@ -1,0 +1,51 @@
+{
+  "name": "@luma/dsh-plugin",
+  "version": "0.4.3-web.1",
+  "private": true,
+  "description": "Luma: themed offices, character conversations, local card packs and albums for DSH",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "public",
+    "presets",
+    "cloud-office",
+    "cordis.patch.yml",
+    "THIRD_PARTY_NOTICES.md",
+    "README.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-layout",
+        "@deepseek-ai/dsh-client-ui-conversation",
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-ui-sidebar"
+      ]
+    }
+  },
+  "scripts": {
+    "dev:preview": "node scripts/preview.mjs",
+    "build": "node scripts/build.mjs",
+    "prepare:assets": "node scripts/prepare-assets.mjs",
+    "verify:viewer-assets": "node scripts/verify-viewer-assets.mjs",
+    "pack:verified": "node scripts/pack.mjs",
+    "test": "node --test test/host.test.mjs test/loading.test.mjs test/agent-work.test.mjs test/cloud-office.test.mjs && node ../../node_modules/vitest/vitest.mjs run --config vitest.config.mjs"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "4.0.1",
+    "@deepseek-ai/dsh-settings": "0.1.0-rc.8",
+    "@deepseek-ai/dsh-home-paths": "0.1.0-rc.8",
+    "@deepseek-ai/schemastery": "3.18.1"
+  }
+}

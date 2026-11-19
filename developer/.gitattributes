@@ -1,0 +1,17 @@
+*.ts text eol=lf
+*.tsx text eol=lf
+*.mjs text eol=lf
+*.css text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.md text eol=lf
+*.webp binary
+upstream/desktop-*/standard.patch.yml -text
+# These published source files have CRLF bytes. CSS identity and embedded
+# style literals include their original line endings.
+modules/luma-dsh-plugin/src/client/CollectionHub.css -text
+modules/luma-dsh-plugin/src/client/plugin.css -text
+modules/luma-dsh-plugin/src/client/PackCollectionPreview.tsx -text
+modules/luma-dsh-plugin/src/client/bedroom-art.generated.ts -text
+modules/luma-dsh-plugin/src/shared/preview-card-catalog.ts -text
+overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/workMotionAssetRecords.generated.ts -text

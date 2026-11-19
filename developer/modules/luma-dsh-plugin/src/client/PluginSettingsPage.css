@@ -1,0 +1,12 @@
+.lumaPluginSettings { max-width: 960px; margin: 0 auto; padding: clamp(18px, 4vw, 40px); line-height: 1.7; color: inherit; font-size: 14px; }
+.lumaPluginSettings h1 { font-size: 26px; margin: 0; }.lumaPluginSettings header > p { margin: 6px 0 24px; color: #747882; }
+.lumaPluginSettings section { margin: 20px 0; padding: 22px; border: 1px solid #9c846b38; background: #fff8; border-radius: 12px; }
+.lumaPluginSettings h2 { font-size: 18px; margin: 0 0 12px; }.lumaPluginSettings h3 { margin-top: 0; font-size: 16px; }
+.lumaPluginSettings p { overflow-wrap: anywhere; }.lumaPluginSettings label { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.lumaPluginSettings button,.lumaPluginSettings select { font: inherit; padding: 8px 12px; border: 1px solid #9c846b50; border-radius: 7px; background: #fff; color: inherit; }
+.lumaPluginSettings button { cursor: pointer; }.lumaPluginSettings :is(button,select,input):focus-visible { outline: 2px solid #a68459; outline-offset: 3px; }
+.lumaPluginSettings :disabled { opacity: .55; cursor: default; }.lumaPluginSettingsActions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.lumaPluginSettingsFile { padding: 8px 0; }.lumaPluginSettingsFile input { max-width: 100%; }.lumaPluginSettingsPreview { padding: 18px; border: 1px solid #a6845970; border-radius: 8px; }
+.lumaPluginSettingsPreview li { margin: 12px 0; }.lumaPluginSettingsPreview li > span { display: block; font-size: 12px; color: #747882; }
+.lumaPluginSettingsPreview details p { font-size: 12px; }.lumaPluginSettingsResult { background: #a6845912; padding: 12px 16px; border-radius: 8px; }
+@media(max-width:600px) { .lumaPluginSettings section { padding: 16px; }.lumaPluginSettingsPreview { padding: 12px; }.lumaPluginSettingsPreview ul { padding-left: 20px; } }

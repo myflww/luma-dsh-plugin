@@ -1,0 +1,21 @@
+{
+  "name": "luma-dsh-native-development",
+  "version": "0.4.3",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "node rebuild.mjs",
+    "test": "node --test modules/luma-dsh-plugin/native-desktop/*.test.mjs",
+    "release": "node release.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12",
+    "js-yaml": "4.3.1",
+    "lucide-react": "1.33.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  }
+}

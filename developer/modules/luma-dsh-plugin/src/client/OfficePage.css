@@ -1,0 +1,109 @@
+.lumaDshOffice { padding: clamp(16px, 3vw, 32px); max-width: 1500px; margin: 0 auto; color: inherit; }
+.lumaDshOfficeHeader { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 20px; }
+.lumaDshOfficeHeader h1 { margin: 0 0 6px; font-size: 24px; font-weight: 600; }
+.lumaDshOfficeHeader p, .lumaDshOfficeHint { margin: 0; color: var(--color-text-secondary, #807c73); font-size: 13px; line-height: 1.6; }
+.lumaDshOfficeHeader time { font-variant-numeric: tabular-nums; font-size: 20px; }
+.lumaDshOfficeRoom { position: relative; aspect-ratio: 1672 / 941; overflow: hidden; border-radius: 16px; border: 1px solid #9c846b33; background: #302a27; }
+.lumaDshOfficeHint { margin: 14px 0 20px; }
+.lumaDshOfficeNotice { padding: 10px 14px; border-radius: 8px; background: #aa803318; font-size: 13px; }
+.lumaDshOfficeRoster { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; padding: 0; list-style: none; }
+.lumaDshOfficeRoster button { display: flex; width: 100%; text-align: left; flex-direction: column; gap: 5px; padding: 14px; color: inherit; background: transparent; border: 1px solid #9c846b40; border-radius: 10px; cursor: pointer; }
+.lumaDshOfficeRoster button:hover { background: #9c846b10; }
+.lumaDshOfficeRoster button:focus-visible { outline: 2px solid #a68459; outline-offset: 2px; }
+.lumaDshOfficeRoster button:disabled { cursor: progress; opacity: .7; }
+.lumaDshOfficeRoster span { font-size: 12px; color: var(--color-text-secondary, #807c73); }
+.lumaDshOfficeAppearance { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; margin-bottom: 18px; font-size: 13px; }
+.lumaDshOfficeAppearance p { color: var(--color-text-secondary, #807c73); margin: 0; }
+.lumaDshOfficeThemeLabel { display: flex; align-items: center; gap: 12px; }
+.lumaDshOfficeAppearance select { color: inherit; background: var(--dsw-alias-bg-layer-1, #fff); border: 1px solid #9c846b55; border-radius: 7px; padding: 7px 10px; font: inherit; min-width: 150px; max-width: 100%; }
+.lumaDshOfficeAppearance select:focus-visible { outline: 2px solid #a68459; outline-offset: 2px; }
+.lumaDshOfficeAppearance select:disabled { opacity: .65; }
+.lumaBedroomToolbar { gap:8px 12px; }
+.lumaBedroomToolbar button {
+  border:1px solid #445a50; border-radius:7px; padding:8px 12px; font:inherit;
+  background:#445a50; color:#fff; cursor:pointer;
+}
+.lumaBedroomToolbar button:hover { background:#35483f; }
+.lumaBedroomToolbar button:focus-visible { outline:2px solid #99714c; outline-offset:3px; }
+.lumaDshOfficeOutfits { flex-basis: 100%; border-top: 1px solid #9c846b30; padding-top: 12px; }
+.lumaDshOfficeOutfits summary { cursor: pointer; width: fit-content; }
+.lumaDshOfficeOutfitGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; padding-top: 14px; }
+.lumaDshOfficeOutfitGrid label { display: flex; flex-direction: column; gap: 6px; }
+.lumaDshOfficeOutfitGrid small { color: var(--color-text-secondary, #807c73); font-size: 11px; }
+.lumaOfficeTools, .lumaRoomActions, .lumaOfficePanelTitle, .lumaOfficeMemberActions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.lumaOfficeTools { margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid #aa94783b; }
+.lumaOfficeTools button, .lumaRoomActions button, .lumaOfficePanel button, .lumaOfficePanel select {
+  font:inherit; font-size:13px; color:inherit; background:var(--dsw-alias-bg-layer-1,#fffdf8);
+  border:1px solid #a996805e; border-radius:8px; padding:7px 13px; cursor:pointer;
+}
+.lumaOfficeTools button[aria-pressed=true], .lumaOfficeTools button[aria-expanded=true] { color:#fff; background:#445a50; border-color:#445a50; }
+.lumaOfficePanel { padding:16px; margin:0 0 18px; border:1px solid #a996803d; border-radius:12px; }
+.lumaOfficePanelTitle { margin:0 0 14px; }
+.lumaOfficePanelTitle h2 { margin:0; font-size:17px; }
+.lumaOfficePanelTitle > button:last-child { margin-left:auto; }
+.lumaOfficePanelTitle > span, .lumaRoomActions > span, .lumaOfficeTeamGrid small { font-size:12px; color:var(--color-text-secondary,#716c62); }
+.lumaOfficeTeamGrid { list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr)); gap:10px; }
+.lumaOfficeTeamGrid li { display:grid; grid-template-columns:44px minmax(0,1fr); align-items:center; gap:8px 11px; border:1px solid #a9968033; padding:12px; border-radius:10px; }
+.lumaOfficeTeamGrid small, .lumaOfficeTeamGrid strong { display:block; }
+.lumaOfficeMemberActions { grid-column:1 / -1; }
+.lumaOfficeMemberActions button { padding:5px 11px; }
+.lumaOfficeWardrobeChoices { display:flex; gap:12px; }
+.lumaOfficeWardrobeChoices button { display:grid; grid-template-rows:auto auto auto; justify-items:center; gap:4px; flex:0 1 150px; padding:10px; }
+.lumaOfficeWardrobeChoices button[aria-pressed=true] { border-color:#647c6c; background:#6d8c7015; }
+.lumaOfficeWardrobeChoices button:disabled { cursor:default; }
+.lumaOfficeWardrobeChoices svg { display:block; width:100%; height:115px; }
+.lumaBedroomArt { position:relative; overflow:hidden; border-radius:14px; background:#464345; border:1px solid #a996803d; }
+.lumaBedroomArt>img, .lumaBedroomResidentLayer { width:100%; height:100%; display:block; position:absolute; inset:0; }
+.lumaBedroomResidentLayer { pointer-events:none; overflow:visible; }
+.lumaRoomActions { padding:12px 0; }
+.lumaRoomActions strong { margin-right:2px; }
+.lumaRoomActions span { margin-right:auto; }
+.lumaDshOffice {
+  box-sizing:border-box; container-type:inline-size; max-width:1600px;
+  padding:clamp(12px,2.2vw,26px); color:#233f3e;
+}
+.lumaDshOfficeHeader { margin:0 0 12px; gap:10px; }
+.lumaDshOfficeHeader h1 { margin:0; font:600 clamp(19px,2.15vw,30px)/1.25 Georgia,"Microsoft YaHei",serif; }
+.lumaOfficeClock { display:flex; align-items:center; gap:10px; }
+.lumaOfficeClock span { font-size:12px; color:#50645d; border-right:1px solid #c8cfc6; padding-right:10px; }
+.lumaOfficeClock time { font:500 16px/1.1 "Segoe UI",sans-serif; font-variant-numeric:tabular-nums; }
+.lumaOfficeCommandBar {
+  display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:4px 14px;
+  margin:0 0 10px; padding:5px 8px; border-radius:12px; background:#e9eee7; border:1px solid #ced8cd;
+}
+.lumaOfficeTools { border:0; padding:0; margin:0; gap:4px; }
+.lumaOfficeTools button {
+  display:inline-flex; align-items:center; justify-content:center; min-height:40px; gap:4px; padding:2px 11px 2px 4px;
+  border:1px solid transparent; background:transparent; color:#34514b; font-weight:550;
+}
+.lumaOfficeTools img { display:block; width:34px; height:34px; object-fit:contain; }
+.lumaOfficeTools button:is([aria-pressed=true],[aria-expanded=true]) { background:#234b46; border-color:#284a40; color:#fffaf0; }
+.lumaOfficeTools button:hover { box-shadow:inset 0 0 0 1px #889a89; }
+.lumaScenePreferences { color:#324f48; font-size:13px; }
+.lumaScenePreferences summary { display:flex; align-items:center; gap:4px; min-height:36px; padding:0 7px; list-style:none; cursor:pointer; }
+.lumaScenePreferences summary::-webkit-details-marker { display:none; }
+.lumaScenePreferences[open] { flex-basis:100%; }
+.lumaScenePreferences[open] summary { width:fit-content; }
+.lumaScenePreferences[open] summary svg { transform:rotate(180deg); }
+.lumaScenePreferences .lumaDshOfficeAppearance { margin:0; padding:4px 7px 8px; }
+.lumaOfficeFrame { overflow:hidden; background:#142e30; border:1px solid #334e47; border-radius:14px; box-shadow:0 5px 16px #23352a15; }
+.lumaOfficeFrame .lumaDshOfficeRoom { border:0; border-radius:0; }
+.lumaRoomCaption { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:5px 12px; color:#f3efdf; }
+.lumaRoomCaption p { margin:0; font-size:12px; }
+.lumaRoomCaption button { display:inline-flex; align-items:center; justify-content:center; gap:6px; flex:none; color:inherit; border:1px solid #71908a; border-radius:6px; font:inherit; font-size:12px; background:#294742; padding:5px 8px; cursor:pointer; }
+.lumaOfficeFrame.is-expanded { position:fixed; inset:0; z-index:5; display:flex; flex-direction:column; align-items:center; justify-content:center; border:0; border-radius:0; }
+.lumaOfficeFrame.is-expanded .lumaDshOfficeRoom { width:min(100%,calc((100dvh - 58px) * 1.7768)); max-height:calc(100% - 44px); }
+.lumaOfficeFrame.is-expanded .lumaRoomCaption { align-self:stretch; }
+.lumaDshOffice :is(button,select,summary):focus-visible { outline:3px solid #ac8045; outline-offset:2px; }
+@container (max-width:570px) {
+  .lumaOfficeTools { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); flex:1 1 100%; }
+  .lumaOfficeTools button { flex-direction:column; gap:0; padding:2px 4px; font-size:12px; }
+  .lumaOfficeTools img { width:30px; height:30px; }
+  .lumaOfficeCommandBar { justify-content:flex-end; }
+  .lumaRoomCaption p span { display:none; }
+}
+@media (max-width:650px) {
+  .lumaOfficeTools button, .lumaRoomActions button, .lumaOfficePanel button { min-height:40px; }
+  .lumaDshOfficeAppearance select { min-width:125px; }
+  .lumaRoomActions span { width:calc(100% - 115px); }
+}

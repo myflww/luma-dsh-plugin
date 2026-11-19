@@ -1,0 +1,272 @@
+import type { ClientContext, SessionId } from '@deepseek-ai/dsh-client-runtime/client'
+import { OFFICE_EMPLOYEE_DEFINITIONS } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office-harness/OfficeRelationships.ts'
+import { OFFICE_CHARACTER_CARDS } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office-harness/OfficeCharacterCards.ts'
+import { getChibiAvatar } from './employee-avatar.ts'
+import { agentRequest } from './agent-desk-api.ts'
+import { DEFAULT_MESSAGE_PREFERENCES, MESSAGES_NAMESPACE, MESSAGE_ROLE_IDS, decodeMessageSettings, type MessagePreferences, type MessageSettings, type RoleProfile } from '../messages-settings.ts'
+import type { OfficePageRuntime } from './office-runtime.ts'
+
+const PREFIX = '[LUMA_CHARACTER_CONTEXT_V1]\n', END = '\n[/LUMA_CHARACTER_CONTEXT_V1]\n'
+export function characterPrompt(roleId: string, profile: RoleProfile, userName: string, body: string,
+  options?: { id: string; memory: string; work: boolean }): string {
+  return PREFIX + JSON.stringify({ roleId, name: profile.name, personality: profile.personality, scenario: profile.scenario, userName,
+    ...(options ? { journalId: options.id, referenceMemory: options.memory } : {}),
+    mode: options?.work ? '用户已将下列工作单独交给你。按当前会话的工具权限完成任务，报告实际产出和未完成事项。记忆作为参考资料。'
+      : '角色对话。情节、动作和感受属于虚构表达；不把它们当作真实执行。除非用户明确要求执行任务，否则只进行自然对话。' }) + END + body
+}
+export function visibleUserMessage(text: string): string {
+  if (!text.startsWith(PREFIX)) return text
+  const end = text.indexOf(END, PREFIX.length)
+  if (end < 0) return text
+  try { const context = JSON.parse(text.slice(PREFIX.length, end)); if (!MESSAGE_ROLE_IDS.includes(context.roleId)) return text } catch { return text }
+  return text.slice(end + END.length)
+}
+export const MESSAGE_CHARACTERS = MESSAGE_ROLE_IDS.map(id => {
+  const card = OFFICE_CHARACTER_CARDS[id].companionCard.data
+  const avatar = getChibiAvatar(id)
+  return { id, name: card.name, description: card.description, profile: { name: card.name, personality: card.personality,
+    scenario: card.scenario, greeting: card.first_mes } satisfies RoleProfile,
+    avatar: avatar.src, avatarViewport: avatar.viewport }
+})
+type SessionFace = NonNullable<ReturnType<ClientContext['sessions']['binding']>>['session']
+export interface RoleMessage { id: string; role: 'user' | 'assistant' | 'notice'; text: string; time?: number; streaming?: boolean }
+export interface MessagesSnapshot {
+  preferences: MessagePreferences; profile: RoleProfile; roleId: string; sessionId?: SessionId; messages: readonly RoleMessage[]
+  topics: readonly { id: SessionId; title: string }[]; running: boolean; pending: boolean; writable: boolean; loading: boolean
+  hasMore: boolean; attention: boolean; problem?: string; employeeSkins?: Readonly<Record<string,string>>
+}
+export function createMessagesRuntime(ctx: ClientContext, office: OfficePageRuntime) {
+  const scope = ctx.settingsScope.bind<MessageSettings>({ namespace: MESSAGES_NAMESPACE, decode: decodeMessageSettings })
+  const api = ctx.get('connection').api
+  const listeners = new Set<() => void>()
+  let disposed = false, busy = false, problem: string | undefined, optimistic: MessagePreferences | undefined
+  let draftDirty = false
+  let writeQueue: Promise<void> = Promise.resolve()
+  const cancelWaiters = new Set<() => void>()
+  const recording = new Map<string, number>()
+  const watching = new Map<string, () => void>()
+  let bound: SessionFace | undefined, stopSession = () => {}, draftTimer: ReturnType<typeof setTimeout> | undefined
+  let snapshot: MessagesSnapshot
+  const preferences = () => optimistic ?? scope.getSnapshot().value?.preferences ?? DEFAULT_MESSAGE_PREFERENCES
+  function syncMemory(session: SessionFace, roleId: string, topic: SessionId) {
+    if (disposed || !scope.getSnapshot().writable || scope.getSnapshot().mode !== 'host') return
+    const nodes = session.getSnapshot()
+    if (nodes.running || nodes.partial || nodes.pending.length) return
+    const preset = OFFICE_EMPLOYEE_DEFINITIONS[roleId as keyof typeof OFFICE_EMPLOYEE_DEFINITIONS].agentPresetId
+    if (ctx.sessions.list.getSnapshot().byId[topic]?.agentPreset !== preset) return
+    let pending: { roleId: string; topic: SessionId; id: string; user: string; assistant: string } | undefined
+    function commit() {
+      if (!pending?.assistant.trim() || (recording.get(pending.id) ?? 0) > Date.now()) return
+      const entry = pending
+      recording.set(entry.id, Infinity)
+      void agentRequest('record', entry).catch(() => { recording.set(entry.id, Date.now() + 15_000) })
+    }
+    for (const node of nodes.nodes) {
+      if (node.kind === 'user' || node.kind === 'steering') {
+        commit(); pending = undefined
+        const text = node.content.flatMap(part => part.type === 'text' ? [part.text] : []).join('\n')
+        const split = text.indexOf(END)
+        if (!text.startsWith(PREFIX) || split < 0) continue
+        try {
+          const meta = JSON.parse(text.slice(PREFIX.length, split))
+          if (meta.roleId === roleId && typeof meta.journalId === 'string' && /^[a-f0-9-]{36}$/i.test(meta.journalId)) {
+            pending = { roleId, topic, id: meta.journalId, user: text.slice(split + END.length), assistant: '' }
+          }
+        } catch { /* An unrecognized native message has no employee memory record. */ }
+      } else if (pending && node.kind === 'assistant' && !node.interrupted) {
+        const reply = node.blocks.flatMap(block => block.kind === 'text' ? [block.text] : []).join('\n')
+        if (reply.trim()) pending.assistant = reply
+      } else if (node.kind === 'turn-error') pending = undefined
+    }
+    commit()
+  }
+  function refresh() {
+    if (disposed) return
+    const pref = preferences(), roleId = pref.selectedRole
+    const character = MESSAGE_CHARACTERS.find(character => character.id === roleId)!
+    const preset = OFFICE_EMPLOYEE_DEFINITIONS[roleId as keyof typeof OFFICE_EMPLOYEE_DEFINITIONS].agentPresetId
+    const list = ctx.sessions.list.getSnapshot()
+    const archived = ctx.workspaces.list?.getSnapshot().archivedSessionIds ?? []
+    const topics = Object.values(list.byId).filter(row => row.agentPreset === preset && !archived.includes(row.id)).map(row => ({ id: row.id, title: row.title || character.name + '的对话' }))
+    const projected = office.getSnapshot().projection.employees.find(employee => employee.employeeId === roleId)?.sessionId
+    const preferred = pref.activeTopics[roleId] as SessionId | undefined
+    const sessionId = topics.find(topic => topic.id === preferred)?.id ?? topics.find(topic => topic.id === projected)?.id ?? topics[0]?.id
+    const sessions = ctx.sessions as typeof ctx.sessions & { showTopic?(id?: SessionId): void }
+    sessions.showTopic?.(sessionId)
+    const next = sessionId ? ctx.sessions.binding(sessionId)?.session : undefined
+    if (next !== bound) { stopSession(); bound = next; stopSession = bound?.subscribe(refresh) ?? (() => {}) }
+    const conversation = bound?.getSnapshot()
+    if (bound && sessionId && !conversation?.running) syncMemory(bound, roleId, sessionId)
+    const messages: RoleMessage[] = []
+    for (const node of conversation?.nodes ?? []) {
+      if (node.kind === 'user' || node.kind === 'steering') messages.push({ id: String(node.seq), role: 'user', time: node.time,
+        text: visibleUserMessage(node.content.filter(part => part.type === 'text').map(part => 'text' in part ? part.text : '').join('\n')) })
+      else if (node.kind === 'assistant') messages.push({ id: String(node.seq), role: 'assistant', time: node.time,
+        text: node.blocks.filter(block => block.kind === 'text').map(block => 'text' in block ? block.text : '').join('\n') })
+      else if (node.kind === 'turn-error') messages.push({ id: String(node.seq), role: 'notice', text: node.message, time: node.time })
+    }
+    const partial = conversation?.partial
+    if (partial) {
+      const text = partial.blocks.filter(block => block.kind === 'text').map(block => 'text' in block ? block.text : '').join('\n')
+      if (text) messages.push({ id: 'stream', role: 'assistant', text, streaming: true })
+    }
+    const state = scope.getSnapshot()
+    snapshot = { preferences: pref, profile: pref.profiles[roleId] ?? character.profile, roleId, ...(sessionId ? { sessionId } : {}), messages,
+      topics, running: conversation?.running ?? false, pending: busy, writable: state.status === 'ready' && state.writable && state.mode === 'host',
+      loading: state.status === 'loading' || conversation?.openState === 'loading', hasMore: conversation?.hasMore ?? false,
+      attention: Boolean(conversation?.pending.length), employeeSkins: office.getSnapshot().presentation?.selection.employeeSkins ?? {}, ...(problem ? { problem } : {}) }
+    for (const listener of listeners) listener()
+  }
+  async function save(next: MessagePreferences) {
+    if (disposed) throw Error('插件已停用。')
+    const state = scope.getSnapshot()
+    if (state.status !== 'ready' || !state.writable || state.mode !== 'host') throw Error('当前连接不能保存角色设置，请在本机 DSH 中操作。')
+    if (!decodeMessageSettings({ preferences: next })) throw Error('角色设置格式无效。')
+    optimistic = next; refresh()
+    try {
+      const pendingWrite = writeQueue.catch(() => {}).then(async () => { assertWritable(); await scope.set('preferences', next) })
+      writeQueue = pendingWrite
+      await pendingWrite
+      if (optimistic === next) { optimistic = undefined; draftDirty = false }
+      problem = undefined
+    }
+    catch (error) { problem = '角色设置未保存：' + String(error); throw error }
+    finally { refresh() }
+  }
+  function flushDraftSoon() {
+    clearTimeout(draftTimer)
+    if (disposed || !draftDirty) return
+    draftTimer = setTimeout(() => {
+      if (disposed) return
+      if (busy) { flushDraftSoon(); return }
+      void save(preferences()).catch(() => {})
+    }, 400)
+  }
+  function assertWritable() {
+    if (disposed) throw Error('插件已停用。')
+    const state = scope.getSnapshot()
+    if (state.status !== 'ready' || !state.writable || state.mode !== 'host') throw Error('当前连接为只读，未执行操作。请在本机 DSH 中操作。')
+  }
+  async function run<T>(operation: () => Promise<T>, write = true): Promise<T | undefined> {
+    if (busy || disposed) return
+    busy = true; problem = undefined; refresh()
+    try { if (write) assertWritable(); return await operation() } catch (error) { problem = error instanceof Error ? error.message : String(error); return }
+    finally { busy = false; refresh(); flushDraftSoon() }
+  }
+  async function waitListed(id: SessionId) {
+    if (ctx.sessions.list.getSnapshot().byId[id]) return
+    await new Promise<void>((resolve, reject) => {
+      let done = false
+      const finish = (error?: Error) => {
+        if (done) return
+        done = true; clearTimeout(timeout); stop(); cancelWaiters.delete(cancel)
+        if (error) reject(error); else resolve()
+      }
+      const cancel = () => finish(Error('插件已停用。'))
+      const timeout = setTimeout(() => finish(Error('新对话暂未同步，请稍后重试。')), 15000)
+      const stop = ctx.sessions.list.subscribe(() => { if (ctx.sessions.list.getSnapshot().byId[id]) finish() })
+      cancelWaiters.add(cancel)
+    })
+  }
+  async function createTopic(roleId = preferences().selectedRole) {
+    assertWritable()
+    const id = roleId as keyof typeof OFFICE_EMPLOYEE_DEFINITIONS
+    const cwd = scope.getSnapshot().value?.homes?.[id]
+    if (!cwd) throw Error('角色聊天目录尚未就绪，请确认插件 Host 已启用。')
+    const agentPreset = OFFICE_EMPLOYEE_DEFINITIONS[id].agentPresetId
+    const response = await api.sessions.create({ cwd, agentPreset })
+    if (!response.result.ok) throw Error(response.result.error.message)
+    assertWritable()
+    if (response.result.value.agentPreset !== undefined && response.result.value.agentPreset !== agentPreset) throw Error('Host 返回了不同角色的预设，未打开该对话。')
+    const sessionId = response.result.value.sessionId
+    await waitListed(sessionId)
+    assertWritable()
+    const listedPreset = ctx.sessions.list.getSnapshot().byId[sessionId]?.agentPreset
+    if (listedPreset !== undefined && listedPreset !== agentPreset) throw Error('新对话的角色归属不一致，未打开该对话。')
+    const confirmedPreset = listedPreset ?? response.result.value.agentPreset
+    if (!confirmedPreset) throw Error('新对话尚未确认角色归属，未打开该对话。')
+    ctx.sessions.noteAgentPreset(sessionId, confirmedPreset)
+    await office.linkSession(id, sessionId)
+    assertWritable()
+    ctx.sessions.open(sessionId)
+    await save({ ...preferences(), activeTopics: { ...preferences().activeTopics, [id]: sessionId } })
+    return sessionId
+  }
+  refresh()
+  const stopScope = scope.subscribe(refresh), stopList = ctx.sessions.list.subscribe(refresh), stopOffice = office.subscribe(refresh)
+  const stopWorkspaces = ctx.workspaces.list?.subscribe(refresh) ?? (() => {})
+  return {
+    getSnapshot: () => snapshot,
+    subscribe(listener: () => void) { listeners.add(listener); return () => { listeners.delete(listener) } },
+    selectRole(id: string, fromOffice = false): boolean {
+      if (disposed || !MESSAGE_ROLE_IDS.includes(id as never) || busy) return false
+      const current = ctx.sessions.list.getSnapshot().current
+      const preset = OFFICE_EMPLOYEE_DEFINITIONS[id as keyof typeof OFFICE_EMPLOYEE_DEFINITIONS].agentPresetId
+      const activeTopics = fromOffice && current && ctx.sessions.list.getSnapshot().byId[current]?.agentPreset === preset
+        ? { ...preferences().activeTopics, [id]: current } : preferences().activeTopics
+      void run(() => save({ ...preferences(), selectedRole: id, activeTopics }))
+      return true
+    },
+    setUserName(name: string) { return run(() => save({ ...preferences(), userName: name })) },
+    setDisplay(display: 'bubbles' | 'novel') { return run(() => save({ ...preferences(), display })) },
+    saveProfile(profile: RoleProfile) { return run(async () => { await save({ ...preferences(), profiles: { ...preferences().profiles, [preferences().selectedRole]: profile } }); return true }) },
+    resetProfile() { const profiles = { ...preferences().profiles }; delete profiles[preferences().selectedRole]; return run(() => save({ ...preferences(), profiles })) },
+    setDraft(text: string) {
+      if (disposed) return
+      optimistic = { ...preferences(), drafts: { ...preferences().drafts, [preferences().selectedRole]: text.slice(0, 32000) } }; refresh()
+      draftDirty = true; flushDraftSoon()
+    },
+    newTopic() { return run(createTopic) },
+    selectTopic(id: SessionId) { return run(async () => {
+      if (!snapshot.topics.some(topic => topic.id === id)) throw Error('该对话不属于当前角色。')
+      const roleId = snapshot.roleId
+      await office.linkSession(roleId, id); assertWritable(); ctx.sessions.open(id)
+      await save({ ...preferences(), activeTopics: { ...preferences().activeTopics, [roleId]: id } })
+      return true
+    }) },
+    send(mode: 'chat' | 'task' = 'chat') { return run(async () => {
+      const submittedDraft = preferences().drafts[snapshot.roleId] ?? ''
+      const body = submittedDraft.trim()
+      if (!body) return
+      const roleId = snapshot.roleId, profile = snapshot.profile, userName = preferences().userName
+      const selectedSessionId = snapshot.sessionId
+      await save(preferences())
+      assertWritable()
+      const id = selectedSessionId ?? await createTopic(roleId)
+      assertWritable()
+      const preset = OFFICE_EMPLOYEE_DEFINITIONS[roleId as keyof typeof OFFICE_EMPLOYEE_DEFINITIONS].agentPresetId
+      if (ctx.sessions.list.getSnapshot().byId[id]?.agentPreset !== preset) throw Error('会话角色归属发生变化，草稿已保留。')
+      const session = ctx.sessions.binding(id)?.session
+      if (!session) throw Error('对话尚未加载，请稍后再试。')
+      if (session.getSnapshot().pending.length) throw Error('请先在原生会话中处理待确认事项。')
+      const memory = typeof window === 'undefined' ? '' : (await agentRequest<{ context: string }>('recall',
+        { roleId, query: body, topic: id }, AbortSignal.timeout(4000)).catch(() => ({ context: '' }))).context
+      assertWritable()
+      if (ctx.sessions.list.getSnapshot().byId[id]?.agentPreset !== preset) throw Error('角色归属已变化，草稿已保留。')
+      const journalId = crypto.randomUUID()
+      const prompt = characterPrompt(roleId, profile, userName, body, { id: journalId, memory, work: mode === 'task' })
+      const result = await session.prompt([{ type: 'text', text: prompt }], 'queue')
+      if (!result.ok) throw Error(result.error.message)
+      if (!disposed && !watching.has(id)) {
+        // Continue listening after the user switches to another employee.
+        watching.set(id, session.subscribe(() => syncMemory(session, roleId, id)))
+        syncMemory(session, roleId, id)
+      }
+      const latest = preferences()
+      if (latest.drafts[roleId] === submittedDraft) await save({ ...latest, drafts: { ...latest.drafts, [roleId]: '' } })
+    }) },
+    stop() { return run(async () => { const result = await bound?.cancel(); if (result && !result.ok) throw Error(result.error.message) }) },
+    loadOlder() { return run(async () => { await bound?.loadOlder() }, false) },
+    archiveTopic() { return run(async () => {
+      if (!snapshot.sessionId || snapshot.running) throw Error('请先停止生成，再归档对话。')
+      const roleId = snapshot.roleId, sessionId = snapshot.sessionId
+      await ctx.workspaces.archiveSession(sessionId)
+      const activeTopics = { ...preferences().activeTopics }; delete activeTopics[roleId]
+      await save({ ...preferences(), activeTopics })
+    }) },
+    exportTranscript() { return { schema: 'LumaCharacterTranscriptV1', roleId: snapshot.roleId, profile: snapshot.profile,
+      sessionId: snapshot.sessionId, messages: snapshot.messages.filter(message => !message.streaming), exportedAt: new Date().toISOString() } },
+    dispose() { if (disposed) return; disposed = true; clearTimeout(draftTimer); for (const cancel of [...cancelWaiters]) cancel(); for (const stop of watching.values()) stop(); watching.clear(); stopSession(); stopScope(); stopList(); stopOffice(); stopWorkspaces(); listeners.clear() },
+  }
+}
+export type MessagesRuntime = ReturnType<typeof createMessagesRuntime>

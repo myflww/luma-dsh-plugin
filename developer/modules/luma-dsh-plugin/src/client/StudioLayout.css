@@ -1,0 +1,91 @@
+.lumaPluginRoot:not(.is-chat) { display:grid; grid-template-columns:74px minmax(0,1fr); grid-template-rows:minmax(0,1fr); }
+.lumaPluginRoot:not(.is-chat) .lumaPluginNav {
+  grid-column:1; grid-row:1; min-width:0; min-height:0; align-self:stretch; align-items:center; justify-content:flex-start;
+  flex-flow:column nowrap; gap:18px; padding:17px 5px 9px; background:#193c3b; color:#f7f4e8;
+  border:0; border-right:1px solid #133332; overflow-y:auto; scrollbar-width:thin;
+}
+.lumaPluginRoot:not(.is-chat) .lumaPluginBrand { color:#f6e5ba; font:italic 23px/1.1 Georgia,serif; letter-spacing:-1.4px; }
+.lumaPluginRoot:not(.is-chat) .lumaPluginTabs {
+  order:0; flex:1 0 auto; margin:0; width:100%; background:transparent; border:none; padding:0; border-radius:0;
+  overflow:visible; display:flex; flex-direction:column; align-items:stretch; gap:6px;
+}
+.lumaPluginRoot:not(.is-chat) .lumaPluginTabs button, .lumaPluginRoot:not(.is-chat) .lumaReturnToDsh {
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; margin:0; border:0;
+  padding:8px 2px; min-height:49px; border-radius:9px; background:transparent; color:#d8e6dc;
+  font:500 11px/1.25 "Segoe UI","Microsoft YaHei",sans-serif; cursor:pointer; box-shadow:none;
+}
+.lumaPluginRoot:not(.is-chat) .lumaPluginTabs button[data-page=cards] { margin-top:12px; }
+.lumaPluginRoot:not(.is-chat) .lumaPluginTabs button[data-page=settings] { margin-top:auto; }
+.lumaPluginRoot:not(.is-chat) .lumaPluginTabs button[aria-current=page] { color:#fff1ca; background:#315451; box-shadow:inset 2px 0 #d7b67c; }
+.lumaPluginRoot:not(.is-chat) .lumaPluginNav button:hover { background:#355955; color:white; }
+.lumaPluginRoot:not(.is-chat) .lumaPluginNav button:focus-visible { outline:2px solid #e9cc95; outline-offset:-2px; }
+.lumaPluginRoot:not(.is-chat) .lumaReturnToDsh { width:100%; border-top:1px solid #4b6962; border-radius:0; }
+.lumaPluginRoot:not(.is-chat) .lumaPluginContent { grid-column:2; grid-row:1; min-width:0; container:luma-panel / inline-size; }
+
+.lumaDshOffice.lumaStudio { max-width:1800px; min-height:100%; padding:clamp(14px,2vw,26px); }
+.lumaStudio .lumaDshOfficeHeader { padding:3px 0 13px; margin:0 0 14px; border-bottom:1px solid #d6dacf; }
+.lumaStudio .lumaDshOfficeHeader h1 { line-height:1.4; margin:0; }
+.lumaStudioLayout { display:grid; grid-template-columns:minmax(0,1fr) 202px; gap:16px; align-items:start; }
+.lumaStudioCanvas { position:relative; min-width:0; border-radius:12px; overflow:hidden; border:1px solid #254342; background:#173533; color:#f6f5e8; }
+.lumaStudioCanvas .lumaCanvasZoom {
+  position:absolute; z-index:2; top:8px; right:8px; display:flex; align-items:center; gap:5px; padding:6px 9px;
+  border:1px solid #afc6b980; border-radius:6px; background:#153937e6; color:#f6f5e8; font:500 12px/1.2 "Segoe UI","Microsoft YaHei",sans-serif; cursor:pointer;
+}
+.lumaStudioCanvas :is(.lumaDshOfficeRoom,.lumaBedroomArt) { border:0; border-radius:0; }
+.lumaStudioCanvas .lumaRoomActions { padding:9px 12px; background:#fbfaf5; color:#29463c; }
+.lumaStudioCanvas .lumaRoomActions button { padding:5px 9px; }
+.lumaStudioInspector {
+  display:flex; flex-direction:column; gap:0; padding:0 14px; background:#f2f2e9;
+  border:1px solid #d5d9ca; border-radius:12px; min-width:0; color:#29453e;
+}
+.lumaStudioSection { padding:14px 0; min-width:0; }
+.lumaStudioSection + .lumaStudioSection { border-top:1px solid #d4d9ca; }
+.lumaStudioSection h2 { margin:0 0 10px; color:#3d5546; font:600 13px/1.35 "Segoe UI","Microsoft YaHei",sans-serif; }
+.lumaStudioInspector .lumaOfficeTools { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); border:0; margin:0; padding:0; gap:5px; }
+.lumaStudioInspector .lumaSpaceDestinations button {
+  flex-direction:column; width:100%; gap:1px; padding:4px 2px; border:1px solid #d8dccd; background:#faf9f2; color:#345349;
+  font-size:12px; min-height:60px;
+}
+.lumaStudioInspector .lumaSpaceDestinations button[aria-pressed=true] { border-color:#467364; background:#dce9dc; color:#214738; box-shadow:inset 0 -2px #7a9983; }
+.lumaStudioInspector .lumaStudioActions button { flex-direction:row; font-size:12px; padding:3px; min-height:34px; border:1px solid #cad1c5; }
+.lumaStudioActions img { width:23px; height:23px; }
+.lumaStudioInspector .lumaDshOfficeAppearance, .lumaStudioInspector .lumaDshOfficeThemeLabel { display:flex; flex-flow:column nowrap; align-items:stretch; }
+.lumaStudioInspector .lumaDshOfficeAppearance { gap:10px; margin:0; }
+.lumaStudioInspector .lumaDshOfficeThemeLabel { gap:4px; color:#536457; font-size:12px; }
+.lumaStudioInspector select { min-width:0; width:100%; color:#28483e; background:#fffcf2; }
+.lumaStudioInspector .lumaOfficePanel { margin:0 0 12px; padding:8px; background:#fffdf5; max-height:min(48vh,460px); overflow:auto; }
+.lumaStudioInspector .lumaOfficePanelTitle { gap:4px; }
+.lumaStudioInspector .lumaOfficePanelTitle h2 { font-size:14px; }
+.lumaStudioInspector .lumaOfficePanelTitle button { font-size:11px; padding:4px; min-height:24px; }
+.lumaStudioInspector .lumaOfficeTeamGrid { grid-template-columns:minmax(0,1fr); }
+.lumaStudioInspector .lumaOfficeTeamGrid li { padding:6px; grid-template-columns:32px minmax(0,1fr); }
+.lumaStudioInspector .lumaOfficeMemberActions { gap:4px; }
+.lumaStudioInspector .lumaOfficeMemberActions button { font-size:11px; padding:3px 4px; }
+.lumaStudioInspector .lumaOfficeWardrobeChoices { gap:4px; }
+.lumaStudioInspector .lumaOfficeWardrobeChoices button { min-width:0; padding:5px; }
+.lumaStudioCanvas.is-expanded { position:fixed; inset:0; z-index:10; display:grid; align-content:center; justify-items:center; border:0; border-radius:0; }
+.lumaStudioCanvas.is-expanded > :first-child { width:min(100%,calc((100dvh - 110px) * 1.7768)); }
+.lumaStudioCanvas.is-expanded .lumaRoomCaption { width:100%; box-sizing:border-box; }
+@container (max-width:985px) {
+  .lumaStudioLayout { grid-template-columns:minmax(0,1fr); gap:12px; }
+  .lumaStudioInspector { display:grid; grid-template-columns:1fr 1.12fr 1fr; gap:0 16px; }
+  .lumaStudioSection + .lumaStudioSection { border-top:0; }
+  .lumaStudioInspector .lumaOfficePanel { grid-column:1/-1; }
+  .lumaStudioInspector .lumaOfficeTeamGrid { grid-template-columns:repeat(auto-fit,minmax(155px,1fr)); }
+}
+@container (max-width:575px) {
+  .lumaStudioInspector { grid-template-columns:1fr 1fr; }
+  .lumaStudioPeople { grid-column:1/-1; padding-top:0; }
+}
+/* The root is the query container. Use its children to position the compact dock. */
+@container (max-width:625px) {
+  .lumaPluginRoot:not(.is-chat) .lumaPluginNav {
+    grid-column:1/-1; grid-row:2; flex-flow:row nowrap; align-items:center; gap:4px; padding:3px 4px; overflow:visible;
+  }
+  .lumaPluginRoot:not(.is-chat) .lumaPluginContent { grid-column:1/-1; grid-row:1; }
+  .lumaPluginRoot:not(.is-chat) .lumaPluginBrand { display:none; }
+  .lumaPluginRoot:not(.is-chat) .lumaPluginTabs { flex:1; flex-direction:row; gap:1px; }
+  .lumaPluginRoot:not(.is-chat) .lumaPluginTabs button { flex:1; min-width:0; min-height:45px; margin:0; font-size:10px; padding:3px 0; }
+  .lumaPluginRoot:not(.is-chat) .lumaPluginTabs button[aria-current=page] { box-shadow:inset 0 -2px #dac18d; }
+  .lumaPluginRoot:not(.is-chat) .lumaReturnToDsh { width:48px; flex:none; min-height:44px; padding:2px; font-size:10px; border:0; }
+}

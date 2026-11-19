@@ -1,0 +1,65 @@
+.lumaCardViewer{width:100%;min-width:0}
+.lumaCardViewerViewport{width:100%;height:min(66vh,680px);min-height:360px;position:relative;border:1px solid #a3afbe;border-radius:16px;background:radial-gradient(ellipse at 50% 40%,#edf0f4 0%,#d6dee8 56%,#b8c2d0 100%);box-shadow:inset 0 1px 0 #ffffffa6;isolation:isolate;overflow:hidden}
+.lumaCardViewerViewport.is-landscape{height:min(60vh,600px)}
+.lumaCardViewerViewport iframe{position:absolute;inset:0;width:100%;height:100%;border:0;opacity:0;border-radius:inherit}
+.lumaCardViewerViewport iframe.is-ready{opacity:1}
+.lumaCardViewerLoading{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;padding:28px}
+.lumaCardViewerLoading img{width:100%;height:100%;object-fit:contain;min-height:0}
+.lumaCardViewerLoading span{position:absolute;bottom:12px;background:#181c26d9;color:#d9dde8;padding:5px 12px;border-radius:20px;font-size:11px}
+.lumaCardViewerInteraction{width:100%;height:100%;display:grid;place-items:center;perspective:1500px;cursor:grab;touch-action:none;outline-offset:-4px;user-select:none}
+.lumaCardViewerInteraction:active{cursor:grabbing}
+.lumaCardViewerSolid{position:relative;transform-style:preserve-3d;pointer-events:none}
+.lumaCardViewerFace{position:absolute;inset:0;margin:0;width:100%;height:100%;backface-visibility:hidden;border-radius:7px;overflow:hidden;background:var(--cl-panel);box-shadow:0 15px 24px #25354c30}
+.lumaCardViewerFace.is-front{transform:translateZ(calc(var(--card-thickness) / 2))}
+.lumaCardViewerFace.is-back{transform:rotateY(180deg) translateZ(calc(var(--card-thickness) / 2))}
+.lumaCardViewerFace img{width:100%;height:100%;display:block;object-fit:contain}
+.lumaPackBackSurface{position:absolute;inset:0;display:block;width:100%;height:100%;pointer-events:none;opacity:0}
+.lumaPackBackSurface[data-ready=true]{opacity:1}
+.lumaCardViewerSubject{position:absolute;inset:0;margin:0;width:100%;height:100%;backface-visibility:hidden;pointer-events:none}
+.lumaCardViewerSubject img{width:100%;height:100%;display:block;object-fit:contain}
+.lumaCardViewerEdge{position:absolute;display:block;background:#85838a;backface-visibility:hidden}
+.lumaCardViewerEdge.is-left,.lumaCardViewerEdge.is-right{top:0;height:100%;width:var(--card-thickness);left:50%}
+.lumaCardViewerEdge.is-left{left:0;transform:translateX(-50%) rotateY(-90deg)}
+.lumaCardViewerEdge.is-right{left:100%;transform:translateX(-50%) rotateY(90deg)}
+.lumaCardViewerEdge.is-top,.lumaCardViewerEdge.is-bottom{left:0;width:100%;height:var(--card-thickness)}
+.lumaCardViewerEdge.is-top{top:0;transform:translateY(-50%) rotateX(90deg)}
+.lumaCardViewerEdge.is-bottom{top:100%;transform:translateY(-50%) rotateX(-90deg)}
+.lumaCardViewerStatic{position:absolute;inset:5%;margin:0;display:grid;place-items:center;min-width:0;min-height:0;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
+.lumaCardViewerStatic img{max-width:100%;max-height:100%;width:100%;height:100%;object-fit:contain;min-height:0}
+.lumaCardViewerMissing{width:100%;height:100%;display:grid;place-items:center;color:var(--cl-muted);padding:20px;text-align:center;font-size:12px}
+.lumaCardViewerToolbar{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px 12px;margin-top:14px}
+.lumaCardViewerMode,.lumaCardViewerFaces{display:flex;gap:3px;padding:3px;border:1px solid var(--cl-line,var(--pack-line,#3a3e49));border-radius:10px;background:var(--cl-soft,var(--pack-surface,#1f232b))}
+.lumaCardViewerToolbar .lumaCardLibraryButton{min-height:32px;border:1px solid transparent;cursor:pointer;color:var(--cl-muted,var(--pack-muted,#aaafbc));background:transparent;border-radius:7px;padding:5px 12px;font-size:12px;line-height:1.4}
+.lumaCardViewerToolbar .lumaCardLibraryButton[aria-pressed=true]{border-color:var(--cl-line,var(--pack-line,#3a3e49));background:var(--cl-panel,var(--pack-panel,#303541));color:var(--cl-text,var(--pack-ink,#e0e3eb));box-shadow:0 1px 4px #00000014}
+.lumaCardViewerToolbar .lumaCardViewerReset{border-color:var(--cl-line,var(--pack-line,#3a3e49));border-radius:10px}
+.lumaCardViewerPreferences{display:flex;align-items:center;gap:12px}
+.lumaCardViewerReduced{display:flex;align-items:center;gap:6px;color:var(--cl-muted,var(--pack-muted,#aaafbc));font-size:11px;white-space:nowrap}
+.lumaCardViewerReduced input{accent-color:var(--cl-accent,var(--pack-accent,#bbc5eb))}
+.lumaCardViewerLighting{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;align-items:end;gap:12px 18px;min-width:0;margin:16px 0 0;padding:12px 14px 14px;border:1px solid #74849b70;border-radius:12px;background:linear-gradient(145deg,#e7edf517,#b5c4d322);color:var(--cl-text,var(--pack-ink,#e8edf4))}
+.lumaCardViewerLighting legend{padding:0 6px;font-size:12px;font-weight:600;letter-spacing:.08em}
+.lumaCardViewerLighting label{display:flex;min-width:0;flex-direction:column;gap:7px;font-size:11px}
+.lumaCardViewerLighting label>span{display:flex;justify-content:space-between;gap:6px}
+.lumaCardViewerLightValue{color:var(--cl-text,var(--pack-ink,#e8edf4));font-variant-numeric:tabular-nums}
+.lumaCardViewerLighting input{display:block;width:100%;min-width:0;height:20px;margin:0;accent-color:#91b7dd;cursor:pointer}
+.lumaCardViewerLighting .lumaCardLibraryButton{min-height:32px;padding:5px 10px;border:1px solid #8495ab80;border-radius:8px;background:#dce7f01a;color:inherit;font-size:11px;white-space:nowrap;cursor:pointer}
+.lumaCardViewerLighting:disabled{opacity:.56}
+.lumaCardViewerLighting:disabled input,.lumaCardViewerLighting:disabled button{cursor:default}
+.lumaCardViewerLighting input:focus-visible,.lumaCardViewerLighting button:focus-visible{outline:2px solid #b1d5fb;outline-offset:3px}
+.lumaCardViewerLightingHint{margin:7px 2px 0;color:var(--cl-muted,var(--pack-muted,#bcc7d6));font-size:11px;line-height:1.6}
+@media(max-width:640px){.lumaCardViewerLighting{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px;padding:10px 12px 12px}.lumaCardViewerLighting .lumaCardLibraryButton{justify-self:end;align-self:end}.lumaCardViewerLightingHint{font-size:10px}}
+@media(max-width:640px){.lumaCardViewerViewport{height:55vh;min-height:300px}.lumaCardViewerViewport.is-landscape{height:42vh;min-height:240px}.lumaCardViewerToolbar{gap:8px}.lumaCardViewerToolbar .lumaCardLibraryButton{padding:5px 9px;font-size:11px}}
+
+.lumaCardViewerImageIssue{display:flex;justify-content:center;align-items:center;gap:12px;padding:12px;font-size:12px;color:var(--cl-muted)}
+.lumaCardViewerHelp { margin-top: 12px; color: var(--dsw-alias-label-secondary); font-size: 12px; }
+.lumaCardViewerHelp > summary { width: fit-content; cursor: pointer; }
+.lumaCardViewerHelp > summary:focus-visible { outline: 2px solid var(--dsw-alias-state-business-primary); outline-offset: 3px; }
+.lumaCardViewerSolid[data-frame-design='heirloom-20261015-v2'] .lumaCardViewerEdge{background:linear-gradient(90deg,var(--frame-edge-deep) 0 14%,var(--frame-edge-light) 20%,var(--frame-edge-mid) 36% 55%,var(--frame-edge-deep) 62% 77%,var(--frame-edge-mid) 85%,var(--frame-edge-light))}
+.lumaCardViewerSolid[data-frame-design='heirloom-20261015-v2'] .lumaFrameFoundation{filter:brightness(calc(.92 + var(--frame-angle-light,.5) * .18))}
+
+/* Separate raised ornament planes preserve real parallax over the card's six faces. */
+.lumaCardViewerFrameRelief{position:absolute;inset:0;margin:0;width:100%;height:100%;backface-visibility:hidden;pointer-events:none}
+.lumaCardViewerFrameRelief.is-extrusion{transform:translateZ(calc(var(--card-thickness) / 2 + var(--frame-relief-lift) * .48))}
+.lumaCardViewerFrameRelief.is-polished{transform:translateZ(calc(var(--card-thickness) / 2 + var(--frame-relief-lift)))}
+.lumaCardViewerFrameRelief.is-extrusion .lumaFrameSculpture{filter:none}
+.lumaCardViewerFrameRelief.is-extrusion .lumaFrameSculpture *{fill:var(--premium-deep);stroke:var(--frame-enamel);opacity:1}
+.lumaCardViewerFrameRelief.is-polished .lumaFrameSculpture{filter:brightness(calc(.9 + var(--frame-angle-light,.5) * .3)) drop-shadow(0 1px 1px rgb(0 0 0 / 48%))}

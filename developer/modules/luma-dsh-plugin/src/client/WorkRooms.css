@@ -1,0 +1,29 @@
+.lumaRoomNav { display:flex; align-items:center; gap:5px; }
+.lumaRoomNav select { flex:1; width:0; font-size:12px; }
+.lumaRoomNav button { padding:7px 9px; }
+.lumaCreateRoomForm { overflow:auto; padding:clamp(16px,4vw,48px); width:min(100%,660px); box-sizing:border-box; margin:0 auto; }
+.lumaCreateRoomForm > label { display:grid; gap:8px; font-size:13px; font-weight:600; }
+.lumaCreateRoomForm > fieldset { margin:24px 0 14px; border:0; padding:0; }
+.lumaCreateRoomForm legend { font-weight:600; font-size:14px; margin-bottom:12px; }
+.lumaCreateRoomForm legend small { margin-left:6px; font-weight:400; color:#58695e; }
+.lumaRoomPeople { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:8px; }
+.lumaRoomPeople label { padding:8px; display:flex; align-items:center; gap:6px; background:#fff; border:1px solid #dadfd7; border-radius:9px; cursor:pointer; font-size:13px; }
+.lumaRoomPeople label:has(input:checked) { border-color:#728d7d; background:#eaf0e9; }
+.lumaRoomPeople .lumaMessageAvatar { width:32px; height:32px; }
+.lumaCreateRoomForm p,.lumaRoomEmpty p { font-size:13px; color:#59695e; line-height:1.7; }
+.lumaRoomEmpty { max-width:410px; margin:clamp(18px,6vh,80px) auto; text-align:center; }
+.lumaRoomEmpty > div { display:flex; justify-content:center; flex-wrap:wrap; }
+.lumaRoomEmpty .lumaMessageAvatar { width:49px; height:49px; margin-left:-5px; border:2px solid white; }
+.lumaRoomConversation .lumaMessageBubble > .lumaMessageAvatar { width:36px; height:36px; flex:none; }
+.lumaRoomConversation .lumaMessageBubble p { overflow-wrap:anywhere; white-space:pre-wrap; }
+.lumaRoomConversation .lumaMessageBubble header { flex-wrap:wrap; }
+.lumaRoomResultActions { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+.lumaRoomResultActions > button { font-size:11px; padding:4px 8px; }
+.lumaRoomComposer > label { display:flex; align-items:center; gap:8px; font-size:12px; margin-bottom:8px; }
+.lumaRoomComposer select { font-size:12px; padding:5px 9px; }
+.lumaRoomComposer .lumaRoomMissing { justify-content:flex-start; flex-wrap:wrap; margin:4px 0 8px; }
+.lumaRoomMissing button { padding:4px 8px; }
+@media (max-width:650px) {
+  .lumaRoomNav { max-width:320px; width:100%; }
+  .lumaRoomNav select,.lumaRoomNav button { padding:4px 8px; }
+}
