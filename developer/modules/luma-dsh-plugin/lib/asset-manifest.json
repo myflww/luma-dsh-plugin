@@ -8620,6 +8620,16 @@
     "sha256": "5cab7683c53b43f3f45e9e1952fc9032163882ac43023461d971dde357ce3139"
   },
   {
+    "path": "luma-office/luma-plugin-art/bedroom-classic-day.86dc77f52d3f.png",
+    "bytes": 474583,
+    "sha256": "86dc77f52d3f06458ea45b162675adb53df155cb861633c4d1ac6425c5c430ad"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/bedroom-classic-night.1d3b7e9ed5f7.png",
+    "bytes": 505994,
+    "sha256": "1d3b7e9ed5f7a5f8eae1dd7c4a732454eb78d9de2584fad6a8350161d465260c"
+  },
+  {
     "path": "luma-office/luma-plugin-art/bedroom-shan-day.29a8c5e6a6ab.png",
     "bytes": 474984,
     "sha256": "29a8c5e6a6ab0523df7f72d6e715e21914f458f43403603985762700c3f5b8f8"

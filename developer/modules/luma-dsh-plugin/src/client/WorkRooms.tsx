@@ -14,13 +14,13 @@ type Props = {
 }
 const statuses = { queued: '等待接手', running: '正在处理', done: '已交付', cancelled: '已停止', failed: '未完成' }
 
-export function RoomCreator({ snapshot, names, close, onCreated, refresh }: Props & { onCreated(room: WorkRoom): void }) {
+export function RoomCreator({ snapshot, names, close, onCreated, refresh, state, availableRoleIds }: Props & { availableRoleIds: readonly string[]; onCreated(room: WorkRoom): void }) {
   const [members, setMembers] = useState<string[]>([snapshot.roleId])
   const [title, setTitle] = useState(''), [busy, setBusy] = useState(false), [error, setError] = useState('')
   const submission = useRef({ signature: '', requestId: '' }), lock = useRef(false)
   const defaultName = members.map(id => names[id]).slice(0, 2).join('、').slice(0, 48) + '协作群'
   async function create() {
-    if (lock.current || members.length < 2 || !snapshot.writable) return
+    if (lock.current || members.length < 2 || !snapshot.writable || members.some(id => !availableRoleIds.includes(id))) return
     const name = title.trim() || defaultName, signature = JSON.stringify([members, name])
     if (submission.current.signature !== signature) submission.current = { signature, requestId: crypto.randomUUID() }
     lock.current = true; setBusy(true); setError('')
@@ -36,7 +36,7 @@ export function RoomCreator({ snapshot, names, close, onCreated, refresh }: Prop
     <form className="lumaCreateRoomForm" onSubmit={e => { e.preventDefault(); void create() }}>
       <label>群名称<input maxLength={60} value={title} disabled={busy} placeholder={defaultName} onChange={e => setTitle(e.target.value)} /></label>
       <fieldset disabled={busy}><legend>选择群成员 <small>至少 2 人 · 已选 {members.length} 人</small></legend>
-        <div className="lumaRoomPeople">{MESSAGE_CHARACTERS.map(person => {
+        <div className="lumaRoomPeople">{MESSAGE_CHARACTERS.filter(person => availableRoleIds.includes(person.id) && Object.hasOwn(state.roles, person.id)).map(person => {
           const selected = members.includes(person.id)
           return <label key={person.id}><input type="checkbox" checked={selected} onChange={e => {
             setMembers(current => e.target.checked ? [...current, person.id] : current.filter(id => id !== person.id))

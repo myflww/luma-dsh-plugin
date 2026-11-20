@@ -16,10 +16,11 @@ export function useAgentWorkRoles(active: boolean): readonly string[] {
             signal: abort.signal,
           })
           const payload = await res.json()
-          if (!closed && payload.ok && Array.isArray(payload.value?.roleIds))
-            setRoles((prev) =>
-              prev.join(',') === payload.value.roleIds.join(',') ? prev : payload.value.roleIds,
-            )
+          if (!closed) {
+            const current: string[] = res.ok && payload.ok && Array.isArray(payload.value?.roleIds)
+              ? payload.value.roleIds.filter((id:unknown) => typeof id === 'string') : []
+            setRoles(prev => prev.join(',') === current.join(',') ? prev : current)
+          }
         }
       } catch {
         if (!closed) setRoles((prev) => (prev.length ? [] : prev))

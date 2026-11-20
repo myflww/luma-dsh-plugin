@@ -1,11 +1,12 @@
 import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react'
 import { getPackOdds, getPackPool, drawCountForCard, MAX_CARD_DRAWS } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/economy/domain/cardPacks.ts'
 import { LOCAL_ALBUM_SKINS, LOCAL_DAILY_COINS, LOCAL_PACKS, LOCAL_WELCOME_COINS, CARD_DRAW_LIMIT_RULE,
-  localCollectionDay, localPackAvailability, type LocalAlbumSkin } from '../shared/local-collection-domain.ts'
+  localCollectionDay, localPackAvailability, canRedeemCard, characterIdForCard, CHARACTER_NAMES, type CharacterId, type LocalAlbumSkin } from '../shared/local-collection-domain.ts'
 import type { LocalCollectionResult, LocalCollectionRuntime } from './local-collection-store.ts'
 import './CollectionHub.css'
 import { PackOpeningScene } from './PackOpeningScene.tsx'
 import { PackCollectionPreview } from './PackCollectionPreview.tsx'
+import { CompanionRewards } from './CompanionRewards.tsx'
 
 export function localAlbumStyle(skin: LocalAlbumSkin): CSSProperties {
   return { '--local-album-paper': skin.paper, '--local-album-panel': skin.panel, '--local-album-ink': skin.ink,
@@ -15,9 +16,11 @@ const time = (at: number) => new Intl.DateTimeFormat('zh-CN', { dateStyle: 'shor
 const percent = (value: number) => `${(value * 100).toLocaleString('zh-CN', { maximumFractionDigits: 3 })}%`
 
 /** Purchases and revealed cards render only after the Host confirms the complete transaction. */
-export function CollectionHub({ runtime, onOpenOwned }: { runtime: LocalCollectionRuntime; onOpenOwned?(): void }) {
+export function CollectionHub({ runtime, onOpenOwned, initialPackId }: { runtime: LocalCollectionRuntime; onOpenOwned?(): void; initialPackId?: string | undefined }) {
   const snapshot = useSyncExternalStore(runtime.store.subscribe, runtime.store.getSnapshot, runtime.store.getSnapshot)
-  const [tab, setTab] = useState<'packs' | 'sealed' | 'skins' | 'history'>('packs')
+  const [tab, setTab] = useState<'packs' | 'sealed' | 'skins' | 'history' | 'rewards'>('packs')
+  const [targetPack, setTargetPack] = useState(initialPackId)
+  const [invitation, setInvitation] = useState<{employeeId: CharacterId; instanceId: string}>()
   const [message, setMessage] = useState('')
   const [failed, setFailed] = useState(false)
   const [revealedIds, setRevealedIds] = useState<readonly string[]>([])
@@ -40,11 +43,24 @@ export function CollectionHub({ runtime, onOpenOwned }: { runtime: LocalCollecti
   }, [])
   const disabled = !snapshot.writable || snapshot.pending || openingBusy
   const sealed = snapshot.packs.filter(pack => pack.openedAt === undefined)
-  const cardsByOpening = useMemo(() => new Map(snapshot.cards.map(card => [card.openingId, card])), [snapshot.cards])
+  const cardsByOpening = useMemo(() => new Map(snapshot.openedCards.map(card => [card.openingId, card])), [snapshot.openedCards])
+  useEffect(() => {
+    if (tab !== 'packs' || !targetPack) return
+    const item = Array.from(hubRef.current?.querySelectorAll<HTMLElement>('[data-pack-id]') ?? []).find(node => node.dataset.packId === targetPack)
+    item?.focus({preventScroll:true}); item?.scrollIntoView?.({block:'nearest'})
+    setTargetPack(undefined)
+  }, [tab, targetPack])
   const revealed = (historyOpeningId ? [historyOpeningId] : revealedIds).flatMap(id => {
     const card = cardsByOpening.get(id)
     return card ? [card] : []
   })
+  const invitationFor = (key: string, instanceId: string) => {
+    const employeeId = characterIdForCard(key)
+    if (!employeeId || !canRedeemCard(key) || snapshot.unlockedEmployeeIds.includes(employeeId) || !snapshot.cards.some(card => card.id === instanceId)) return
+    return { label: `邀请${CHARACTER_NAMES[employeeId]}入职`, open() {
+      closeOpening(); setInvitation({employeeId, instanceId}); setTab('rewards')
+    } }
+  }
   function closeOpening() { setHistoryOpeningId(null); setRevealedIds([]) }
   async function act(operation: () => Promise<LocalCollectionResult>, success: string) {
     setMessage(''); setFailed(false)
@@ -89,15 +105,15 @@ export function CollectionHub({ runtime, onOpenOwned }: { runtime: LocalCollecti
     {snapshot.problem && <p className="lumaCollectionHubMessage is-error" role="alert">{snapshot.problem}</p>}
     {(message || snapshot.pending) && <p className={`lumaCollectionHubMessage${failed ? ' is-error' : ''}`} role={failed ? 'alert' : 'status'}>{snapshot.pending ? '正在保存到 DSH…' : message}</p>}
     <nav className="lumaCollectionHubTabs" aria-label="卡包与装帧导航">{([
-      ['packs', '卡包店'], ['sealed', `未开封 · ${sealed.length}`], ['skins', '卡册装帧'], ['history', '收支记录'],
-    ] as const).map(([id, label]) => <button key={id} type="button" aria-current={tab === id ? 'page' : undefined} aria-controls={`${tabsId}-${id}`} onClick={() => setTab(id)}>{label}</button>)}</nav>
+      ['packs', '卡包店'], ['sealed', `未开封 · ${sealed.length}`], ['rewards', '伙伴与空间'], ['skins', '卡册装帧'], ['history', '收支记录'],
+    ] as const).map(([id, label]) => <button key={id} type="button" aria-current={tab === id ? 'page' : undefined} aria-controls={`${tabsId}-${id}`} onClick={() => { setInvitation(undefined); setTab(id) }}>{label}</button>)}</nav>
 
     {tab === 'packs' && <div id={`${tabsId}-packs`}>
       <p className="lumaCollectionHubRule">每包一张，使用浏览器安全随机抽取。{CARD_DRAW_LIMIT_RULE} 原有收藏数据独立保留；此处只计入本地开包实际获得的卡片。</p>
       <div className="lumaCollectionHubGrid">{LOCAL_PACKS.map(pack => {
         const capacity = localPackAvailability(snapshot, pack.id), odds = getPackOdds(pack.id, snapshot.drawCounts)[0]
         const pool = getPackPool(pack.id)
-        return <article key={pack.id} className="lumaCollectionHubProduct">
+        return <article key={pack.id} data-pack-id={pack.id} tabIndex={-1} className="lumaCollectionHubProduct">
           <div className="lumaCollectionHubPackArt"><img src={pack.artworkUrl} alt={`${pack.name}卡包`} loading="lazy" /><span>单张收藏包</span></div>
           <h3>{pack.name}</h3><p>{pack.description}</p>
           <button type="button" className="lumaPackTry" disabled={openingBusy} onClick={() => setSamplePack(pack)} aria-label={'免费试拆'+pack.name}>免费试拆</button>
@@ -123,6 +139,7 @@ export function CollectionHub({ runtime, onOpenOwned }: { runtime: LocalCollecti
         })}</ul>}
     </div>}
 
+    {tab === 'rewards' && <div id={`${tabsId}-rewards`}><CompanionRewards runtime={runtime} invitation={invitation} onFindPack={id => { setTargetPack(id); setTab('packs') }} /></div>}
     {tab === 'skins' && <div id={`${tabsId}-skins`}>
       <div className="lumaCollectionHubSectionHeading"><h3>给收藏换一页心情</h3><p>购买后可随时切换。预览使用现有原始卡背，不改变卡片本身。</p></div>
       <div className="lumaCollectionHubSkinGrid">{LOCAL_ALBUM_SKINS.map(skin => {
@@ -135,7 +152,7 @@ export function CollectionHub({ runtime, onOpenOwned }: { runtime: LocalCollecti
       })}</div>
     </div>}
 
-    {tab === 'history' && <div id={`${tabsId}-history`} className="lumaCollectionHubHistory"><div className="lumaCollectionHubSectionHeading"><h3>每一次收藏，都有来处</h3><p>已购入 {snapshot.purchases.length} 笔 · 开出 {snapshot.cards.length} 张卡片 · 当前余额 {snapshot.balance} 星币</p></div>
+    {tab === 'history' && <div id={`${tabsId}-history`} className="lumaCollectionHubHistory"><div className="lumaCollectionHubSectionHeading"><h3>每一次收藏，都有来处</h3><p>已购入 {snapshot.purchases.length} 笔 · 开出 {snapshot.openedCards.length} 张卡片 · 当前余额 {snapshot.balance} 星币</p></div>
       {!snapshot.ledger.length ? <p className="lumaCollectionHubEmpty">领取新册礼后，第一条记录会从这里开始。</p> : <><ol>{snapshot.ledger.slice(-historyCount).reverse().map(entry => <li key={entry.id}>
         <div><strong>{entry.label}</strong><small>{time(entry.at)} · {entry.id.slice(-12)}</small>
           {cardsByOpening.has(entry.id) && <button type="button" className="lumaCollectionHubReplay" disabled={openingBusy}
@@ -145,7 +162,7 @@ export function CollectionHub({ runtime, onOpenOwned }: { runtime: LocalCollecti
     </div>}
 
     {samplePack && <PackOpeningScene preview={{packId:samplePack.id,cardKeys:getPackPool(samplePack.id).slice(0,1).map(card=>card.key)}} onClose={()=>setSamplePack(null)}/>}
-    {!!revealed.length && <PackOpeningScene cards={revealed} historyReplay={historyOpeningId !== null} onClose={closeOpening}
+    {!!revealed.length && <PackOpeningScene cards={revealed} historyReplay={historyOpeningId !== null} onClose={closeOpening} invitationFor={invitationFor}
       {...onOpenOwned ? { onOpenOwned: () => { closeOpening(); onOpenOwned() } } : {}} />}
   </section>
 }

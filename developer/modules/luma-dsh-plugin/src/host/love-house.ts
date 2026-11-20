@@ -72,7 +72,7 @@ export async function loveHouseAvailable() {
   return Boolean(await executable())
 }
 
-async function discover(runtimeFile?: string, requireInstance = false) {
+async function discover(runtimeFile = process.env.LUMA_LOVEHOUSE_RUNTIME_FILE, requireInstance = false) {
   if (!runtimeFile) {
     const user=userFolders()
     if (!user.local) throw Error('请先打开本机爱之屋。')
@@ -128,11 +128,15 @@ async function request(origin: string, route: string, library?: string, body?: o
   if (!res.ok) throw Error('爱之屋接口未完成操作（HTTP ' + res.status + '）。')
   return res.json()
 }
-export async function connectLoveHouse(binding: HouseBinding, save: () => void) {
+export async function houseRunning() {
+  try { await discover(); return true } catch { return false }
+}
+export async function openLoveHouse(launch: boolean) {
   let origin: string
   try {
     origin = await discover()
   } catch {
+    if (!launch || process.env.LUMA_LOVEHOUSE_RUNTIME_FILE) throw Error('爱之屋离线，记忆已保存在本机。')
     const app = await executable()
     if (!app) throw Error('未找到桌面爱之屋。请先打开爱之屋，再连接。')
     await new Promise<void>((ok, fail) => {
@@ -156,6 +160,10 @@ export async function connectLoveHouse(binding: HouseBinding, save: () => void) 
     if (!ready) throw Error('爱之屋正在启动。就绪后请再次连接。')
     origin = ready
   }
+  return origin
+}
+export async function connectLoveHouse(binding: HouseBinding, save: () => void, launch = true) {
+  const origin = await openLoveHouse(launch)
   const index = await request(origin, '/api/libraries')
   let lastCreated: string | undefined
   try {
@@ -163,7 +171,8 @@ export async function connectLoveHouse(binding: HouseBinding, save: () => void) 
       const libraryName = 'Luma · ' + name + ' · ' + binding.instance
       const previous = binding.libraries[id]
       if (previous) {
-        if (!index.libraries.some((r: { id: string; is_demo?: boolean }) => r.id === previous && !r.is_demo))
+        const matches = index.libraries.filter((r: { id: string; name: string }) => r.id === previous || r.name === libraryName)
+        if (matches.length !== 1 || matches[0].id !== previous || matches[0].name !== libraryName || matches[0].is_demo)
           throw Error(name + '的已绑定记忆库不可用，请在爱之屋恢复。')
         continue
       }
@@ -195,14 +204,24 @@ export async function connectLoveHouse(binding: HouseBinding, save: () => void) 
       await request(origin, '/api/library/select', undefined, { library_id: index.selected_id })
   }
 }
+async function verifiedOrigin(library: string, expectedName: string) {
+  const origin = await discover()
+  const index = await request(origin, '/api/libraries')
+  const matches = Array.isArray(index.libraries) && index.libraries.filter((v: { id: string; name: string }) => v.id === library || v.name === expectedName)
+  if (!matches || matches.length !== 1 || matches[0].id !== library || matches[0].name !== expectedName || matches[0].is_demo)
+    throw Error('角色记忆库与本机绑定不匹配。')
+  return origin
+}
+export function roleLibraryName(binding: HouseBinding, role: string) { return 'Luma · ' + names[role] + ' · ' + binding.instance }
 export async function writeHouseMemory(
   library: string,
   id: string,
   session: string,
   user: string,
   assistant: string,
+  expectedName: string,
 ) {
-  const origin = await discover()
+  const origin = await verifiedOrigin(library, expectedName)
   const confirmed = (v: { saved?: boolean; id?: string }) => {
     if (v.saved !== true || !v.id) throw Error('爱之屋尚未确认写入。')
   }
@@ -235,8 +254,8 @@ export async function writeHouseMemory(
     )
   }
 }
-export async function recallHouse(library: string, query: string, session: string) {
-  const v = await request(await discover(), '/api/ai/context', library, {
+export async function recallHouse(library: string, query: string, session: string, expectedName: string) {
+  const v = await request(await verifiedOrigin(library, expectedName), '/api/ai/context', library, {
     query: query.slice(0, 4000),
     max_chars: 2500,
     session_id: session,

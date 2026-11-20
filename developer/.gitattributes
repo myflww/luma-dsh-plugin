@@ -7,11 +7,13 @@
 *.md text eol=lf
 *.webp binary
 upstream/desktop-*/standard.patch.yml -text
+# This file is copied byte-for-byte to the released desktop package.
+modules/luma-dsh-plugin/native-desktop/README.md -text whitespace=trailing-space,space-before-tab,cr-at-eol
 # These published source files have CRLF bytes. CSS identity and embedded
 # style literals include their original line endings.
 modules/luma-dsh-plugin/src/client/CollectionHub.css -text
 modules/luma-dsh-plugin/src/client/plugin.css -text
 modules/luma-dsh-plugin/src/client/PackCollectionPreview.tsx -text
-modules/luma-dsh-plugin/src/client/bedroom-art.generated.ts -text
+modules/luma-dsh-plugin/src/client/bedroom-art.generated.ts -text whitespace=trailing-space,space-before-tab,cr-at-eol
 modules/luma-dsh-plugin/src/shared/preview-card-catalog.ts -text
 overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/workMotionAssetRecords.generated.ts -text

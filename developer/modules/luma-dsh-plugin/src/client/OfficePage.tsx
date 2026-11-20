@@ -5,24 +5,24 @@ import type { OfficeAssetId } from '../../../../overlays/deepseek-harness/luma-f
 import '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/OfficeExperience.css'
 import type { OfficePageRuntime } from './office-runtime.ts'
 import { OFFICE_OUTFIT_CHOICES, OFFICE_THEME_CHOICES } from './office-theme-catalog.ts'
-import { DEFAULT_OFFICE_PRESENCE } from '../office-presentation-settings.ts'
-import { withOfficePresence } from './office-presence.ts'
+import { STARTER_BEDROOMS, type OfficePresentationSelection } from '../office-presentation-settings.ts'
+import { COMPANION_REWARDS, STARTER_EMPLOYEE_ID } from '../shared/local-collection-domain.ts'
+import { withActiveTaskMonitors } from './office-presence.ts'
 import { OfficeBedroom, type ResidentId } from './OfficeBedroom.tsx'
 import { OfficeWardrobe } from './OfficeWardrobe.tsx'
 import { projectPluginSceneEmployees } from './office-scene-employees.ts'
 import { useAgentWorkRoles } from './agent-work-activity.ts'
 import { getChibiAvatar } from './employee-avatar.ts'
 import { MessageAvatar } from './MessageAvatar.tsx'
-import officeEmblem from '../../art/office-navigation/office.webp'
-import bedroomEmblem from '../../art/office-navigation/bedroom.webp'
-import rosterEmblem from '../../art/office-navigation/roster.webp'
-import wardrobeEmblem from '../../art/office-navigation/wardrobe.webp'
-import { Maximize2, Minimize2 } from 'lucide-react'
+import { BedDouble, Building2, Clock3, Maximize2, Minimize2, Palette, Shirt, UsersRound } from 'lucide-react'
 import './OfficePage.css'
 
 export interface OfficePageProps {
   readonly runtime: OfficePageRuntime
   readonly onOpenChat: (employeeId: string, intent?: 'task') => void
+  readonly unlockedEmployeeIds?: readonly string[]
+  readonly unlockedThemeIds?: readonly string[]
+  readonly onOpenRewards?: () => void
   /** The shell keeps this page mounted so a native workspace selection retains its employee. */
   readonly active?: boolean
 }
@@ -31,10 +31,11 @@ export interface OfficePageProps {
 // separate IDs and source pins; the old records are never represented as recovered.
 const unavailableHistoricalRestArt: readonly OfficeAssetId[] = ['employee.lu-mi.rest.left.whole.v2', 'employee.lu-mi.rest.right.whole.v2']
 
-export function OfficePage({ runtime, onOpenChat, active = true }: OfficePageProps) {
+const starterThemes = ['office.jingyuniang.v1','bedroom.jingyuniang.v1'] as const
+export function OfficePage({ runtime, onOpenChat, active = true, unlockedEmployeeIds = [STARTER_EMPLOYEE_ID], unlockedThemeIds = starterThemes, onOpenRewards }: OfficePageProps) {
   const [snapshot, setSnapshot] = useState(() => runtime.getSnapshot())
   const [scene,setScene] = useState<'office'|'bedroom'>('office')
-  const [panel,setPanel] = useState<'roster'|'wardrobe'|null>(null)
+  const [panel,setPanel] = useState<'roster'|'wardrobe'|'themes'|null>(null)
   const [expanded, setExpanded] = useState(false)
   useEffect(() => {
     if (!expanded || !active) return
@@ -42,7 +43,8 @@ export function OfficePage({ runtime, onOpenChat, active = true }: OfficePagePro
     window.addEventListener('keydown', escape)
     return () => window.removeEventListener('keydown', escape)
   }, [expanded, active])
-  const [resident,setResident] = useState<ResidentId>('shan')
+  const [chosenResident,setResident] = useState<ResidentId>(STARTER_EMPLOYEE_ID)
+  const resident = unlockedEmployeeIds.includes(chosenResident) ? chosenResident : STARTER_EMPLOYEE_ID
   const workRoles = useAgentWorkRoles(active)
   const [now, setNow] = useState(() => new Date())
   const [reduceMotion, setReduceMotion] = useState(() => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches)
@@ -71,108 +73,113 @@ export function OfficePage({ runtime, onOpenChat, active = true }: OfficePagePro
   })
   const presentation = snapshot.presentation
   const selection = presentation.selection
-  const presence = selection.presence ?? DEFAULT_OFFICE_PRESENCE
-  const scenePolicy = withOfficePresence(policy, presence)
   const presentationDisabled = !presentation.canEdit || presentation.saving
-  const employees = projectPluginSceneEmployees(snapshot.projection.employees, workRoles, policy, now)
+  const roster = snapshot.projection.employees.filter(employee => unlockedEmployeeIds.includes(employee.employeeId))
+  const employees = projectPluginSceneEmployees(roster, workRoles, policy, now, snapshot.persistence === 'host' || snapshot.persistence === 'memory')
+  const inOffice = employees.filter(employee => employee.location === 'office')
+  const scenePolicy = withActiveTaskMonitors(policy, inOffice.some(employee => employee.availability === 'working'))
   const selectedEmployee = employees.find(employee=>employee.id === resident)
   const owner = OFFICE_OUTFIT_CHOICES.find(choice=>choice.employeeId === resident)!
   const visit = (id:ResidentId) => { setResident(id); setPanel(null); setScene('bedroom') }
   const dress = (id:ResidentId) => { setResident(id); setPanel('wardrobe') }
-  const themeTitle = OFFICE_THEME_CHOICES.find(theme => theme.id === (selection.officeTheme ?? null))?.name ?? '办公室'
+  const officeTheme = selection.officeTheme && unlockedThemeIds.includes(selection.officeTheme) ? selection.officeTheme : null
+  const bedrooms: NonNullable<OfficePresentationSelection['bedroomThemes']> = selection.bedroomThemes ?? STARTER_BEDROOMS
+  const equippedBedroom = bedrooms[resident]
+  const bedroomTheme = equippedBedroom && unlockedThemeIds.includes(equippedBedroom) ? equippedBedroom : null
+  const roomArtOwner = COMPANION_REWARDS.find(reward => reward.bedroom === bedroomTheme)?.id
+  const themeTitle = OFFICE_THEME_CHOICES.find(theme => theme.id === officeTheme)?.name ?? '办公室'
   const shift = !policy.isWorkingDate ? '休息日' : policy.isWorkPeriod ? '上班中' : policy.attendancePeriod === 'lunch' ? '午休中' : policy.hour < 9 ? '上班前' : '已下班'
-  return <section className="lumaDshOffice lumaStudio" aria-label="Luma 办公室">
+  const officeVisible = scene === 'office'
+  const toggle = (next: NonNullable<typeof panel>) => setPanel(current => current === next ? null : next)
+  return <section className="lumaDshOffice lumaStudio lumaSpatialOffice" aria-label="Luma 办公室">
     <header className="lumaDshOfficeHeader">
-      <h1>{scene==='office'?themeTitle:owner.name+'的卧室'}</h1>
-      <div className="lumaOfficeClock"><span>{shift}</span><time dateTime={now.toISOString()}>{formatOfficeClock(now)}</time></div>
+      <nav className="lumaSpaceSwitch" aria-label="空间导览">
+        <button type="button" aria-label={officeVisible?'办公室':'返回办公室'} aria-pressed={officeVisible} onClick={()=>{setScene('office');setPanel(null)}}>
+          <Building2 size={17} aria-hidden="true"/>办公室
+        </button>
+        <button type="button" aria-pressed={!officeVisible} onClick={()=>visit(resident)}><BedDouble size={18} aria-hidden="true"/>伙伴卧室</button>
+      </nav>
+      <div className="lumaOfficeClock"><Clock3 size={15} aria-hidden="true"/><span>{shift}</span><time dateTime={now.toISOString()}>{formatOfficeClock(now)}</time></div>
     </header>
-    {(presentation.saving || presentation.message) && <p className="lumaDshOfficeNotice" role="status">{presentation.saving ? '正在保存办公室设置…' : presentation.message}</p>}
+    {(presentation.saving || presentation.message) && <p className="lumaDshOfficeNotice" role="status">{presentation.saving ? '正在保存装扮…' : presentation.message}</p>}
     {snapshot.problem && <p className="lumaDshOfficeNotice" role="alert">{snapshot.problem}</p>}
-    {snapshot.persistence !== 'host' && <p className="lumaDshOfficeNotice" role="status">{snapshot.persistence === 'loading' ? '正在读取工位记录…' : snapshot.persistence === 'memory' ? '当前工位与角色会话绑定仅在本次连接中保留。' : '工位设置暂不可用，聊天记录仍由 DSH 保存。'}</p>}
-    <div className="lumaStudioLayout">
-      <div className={'lumaStudioCanvas'+(expanded?' is-expanded':'')}>
-        {scene==='office' ? <div className="lumaDshOfficeRoom">
-      <OfficeSceneSurface employees={employees} reports={snapshot.projection.officeReportMarkers}
-        commands={snapshot.commands} timePolicy={scenePolicy} presentationActive={active} reduceMotion={reduceMotion || snapshot.motionPreference === 'reduce'}
-        unavailableAssetIds={unavailableHistoricalRestArt}
-        {...selection.officeTheme ? { officeTheme: selection.officeTheme } : {}}
-        employeeSkins={selection.employeeSkins}
-        employeeDestination="workbench" onCharacterClick={onOpenChat}
-        onBindWorkstation={(employeeId, workstationId) => runtime.bindWorkstation(employeeId, workstationId)}
-        onSceneEvent={event => runtime.handleSceneEvent(event)}
-        onReportClick={reportId => { void runtime.openReport(reportId).then(employeeId => { if (employeeId) onOpenChat(employeeId) }) }} />
-        </div> : (
-      <OfficeBedroom hasInspector key={resident} id={resident} name={owner.name} skinId={selection.employeeSkins[resident]}
-        phase={policy.phase} bedtime={policy.bedtime === true} working={selectedEmployee?.sceneActivity==='working'}
-        onChat={()=>onOpenChat(resident)} onOffice={()=>setScene('office')} onWardrobe={()=>dress(resident)} />
-        )}
-        {scene==='office' && <div className="lumaRoomCaption">
-          <p>点选员工进入工作台<span> · 长按空闲员工调整工位</span></p>
-        </div>}
-          <button className="lumaCanvasZoom" type="button" aria-pressed={expanded} onClick={()=>setExpanded(!expanded)}>
-            {expanded?<Minimize2 size={15}/>:<Maximize2 size={15}/>} {expanded?'还原场景':'放大场景'}
-          </button>
+    {snapshot.persistence !== 'host' && <p className="lumaDshOfficeNotice" role="status">{snapshot.persistence === 'loading' ? '正在同步员工位置…' : snapshot.persistence === 'memory' ? '工位与会话绑定将在本次连接内保留。' : '暂时无法同步员工位置。'}</p>}
+    <div className="lumaSpaceToolbar">
+      <div className="lumaSpaceHeading"><h1>{officeVisible?themeTitle:owner.name+'的卧室'}</h1>
+        {officeVisible ? <span>{inOffice.length} 人在办公室</span> :
+          <select aria-label="选择房间" value={resident} onChange={event=>visit(event.target.value as ResidentId)}>
+            {OFFICE_OUTFIT_CHOICES.filter(choice=>unlockedEmployeeIds.includes(choice.employeeId)).map(choice=><option key={choice.employeeId} value={choice.employeeId}>{choice.name}的卧室</option>)}
+          </select>}
       </div>
-      <aside className="lumaStudioInspector" aria-label="场景控制台">
-        <section className="lumaStudioSection">
-          <h2>空间导览</h2>
-          <nav className="lumaOfficeTools lumaSpaceDestinations" aria-label="办公室设施">
-            <button type="button" aria-label={scene==='bedroom'?'返回办公室':'办公室'} aria-pressed={scene==='office'} onClick={()=>{setScene('office');setPanel(null)}}><img src={officeEmblem} alt=""/>办公室</button>
-            <button type="button" aria-pressed={scene==='bedroom'} onClick={()=>visit(resident)}><img src={bedroomEmblem} alt=""/>伙伴卧室</button>
-          </nav>
-        </section>
-        <section className="lumaStudioSection">
-          <h2>{scene==='office'?'场景设置':'房间与任务'}</h2>
-          {scene==='office' ? (
-      <div className="lumaDshOfficeAppearance">
-        <label className="lumaDshOfficeThemeLabel">办公室主题
-          <select aria-label="办公室主题" value={selection.officeTheme ?? ''} disabled={presentationDisabled}
-            onChange={event => { void runtime.setTheme(event.target.value || null) }}>
-            {OFFICE_THEME_CHOICES.map(theme => <option key={theme.id ?? 'classic'} value={theme.id ?? ''}>{theme.name}</option>)}
-          </select>
-        </label>
-        <label className="lumaDshOfficeThemeLabel">场景成员
-          <select aria-label="场景成员" value={presence} disabled={presentationDisabled}
-            onChange={event => { void runtime.setPresence(event.target.value) }}>
-            <option value="all">显示所有角色</option><option value="schedule">跟随作息</option>
-          </select>
-        </label>
+      <div className="lumaOfficeTools lumaSpaceTools">
+        <button type="button" aria-expanded={panel==='themes'} onClick={()=>toggle('themes')}><Palette size={16} aria-hidden="true"/>换肤</button>
+        <button type="button" aria-expanded={panel==='roster'} onClick={()=>toggle('roster')}><UsersRound size={16} aria-hidden="true"/>员工列表</button>
+        <button type="button" aria-expanded={panel==='wardrobe'} onClick={()=>toggle('wardrobe')}><Shirt size={16} aria-hidden="true"/>换装</button>
       </div>
-          ) : (
-      <div className="lumaDshOfficeAppearance lumaBedroomToolbar"><label className="lumaDshOfficeThemeLabel">选择房间
-        <select aria-label="选择房间" value={resident} onChange={e=>visit(e.target.value as ResidentId)}>
-          {OFFICE_OUTFIT_CHOICES.map(choice=><option key={choice.employeeId} value={choice.employeeId}>{choice.name}的卧室</option>)}
-        </select></label>
-        <button type="button" onClick={()=>onOpenChat(resident, 'task')}>给{owner.name}派任务</button>
-      </div>
-          )}
-        </section>
-        <section className="lumaStudioSection lumaStudioPeople">
-          <h2>员工管理</h2>
-          <div className="lumaOfficeTools lumaStudioActions">
-            <button type="button" aria-expanded={panel==='roster'} onClick={()=>setPanel(panel==='roster'?null:'roster')}><img src={rosterEmblem} alt=""/>员工列表</button>
-            <button type="button" aria-expanded={panel==='wardrobe'} onClick={()=>setPanel(panel==='wardrobe'?null:'wardrobe')}><img src={wardrobeEmblem} alt=""/>换装</button>
-          </div>
-        </section>
+    </div>
+    {panel==='themes' && <section className="lumaOfficePanel lumaRoomDecor" aria-label="场景换肤">
+      {officeVisible ? <label>办公室主题
+        <select aria-label="办公室主题" value={officeTheme ?? ''} disabled={presentationDisabled}
+          onChange={event=>{ const theme=event.target.value; if (!theme || unlockedThemeIds.includes(theme)) void runtime.setTheme(theme || null) }}>
+          {OFFICE_THEME_CHOICES.map(theme=>{
+            const locked=!!theme.id && !unlockedThemeIds.includes(theme.id)
+            return <option key={theme.id ?? 'classic'} value={theme.id ?? ''} disabled={locked}>{theme.name}{locked?' · 待解锁':''}</option>
+          })}
+        </select></label> : <label>卧室主题
+        <select aria-label="卧室主题" value={bedroomTheme ?? ''} disabled={presentationDisabled}
+          onChange={event=>{ const theme=event.target.value; if (!theme || unlockedThemeIds.includes(theme)) void runtime.setBedroomTheme(resident,theme || null) }}>
+          <option value="">经典卧室</option>
+          {COMPANION_REWARDS.map(reward=>{
+            const locked=!unlockedThemeIds.includes(reward.bedroom)
+            const other=Object.entries(bedrooms).find(([id,theme])=>id!==resident && theme===reward.bedroom)?.[0]
+            const otherOwner=OFFICE_OUTFIT_CHOICES.find(choice=>choice.employeeId===other && unlockedEmployeeIds.includes(choice.employeeId))
+            return <option key={reward.bedroom} value={reward.bedroom} disabled={locked}>{reward.name}主题{locked?' · 待解锁':otherOwner?' · 从'+otherOwner.name+'的卧室移入':''}</option>
+          })}
+        </select></label>}
+      {onOpenRewards && <button type="button" onClick={onOpenRewards}>查看主题解锁进度</button>}
+    </section>}
     {panel==='roster' && <section className="lumaOfficePanel" aria-label="AI 员工列表">
-      <div className="lumaOfficePanelTitle"><h2>AI 员工</h2><span>{employees.length} 位已加入</span>
-        <button type="button" onClick={()=>setPanel(null)}>收起列表</button></div>
+      <div className="lumaOfficePanelTitle"><h2>我的伙伴</h2><span>{unlockedEmployeeIds.length} 位已加入</span>
+        {onOpenRewards && <button type="button" onClick={onOpenRewards}>邀请伙伴</button>}</div>
       <ul className="lumaOfficeTeamGrid">{employees.map(employee=>{
         const id=employee.id as ResidentId
-        if (!OFFICE_OUTFIT_CHOICES.some(choice=>choice.employeeId===id)) return null
         return <li key={id}>
           <MessageAvatar {...getChibiAvatar(id,selection.employeeSkins[id])}/>
-          <div><strong>{employee.name}</strong><small>{employee.activity}</small></div>
+          <div><strong>{employee.name}</strong><small>{employee.location==='office'?'办公室 · '+employee.activity:employee.location==='bedroom'?'卧室 · '+(policy.bedtime?'休息中':'自由活动'):'位置待同步'}</small></div>
           <div className="lumaOfficeMemberActions">
             <button type="button" onClick={()=>visit(id)} aria-label={'进入'+employee.name+'的卧室'}>卧室</button>
             <button type="button" onClick={()=>dress(id)} aria-label={employee.name+'换装'}>换装</button>
-            <button type="button" onClick={()=>onOpenChat(id)} aria-label={'打开'+employee.name+'的工作台'}>工作台</button>
+            <button type="button" onClick={()=>onOpenChat(id)} aria-label={'联系'+employee.name}>联系</button>
           </div>
         </li>})}</ul>
     </section>}
-    {panel==='wardrobe' && <OfficeWardrobe id={resident} selected={selection.employeeSkins[resident]}
+    {panel==='wardrobe' && <OfficeWardrobe id={resident} selected={selection.employeeSkins[resident]} unlockedEmployeeIds={unlockedEmployeeIds}
       disabled={presentationDisabled} onSelect={setResident} onEquip={skin=>void runtime.setOutfit(resident,skin)} onClose={()=>setPanel(null)}/>}
-      </aside>
+    <div className={'lumaStudioCanvas'+(expanded?' is-expanded':'')}>
+      {officeVisible ? <>
+        <div className="lumaDshOfficeRoom">
+          <OfficeSceneSurface employees={inOffice} reports={snapshot.projection.officeReportMarkers.filter(report=>unlockedEmployeeIds.includes(report.employeeId))}
+            commands={snapshot.commands.filter(command=>inOffice.some(employee=>employee.id===command.employeeId))} timePolicy={scenePolicy}
+            presentationActive={active} reduceMotion={reduceMotion || snapshot.motionPreference === 'reduce'}
+            unavailableAssetIds={unavailableHistoricalRestArt} {...officeTheme ? {officeTheme} : {}}
+            employeeSkins={selection.employeeSkins} employeeDestination="contact" onCharacterClick={onOpenChat}
+            onBindWorkstation={(employeeId, workstationId)=>runtime.bindWorkstation(employeeId,workstationId)}
+            onSceneEvent={event=>runtime.handleSceneEvent(event)}
+            onReportClick={reportId=>{void runtime.openReport(reportId).then(employeeId=>{if(employeeId) onOpenChat(employeeId)})}}/>
+        </div>
+        <div className="lumaRoomCaption">
+          <p>{inOffice.length ? <>点选伙伴发消息<span> · 长按空闲伙伴调整工位</span></>
+            : snapshot.persistence === 'loading' || snapshot.persistence === 'unavailable' ? '等待同步员工位置' : '伙伴已回卧室休息'}</p>
+          {!inOffice.length && selectedEmployee?.location==='bedroom' && <button type="button" onClick={()=>visit(resident)}>去卧室看看</button>}
+        </div>
+      </> : <OfficeBedroom hasInspector key={[resident,selectedEmployee?.location,policy.bedtime].join('/')} id={resident} name={owner.name}
+          skinId={selection.employeeSkins[resident]} themeOwner={roomArtOwner} phase={policy.phase}
+          bedtime={policy.bedtime === true && selectedEmployee?.taskState==='idle'} location={selectedEmployee?.location ?? 'unknown'}
+          officeActivity={selectedEmployee?.activity ?? ''} onChat={()=>onOpenChat(resident)} onOffice={()=>setScene('office')} onWardrobe={()=>dress(resident)}
+          onAssign={()=>onOpenChat(resident,'task')}/>}
+      <button className="lumaCanvasZoom" type="button" aria-pressed={expanded} onClick={()=>setExpanded(!expanded)}>
+        {expanded?<Minimize2 size={15}/>:<Maximize2 size={15}/>} {expanded?'还原场景':'放大场景'}
+      </button>
     </div>
   </section>
 }

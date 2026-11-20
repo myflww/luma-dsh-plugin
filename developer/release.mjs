@@ -7,7 +7,7 @@ const root = fileURLToPath(new URL('.', import.meta.url))
 const plugin = join(root, 'modules/luma-dsh-plugin')
 const { version } = JSON.parse(await readFile(join(plugin, 'native-desktop/manifest.json'), 'utf8'))
 const [archive, target] = process.argv.slice(2)
-if (!archive || process.platform !== 'win32') throw Error('On Windows use npm run release -- path/to/release.zip [new-output-directory]')
+if (!archive || process.platform !== 'win32') throw Error('On Windows use npm run release -- path/to/verified-plugin-directory-or-zip [new-output-directory]')
 const final = resolve(target ?? join(root, 'dist', 'DesktopPlugin-' + version))
 try { await access(final); throw Error('Output already exists. Specify a fresh output directory.') } catch (error) { if (error.code !== 'ENOENT') throw error }
 const run = (exe, args) => {

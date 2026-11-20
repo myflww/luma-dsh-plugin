@@ -2,6 +2,8 @@
 
 This private Luma plugin bundles selected DeepSeek Harness contract helpers, Cosmokit and Schemastery source. Shared React, React DOM, Cordis and DSH UI modules remain supplied by the DSH host. Card viewer assets preserve their original bundled notices. Artwork remains subject to its original provenance; this code notice does not grant artwork rights.
 
+The development test kit also includes DeepSeek Harness session fixtures and Cordis sources for offline conversation tests. The Cordis MIT license is included at [developer/upstream/dsh/vendor/cordis/LICENSE](developer/upstream/dsh/vendor/cordis/LICENSE).
+
 ## DeepSeek Harness
 
 MIT License

@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
 import { createReadStream } from 'node:fs'
-import { copyFile, cp, lstat, mkdir, readFile, realpath, writeFile } from 'node:fs/promises'
+import { copyFile, cp, lstat, mkdir, readFile, realpath } from 'node:fs/promises'
 import { dirname, isAbsolute, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -18,7 +18,7 @@ const sha256 = async path => {
   for await (const chunk of createReadStream(path)) hash.update(chunk)
   return hash.digest('hex')
 }
-for (const entry of ['client.mjs', 'server.mjs', 'employee-presets.patch.yml']) await lstat(resolve(built, entry))
+for (const entry of ['client.mjs', 'server.mjs']) await lstat(resolve(built, entry))
 // Existing release folders can be rebuilt, but never write over another package.
 try {
   const existing = JSON.parse(await readFile(resolve(destination, 'package.json'), 'utf8'))
@@ -43,7 +43,6 @@ await cp(resolve(root, 'presets'), resolve(destination, 'presets'), { recursive:
 await cp(resolve(root, 'cloud-office'), resolve(destination, 'cloud-office'), { recursive: true })
 await copyFile(resolve(root, 'THIRD_PARTY_NOTICES.md'), resolve(destination, 'THIRD_PARTY_NOTICES.md'))
 await copyFile(resolve(source, 'README.md'), resolve(destination, 'README.md'))
-const patches = await Promise.all([resolve(source, 'cordis.patch.yml'), resolve(built, 'employee-presets.patch.yml')].map(path => readFile(path, 'utf8')))
-await writeFile(resolve(destination, 'cordis.patch.yml'), patches.map(part => part.trimEnd()).join('\n') + '\n')
+await copyFile(resolve(source,'cordis.patch.yml'),resolve(destination,'cordis.patch.yml'))
 await copyFile(resolve(source, 'manifest.json'), resolve(destination, 'package.json'))
 console.log(JSON.stringify({ directory: destination, version: manifest.version, verifiedAssets: art.length }))

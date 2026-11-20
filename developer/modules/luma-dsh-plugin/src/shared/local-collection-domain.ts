@@ -1,14 +1,25 @@
 import {
   PACK_CATALOG, PACK_POOL_VERSION, CARD_DRAW_LIMIT_RULE, getPackPool, getPackOdds, remainingPackDraws,
-  getPackCard, drawCountForCard, MAX_CARD_DRAWS,
+  getPackCard, getCardCollectionKey, drawCountForCard, MAX_CARD_DRAWS,
 } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/economy/domain/cardPacks.ts'
-import type { PackSlotOdds } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/economy/domain/types.ts'
+import type { CharacterId, PackSlotOdds } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/economy/domain/types.ts'
+import { canRedeemCard, characterIdForCard, CHARACTER_NAMES, CHARACTER_PACKS, THEME_COLLECTION_CHARACTERS } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/economy/domain/cardEntitlements.ts'
 import { OPENABLE_PACK_SKINS } from './pack-skin-catalog.ts'
 
 export const LOCAL_WELCOME_COINS = 300
 export const LOCAL_DAILY_COINS = 60
 export const LOCAL_COLLECTION_LIMIT = 5000
 export { CARD_DRAW_LIMIT_RULE }
+export { canRedeemCard, characterIdForCard, CHARACTER_NAMES }
+export type { CharacterId }
+export const STARTER_EMPLOYEE_ID: CharacterId = 'jingyuniang'
+export const COMPANION_REWARDS = Object.freeze(THEME_COLLECTION_CHARACTERS.map(id => {
+  const slug = id === 'shan' ? 'duanmu-yan' : id
+  const packId = CHARACTER_PACKS[id]
+  const pool = getPackPool(packId).filter(card => card.character === CHARACTER_NAMES[id] && (!card.characterId || card.characterId === id))
+  return { id, name: CHARACTER_NAMES[id], packId, office: `office.${slug}.v1`, bedroom: `bedroom.${slug}.v1`,
+    targets: pool.filter(card => card.edition === 'standard'), invitations: pool.filter(card => canRedeemCard(card.key)) }
+}))
 
 /** Existing publication pools and quotas are retained; this shop uses local gift coins. */
 export const LOCAL_PACKS = Object.freeze(PACK_CATALOG.map(pack => {
@@ -46,6 +57,7 @@ export type LocalCollectionEvent = EventBase & (
   | { readonly type: 'daily'; readonly day: string }
   | { readonly type: 'buy-pack'; readonly packId: string; readonly price: number; readonly poolVersion: string }
   | { readonly type: 'open-pack'; readonly packInstanceId: string; readonly versionKey: string; readonly rarity: LocalRarity; readonly poolVersion: string; readonly odds: readonly PackSlotOdds[] }
+  | { readonly type: 'redeem-employee'; readonly employeeId: CharacterId; readonly cardInstanceId: string }
   | { readonly type: 'buy-album-skin'; readonly skinId: LocalAlbumSkinId; readonly price: number }
   | { readonly type: 'equip-album-skin'; readonly skinId: LocalAlbumSkinId }
 )
@@ -58,6 +70,8 @@ export interface LocalLedgerEntry { readonly id: string; readonly at: number; re
 export interface LocalCollectionProjection {
   readonly balance: number; readonly welcomeClaimed: boolean; readonly lastDailyClaim: string | undefined
   readonly packs: readonly LocalOwnedPack[]; readonly cards: readonly LocalOwnedCard[]
+  readonly openedCards: readonly LocalOwnedCard[]
+  readonly unlockedEmployeeIds: readonly CharacterId[]; readonly unlockedThemeIds: readonly string[]
   readonly ownedCounts: Readonly<Record<string, number>>; readonly purchases: readonly LocalPurchase[]
   readonly albumSkinIds: readonly LocalAlbumSkinId[]; readonly albumSkin: LocalAlbumSkin
   readonly ledger: readonly LocalLedgerEntry[]; readonly drawCounts: Readonly<Record<string, number>>
@@ -78,6 +92,11 @@ export function projectLocalCollection(state: LocalCollectionState): LocalCollec
   let balance = 0, welcomeClaimed = false, lastDailyClaim: string | undefined
   let albumSkin: LocalAlbumSkin = LOCAL_ALBUM_SKINS[0]!
   const packs: LocalOwnedPack[] = [], cards: LocalOwnedCard[] = [], purchases: LocalPurchase[] = [], ledger: LocalLedgerEntry[] = []
+  const openedCards: LocalOwnedCard[] = []
+  const unlockedEmployeeIds: CharacterId[] = [STARTER_EMPLOYEE_ID]
+  const starter = COMPANION_REWARDS.find(reward => reward.id === STARTER_EMPLOYEE_ID)!
+  const unlockedThemeIds = new Set([starter.office, starter.bedroom])
+  const heldEditions = new Map<string, number>()
   const ids = new Set<string>(), albumSkinIds: LocalAlbumSkinId[] = ['classic'], ownedCounts: Record<string, number> = {}, drawCounts: Record<string, number> = {}
   for (const event of state.events) {
     if (!object(event) || typeof event.id !== 'string' || !/^[A-Za-z0-9_-]{10,100}$/u.test(event.id)
@@ -111,11 +130,32 @@ export function projectLocalCollection(state: LocalCollectionState): LocalCollec
           || drawCountForCard(card.key, drawCounts, pack.packId) >= MAX_CARD_DRAWS
           || !expectedOdds.length || expectedOdds.some(row => !row.available) || JSON.stringify(event.odds) !== JSON.stringify(expectedOdds)) invalid()
         packs[packIndex] = { ...pack, openedAt: event.at }
-        cards.push({ id: event.id, versionKey: card.key, rarity: card.rarity, packId: pack.packId,
+        const instance = Object.freeze({ id: event.id, versionKey: card.key, rarity: card.rarity, packId: pack.packId,
           packInstanceId: pack.id, openingId: event.id, acquiredAt: event.at })
+        cards.push(instance); openedCards.push(instance)
         ownedCounts[card.key] = (ownedCounts[card.key] ?? 0) + 1
         drawCounts[card.key] = (drawCounts[card.key] ?? 0) + 1
+        const edition = getCardCollectionKey(card.key)
+        heldEditions.set(edition, (heldEditions.get(edition) ?? 0) + 1)
+        const reward = COMPANION_REWARDS.find(entry => entry.name === card.character)
+        if (reward && !unlockedThemeIds.has(reward.office) && reward.targets.length && reward.targets.every(target => heldEditions.has(target.key))) {
+          unlockedThemeIds.add(reward.office); unlockedThemeIds.add(reward.bedroom)
+        }
         label = `开包 · ${card.name}`; break
+      }
+      case 'redeem-employee': {
+        const index = cards.findIndex(card => card.id === event.cardInstanceId), instance = cards[index]
+        if (!only(event, ['id', 'at', 'type', 'employeeId', 'cardInstanceId']) || !instance ||
+          !canRedeemCard(instance.versionKey) || characterIdForCard(instance.versionKey) !== event.employeeId || unlockedEmployeeIds.includes(event.employeeId)) invalid()
+        cards.splice(index, 1)
+        const copies = (ownedCounts[instance.versionKey] ?? 0) - 1
+        if (copies > 0) ownedCounts[instance.versionKey] = copies
+        else delete ownedCounts[instance.versionKey]
+        const edition = getCardCollectionKey(instance.versionKey), remaining = heldEditions.get(edition)! - 1
+        if (remaining) heldEditions.set(edition, remaining)
+        else heldEditions.delete(edition)
+        unlockedEmployeeIds.push(event.employeeId)
+        label = `伙伴入职 · ${CHARACTER_NAMES[event.employeeId]}`; break
       }
       case 'buy-album-skin': {
         const skin = LOCAL_ALBUM_SKINS.find(row => row.id === event.skinId)
@@ -134,7 +174,8 @@ export function projectLocalCollection(state: LocalCollectionState): LocalCollec
     ledger.push(Object.freeze({ id: event.id, at: event.at, label, delta, balance }))
   }
   return Object.freeze({ balance, welcomeClaimed, lastDailyClaim, packs: Object.freeze(packs.map(row => Object.freeze(row))),
-    cards: Object.freeze(cards.map(row => Object.freeze(row))), ownedCounts: Object.freeze(ownedCounts), purchases: Object.freeze(purchases.map(row => Object.freeze(row))),
+    cards: Object.freeze(cards), openedCards: Object.freeze(openedCards), unlockedEmployeeIds: Object.freeze(unlockedEmployeeIds), unlockedThemeIds: Object.freeze([...unlockedThemeIds]),
+    ownedCounts: Object.freeze(ownedCounts), purchases: Object.freeze(purchases.map(row => Object.freeze(row))),
     albumSkinIds: Object.freeze(albumSkinIds), albumSkin, ledger: Object.freeze(ledger), drawCounts: Object.freeze(drawCounts) })
 }
 

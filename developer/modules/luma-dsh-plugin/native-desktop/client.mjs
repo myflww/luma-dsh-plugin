@@ -71,7 +71,7 @@ export function apply(ctx) {
       const office = own(createOfficePageRuntime(context))
       const cards = own(createCardsPageRuntime(context))
       const collection = own(createLocalCollectionRuntime(context))
-      const messages = own(createMessagesRuntime(context, office))
+      const messages = own(createMessagesRuntime(context, office, collection.store))
       const preferences = own(createPluginPreferencesRuntime(context))
       runtimes = { office, cards, collection, messages, preferences,
         openNativeConversation: () => context.openNativeSession?.(),

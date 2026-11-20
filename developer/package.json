@@ -1,6 +1,6 @@
 {
   "name": "luma-dsh-native-development",
-  "version": "0.4.3",
+  "version": "0.5.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -8,14 +8,21 @@
   },
   "scripts": {
     "build": "node rebuild.mjs",
-    "test": "node --test modules/luma-dsh-plugin/native-desktop/*.test.mjs",
+    "test": "node --test modules/luma-dsh-plugin/native-desktop/*.test.mjs modules/luma-dsh-plugin/test/*.test.mjs && vitest run --config modules/luma-dsh-plugin/vitest.config.mjs",
     "release": "node release.mjs"
   },
   "devDependencies": {
+    "@testing-library/dom": "10.4.1",
+    "@testing-library/react": "16.3.2",
     "esbuild": "0.25.12",
+    "immer": "10.2.0",
     "js-yaml": "4.3.1",
+    "jsdom": "30.0.1",
     "lucide-react": "1.33.0",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "vitest": "4.1.11",
+    "zod": "4.4.3",
+    "zustand": "4.4.7"
   }
 }

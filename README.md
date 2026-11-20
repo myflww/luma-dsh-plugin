@@ -1,31 +1,33 @@
 # luma-dsh插件
 
-Luma 是 DeepSeek Harness 桌面端的虚拟员工插件。进入侧栏的「Luma 办公室」，可以看员工上下班和在工位办公，去她的卧室，或直接打开工作台派活。
+Luma 在 DeepSeek Harness Desktop 内提供办公室、伙伴卧室和联系人。新档从鲸鱼娘开始。选中她可以聊天或交办工作，抽到对应的卡片后可以邀请更多伙伴。
 
-## 安装桌面版
+## 安装 0.5.0
 
-使用有本仓库访问权限的 GitHub 账号登录 GitHub CLI。在 Windows PowerShell 中运行：
+适配 Windows 上的 DeepSeek Harness Desktop 0.2.2-rc.1。在 [0.5.0 发布页](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.5.0) 下载 `Luma-DSH-0.5.0-Installer.zip`，解压后双击 `Install-Luma-DSH.cmd`。已有桌面 0.4.3 目录时，整个升级可以离线完成。
+
+使用命令行安装时，先用有权限的账号登录 GitHub CLI，再运行以下命令。
 
 ```powershell
-gh release download v0.4.3 --repo myflww/luma-dsh-plugin --pattern "Get-Luma-DSH.ps1" --dir ".\Luma-0.4.3" --skip-existing
-& ".\Luma-0.4.3\Get-Luma-DSH.ps1"
+gh release download v0.5.0 --repo myflww/luma-dsh-plugin --pattern Get-Luma-DSH.ps1 --dir .\LumaInstaller --clobber
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\LumaInstaller\Get-Luma-DSH.ps1
 ```
 
-脚本从私有 [v0.4.3 发布页](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.4.3) 自动补齐全部 56 个分卷、合并并校验，生成 `Luma-0.4.3/Luma-DSH-0.4.3-Windows.zip`。没有 GitHub CLI 时，可以用有权限的账号在发布页下载 `.001` 至 `.056` 以及 `Get-Luma-DSH.ps1`，把它们放在同一文件夹，再运行该脚本。合并时需要约 3.5 GiB 可用空间。
+安装器在桌面 `Luma-DSH` 中创建新版本的独立目录，核对每个文件的 SHA-256，再通过 DSH 自身的 CLI 安装。重新打开 DSH，点侧栏的「Luma 办公室」。DSH 会引用该目录，请长期保留。
 
-将生成的 ZIP 解压到长期保留的目录。在 DeepSeek Harness 的「插件 → 添加插件 → 安装第三方插件」中选中包含 `package.json` 的目录并启用，随后点击左侧「Luma 办公室」。DSH 会直接引用这个目录。
+- **已有 0.4.3**　桌面 `Luma-DSH` 下有 `DesktopPlugin-0.4.3` 或旧 ZIP 时，安装器会自动复用。存放在别处可用 `-Base "D:\Luma\DesktopPlugin-0.4.3"` 或 `-Base "D:\Downloads\Luma-DSH-0.4.3-Windows.zip"`。
+- **首次安装**　安装器从本仓库的 0.4.3 发布取得基础美术，再应用 0.5.0 更新。首次下载约 1.87 GB，包含分卷、合并 ZIP 与完整插件时，建议预留 6 GiB。
+- **离线安装**　将 0.5.0 发布中的 `Get-Luma-DSH.ps1` 和 `Luma-DSH-0.5.0-Update.zip` 放在一起，再使用上面的 `-Base` 指定本地基础包。
+- **手动添加**　运行安装器时追加 `-PrepareOnly`，然后从 DSH 的插件页添加生成的 `DesktopPlugin-0.5.0` 目录。使用 `-Directory "D:\Luma"` 可以更改输出位置。
 
-本版本适配 Windows 上的 DeepSeek Harness Desktop 0.2.2-rc.1。发布包内有插件、运行美术和可选云办公工作器，DSH 桌面客户端需单独安装。
+## 从第一位伙伴开始
 
-## 使用
+1. 在办公室查看鲸鱼娘的作息。进入伙伴卧室可以查看她是否在家，已解锁的空间外观可在场景中切换。
+2. 在「联系」中点头像发消息。点右上角「•••」可以设置人格、选择模型服务、查看记忆或切换对话。个人聊天默认使用 DSH 会话。已有两位入职伙伴后，可以选人建群协作。
+3. 去卡包商店领取本地星币，购买并打开卡包。开出入职卡后，在开包结果中选择邀请，或到「卡牌收藏 → 伙伴与空间」选择想消耗的一张卡并确认。入职后即可在联系列表和 DSH「新会话」的预设中找到她。
+4. 「伙伴与空间」也列出了各人的正版卡面和所属卡包。持有该角色的全部正版卡面，自动获得专属办公室与卧室。此后即使消耗卡片，已经取得的空间依然保留。历史开包可在商店的收支记录中回看。
+5. 打开桌面上的爱之屋后，插件会通过本机连接为每位伙伴绑定各自的记忆库。爱之屋关闭时，新增的记忆先保存在本机，恢复连接后再同步。「聊天设置 → 记忆库」可查看状态与记录。要连接自建的云办公服务器，请查看发布包的 `cloud-office/README.md`。
 
-- 在办公室点选员工，进入她的工作台。宽屏右侧控制台可调整办公室主题、在场成员与房间；窄屏窗口的对应控件位于场景下方。进入伙伴卧室可切换房间或直接给房主派工。
-- 在工作台建立协作群，选出需要的员工。可以让全员接力，也可以点名一人接手。每位员工都可填写独立的模型服务，设置人格，并连接自己的爱之屋记忆库。
-- 如果需要在自己的服务器上工作，按发布包内 `cloud-office/README.md` 启动云办公工作器。在「插件设置 → 云办公服务器」连接后，员工可排版文档、制作任务表，或调用服务器配置的模型起草文本。
-- 卡牌收藏、卡册皮肤和卡包商店在插件顶部导航。卡包使用本地星币购买。
+想先邀请第二位伙伴，可以用 300 星币的新册礼挑选单角色卡包。晨光序章对应端木嫣，蓝蔷薇回响对应陆弥，月相典藏对应白霜命。龙妈妈、克劳德、吉米和绯洛的入职卡出自初见与远行。各卡包当前概率和具体可兑换版本都能在插件内查看。免费试拆可体验动画，持有卡来自实际购入并开启的卡包。
 
-## 源码与美术
-
-开发源码和重建工具在 [developer](developer/)；该目录的说明列有宿主依赖、构建命令和验证方法。构建素材使用同版本 Release 中的美术，下载时可按发布的 SHA-256 核对。
-
-修改或再分发前，请查看 [第三方声明](THIRD_PARTY_NOTICES.md)。美术资源的权利依各自来源而定。
+开发源码、重建和差分发行方法见 [开发说明](developer/README.md)。美术与第三方组件的来源列于 [第三方声明](THIRD_PARTY_NOTICES.md)。

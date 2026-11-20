@@ -9,7 +9,7 @@ export interface MessagePreferences {
 }
 export interface MessageSettings { homes?: Record<string, string>; preferences?: MessagePreferences }
 export const DEFAULT_MESSAGE_PREFERENCES: MessagePreferences = {
-  schemaVersion: 1, selectedRole: 'shan', userName: '你', display: 'bubbles', profiles: {}, drafts: {}, activeTopics: {},
+  schemaVersion: 1, selectedRole: 'jingyuniang', userName: '你', display: 'bubbles', profiles: {}, drafts: {}, activeTopics: {},
 }
 const object = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === 'object' && !Array.isArray(v)
 const text = (v: unknown, max: number) => typeof v === 'string' && v.length <= max && !/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/u.test(v)

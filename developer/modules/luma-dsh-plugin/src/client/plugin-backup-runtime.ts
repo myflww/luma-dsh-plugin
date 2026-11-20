@@ -22,7 +22,7 @@ export const PLUGIN_BACKUP_NAMESPACES: readonly NamespaceSpec[] = Object.freeze(
   { name: COLLECTION_SETTINGS_NAMESPACE, label: '旧收藏凭据与展示', validate: validateCollectionSettingsWire },
   { name: CARD_LIBRARY_SETTINGS_NAMESPACE, label: '喜欢、星级、备注与收藏夹', validate: validateCardLibrarySettingsWire },
   { name: OFFICE_PRESENTATION_NAMESPACE, label: '办公室主题与角色衣装', validate: validateOfficePresentationSettingsWire },
-  { name: LOCAL_COLLECTION_SETTINGS_NAMESPACE, label: '本地星币、卡包、持有记录与卡册装帧', validate: validateLocalCollectionSettings },
+  { name: LOCAL_COLLECTION_SETTINGS_NAMESPACE, label: '本地星币、卡包、持有记录、伙伴与空间权益、卡册装帧', validate: validateLocalCollectionSettings },
   { name: MESSAGES_NAMESPACE, label: '角色卡、消息显示与话题关联（保留本机草稿）', validate: validateMessageSettings, fields: ['preferences'] },
   { name: PLUGIN_PREFERENCES_NAMESPACE, label: '插件动态偏好', validate: validatePluginPreferencesSettingsWire },
 ])
@@ -86,7 +86,7 @@ function targetSection(spec: NamespaceSpec, before: Section, incoming: Section):
 function summary(spec: NamespaceSpec, section: Section): string {
   if (spec.name === LOCAL_COLLECTION_SETTINGS_NAMESPACE) {
     const collection = projectLocalCollection((section as LocalCollectionSettings).state ?? EMPTY_LOCAL_COLLECTION_STATE)
-    return `星币 ${collection.balance} · 卡片 ${collection.cards.length} 张 · 未开卡包 ${collection.packs.filter(pack => pack.openedAt === undefined).length} 包 · 装帧 ${collection.albumSkinIds.length} 款`
+    return `星币 ${collection.balance} · 卡片 ${collection.cards.length} 张 · 未开卡包 ${collection.packs.filter(pack => pack.openedAt === undefined).length} 包 · 装帧 ${collection.albumSkinIds.length} 款 · 伙伴 ${collection.unlockedEmployeeIds.length} 位 · 空间 ${collection.unlockedThemeIds.length} 款`
   }
   if (spec.name === CARD_LIBRARY_SETTINGS_NAMESPACE) {
     const entries = Object.values(section).filter(record)
@@ -94,7 +94,7 @@ function summary(spec: NamespaceSpec, section: Section): string {
   }
   if (spec.name === OFFICE_PRESENTATION_NAMESPACE) {
     const selected = decodeOfficePresentationSettings(section)?.selection
-    return `${OFFICE_THEME_CHOICES.find(theme => theme.id === (selected?.officeTheme ?? null))?.name ?? '经典办公室'} · 衣装选择 ${Object.keys(selected?.employeeSkins ?? {}).length} 项 · ${selected?.presence === 'schedule' ? '跟随作息' : '显示所有角色'}`
+    return `${OFFICE_THEME_CHOICES.find(theme => theme.id === (selected?.officeTheme ?? null))?.name ?? '经典办公室'} · 衣装选择 ${Object.keys(selected?.employeeSkins ?? {}).length} 项 · 卧室装扮 ${Object.keys(selected?.bedroomThemes ?? {}).length} 间 · 跟随作息`
   }
   if (spec.name === MESSAGES_NAMESPACE) {
     const preferences = (section.preferences as MessagePreferences | undefined) ?? DEFAULT_MESSAGE_PREFERENCES
@@ -112,7 +112,7 @@ function parseBackup(text: string): PluginBackupDocument {
   if (!record(value) || Object.keys(value).sort().join(',') !== 'createdAt,format,namespaces,pluginVersion,version'
     || value.format !== 'LumaDshPluginBackup' || value.version !== 1 || typeof value.pluginVersion !== 'string'
     || !/^\d+\.\d+\.\d+(?:-[a-zA-Z0-9.-]+)?$/u.test(value.pluginVersion)
-    || ![PLUGIN_COMPATIBILITY_LINE,'0.3','0.2'].includes(value.pluginVersion.split('.').slice(0, 2).join('.')) || typeof value.createdAt !== 'string'
+    || ![PLUGIN_COMPATIBILITY_LINE,'0.4','0.3','0.2'].includes(value.pluginVersion.split('.').slice(0, 2).join('.')) || typeof value.createdAt !== 'string'
     || !Number.isFinite(Date.parse(value.createdAt)) || !record(value.namespaces) || !Object.keys(value.namespaces).length) throw new Error('备份版本或格式不受当前插件支持。')
   for (const [name, section] of Object.entries(value.namespaces)) {
     const spec = PLUGIN_BACKUP_NAMESPACES.find(candidate => candidate.name === name)

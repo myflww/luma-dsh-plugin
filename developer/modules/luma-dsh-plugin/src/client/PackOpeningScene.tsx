@@ -30,12 +30,12 @@ function localPointer(clientX: number, clientY: number, space: PouchSpace) {
 const themes: Record<string, string> = { 'dawn-prelude': 'dawn', 'blue-rose-echo': 'rose', 'moon-collection': 'moon', 'first-meeting-journey': 'journey' }
 const rarityNames = { N: '初遇', R: '珍藏', SR: '闪耀珍藏', SSR: '星光典藏' }
 
-export type PackOpeningSceneProps = { onClose(): void; onOpenOwned?(): void } & (
+export type PackOpeningSceneProps = { onClose(): void; onOpenOwned?(): void; invitationFor?(key: string, instanceId: string): { label: string; open(): void } | undefined } & (
   | { cards: readonly LocalOwnedCard[]; preview?: never; historyReplay?: boolean }
   | { cards?: never; preview: { cardKeys: readonly string[]; packId: string; skin?: PackSkin }; historyReplay?: never }
 )
 /** Saved acquisitions and artwork previews share presentation, never ownership. */
-export function PackOpeningScene({ cards, preview, historyReplay, onClose, onOpenOwned }: PackOpeningSceneProps) {
+export function PackOpeningScene({ cards, preview, historyReplay, onClose, onOpenOwned, invitationFor }: PackOpeningSceneProps) {
   const [phase, setPhase] = useState<Phase>('sealed')
   const [progress, setProgress] = useState(0)
   const [tearDirection, setTearDirection] = useState<TearDirection>('ltr')
@@ -71,6 +71,7 @@ export function PackOpeningScene({ cards, preview, historyReplay, onClose, onOpe
   const packName = preview ? skin?.name ?? firstPack.name : firstPack.name
   const packRatio = skin ? `${skin.width} / ${skin.height}` : '2 / 3'
   const current = rows[selected] ?? rows[0]
+  const invitation = !preview && current ? invitationFor?.(current.art.key, current.id) : undefined
   const revealed = phase === 'revealed'
   const emerging = phase === 'emerging' || revealed
   const compact = gallerySize.width < 700
@@ -316,7 +317,7 @@ export function PackOpeningScene({ cards, preview, historyReplay, onClose, onOpe
             {revealed && rows.length > 1 && <nav className="lumaOpeningCardPicker" aria-label="选择揭晓的卡片">{rows.map(({ art, id }, index) => <button key={id} type="button" aria-label={`选择第 ${index + 1} 张：${art.name}`} aria-pressed={selected === index} onClick={() => select(index)}>{index + 1}</button>)}</nav>}
             {revealed && current ? <><div className="lumaOpeningCardInfo"><span className={`lumaOpeningRarity rarity-${current.rarity}`}>{preview && !current.art.rarity ? '原作素材预览' : `${current.rarity} · ${rarityNames[current.rarity]}`}</span><h3>{current.art.name}</h3><p>{current.art.character} · {current.art.versionLabel}{current.art.edition === 'errata' ? ' · 错版' : ''}</p></div>
               <div className="lumaOpeningTools"><button type="button" disabled={!current.art.backUrl || flipStatus === 'loading'} aria-busy={flipStatus === 'loading'} onClick={() => void flipCard()}><RotateCcw size={14} />{flipStatus === 'failed' ? '重试翻面' : flipStatus === 'loading' ? '正在翻面…' : back ? '看看正面' : '翻到背面'}</button><button type="button" onClick={() => setDetail(true)}><Sparkles size={14} />细看卡片与工艺</button><button type="button" onClick={replay}>再看一次</button></div>
-              <div className="lumaOpeningActions">{!preview && onOpenOwned && <button type="button" onClick={onOpenOwned}>查看我的持有</button>}<button ref={finishButton} type="button" className="lumaOpeningPrimary" onClick={onClose}><Check size={16} />{preview ? '返回素材册' : historyReplay ? '返回收支记录' : '收好这次相遇'}</button></div>
+              <div className="lumaOpeningActions">{invitation && <button type="button" onClick={invitation.open}>{invitation.label}</button>}{!preview && onOpenOwned && <button type="button" onClick={onOpenOwned}>查看我的持有</button>}<button ref={finishButton} type="button" className="lumaOpeningPrimary" onClick={onClose}><Check size={16} />{preview ? '返回素材册' : historyReplay ? '返回收支记录' : '收好这次相遇'}</button></div>
             </> : <><span className="lumaOpeningHint">{preview ? `${packName} · ${rows.length} 张卡面预览 · 不计入持有` : rows.length > 1 ? `${rows.length} 包 · 每包一张 · 一起揭晓` : packName + ' · 一包一张小小惊喜'}</span><button type="button" className="lumaOpeningSkip" onClick={() => setPhase('revealed')}>跳过动画</button></>}
           </footer>
         </>}

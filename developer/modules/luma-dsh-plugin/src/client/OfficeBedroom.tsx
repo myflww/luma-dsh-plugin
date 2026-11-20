@@ -2,7 +2,8 @@ import { useState } from 'react'
 import type { OfficeTimePhase } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/timePolicy.ts'
 import { getBrowserOfficeDefaultSkinId, getEmployeeCatalogWithSkin, getEmployeeSkinPack } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/employeeSkins.ts'
 import { getOfficeAsset, resolveOfficeAssetUrl } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/assets.ts'
-import { BEDROOM_ART, BEDROOM_SLEEP } from './bedroom-art.generated.ts'
+import { BEDROOM_ART, BEDROOM_SLEEP, CLASSIC_BEDROOM_ART } from './bedroom-art.generated.ts'
+import type { EmployeeLocation } from './office-presence.ts'
 export type ResidentId = keyof typeof BEDROOM_ART
 type Pair = readonly [number, number]
 type Bounds = readonly [number, number, number, number]
@@ -37,8 +38,8 @@ function sleepingArt(id: ResidentId, selected?: string) {
   return {src:original.url, width:1254, height:1254, head:original.head, feet:original.feet}
 }
 
-function sleepingPose(id: ResidentId, skinId?: string) {
-  const room = BEDROOM_ART[id], art = sleepingArt(id, skinId)
+function sleepingPose(room: typeof CLASSIC_BEDROOM_ART | typeof BEDROOM_ART[ResidentId], id: ResidentId, skinId?: string) {
+  const art = sleepingArt(id, skinId)
   if (!art) return null
   const headX = art.head[0]*art.width, headY = art.head[1]*art.height
   const dx = (art.feet[0]-art.head[0])*art.width, dy = (art.feet[1]-art.head[1])*art.height
@@ -50,29 +51,31 @@ function sleepingPose(id: ResidentId, skinId?: string) {
     transform={`translate(${room.head.join(' ')}) rotate(${rotation}) scale(${scale*mirror} ${scale}) translate(${-headX} ${-headY})`}/>
 }
 
-export function OfficeBedroom({id,name,skinId,phase,bedtime,working,onChat,onOffice,onWardrobe,hasInspector=false}: {
-  id:ResidentId; name:string; skinId?:string | undefined; phase:OfficeTimePhase; bedtime:boolean; working:boolean
-  onChat:()=>void; onOffice:()=>void; onWardrobe:()=>void; hasInspector?:boolean
+export function OfficeBedroom({id,name,skinId,themeOwner,phase,bedtime,location,officeActivity,onChat,onOffice,onWardrobe,onAssign,hasInspector=false}: {
+  id:ResidentId; name:string; skinId?:string | undefined; themeOwner?:ResidentId | undefined; phase:OfficeTimePhase; bedtime:boolean
+  location:EmployeeLocation; officeActivity:string
+  onChat:()=>void; onOffice:()=>void; onWardrobe:()=>void; onAssign?:()=>void; hasInspector?:boolean
 }) {
   const [pose,setPose] = useState<'awake'|'sleep'>()
-  const room = BEDROOM_ART[id]
+  const room = themeOwner ? BEDROOM_ART[themeOwner] : CLASSIC_BEDROOM_ART
   const [w,h] = room.size
   const night = ['dusk','night','closed'].includes(phase)
   const asleep = pose ? pose === 'sleep' : bedtime
   return <section className="lumaBedroomView" aria-label={name+'的卧室'}>
     <div className="lumaBedroomArt" style={{aspectRatio:w+'/'+h}}>
       <img src={night ? room.night : room.day} alt={name+'的卧室 · '+(night?'夜景':'日景')}/>
-      {!working && <svg className="lumaBedroomResidentLayer" viewBox={`0 0 ${w} ${h}`} aria-hidden="true">
-        {asleep ? sleepingPose(id,skinId) : <svg data-bedroom-pose="awake" x={room.stand[0]-h*.105} y={room.stand[1]-h*.22} width={h*.21} height={h*.22}>
+      {location === 'bedroom' && <svg className="lumaBedroomResidentLayer" viewBox={`0 0 ${w} ${h}`} aria-hidden="true">
+        {asleep ? sleepingPose(room,id,skinId) : <svg data-bedroom-pose="awake" x={room.stand[0]-h*.105} y={room.stand[1]-h*.22} width={h*.21} height={h*.22}>
           <EmployeeFigure id={id} skinId={skinId}/>
         </svg>}
       </svg>}
     </div>
     <div className="lumaRoomActions">
-      <strong>{name}的卧室</strong><span>{working?'正在办公室处理任务':asleep?'正在小憩':'在房间休息'}</span>
+      <strong>{name}</strong><span>{location==='office'?'在办公室 · '+officeActivity:location==='unknown'?'位置待同步':asleep?'在卧室小憩':'在卧室休息'}</span>
       {!hasInspector && <button type="button" onClick={onWardrobe}>换装</button>}
-      {!working && <button type="button" onClick={()=>setPose(asleep?'awake':'sleep')}>{asleep?'起身':'小憩'}</button>}
-      <button type="button" onClick={onChat}>打开{name}的工作台</button>
+      {location==='bedroom' && <button type="button" onClick={()=>setPose(asleep?'awake':'sleep')}>{asleep?'起身':'小憩'}</button>}
+      <button type="button" onClick={onChat}>联系{name}</button>
+      {onAssign && <button type="button" onClick={onAssign} aria-label={'给'+name+'派任务'}>派任务</button>}
       {!hasInspector && <button type="button" onClick={onOffice}>返回办公室</button>}
     </div>
   </section>

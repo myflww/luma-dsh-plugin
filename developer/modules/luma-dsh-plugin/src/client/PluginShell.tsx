@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useSyncExternalStore } from 'react'
 import { Building2, MessagesSquare, BookOpen, Gift, Settings2, ArrowLeft } from 'lucide-react'
 import { OfficePage } from './OfficePage.tsx'
 import { CardsPage, type CardsPageRuntime } from './CardsPage.tsx'
@@ -11,12 +11,13 @@ import { PluginSettingsPage } from './PluginSettingsPage.tsx'
 import type { PluginPreferencesRuntime } from './plugin-backup-runtime.ts'
 import './plugin.css'
 import './StudioLayout.css'
+import './Interface.css'
 
 export type LumaPage = 'office' | 'messages' | 'cards' | 'shop' | 'settings' | 'native'
 const pageIcons = { office:Building2, messages:MessagesSquare, cards:BookOpen, shop:Gift, settings:Settings2 }
 export const LUMA_PAGES = Object.freeze([
   { id: 'office', label: '办公室' },
-  { id: 'messages', label: '员工工作台' },
+  { id: 'messages', label: '联系' },
   { id: 'cards', label: '卡牌收藏' },
   { id: 'shop', label: '卡包与装帧' },
   { id: 'settings', label: '插件设置' },
@@ -26,7 +27,13 @@ export const LUMA_PAGES = Object.freeze([
 export function PluginShell({ office, cards, collection, messages, preferences, onReturnToDSH, onOpenConversation }: { office: OfficePageRuntime; cards: CardsPageRuntime;
   collection: LocalCollectionRuntime; messages: MessagesRuntime; preferences: PluginPreferencesRuntime; onReturnToDSH?: () => void; onOpenConversation?: () => void }) {
   const [page, setPage] = useState<LumaPage>('office')
-  const [cardView, setCardView] = useState<'catalog' | 'owned'>('catalog')
+  const [cardView, setCardView] = useState<'catalog' | 'owned' | 'rewards'>('catalog')
+  const [shopPackId, setShopPackId] = useState<string>()
+  const { unlockedEmployeeIds, unlockedThemeIds } = useSyncExternalStore(
+    collection.store.subscribe, collection.store.getSnapshot, collection.store.getSnapshot,
+  )
+  const openRewards = () => { setCardView('rewards'); setPage('cards') }
+  const openShop = (packId?: string) => { setShopPackId(packId); setPage('shop') }
   const [officeNotice, setOfficeNotice] = useState('')
   const [employeeVisit, setEmployeeVisit] = useState<{ mode: 'chat' | 'task' }>()
   const openNative = onReturnToDSH ?? (() => setPage('native'))
@@ -37,7 +44,7 @@ export function PluginShell({ office, cards, collection, messages, preferences, 
         {LUMA_PAGES.map(item => {
           const Icon = pageIcons[item.id]
           return <button key={item.id} data-page={item.id} title={item.label} type="button" aria-current={page === item.id ? 'page' : undefined}
-            onClick={() => setPage(item.id)}><Icon aria-hidden="true" size={19}/><span>{item.label}</span></button>
+            onClick={() => item.id === 'shop' ? openShop() : setPage(item.id)}><Icon aria-hidden="true" size={20} strokeWidth={1.75}/><span>{item.label}</span></button>
         })}
       </div>
       {onReturnToDSH && <button type="button" className="lumaReturnToDsh" onClick={onReturnToDSH}><ArrowLeft size={17} aria-hidden="true"/>返回 DSH</button>}
@@ -45,14 +52,15 @@ export function PluginShell({ office, cards, collection, messages, preferences, 
     <main className="lumaPluginContent" hidden={page === 'native'}>
       <div hidden={page !== 'office'}>
         {officeNotice && <p className="lumaDshOfficeNotice" role="status">{officeNotice}</p>}
-        <OfficePage runtime={office} active={page === 'office'} onOpenChat={(id, intent) => {
+        <OfficePage runtime={office} active={page === 'office'} unlockedEmployeeIds={unlockedEmployeeIds} unlockedThemeIds={unlockedThemeIds} onOpenRewards={openRewards} onOpenChat={(id, intent) => {
+          if (!unlockedEmployeeIds.includes(id)) { openRewards(); return }
           if (messages.selectRole(id, true)) { setOfficeNotice(''); setEmployeeVisit({ mode:intent ?? 'chat' }); setPage('messages') }
           else setOfficeNotice('当前操作处理中，请稍后重试。')
         }} />
       </div>
-      <div className="lumaPluginFillPage" hidden={page !== 'messages'}><MessagesPage runtime={messages} employeeVisit={employeeVisit} active={page === 'messages'} onOpenNative={onOpenConversation ?? openNative} /></div>
-      {page === 'cards' && <CardsPage runtime={cards} collection={collection} initialView={cardView} onOpenShop={() => setPage('shop')} />}
-      {page === 'shop' && <CollectionHub runtime={collection} onOpenOwned={() => { setCardView('owned'); setPage('cards') }} />}
+      <div className="lumaPluginFillPage" hidden={page !== 'messages'}><MessagesPage runtime={messages} employeeVisit={employeeVisit} active={page === 'messages'} unlockedEmployeeIds={unlockedEmployeeIds} onOpenRewards={openRewards} onOpenNative={onOpenConversation ?? openNative} /></div>
+      {page === 'cards' && <CardsPage runtime={cards} collection={collection} initialView={cardView} onOpenShop={openShop} />}
+      {page === 'shop' && <CollectionHub runtime={collection} {...(shopPackId ? { initialPackId: shopPackId } : {})} onOpenOwned={() => { setCardView('owned'); setPage('cards') }} />}
       {page === 'settings' && <PluginSettingsPage runtime={preferences} onOpenNativeSettings={openNative} />}
     </main>
   </div>

@@ -62,7 +62,7 @@ export function PluginSettingsPage({ runtime, onOpenNativeSettings }: PluginSett
       {cloudOpen && <CloudOfficeConnection writable={state.writable}/>}
     </section>
     <section aria-labelledby="luma-backup-heading"><h2 id="luma-backup-heading">插件数据备份</h2>
-      <p>可导出办公室与衣装、角色设定、卡牌收藏、星币和购包记录。完整迁移时，关闭插件并备份 Data 目录，其中包含 DSH 会话、草稿、工作台任务和员工记忆。自定义服务密钥受当前 Windows 账户保护，换机时需重新填写。</p>
+      <p>可导出办公室与衣装、角色设定、卡牌收藏、星币和购包记录。完整迁移时，请另外备份正在使用的 DSH 档案和爱之屋数据，其中有会话、任务和角色记忆。自定义服务密钥受当前 Windows 账户保护，换机时需重新填写。</p>
       <div className="lumaPluginSettingsActions"><button type="button" disabled={busy} onClick={() => { void exportData() }}>导出插件数据</button>
         <label className="lumaPluginSettingsFile">选择备份文件<input ref={file} type="file" accept=".json,application/json" aria-label="选择备份文件" disabled={busy}
           onChange={event => { void previewFile(event.target.files?.[0]) }} /></label></div>

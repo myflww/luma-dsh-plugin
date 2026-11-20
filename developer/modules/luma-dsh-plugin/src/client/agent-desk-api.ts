@@ -20,6 +20,7 @@ export interface AgentState {
   jobs: AgentJob[]
   rooms?: WorkRoom[]
   loveHouse: { available: boolean; connected: boolean; pending?: number; message?: string; portableAvailable?: boolean; reusedPortable?: boolean }
+  previews?: Record<string, {text: string; time: number}>
   memories: Record<string, number>
 }
 export interface AgentMemory { id: string; text: string; createdAt: number }

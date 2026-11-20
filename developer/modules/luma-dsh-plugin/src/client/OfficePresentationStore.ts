@@ -1,5 +1,5 @@
 import { DEFAULT_OFFICE_PRESENTATION, DEFAULT_OFFICE_PRESENCE, OFFICE_PRESENTATION_FIELD, decodeOfficePresentationSettings,
-  isOfficePresentationEmployee, isOfficePresentationTheme,
+  isOfficePresentationEmployee, isOfficePresentationTheme, isBedroomPresentationTheme, STARTER_BEDROOMS,
   type OfficePresentationSelection, type OfficePresentationSettings } from '../office-presentation-settings.ts'
 import { OFFICE_OUTFIT_CHOICES } from './office-theme-catalog.ts'
 
@@ -17,10 +17,12 @@ export interface OfficePresentationSnapshot {
   readonly message: string
 }
 export type OfficePresentationResult = Readonly<{ status: 'saved' | 'unchanged' }> | Readonly<{ status: 'rejected'; message: string }>
+const sameAssignments = (a: Readonly<Record<string,string>>, b: Readonly<Record<string,string>>) =>
+  Object.keys(a).length === Object.keys(b).length && Object.entries(a).every(([key,value]) => b[key] === value)
 const equal = (a: OfficePresentationSelection, b: OfficePresentationSelection): boolean => a.officeTheme === b.officeTheme
   && (a.presence ?? DEFAULT_OFFICE_PRESENCE) === (b.presence ?? DEFAULT_OFFICE_PRESENCE)
-  && Object.keys(a.employeeSkins).length === Object.keys(b.employeeSkins).length
-  && Object.entries(a.employeeSkins).every(([employee, skin]) => b.employeeSkins[employee as keyof typeof b.employeeSkins] === skin)
+  && sameAssignments(a.employeeSkins,b.employeeSkins)
+  && sameAssignments(a.bedroomThemes ?? STARTER_BEDROOMS,b.bedroomThemes ?? STARTER_BEDROOMS)
 
 /** One confirmed Host field. Reads never award equipment or write defaults. */
 export class OfficePresentationStore {
@@ -46,6 +48,15 @@ export class OfficePresentationStore {
   setPresence(presence: string): Promise<OfficePresentationResult> {
     if (presence !== 'all' && presence !== 'schedule') return Promise.resolve(this.reject('请选择有效的场景成员显示方式。'))
     return this.change(selection => ({ ...selection, presence }))
+  }
+  setBedroomTheme(employeeId: string, theme: string | null): Promise<OfficePresentationResult> {
+    if (!isOfficePresentationEmployee(employeeId) || theme !== null && !isBedroomPresentationTheme(theme))
+      return Promise.resolve(this.reject('所选卧室或装饰不在当前目录中。'))
+    return this.change(selection => {
+      const bedrooms = { ...(selection.bedroomThemes ?? STARTER_BEDROOMS) } as NonNullable<OfficePresentationSelection['bedroomThemes']>
+      const remaining = Object.fromEntries(Object.entries(bedrooms).filter(([room, equipped]) => room !== employeeId && equipped !== theme))
+      return { ...selection, bedroomThemes: theme ? { ...remaining, [employeeId]:theme } : remaining }
+    })
   }
   setOutfit(employeeId: string, skinId: string | null): Promise<OfficePresentationResult> {
     if (!isOfficePresentationEmployee(employeeId) || skinId !== null && skinId !== `skin.${employeeId}.v1`) return Promise.resolve(this.reject('所选衣装不属于该角色。'))

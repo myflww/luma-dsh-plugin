@@ -5,12 +5,13 @@ export interface OfficeActorPortraitTap {
   readonly clientY: number
 }
 
-export type OfficeEmployeeDestination = 'portrait' | 'workbench'
+export type OfficeEmployeeDestination = 'portrait' | 'workbench' | 'contact'
 
 export function officeEmployeeAction(name: string, destination: OfficeEmployeeDestination = 'portrait', canDrag = true) {
   const workbench = destination === 'workbench'
-  const hint = workbench ? '单击或按 Enter 打开工作台' : '双击查看立绘'
-  return { 'aria-label': `打开${name}的${workbench ? '工作台' : '立绘页'}`,
+  const contact = destination === 'contact'
+  const hint = contact ? '单击或按 Enter 发消息' : workbench ? '单击或按 Enter 打开工作台' : '双击查看立绘'
+  return { 'aria-label': contact ? `联系${name}` : `打开${name}的${workbench ? '工作台' : '立绘页'}`,
     title: canDrag ? hint + '，长按半秒可拖动选择工位' : hint }
 }
 
@@ -19,7 +20,7 @@ export function advanceOfficeActorPortraitTap(previous: OfficeActorPortraitTap |
   readonly pendingTap: OfficeActorPortraitTap | null
   readonly activate: boolean
 } {
-  if (destination === 'workbench') return { pendingTap: null, activate: true }
+  if (destination !== 'portrait') return { pendingTap: null, activate: true }
   const interval = previous === null ? Infinity : tap.at - previous.at
   const activate = previous !== null && previous.employeeId === tap.employeeId
     && interval >= 0 && interval <= 500

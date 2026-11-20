@@ -1,16 +1,27 @@
 {
-  "version": "0.4.3",
-  "verifiedLocalDate": "2026-11-20",
+  "version": "0.5.0",
+  "verifiedLocalDate": "2026-11-21",
   "platform": "Windows x64",
   "node": "24.19.0",
-  "method": "New Git checkout outside the development workspace; npm ci from lockfile, compile client and server, restore verified public assets from release ZIP, run native tests and SHA-256 compare every assembled package file to the ZIP.",
-  "referenceZipSha256": "e949d369a89da2bf6ce01c2eabef4b8a3a95ced38db5ab625ea90c2bb0549c81",
-  "matchingFiles": 1777,
-  "matchingPublicAssets": 1753,
-  "nativeTestsPassed": 7,
+  "installerPowerShell": "Windows PowerShell 5.1",
+  "method": "Isolated Git source snapshot outside the workspace, locked npm ci, full client/server build and restoration of published art. Independently compared all rebuilt files and both upgraded directories against the desktop release manifest.",
+  "recoveryInputs": [
+    "Existing unpacked v0.4.3 plugin directory",
+    "Published v0.4.3 ZIP recovered from all 56 private GitHub release parts"
+  ],
+  "baseZipSha256": "e949d369a89da2bf6ce01c2eabef4b8a3a95ced38db5ab625ea90c2bb0549c81",
+  "updateBytes": 1687936,
+  "updateSha256": "8e6d401f17b65848f7e4d0dd47cb9bf6815ea299b384f7870c35e09019ddeb61",
+  "changedFiles": 7,
+  "installerBytes": 1685553,
+  "installerSha256": "f1ecb0fe92366ad24cfdc65e35aa2e6ef4ffa03048d822e2fe55310a6accdf16",
+  "matchingFiles": 1779,
+  "matchingPublicAssets": 1755,
+  "nativeTestsPassed": 13,
+  "vitestTestsPassed": 145,
   "sha256": {
-    "cordis.patch.yml": "b7a092c816b56d835684448dc6843bc416f30636e458213153c4ff125c8de721",
-    "native-desktop/client.mjs": "308c55dd5bde41e977ab413eab111ba83a98f0bee0053fd6239ee265d6a81bdd",
-    "native-desktop/server.mjs": "e07b73c38641597b65f329a460ceef596cf256f32e9563d21594e8d1578144d0"
+    "cordis.patch.yml": "5017a014506a399f5db4f08e523996c7c9ac68f2472c2809e022442db62a59cc",
+    "native-desktop/client.mjs": "54d2d8a68c4adf56ec3a1ce5db8138a6f34123d35d98143925afd2623777c767",
+    "native-desktop/server.mjs": "b643916341c85d8b7d0eed44f8f57e377f53e9d2eed706af97bda9ec535ede43"
   }
 }

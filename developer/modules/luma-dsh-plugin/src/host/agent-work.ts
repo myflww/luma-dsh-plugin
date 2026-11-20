@@ -8,6 +8,9 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 import {
   connectLoveHouse,
   loveHouseAvailable,
+  houseRunning,
+  openLoveHouse,
+  roleLibraryName,
   recallHouse,
   writeHouseMemory,
   type HouseBinding,
@@ -48,6 +51,7 @@ type Entry = {
   synced: number
 }
 type Data = Record<string, unknown>
+class EmployeeLockedError extends Error {}
 function object(v: unknown): Data {
   if (!v || typeof v !== 'object' || Array.isArray(v)) throw Error('请求参数无效。')
   return v as Data
@@ -118,7 +122,8 @@ type PortableLibraries = {
   read: () => Promise<HouseBinding | undefined>
   verify: (binding: HouseBinding) => Promise<void>
 }
-export function createAgentWork(root: string, admitDesktopOwner?: (req: IncomingMessage) => boolean, portable?: PortableLibraries) {
+export function createAgentWork(root: string, admitDesktopOwner?: (req: IncomingMessage) => boolean, portable?: PortableLibraries,
+  readUnlockedEmployees: () => readonly string[] = () => WORK_ROLE_IDS, autoHouse = false) {
   const db = openStore(root)
   const cloudOffice = createCloudOffice(db, credential, role)
   const rooms = new Map<string, WorkRoom>()
@@ -235,7 +240,7 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
           .all(id) as unknown as Entry[]
         for (const n of pending) {
           try {
-            await writeHouseMemory(lib, n.id, n.role + ':' + n.topic, n.user, n.assistant)
+            await writeHouseMemory(lib, n.id, n.role + ':' + n.topic, n.user, n.assistant, roleLibraryName(house, id))
           } catch {
             failed = true
             break
@@ -254,7 +259,35 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
       })
     return syncing
   }
+  let nextAutoCheck = 0, triedLaunch = false
+  function connect(source: 'new' | 'portable', launch: boolean) {
+    if (disposed) return Promise.reject(Error('插件已停用。'))
+    if (connecting) return connectingSource === source ? connecting : Promise.reject(Error('另一项记忆库连接正在进行，请稍后重试。'))
+    connectingSource = source
+    connecting = (source === 'portable' ? reusePortableLibraries() : connectLoveHouse(house, () => { if (!disposed) saveHouse() }, launch))
+      .then(() => { if (!disposed) { houseError = ''; void flush() } })
+      .finally(() => { connecting = undefined; connectingSource = undefined })
+    return connecting
+  }
+  async function autoConnect(onFirstPrivateTurn = false) {
+    if (!autoHouse || disposed || connecting) return
+    const firstTurn = onFirstPrivateTurn && !triedLaunch
+    const complete = Object.keys(house.libraries).length === WORK_ROLE_IDS.length
+    if (!firstTurn && (Date.now() < nextAutoCheck || complete)) return
+    if (firstTurn) triedLaunch = true
+    nextAutoCheck = Date.now() + 30000
+    try {
+      if (firstTurn) await openLoveHouse(true)
+      else if (!await houseRunning()) return
+      if (disposed || connecting) return
+      if (complete) { void flush(); return }
+      // A busy legacy SQLite profile must retry instead of provisioning duplicate libraries.
+      const portableAvailable = portable && !Object.keys(house.libraries).length && await portable.read()
+      if (!disposed) await connect(portableAvailable ? 'portable' : 'new', false)
+    } catch (err) { if (!disposed) houseError = err instanceof Error ? err.message : '爱之屋将在恢复后自动连接。' }
+  }
   const clock = setInterval(() => {
+    void autoConnect()
     if (Object.keys(house.libraries).length) void flush()
   }, 30000)
   clock.unref()
@@ -265,7 +298,7 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
     let remote = ''
     if (house.libraries[id] && !previewRoomRoles.has(id)) {
       try {
-        remote = await recallHouse(house.libraries[id]!, query, id + ':' + topic)
+        remote = await recallHouse(house.libraries[id]!, query, id + ':' + topic, roleLibraryName(house, id))
       } catch {}
     }
     return JSON.stringify({ previous: recent, loveHouse: remote })
@@ -385,6 +418,9 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
   }
   async function call(action: string, b: Data) {
     if (disposed) throw Error('插件已停用。')
+    const unlocked = readUnlockedEmployees()
+    const requested = [...(b.roleId === undefined ? [] : [b.roleId]), ...(Array.isArray(b.roleIds) ? b.roleIds : [])]
+    if (requested.some(id => !unlocked.includes(role(id)))) throw new EmployeeLockedError('这位伙伴尚未入职，请先在卡牌收藏中兑换。')
     if (action.startsWith('cloud')) return cloudOffice(action, b)
     if (action === 'activity')
       return {
@@ -393,28 +429,36 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
             [...jobs.values()]
               .filter((j) => j.mode !== 'chat' && j.status === 'running')
               .flatMap((j) => j.steps.filter((s) => s.status === 'running').map((s) => s.roleId))
-              .concat(cloudOffice.workingRoles()),
+              .concat(cloudOffice.workingRoles()).filter(id => unlocked.includes(id)),
           ),
         ],
       }
     if (action === 'state') {
+      void autoConnect()
+      const previews: Record<string, {text: string; time: number}> = {}
+      const latest = db.prepare("SELECT substr(assistant,1,100) AS text,createdAt AS time FROM employee_private_notes WHERE role=? AND topic!='notes' AND assistant!='' ORDER BY createdAt DESC,noteOrder DESC LIMIT 1")
+      for (const roleId of unlocked) {
+        const row = latest.get(roleId)
+        if (row) previews[roleId] = { text: String(row.text), time: Number(row.time) }
+      }
       const roles = Object.fromEntries(
-        WORK_ROLE_IDS.map((id) => {
+        WORK_ROLE_IDS.filter(id => unlocked.includes(id)).map((id) => {
           const c = config(id)
           return [id, { baseUrl: c.baseUrl, model: c.model, hasKey: Boolean(c.secret) }]
         }),
       )
       const memories = Object.fromEntries(
-        WORK_ROLE_IDS.map((id) => [
+        WORK_ROLE_IDS.filter(id => unlocked.includes(id)).map((id) => [
           id,
           Number(db.prepare('SELECT count(*) AS n FROM employee_private_notes WHERE role=?').get(id)!.n),
         ]),
       )
       return {
         roles,
+        previews,
         memories,
-        rooms: [...rooms.values()],
-        jobs: [...jobs.values()].sort((a, b) => a.createdAt - b.createdAt),
+        rooms: [...rooms.values()].filter(room => room.roleIds.every(id => unlocked.includes(id))),
+        jobs: [...jobs.values()].filter(job => job.roleIds.every(id => unlocked.includes(id))).sort((a, b) => a.createdAt - b.createdAt),
         loveHouse: {
           available: await loveHouseAvailable(),
           connected: Object.keys(house.libraries).length === 8,
@@ -428,14 +472,7 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
     if (action === 'connect') {
       if (b.source !== undefined && b.source !== 'new' && b.source !== 'portable') throw Error('未知的记忆库来源。')
       const source = b.source === 'portable' ? 'portable' : 'new'
-      if (connecting && connectingSource !== source) throw Error('另一项记忆库连接正在进行，请稍后重试。')
-      connectingSource = source
-      connecting ??= (source === 'portable' ? reusePortableLibraries() : connectLoveHouse(house, () => saveHouse())).finally(() => {
-        connecting = undefined
-        connectingSource = undefined
-      })
-      await connecting
-      void flush()
+      await connect(source, true)
       return { connected: true }
     }
     if (action === 'configure') {
@@ -464,17 +501,19 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
         })),
       }
     if (action === 'remember' || action === 'record') {
+      void autoConnect(true)
       const id = role(b.roleId)
       if (action === 'remember') record(id, 'notes', randomUUID(), string(b.text, 8000), '')
       else {
         const topic = token(b.topic)
         if (rooms.has(topic)) throw Error('群发言保存在协作群记录中。')
-        record(id, topic, token(b.id), string(b.user, 64000), string(b.assistant, 200000))
+        record(id, topic, token(b.id), string(b.user, 64000), string(b.assistant, 200000), true)
       }
       void flush()
       return { saved: true }
     }
     if (action === 'recall') {
+      void autoConnect(true)
       const topic = token(b.topic)
       if (rooms.has(topic)) throw Error('群聊上下文只读取本群的发言。')
       return { context: await recall(role(b.roleId), string(b.query, 32000), topic) }
@@ -528,6 +567,7 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
     if (!room && topic.startsWith('room-') && ![...jobs.values()].some(job => job.topic === topic))
       throw Error('该协作群不存在。')
     if (room) {
+      if (room.roleIds.some(id => !unlocked.includes(id))) throw new EmployeeLockedError('本群还有尚未入职的伙伴。')
       if (ids.some(id => !room.roleIds.includes(id))) throw Error('只能点名群里的员工。')
       if ([...jobs.values()].some(job => job.topic === topic && ['running','queued'].includes(job.status)))
         throw Error('本群还有员工在处理上一条消息。')
@@ -561,6 +601,7 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
     }
     persist(job)
     jobs.set(id, job)
+    if (!room) void autoConnect(true)
     const controller = new AbortController()
     active.set(id, controller)
     void execute(job, profiles, services, controller)
@@ -602,7 +643,7 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
         e instanceof Error && !/ENOENT|EPERM|sqlite|SELECT |Command failed|JSON|fetch failed/i.test(e.message)
           ? e.message
           : '员工服务暂时不可用，请检查连接。'
-      send(400, { ok: false, error: msg.slice(0, 220) })
+      send(e instanceof EmployeeLockedError ? 403 : 400, { ok: false, error: msg.slice(0, 220) })
     }
   }
   return {

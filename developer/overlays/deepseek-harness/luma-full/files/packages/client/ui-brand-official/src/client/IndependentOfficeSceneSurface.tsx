@@ -173,6 +173,7 @@ export function IndependentOfficeSceneSurface(props: OfficeSceneSurfaceProps) {
   const composition = useMemo(() => ({ space, resourceKey }), [space, resourceKey])
   const lastCompletePaint = useRef<typeof composition | undefined>(undefined)
   const restoreOriginal = () => {
+    if (canvas.current) delete canvas.current.dataset.officeActors
     lastCompletePaint.current = undefined
     const context = canvas.current?.getContext('2d'), background = phase && images.current.get(phase.src)
     if (context && space) { context.clearRect(0, 0, ...space.layout.size); if (background) context.drawImage(background, 0, 0) }
@@ -659,7 +660,7 @@ export function IndependentOfficeSceneSurface(props: OfficeSceneSurfaceProps) {
     <canvas ref={canvas} width={space.layout.size[0]} height={space.layout.size[1]} aria-label="主题办公室" style={{ display: 'block', width: '100%', height: 'auto', touchAction: 'none' }}
       onPointerDown={event => {
         if (props.presentationActive === false || event.button !== 0 || event.isPrimary === false) return
-        const point = pointFor(event), employee = hit(point, props.employeeDestination === 'workbench')
+        const point = pointFor(event), employee = hit(point, props.employeeDestination === 'workbench' || props.employeeDestination === 'contact')
         if (!employee) return
         clearHold()
         const arrival = arrivals.current.get(JSON.stringify([space.layout.theme, employee.id]))
@@ -717,6 +718,7 @@ export function IndependentOfficeSceneSurface(props: OfficeSceneSurfaceProps) {
       onPointerCancel={cancelGesture}
       onLostPointerCapture={() => { if (gesture.current) cancelGesture() }}
       onContextMenu={event => { pendingTap.current = null; event.preventDefault(); const rect = event.currentTarget.getBoundingClientRect(), employee = hit([(event.clientX - rect.left) * space.layout.size[0] / rect.width, (event.clientY - rect.top) * space.layout.size[1] / rect.height]); if (employee && employee.availability !== 'working' && employee.sceneActivity !== 'working') setTarget({ employeeId: employee.id, name: employee.name, x: event.clientX, y: event.clientY }) }} />
+    {props.employeeDestination === 'contact' && !error && <div className="lumaOfficePaintPending" role="status">正在布置办公室…</div>}
     <div className="lumaOfficeActorAccessibility" aria-label="办公室角色">
       {props.employees.filter(employee => policy.charactersPresent || employee.availability === 'working').map(employee =>
         <button key={employee.id} type="button" tabIndex={props.presentationActive === false ? -1 : 0}

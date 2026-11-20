@@ -3,7 +3,7 @@ import { drawPack, PACK_POOL_VERSION } from '../../../../overlays/deepseek-harne
 import {
   EMPTY_LOCAL_COLLECTION_STATE, LOCAL_ALBUM_SKINS, LOCAL_COLLECTION_LIMIT, LOCAL_PACKS,
   decodeLocalCollectionSettings, localCollectionDay, localPackAvailability, projectLocalCollection, projectLocalCollectionSettings,
-  type LocalAlbumSkinId, type LocalCollectionEvent, type LocalCollectionProjection, type LocalCollectionSettings, type LocalCollectionState,
+  type CharacterId, canRedeemCard, characterIdForCard, type LocalAlbumSkinId, type LocalCollectionEvent, type LocalCollectionProjection, type LocalCollectionSettings, type LocalCollectionState,
 } from '../shared/local-collection-domain.ts'
 import { LOCAL_COLLECTION_SETTINGS_NAMESPACE } from '../local-collection-settings.ts'
 
@@ -63,6 +63,12 @@ export class LocalCollectionStore {
     if (draw.cards.length !== 1 || !result) throw new Error('这包卡的结果不完整，卡包保持未开启。')
     return { ...base, type: 'open-pack', packInstanceId, versionKey: result.card.key,
       rarity: result.card.rarity, poolVersion: draw.poolVersion, odds: draw.oddsSnapshot }
+  })
+  redeemEmployee = (employeeId: CharacterId, cardInstanceId: string) => this.transact(base => {
+    if (this.snapshot.unlockedEmployeeIds.includes(employeeId)) throw new Error('这位伙伴已经入职。')
+    const card = this.snapshot.cards.find(instance => instance.id === cardInstanceId)
+    if (!card || !canRedeemCard(card.versionKey) || characterIdForCard(card.versionKey) !== employeeId) throw new Error('请选择一张当前持有的对应兑换卡。')
+    return { ...base, type: 'redeem-employee', employeeId, cardInstanceId }
   })
   buyAlbumSkin = (skinId: LocalAlbumSkinId) => this.transact(base => {
     const skin = LOCAL_ALBUM_SKINS.find(row => row.id === skinId)

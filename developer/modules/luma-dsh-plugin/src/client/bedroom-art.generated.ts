@@ -1,4 +1,24 @@
 // Original Luma room geometry. Regenerate with scripts/prepare-bedrooms.py.
+export const CLASSIC_BEDROOM_ART = {
+  "size": [
+    1600,
+    1000
+  ],
+  "head": [
+    561,
+    464
+  ],
+  "feet": [
+    433,
+    537
+  ],
+  "stand": [
+    826,
+    744
+  ],
+  "day": "/luma-office/luma-plugin-art/bedroom-classic-day.86dc77f52d3f.png",
+  "night": "/luma-office/luma-plugin-art/bedroom-classic-night.1d3b7e9ed5f7.png"
+} as const
 export const BEDROOM_ART = {
   "shan": {
     "size": [

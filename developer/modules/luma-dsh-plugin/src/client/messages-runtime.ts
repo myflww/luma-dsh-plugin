@@ -35,7 +35,10 @@ export interface MessagesSnapshot {
   topics: readonly { id: SessionId; title: string }[]; running: boolean; pending: boolean; writable: boolean; loading: boolean
   hasMore: boolean; attention: boolean; problem?: string; employeeSkins?: Readonly<Record<string,string>>
 }
-export function createMessagesRuntime(ctx: ClientContext, office: OfficePageRuntime) {
+export function createMessagesRuntime(ctx: ClientContext, office: OfficePageRuntime, collection?: {
+  subscribe(listener: () => void): () => void
+  getSnapshot(): { unlockedEmployeeIds: readonly string[] }
+}) {
   const scope = ctx.settingsScope.bind<MessageSettings>({ namespace: MESSAGES_NAMESPACE, decode: decodeMessageSettings })
   const api = ctx.get('connection').api
   const listeners = new Set<() => void>()
@@ -44,12 +47,17 @@ export function createMessagesRuntime(ctx: ClientContext, office: OfficePageRunt
   let writeQueue: Promise<void> = Promise.resolve()
   const cancelWaiters = new Set<() => void>()
   const recording = new Map<string, number>()
+  const memoryRetries = new Map<string, ReturnType<typeof setTimeout>>()
   const watching = new Map<string, () => void>()
   let bound: SessionFace | undefined, stopSession = () => {}, draftTimer: ReturnType<typeof setTimeout> | undefined
   let snapshot: MessagesSnapshot
-  const preferences = () => optimistic ?? scope.getSnapshot().value?.preferences ?? DEFAULT_MESSAGE_PREFERENCES
+  const isUnlocked = (id: string) => !collection || collection.getSnapshot().unlockedEmployeeIds.includes(id)
+  const preferences = () => {
+    const stored = optimistic ?? scope.getSnapshot().value?.preferences ?? DEFAULT_MESSAGE_PREFERENCES
+    return isUnlocked(stored.selectedRole) ? stored : { ...stored, selectedRole: 'jingyuniang' }
+  }
   function syncMemory(session: SessionFace, roleId: string, topic: SessionId) {
-    if (disposed || !scope.getSnapshot().writable || scope.getSnapshot().mode !== 'host') return
+    if (disposed || !isUnlocked(roleId) || !scope.getSnapshot().writable || scope.getSnapshot().mode !== 'host') return
     const nodes = session.getSnapshot()
     if (nodes.running || nodes.partial || nodes.pending.length) return
     const preset = OFFICE_EMPLOYEE_DEFINITIONS[roleId as keyof typeof OFFICE_EMPLOYEE_DEFINITIONS].agentPresetId
@@ -59,7 +67,15 @@ export function createMessagesRuntime(ctx: ClientContext, office: OfficePageRunt
       if (!pending?.assistant.trim() || (recording.get(pending.id) ?? 0) > Date.now()) return
       const entry = pending
       recording.set(entry.id, Infinity)
-      void agentRequest('record', entry).catch(() => { recording.set(entry.id, Date.now() + 15_000) })
+      void agentRequest('record', entry, AbortSignal.timeout(15_000)).catch(() => {
+        if (disposed || memoryRetries.has(entry.id)) return
+        const timer = setTimeout(() => {
+          memoryRetries.delete(entry.id)
+          recording.delete(entry.id)
+          syncMemory(session, roleId, topic)
+        }, 15_000)
+        memoryRetries.set(entry.id, timer)
+      })
     }
     for (const node of nodes.nodes) {
       if (node.kind === 'user' || node.kind === 'steering') {
@@ -170,6 +186,7 @@ export function createMessagesRuntime(ctx: ClientContext, office: OfficePageRunt
   }
   async function createTopic(roleId = preferences().selectedRole) {
     assertWritable()
+    if (!isUnlocked(roleId)) throw Error('这位伙伴尚未加入。')
     const id = roleId as keyof typeof OFFICE_EMPLOYEE_DEFINITIONS
     const cwd = scope.getSnapshot().value?.homes?.[id]
     if (!cwd) throw Error('角色聊天目录尚未就绪，请确认插件 Host 已启用。')
@@ -193,13 +210,14 @@ export function createMessagesRuntime(ctx: ClientContext, office: OfficePageRunt
     return sessionId
   }
   refresh()
+  const stopEntitlements = collection?.subscribe(refresh)
   const stopScope = scope.subscribe(refresh), stopList = ctx.sessions.list.subscribe(refresh), stopOffice = office.subscribe(refresh)
   const stopWorkspaces = ctx.workspaces.list?.subscribe(refresh) ?? (() => {})
   return {
     getSnapshot: () => snapshot,
     subscribe(listener: () => void) { listeners.add(listener); return () => { listeners.delete(listener) } },
     selectRole(id: string, fromOffice = false): boolean {
-      if (disposed || !MESSAGE_ROLE_IDS.includes(id as never) || busy) return false
+      if (disposed || !isUnlocked(id) || !MESSAGE_ROLE_IDS.includes(id as never) || busy) return false
       const current = ctx.sessions.list.getSnapshot().current
       const preset = OFFICE_EMPLOYEE_DEFINITIONS[id as keyof typeof OFFICE_EMPLOYEE_DEFINITIONS].agentPresetId
       const activeTopics = fromOffice && current && ctx.sessions.list.getSnapshot().byId[current]?.agentPreset === preset
@@ -235,14 +253,14 @@ export function createMessagesRuntime(ctx: ClientContext, office: OfficePageRunt
       const id = selectedSessionId ?? await createTopic(roleId)
       assertWritable()
       const preset = OFFICE_EMPLOYEE_DEFINITIONS[roleId as keyof typeof OFFICE_EMPLOYEE_DEFINITIONS].agentPresetId
-      if (ctx.sessions.list.getSnapshot().byId[id]?.agentPreset !== preset) throw Error('会话角色归属发生变化，草稿已保留。')
+      if (!isUnlocked(roleId) || ctx.sessions.list.getSnapshot().byId[id]?.agentPreset !== preset) throw Error('会话角色归属发生变化，草稿已保留。')
       const session = ctx.sessions.binding(id)?.session
       if (!session) throw Error('对话尚未加载，请稍后再试。')
       if (session.getSnapshot().pending.length) throw Error('请先在原生会话中处理待确认事项。')
       const memory = typeof window === 'undefined' ? '' : (await agentRequest<{ context: string }>('recall',
         { roleId, query: body, topic: id }, AbortSignal.timeout(4000)).catch(() => ({ context: '' }))).context
       assertWritable()
-      if (ctx.sessions.list.getSnapshot().byId[id]?.agentPreset !== preset) throw Error('角色归属已变化，草稿已保留。')
+      if (!isUnlocked(roleId) || ctx.sessions.list.getSnapshot().byId[id]?.agentPreset !== preset) throw Error('角色归属已变化，草稿已保留。')
       const journalId = crypto.randomUUID()
       const prompt = characterPrompt(roleId, profile, userName, body, { id: journalId, memory, work: mode === 'task' })
       const result = await session.prompt([{ type: 'text', text: prompt }], 'queue')
@@ -266,7 +284,7 @@ export function createMessagesRuntime(ctx: ClientContext, office: OfficePageRunt
     }) },
     exportTranscript() { return { schema: 'LumaCharacterTranscriptV1', roleId: snapshot.roleId, profile: snapshot.profile,
       sessionId: snapshot.sessionId, messages: snapshot.messages.filter(message => !message.streaming), exportedAt: new Date().toISOString() } },
-    dispose() { if (disposed) return; disposed = true; clearTimeout(draftTimer); for (const cancel of [...cancelWaiters]) cancel(); for (const stop of watching.values()) stop(); watching.clear(); stopSession(); stopScope(); stopList(); stopOffice(); stopWorkspaces(); listeners.clear() },
+    dispose() { if (disposed) return; disposed = true; clearTimeout(draftTimer); for (const timer of memoryRetries.values()) clearTimeout(timer); memoryRetries.clear(); for (const cancel of [...cancelWaiters]) cancel(); for (const stop of watching.values()) stop(); watching.clear(); stopEntitlements?.(); stopSession(); stopScope(); stopList(); stopOffice(); stopWorkspaces(); listeners.clear() },
   }
 }
 export type MessagesRuntime = ReturnType<typeof createMessagesRuntime>

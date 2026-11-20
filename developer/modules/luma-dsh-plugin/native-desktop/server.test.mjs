@@ -9,16 +9,28 @@ import { pathToFileURL } from 'node:url'
 
 test('desktop proxy owner, role memories, revision conflicts, assets and reactivation', async t => {
   const base = await mkdtemp(join(tmpdir(), 'luma-native-backend-'))
+  const runtimeBefore = process.env.LUMA_LOVEHOUSE_RUNTIME_FILE
+  process.env.LUMA_LOVEHOUSE_RUNTIME_FILE = join(base, 'fixture-lovehouse-offline.json')
+  t.after(() => { if (runtimeBefore) process.env.LUMA_LOVEHOUSE_RUNTIME_FILE = runtimeBefore; else delete process.env.LUMA_LOVEHOUSE_RUNTIME_FILE })
   await mkdir(join(base,'lib'))
   await mkdir(join(base,'public','luma-office'), {recursive:true})
   await writeFile(join(base,'public','luma-office','fixture.txt'), 'office')
   await copyFile(new URL('../.runtime/native-desktop/server.mjs', import.meta.url),join(base,'lib','server.mjs'))
   const { apply } = await import(pathToFileURL(join(base,'lib','server.mjs')).href)
   const routes = new Map(), stops = new Set(), browserPeer = {}
+  const presets = new Map()
   const archived = new Set(), sessions = new Map(), workspaces = []
   let attachCount = 0
   const ctx = {
     profileContext:{home:join(base,'profile')},
+    agentPresets:{
+      async register(definition) {
+        assert.ok(!presets.has(definition.id))
+        presets.set(definition.id,structuredClone(definition))
+        return async()=>{presets.delete(definition.id)}
+      },
+      async resolve(id) { assert.ok(presets.has(id)); return {id} },
+    },
     sessionQuery:{ async readSession(id) {
       if (!sessions.has(id)) throw Error('missing')
       return structuredClone(sessions.get(id))
@@ -55,10 +67,10 @@ test('desktop proxy owner, role memories, revision conflicts, assets and reactiv
     }},
     effect(setup) { stops.add(setup()) },
   }
-  const unload = () => { for (const stop of stops) stop(); stops.clear() }
+  const unload = async () => { await Promise.all([...stops].map(stop=>stop())); stops.clear() }
   let server
   t.after(async () => {
-    unload()
+    await unload()
     if (server) {
       server.closeAllConnections()
       await new Promise(ok => server.close(ok))
@@ -66,6 +78,13 @@ test('desktop proxy owner, role memories, revision conflicts, assets and reactiv
     await rm(base, { recursive:true, force:true })
   })
   await apply(ctx)
+  assert.deepEqual([...presets.keys()],['luma-jingyuniang'])
+  const nativeWhale = presets.get('luma-jingyuniang')
+  assert.equal(nativeWhale.name,'鲸鱼娘')
+  assert.match(nativeWhale.plugins.find(entry=>entry.id==='persona').config.prefix,/鲸鱼娘/)
+  assert.equal(nativeWhale.plugins.find(entry=>entry.id==='tool-pwsh').disabled,false)
+  assert.equal(nativeWhale.plugins.find(entry=>entry.id==='tool-bash').disabled,true)
+  assert.ok(nativeWhale.plugins.some(entry=>entry.group && entry.isolate?.planMode))
   server = createServer((req,res) => {
     const route = Array.from(routes.values()).find(r => r.path === req.url || (r.kind === 'prefix' && req.url.startsWith(r.path+'/')))
     if (!route) { res.writeHead(404); res.end(); return }
@@ -90,10 +109,14 @@ test('desktop proxy owner, role memories, revision conflicts, assets and reactiv
   assert.equal(initial.length,7)
   const homes = initial.find(x=>x.ns==='luma-dsh-messages').base.homes
   assert.equal(Object.keys(homes).length,8)
-  const hydrate = (id,cwd=homes.shan,agentPreset='luma-duanmu-yan',events=[])=>sessions.set(id,{session:{id,cwd,agentPreset},events})
-  const attach = (id,roleId='shan') => post('/luma-native/employee-workspace',{sessionId:id,roleId})
+  const hydrate = (id,cwd=homes.jingyuniang,agentPreset='luma-jingyuniang',events=[])=>sessions.set(id,{session:{id,cwd,agentPreset},events})
+  const attach = (id,roleId='jingyuniang') => post('/luma-native/employee-workspace',{sessionId:id,roleId})
+  assert.equal((await attach('locked','shan')).status,403)
+  assert.equal((await post('/luma-agents/createroom',{requestId:'locked',name:'test',roleIds:['jingyuniang','shan']})).status,403)
+  assert.equal((await post('/luma-agents/cloudsubmit',{roleId:'shan'})).status,403)
+  assert.deepEqual(Object.keys((await (await post('/luma-agents/state',{})).json()).value.roles),['jingyuniang'])
   hydrate('alien-folder',homes.grok)
-  hydrate('changed-preset',homes.shan,'luma-duanmu-yan',[{type:'agent-preset/selected',data:{agentPreset:'luma-grok'}}])
+  hydrate('changed-preset',homes.jingyuniang,'luma-jingyuniang',[{type:'agent-preset/selected',data:{agentPreset:'luma-grok'}}])
   hydrate('archived')
   archived.add('archived')
   for (const id of ['alien-folder','changed-preset','archived','missing']) assert.equal((await attach(id)).status,409)
@@ -116,13 +139,15 @@ test('desktop proxy owner, role memories, revision conflicts, assets and reactiv
   assert.deepEqual(writes.map(r=>r.status).sort(),[200,409])
   assert.equal((await (await settings({...update,expectedRevision:1,section:{wrong:true}})).json()).ok,false)
   assert.equal((await settings({...update,ns:'luma-dsh-messages',section:{homes:{shan:'C:/elsewhere'}}})).status,400)
-  assert.equal((await post('/luma-agents/remember',{roleId:'shan',text:'fixture only'})).status,200)
+  assert.equal((await post('/luma-agents/remember',{roleId:'jingyuniang',text:'fixture only'})).status,200)
   const memories = async roleId => (await (await post('/luma-agents/memory',{roleId})).json()).value.entries
-  assert.equal((await memories('shan'))[0].text,'fixture only')
-  assert.equal((await memories('gemini')).length,0)
-  unload()
+  assert.equal((await memories('jingyuniang'))[0].text,'fixture only')
+  assert.equal((await post('/luma-agents/memory',{roleId:'gemini'})).status,403)
+  await unload()
+  assert.equal(presets.size,0)
   assert.equal(routes.size,0)
   await apply(ctx)
-  assert.equal((await memories('shan')).length,1)
+  assert.deepEqual([...presets.keys()],['luma-jingyuniang'])
+  assert.equal((await memories('jingyuniang')).length,1)
   assert.equal((await describe()).find(x=>x.ns===update.ns).revision,1)
 })

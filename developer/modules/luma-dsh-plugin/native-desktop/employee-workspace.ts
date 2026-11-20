@@ -23,7 +23,7 @@ export type EmployeeWorkspaceHost = {
 }
 class RepairError extends Error {}
 const mismatch = () => new RepairError('无法核对该话题的员工预设和专属目录，已保留原会话。')
-export function employeeWorkspaceHandler(ctx: EmployeeWorkspaceHost, homes: Record<string,string>) {
+export function employeeWorkspaceHandler(ctx: EmployeeWorkspaceHost, homes: Record<string,string>, readUnlockedEmployees: () => readonly string[]) {
   const pending = new Map<string,{roleId:string; result:Promise<{sessionId:string;workspaceId:string}>}>()
   async function repair(roleId: keyof typeof OFFICE_EMPLOYEE_PRESET_IDS, sessionId:string) {
     const registry = ctx.workspaceRegistry
@@ -80,6 +80,7 @@ export function employeeWorkspaceHandler(ctx: EmployeeWorkspaceHost, homes: Reco
     if (!isOfficeEmployeeKey(roleId) || typeof sessionId!=='string' || !/^[a-zA-Z0-9_.:-]{1,180}$/.test(sessionId))
       return send(400,{ok:false,error:'员工或话题标识无效。'})
     try {
+      if (!readUnlockedEmployees().includes(roleId)) return send(403,{ok:false,error:'这位伙伴尚未入职，请先在卡牌收藏中兑换。'})
       const prior=pending.get(sessionId)
       if (prior && prior.roleId!==roleId) throw mismatch()
       const result=prior?.result ?? repair(roleId,sessionId).finally(()=>pending.delete(sessionId))

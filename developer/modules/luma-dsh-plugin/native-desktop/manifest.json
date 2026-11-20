@@ -1,7 +1,7 @@
 {
   "name": "@luma/dsh-plugin",
-  "version": "0.4.3",
-  "description": "Luma 星伴办公室 · 与八位虚拟员工一起工作，参观卧室，管理任务、记忆与收藏。",
+  "version": "0.5.0",
+  "description": "从鲸鱼娘开始，收集伙伴与房间，在 DeepSeek Harness 中聊天、协作和保存记忆。",
   "private": true,
   "type": "module",
   "main": "./native-desktop/server.mjs",

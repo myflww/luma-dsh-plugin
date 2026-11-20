@@ -7,10 +7,12 @@ import { ASSET_PREFIXES, createAssetHandler } from '../src/host/assets.ts'
 import { createAgentWork } from '../src/host/agent-work.ts'
 import { readPortableBinding } from './portable-binding.ts'
 import { employeeWorkspaceHandler, type EmployeeWorkspaceHost } from './employee-workspace.ts'
+import { createEmployeePresetRoster, type DesktopPresetRegistry } from './employee-presets.ts'
 import { verifyPortableLibraries } from '../src/host/love-house.ts'
 import { prepareRoleHomes } from '../src/host/role-homes.ts'
 import { MESSAGES_NAMESPACE, validateMessageSettings } from '../src/messages-settings.ts'
 import { LOCAL_COLLECTION_SETTINGS_NAMESPACE, validateLocalCollectionSettings } from '../src/local-collection-settings.ts'
+import { projectLocalCollectionSettings } from '../src/shared/local-collection-domain.ts'
 import { OFFICE_PRESENTATION_NAMESPACE, validateOfficePresentationSettingsWire } from '../src/office-presentation-settings.ts'
 import { PLUGIN_PREFERENCES_NAMESPACE, validatePluginPreferencesSettingsWire } from '../src/plugin-preferences-settings.ts'
 import { CARD_LIBRARY_SETTINGS_NAMESPACE, validateCardLibrarySettingsWire } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/card-library-settings.ts'
@@ -18,10 +20,11 @@ import { COLLECTION_SETTINGS_NAMESPACE, validateCollectionSettingsWire } from '.
 import { OFFICE_RELATIONSHIP_SETTINGS_NAMESPACE, validateOfficeRelationshipSettingsWire } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/office-relationship-settings.ts'
 
 export const name = 'luma-dsh-plugin'
-export const inject = ['webServer', 'connection', 'profileContext', 'workspaceRegistry', 'sessionQuery']
+export const inject = ['webServer', 'connection', 'profileContext', 'workspaceRegistry', 'sessionQuery', 'agentPresets']
 type Section = Record<string, unknown>
 type Handler = (req: IncomingMessage, res: ServerResponse) => Promise<void> | void
 type Context = EmployeeWorkspaceHost & {
+  agentPresets:DesktopPresetRegistry
   profileContext: { home: string }
   connection: { browserPeer: object; admit: (req: IncomingMessage) => { peer?: object; rejection?: number } }
   webServer: { register: (route: {kind: string; path: string; handler: Handler}) => () => void }
@@ -53,7 +56,7 @@ function ownerAdmission(ctx: Context, req: IncomingMessage) {
   return ctx.connection.browserPeer && admission.peer === ctx.connection.browserPeer ? 0 : 403
 }
 
-function settingsHandler(db: DatabaseSync, homes: Record<string,string>): Handler {
+function settingsHandler(db: DatabaseSync, homes: Record<string,string>, syncPresets:()=>Promise<void>): Handler {
   db.exec('PRAGMA busy_timeout=3000; CREATE TABLE IF NOT EXISTS sections(ns TEXT PRIMARY KEY, revision INTEGER NOT NULL, value TEXT NOT NULL)')
   const read = db.prepare('SELECT revision,value FROM sections WHERE ns=?')
   const insert = db.prepare('INSERT OR IGNORE INTO sections VALUES(?,0,?)')
@@ -91,6 +94,9 @@ function settingsHandler(db: DatabaseSync, homes: Record<string,string>): Handle
       sections.get(ns)!(section)
       const result = write.run(JSON.stringify(section), ns, Number(body.expectedRevision))
       if (!result.changes) return send(res, 409, {ok:false,code:'settings-conflict',error:'设置已在其他窗口更新，请重新读取。'})
+      if (ns === LOCAL_COLLECTION_SETTINGS_NAMESPACE) {
+        try { await syncPresets() } catch { return send(res,503,{ok:false,error:'收藏已保存，DSH 员工预设加载失败。请重新打开插件后重试。'}) }
+      }
       return send(res, 200, {ok:true,value:view(ns)})
     } catch {
       return send(res, 400, {ok:false,error:'设置内容无效或无法保存。'})
@@ -111,21 +117,36 @@ export async function apply(ctx: Context) {
     if (status) return send(res, status, {ok:false,error:'请在本机 DSH 中使用 Luma。'})
     return handler(req, res)
   }
+  let startup = Promise.resolve()
   ctx.effect(() => {
-    const clean: (() => void)[] = []
-    const close = () => { for (const release of clean.splice(0).reverse()) release() }
+    const clean: (() => void | Promise<void>)[] = []
+    const close = () => Promise.all(clean.splice(0).reverse().map(release=>release())).then(()=>{})
     try {
       const db = new DatabaseSync(join(root, 'desktop-settings.sqlite3'))
       clean.push(() => db.close())
-      const settings = settingsHandler(db, homes)
+      const settings = settingsHandler(db, homes, () => presets.sync())
+      const readCollection = db.prepare('SELECT revision,value FROM sections WHERE ns=?')
+      let cachedRevision = -1, unlocked: readonly string[] = []
+      const readUnlockedEmployees = () => {
+        const row = readCollection.get(LOCAL_COLLECTION_SETTINGS_NAMESPACE)!
+        if (row.revision !== cachedRevision) {
+          unlocked = projectLocalCollectionSettings(JSON.parse(String(row.value))).unlockedEmployeeIds
+          cachedRevision = Number(row.revision)
+        }
+        return unlocked
+      }
+      const presets = createEmployeePresetRoster(ctx.agentPresets,readUnlockedEmployees)
+      clean.push(()=>presets.dispose())
+      startup = presets.sync(false)
       const desk = createAgentWork(join(root, 'agent-workbench'), req => ownerAdmission(ctx, req) === 0,
-        { read:readPortableBinding, verify:verifyPortableLibraries })
+        { read:() => readPortableBinding(undefined, true), verify:verifyPortableLibraries }, readUnlockedEmployees, true)
       clean.push(() => desk.dispose())
       clean.push(ctx.webServer.register({ kind:'exact', path:'/luma-native/settings', handler:protect(settings) }))
-      clean.push(ctx.webServer.register({ kind:'exact', path:'/luma-native/employee-workspace', handler:protect(employeeWorkspaceHandler(ctx,homes)) }))
+      clean.push(ctx.webServer.register({ kind:'exact', path:'/luma-native/employee-workspace', handler:protect(employeeWorkspaceHandler(ctx,homes,readUnlockedEmployees)) }))
       clean.push(ctx.webServer.register({ kind:'prefix', path:'/luma-agents', handler:desk.handler }))
       for (const path of ASSET_PREFIXES) clean.push(ctx.webServer.register({ kind:'prefix', path, handler:protect(asset) }))
       return close
     } catch (error) { close(); throw error }
   }, 'Luma desktop services')
+  await startup
 }

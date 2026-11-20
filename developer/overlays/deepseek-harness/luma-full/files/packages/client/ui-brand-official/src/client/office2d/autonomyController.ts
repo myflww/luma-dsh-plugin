@@ -309,7 +309,7 @@ export function createOfficeAutonomyState({
     'down',
     timePolicy.autonomy.preferBoundWorkstation && canRestAt(boundWorkstationId),
   )
-  return timePolicy.autonomy.mode === 'free-time'
+  return timePolicy.autonomy.allowRoaming && (!boundWorkstationId || timePolicy.autonomy.mode === 'free-time')
     ? {...standing,nextTransitionAt:now+sampleRange(`${employeeId}:initial-roam`,[1200,6000],[1200,6000])}
     : standing
 }

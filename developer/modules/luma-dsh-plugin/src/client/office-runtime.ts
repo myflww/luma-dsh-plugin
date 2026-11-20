@@ -114,6 +114,7 @@ export function createOfficePageRuntime(ctx: ClientContext) {
     getSnapshot: () => snapshot,
     subscribe(listener: () => void) { listeners.add(listener); return () => { listeners.delete(listener) } },
     setTheme: (theme: string | null) => presentation.setTheme(theme),
+    setBedroomTheme: (employeeId: string, theme: string | null) => presentation.setBedroomTheme(employeeId, theme),
     setPresence: (presence: string) => presentation.setPresence(presence),
     setOutfit: (employeeId: string, skinId: string | null) => presentation.setOutfit(employeeId, skinId),
     async linkSession(employeeId: string, sessionId: SessionId): Promise<void> {

@@ -36,7 +36,7 @@ export function JobCard({ job, names, skins, canWrite, cancel }: {
   </section>
 }
 interface PanelProps { roleId: string; name: string; canWrite: boolean; refresh(): Promise<unknown>; close(): void }
-export function AgentServicePanel({ roleId, name, config, canWrite, refresh, close, forHandoff = false }: PanelProps & { config?: AgentConfig | undefined; forHandoff?: boolean }) {
+export function AgentServicePanel({ roleId, name, config, canWrite, refresh, close, onSaved, forHandoff = false }: PanelProps & { config?: AgentConfig | undefined; onSaved?(): void; forHandoff?: boolean }) {
   const [url, setUrl] = useState(config?.baseUrl ?? ''), [model, setModel] = useState(config?.model ?? '')
   const [secret, setSecret] = useState(''), [busy, setBusy] = useState(false), [note, setNote] = useState('')
   const lock = useRef(false)
@@ -48,7 +48,7 @@ export function AgentServicePanel({ roleId, name, config, canWrite, refresh, clo
         ...(remove ? { apiKey: '' } : secret ? { apiKey: secret } : {}) })
       setSecret('')
       if (remove) { setUrl(''); setModel('') }
-      await refresh(); setNote(remove ? '已切换为 DSH 会话。' : '员工 API 服务已保存。')
+      await refresh(); onSaved?.(); setNote(remove ? '已切换为 DSH 会话。' : '员工 API 服务已保存。')
     } catch (error) { setNote(error instanceof Error ? error.message : '保存失败。') }
     finally { lock.current = false; setBusy(false) }
   }
@@ -88,7 +88,7 @@ export function AgentMemoryPanel({ roleId, name, canWrite, refresh, close, house
     finally { lock.current = false; setBusy(false) }
   }
   return <aside className="lumaRoleEditor" aria-label="员工记忆库"><header><h2>{name}的记忆库</h2><button onClick={close} aria-label="关闭记忆库">×</button></header>
-    <p>{house?.connected ? '已绑定桌面爱之屋' : house?.available ? '已找到桌面爱之屋，可连接员工记忆。' : '当前使用本机员工记忆库。'}
+    <p>{house?.connected ? '已绑定桌面爱之屋' : house?.available ? '首次聊天会自动连接桌面爱之屋，也可立即连接。' : '当前使用本机专属记忆库。爱之屋运行后会自动同步。'}
       {house?.connected && typeof house.pending === 'number' && (house.pending > 0 ? ' · 全体员工待同步 ' + house.pending + ' 条' : ' · 记忆已同步')}</p>
     {house?.message && <p role="status">{house.message}</p>}
     {house?.reusedPortable && <p>旧记忆可在爱之屋查看。爱之屋运行时，这位员工聊天可检索旧记忆。离线时新增的记录会在恢复连接后同步。</p>}

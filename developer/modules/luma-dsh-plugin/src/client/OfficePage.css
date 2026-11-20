@@ -107,3 +107,47 @@
   .lumaDshOfficeAppearance select { min-width:125px; }
   .lumaRoomActions span { width:calc(100% - 115px); }
 }
+
+.lumaSpatialOffice { color:#213d60; }
+.lumaSpatialOffice .lumaDshOfficeHeader { align-items:center; border-color:#dbe7f3; }
+.lumaSpaceSwitch { display:inline-flex; align-items:center; border:1px solid #d5e2f1; border-radius:10px; background:#edf4fc; padding:3px; gap:3px; }
+.lumaSpaceSwitch button, .lumaSpaceTools button { display:inline-flex; flex-direction:row; align-items:center; justify-content:center; gap:7px; min-height:35px; padding:6px 11px; border:1px solid transparent; border-radius:7px; color:#405e7f; background:transparent; font:550 13px/1.3 "Segoe UI","Microsoft YaHei",sans-serif; cursor:pointer; }
+.lumaSpaceSwitch button[aria-pressed=true] { color:#1e5eaf; background:white; border-color:#d9e5f4; box-shadow:0 1px 3px #173d7515; }
+.lumaSpatialOffice .lumaOfficeClock { color:#3e6387; gap:7px; }
+.lumaSpatialOffice .lumaOfficeClock span { color:#536f8e; border-color:#cdddf0; }
+.lumaSpaceToolbar, .lumaSpaceHeading, .lumaRoomDecor, .lumaRoomDecor label { display:flex; align-items:center; flex-wrap:wrap; gap:8px 12px; }
+.lumaSpaceToolbar { justify-content:space-between; margin:0 0 12px; }
+.lumaSpaceHeading h1 { margin:0; color:#203956; font:650 clamp(18px,2.1vw,25px)/1.4 "Segoe UI","Microsoft YaHei",sans-serif; }
+.lumaSpaceHeading > span { color:#59728e; font-size:12px; }
+.lumaSpatialOffice .lumaSpaceTools { display:flex; flex-wrap:wrap; flex:none; gap:5px; }
+.lumaSpatialOffice .lumaSpaceTools button, .lumaSpatialOffice .lumaOfficePanel button,
+.lumaSpatialOffice .lumaSpaceHeading select,.lumaSpatialOffice .lumaOfficePanel select,.lumaSpatialOffice .lumaRoomActions button { border:1px solid #c7d8ea; background:#fff; color:#315779; border-radius:7px; font-size:13px; }
+.lumaSpatialOffice .lumaSpaceTools button[aria-expanded=true],.lumaSpatialOffice .lumaOfficeWardrobeChoices button[aria-pressed=true] { background:#e4effd; color:#205fac; border-color:#99bce6; }
+.lumaSpatialOffice .lumaSpaceHeading select { max-width:100%; padding:5px 8px; font:inherit; font-size:12px; }
+.lumaSpatialOffice .lumaOfficePanel { color:#254768; border-color:#d7e4f3; background:#f7faff; }
+.lumaSpatialOffice .lumaOfficeTeamGrid li { border-color:#d9e5f2; background:white; }
+.lumaSpatialOffice .lumaOfficeTeamGrid small, .lumaSpatialOffice .lumaOfficePanelTitle span { color:#516e8d; }
+.lumaSpatialOffice .lumaRoomDecor { padding:12px; justify-content:space-between; }
+.lumaRoomDecor label { color:#3b5878; font-size:13px; }
+.lumaSpatialOffice .lumaStudioCanvas { border-color:#c5d9ed; background:#19324e; }
+.lumaSpatialOffice .lumaRoomCaption { min-height:31px; justify-content:flex-start; background:#edf5ff; color:#385978; }
+.lumaSpatialOffice .lumaRoomCaption button { border-color:#c3d8ed; background:white; color:#225f9f; }
+.lumaSpatialOffice .lumaRoomActions { color:#284766; background:#f6faff; }
+.lumaSpatialOffice .lumaRoomActions span { color:#506b87; }
+.lumaSpatialOffice .lumaStudioCanvas .lumaCanvasZoom { color:#f4f9ff; background:#193655e6; border-color:#acc6e8a6; }
+.lumaSpatialOffice :is(button,select):focus-visible { outline:3px solid #4888d3; outline-offset:2px; }
+@container (max-width:550px) {
+  .lumaSpatialOffice .lumaDshOfficeHeader { flex-wrap:wrap; }
+  .lumaSpaceToolbar { align-items:flex-start; }
+  .lumaSpatialOffice .lumaSpaceTools button { padding:6px 8px; }
+  .lumaSpatialOffice .lumaRoomActions span { width:auto; }
+}
+
+/* The authored daylight plate contains bright LCDs. Reveal the room only when
+   its first composited frame includes the current roster and actual monitor states. */
+.lumaOfficePaintPending {
+  position:absolute; inset:0; display:grid; place-content:center; pointer-events:none;
+  color:#446788; font:500 13px/1.6 "Segoe UI","Microsoft YaHei",sans-serif;
+  background:radial-gradient(ellipse at center,#f7fcff 10%,#e1eefb 76%,#d3e5f6);
+}
+.lumaIndependentOffice canvas[data-office-actors] ~ .lumaOfficePaintPending { display:none; }
