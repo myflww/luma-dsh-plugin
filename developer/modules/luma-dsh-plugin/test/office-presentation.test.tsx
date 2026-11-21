@@ -164,4 +164,28 @@ describe('DSH office presentation preferences', () => {
     expect(view.getByTestId('actual-scene-port')).toBeTruthy()
     store.dispose()
   })
+  it('keeps the scene mounted when opening tools and restores keyboard focus when they close', () => {
+    const store = new OfficePresentationStore(scope())
+    const runtime = {
+      getSnapshot:()=>({ presentation:store.getSnapshot(), projection:{employees:[],officeReportMarkers:[]}, commands:[], persistence:'host' }),
+      subscribe:store.subscribe,
+    } as unknown as OfficePageRuntime
+    const view = render(<OfficePage runtime={runtime} onOpenChat={()=>{}} sceneMenu={<button>场景菜单</button>}/>)
+    const canvas = view.getByTestId('actual-scene-port')
+    const rosterButton = view.getByRole('button',{name:'员工列表'})
+    fireEvent.click(rosterButton)
+    expect(view.getByRole('dialog',{name:'员工列表'})).toBeTruthy()
+    fireEvent.keyDown(document.activeElement!,{key:'Escape'})
+    expect(view.queryByRole('dialog')).toBeNull()
+    expect(document.activeElement).toBe(rosterButton)
+    fireEvent.click(view.getByRole('button',{name:'查看全景'}))
+    expect(view.getByRole('region',{name:'场景全景'}).contains(canvas)).toBe(true)
+    fireEvent.click(view.getByRole('button',{name:'隐藏场景按钮'}))
+    expect(view.queryByRole('button',{name:'场景菜单'})).toBeNull()
+    expect(view.getByRole('button',{name:'显示场景按钮'})).toBeTruthy()
+    fireEvent.keyDown(document,{key:'Escape'})
+    expect(view.getByRole('button',{name:'场景菜单'})).toBeTruthy()
+    expect(view.getByTestId('actual-scene-port')).toBe(canvas)
+    store.dispose()
+  })
 })

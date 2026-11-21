@@ -23,7 +23,7 @@ export function OfficeActionMenu({ target, skinId, onAction, onRestore, onClose 
   return <div className="lumaOfficeActionBackdrop" onPointerDown={event => { event.stopPropagation(); if (event.target === event.currentTarget) onClose() }}
     onContextMenu={event => event.preventDefault()}>
     <div ref={menu} className="lumaOfficeActionMenu" role="dialog" aria-label={`${target.name}的动作清单`}
-      style={{ left: x, top: y }} onPointerDown={event => event.stopPropagation()}>
+      style={{ left: x, top: y, maxHeight: window.innerHeight - y - 8, overflowY: 'auto' }} onPointerDown={event => event.stopPropagation()}>
       <strong>{target.name} · 动作</strong>
       <div role="group" aria-label="播放方式" className="lumaOfficeActionPlayback">
         {(['once', 'loop', 'hold'] as const).map(value => <button key={value} type="button" aria-pressed={mode === value}

@@ -662,6 +662,8 @@ export function IndependentOfficeSceneSurface(props: OfficeSceneSurfaceProps) {
         if (props.presentationActive === false || event.button !== 0 || event.isPrimary === false) return
         const point = pointFor(event), employee = hit(point, props.employeeDestination === 'workbench' || props.employeeDestination === 'contact')
         if (!employee) return
+        // A character press belongs to the actor, even in a pannable scene.
+        event.stopPropagation()
         clearHold()
         const arrival = arrivals.current.get(JSON.stringify([space.layout.theme, employee.id]))
         const origin = arrival?.position ?? point

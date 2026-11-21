@@ -4,7 +4,7 @@ import { EmployeeFigure, type ResidentId } from './OfficeBedroom.tsx'
 export function OfficeWardrobe({ id, selected, disabled, unlockedEmployeeIds, onSelect, onEquip, onClose }: {
   id: ResidentId; selected: string | undefined; disabled: boolean
   unlockedEmployeeIds: readonly string[]
-  onSelect:(id:ResidentId)=>void; onEquip:(skin:string|null)=>void; onClose:()=>void
+  onSelect:(id:ResidentId)=>void; onEquip:(skin:string|null)=>void; onClose?:()=>void
 }) {
   const owner = OFFICE_OUTFIT_CHOICES.find(choice=>choice.employeeId===id)!
   const current = selected ?? owner.defaultSkinId
@@ -17,7 +17,7 @@ export function OfficeWardrobe({ id, selected, disabled, unlockedEmployeeIds, on
       <label>员工 <select aria-label="衣橱员工" value={id} onChange={e=>onSelect(e.target.value as ResidentId)}>
         {OFFICE_OUTFIT_CHOICES.filter(choice=>unlockedEmployeeIds.includes(choice.employeeId)).map(choice=><option key={choice.employeeId} value={choice.employeeId}>{choice.name}</option>)}
       </select></label>
-      <button type="button" onClick={onClose}>收起衣橱</button>
+      {onClose && <button type="button" onClick={onClose}>收起衣橱</button>}
     </div>
     <div className="lumaOfficeWardrobeChoices">{choices.map(item=><button type="button" key={item.skin ?? 'original'}
       aria-label={owner.name+' · '+item.title} aria-pressed={current===item.skin}

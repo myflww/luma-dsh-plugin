@@ -8,6 +8,7 @@ import { createMessagesRuntime } from '../src/client/messages-runtime.ts'
 import { createPluginPreferencesRuntime } from '../src/client/plugin-backup-runtime.ts'
 import { createDesktopContext } from './context.ts'
 import { mountDesktopStyles } from './client-styles.mjs'
+import { getHostSidebar } from './host-sidebar.mjs'
 import './client.css'
 
 const PANEL_ID = 'luma-office'
@@ -30,10 +31,11 @@ class PanelBoundary extends Component {
   }
 }
 
-function NativePanel({ load, onReturnToDSH }) {
+function NativePanel({ load, onReturnToDSH, hostSidebar }) {
   const [state, setState] = useState({})
   const [navigationError, setNavigationError] = useState('')
   useLayoutEffect(mountDesktopStyles, [])
+  useLayoutEffect(() => hostSidebar?.enter(), [hostSidebar])
   useEffect(() => {
     try { setState({ runtimes: load() }) }
     catch (error) { setState({ failure: error instanceof Error ? error.message : String(error) }) }
@@ -46,7 +48,7 @@ function NativePanel({ load, onReturnToDSH }) {
       catch (error) { setNavigationError(error instanceof Error ? error.message : String(error)) }
     }
     content = h(PanelBoundary, { onReturnToDSH }, h(PluginShell, {
-      ...state.runtimes, onReturnToDSH, onOpenConversation: openConversation,
+      ...state.runtimes, onReturnToDSH, onOpenConversation: openConversation, hostSidebar,
     }))
   }
   else content = h('p', { role: 'status', className: 'lumaDesktopNotice' }, '正在打开办公室…')
@@ -59,6 +61,7 @@ function NativePanel({ load, onReturnToDSH }) {
 export function apply(ctx) {
   const owned = []
   let runtimes
+  let hostSidebar
   function dispose() {
     for (const item of owned.splice(0).reverse()) item.dispose()
     runtimes = undefined
@@ -82,11 +85,12 @@ export function apply(ctx) {
   const onReturnToDSH = () => ctx.layout.selectPanel(null)
   ctx.effect(() => () => {
     try {
+      hostSidebar?.dispose()
       if (ctx.layout.panelInfo.getSnapshot().activePanelId === PANEL_ID) onReturnToDSH()
     } finally { dispose() }
   }, 'Luma desktop panel lifecycle')
   ctx.slots.inject('main', () => ctx.slots.register({
-    name: 'main', key: PANEL_ID, inject: () => ({ load, onReturnToDSH }),
+    name: 'main', key: PANEL_ID, inject: () => ({ load, onReturnToDSH, hostSidebar: hostSidebar ??= getHostSidebar(ctx) }),
   }, NativePanel))
   ctx.slots.inject('sidebar.panellist', () => ctx.slots.register({
     name: 'sidebar.panellist', id: PANEL_ID, order: 5, label: () => 'Luma 办公室',

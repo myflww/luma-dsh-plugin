@@ -2,23 +2,29 @@
 
 Luma 在 DeepSeek Harness Desktop 内提供办公室、伙伴卧室和联系人。新档从鲸鱼娘开始。选中她可以聊天或交办工作，抽到对应的卡片后可以邀请更多伙伴。
 
-## 安装 0.5.0
+## 安装 0.5.1
 
-适配 Windows 上的 DeepSeek Harness Desktop 0.2.2-rc.1。在 [0.5.0 发布页](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.5.0) 下载 `Luma-DSH-0.5.0-Installer.zip`，解压后双击 `Install-Luma-DSH.cmd`。已有桌面 0.4.3 目录时，整个升级可以离线完成。
+适配 Windows 上的 DeepSeek Harness Desktop 0.2.2-rc.1。用有仓库权限的 GitHub 账号下载 `Luma-DSH-0.5.1-Installer.zip`，解压后双击 `Install-Luma-DSH.cmd`。安装包自带更新，已有完整的 0.5.0 或 0.4.3 插件目录即可离线升级。[下载 0.5.1 安装包](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.5.1)
 
 使用命令行安装时，先用有权限的账号登录 GitHub CLI，再运行以下命令。
 
 ```powershell
-gh release download v0.5.0 --repo myflww/luma-dsh-plugin --pattern Get-Luma-DSH.ps1 --dir .\LumaInstaller --clobber
+gh release download v0.5.1 --repo myflww/luma-dsh-plugin --pattern Get-Luma-DSH.ps1 --dir .\LumaInstaller --clobber
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\LumaInstaller\Get-Luma-DSH.ps1
 ```
 
 安装器在桌面 `Luma-DSH` 中创建新版本的独立目录，核对每个文件的 SHA-256，再通过 DSH 自身的 CLI 安装。重新打开 DSH，点侧栏的「Luma 办公室」。DSH 会引用该目录，请长期保留。
 
-- **已有 0.4.3**　桌面 `Luma-DSH` 下有 `DesktopPlugin-0.4.3` 或旧 ZIP 时，安装器会自动复用。存放在别处可用 `-Base "D:\Luma\DesktopPlugin-0.4.3"` 或 `-Base "D:\Downloads\Luma-DSH-0.4.3-Windows.zip"`。
-- **首次安装**　安装器从本仓库的 0.4.3 发布取得基础美术，再应用 0.5.0 更新。首次下载约 1.87 GB，包含分卷、合并 ZIP 与完整插件时，建议预留 6 GiB。
-- **离线安装**　将 0.5.0 发布中的 `Get-Luma-DSH.ps1` 和 `Luma-DSH-0.5.0-Update.zip` 放在一起，再使用上面的 `-Base` 指定本地基础包。
-- **手动添加**　运行安装器时追加 `-PrepareOnly`，然后从 DSH 的插件页添加生成的 `DesktopPlugin-0.5.0` 目录。使用 `-Directory "D:\Luma"` 可以更改输出位置。
+- **已有 0.5.0 或 0.4.3**　安装器会在桌面 `Luma-DSH` 目录中查找 `DesktopPlugin-0.5.0`、`DesktopPlugin-0.4.3` 和 `Luma-DSH-0.4.3-Windows.zip`。旧版存放在别处时，可在命令末尾添加 `-Base "D:\Luma\DesktopPlugin-0.5.0"` 或 `-Base "D:\Downloads\Luma-DSH-0.4.3-Windows.zip"`。
+- **首次安装**　安装器从本仓库的 0.4.3 发布取得基础美术，再应用 0.5.1 更新。首次下载约 1.87 GB，包含分卷、合并 ZIP 与完整插件时，建议预留 6 GiB。
+- **离线安装**　将 0.5.1 发布中的 `Get-Luma-DSH.ps1` 和 `Luma-DSH-0.5.1-Update.zip` 放在一起，再使用上面的 `-Base` 指定本地基础包。
+- **手动添加**　运行安装器时追加 `-PrepareOnly`，然后从 DSH 的插件页添加生成的 `DesktopPlugin-0.5.1` 目录。使用 `-Directory "D:\Luma"` 可以更改输出位置。
+
+## 场景和爱之屋快捷连接
+
+在 DSH 左栏点「Luma 办公室」，房间会铺满独立页面。场景左上角的侧栏按钮可随时展开或收起 DSH。点「菜单」可前往联系、收藏、卡包商店、插件设置或返回 DSH。场景内可直接切换办公室和伙伴卧室，管理已拥有的房间与衣装。窄窗口可拖动画面，点「查看全景」可一次看全房间。「隐藏场景按钮」可暂时只看场景。
+
+点击场景左上角「爱之屋」，再点连接按钮。面板会核对本机爱之屋的服务版本和每位员工的独立记忆库。本版已验证爱之屋 0.10.7rc1。如果旧版正在使用同一数据目录，请先在爱之屋中正常退出，再在插件中启动新版。已有自定义数据目录可在连接面板中选择。下载见[爱之屋官方发布页](https://github.com/myflww/love-house/releases/tag/v0.10.7rc1)。
 
 ## 从第一位伙伴开始
 

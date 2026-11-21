@@ -1,27 +1,38 @@
 {
-  "version": "0.5.0",
-  "verifiedLocalDate": "2026-11-21",
+  "version": "0.5.1",
   "platform": "Windows x64",
   "node": "24.19.0",
   "installerPowerShell": "Windows PowerShell 5.1",
-  "method": "Isolated Git source snapshot outside the workspace, locked npm ci, full client/server build and restoration of published art. Independently compared all rebuilt files and both upgraded directories against the desktop release manifest.",
+  "method": "Compared the complete desktop package and three installations reconstructed with the release installer against all per-file SHA-256 digests. Verified the nested update and standalone installer, idempotent reinstall, and automatic ZIP fallback with a partially restored old directory.",
   "recoveryInputs": [
-    "Existing unpacked v0.4.3 plugin directory",
-    "Published v0.4.3 ZIP recovered from all 56 private GitHub release parts"
+    "Complete v0.5.0 directory rebuilt using the published 0.5.0 installer",
+    "Unpacked v0.4.3 plugin directory independently compared against its published ZIP",
+    "Published v0.4.3 Windows ZIP"
   ],
   "baseZipSha256": "e949d369a89da2bf6ce01c2eabef4b8a3a95ced38db5ab625ea90c2bb0549c81",
-  "updateBytes": 1687936,
-  "updateSha256": "8e6d401f17b65848f7e4d0dd47cb9bf6815ea299b384f7870c35e09019ddeb61",
+  "updateBytes": 1700448,
+  "updateSha256": "8e55b85cfa0ec9f258e5721c3e3256b52559228d38fc2af91c34317decb4d8a2",
   "changedFiles": 7,
-  "installerBytes": 1685553,
-  "installerSha256": "f1ecb0fe92366ad24cfdc65e35aa2e6ef4ffa03048d822e2fe55310a6accdf16",
+  "installerBytes": 1698275,
+  "installerSha256": "19615115ac9c4f09388174a4b9b04bb251e2e3be4dc7432b958c068e43c6de46",
   "matchingFiles": 1779,
   "matchingPublicAssets": 1755,
-  "nativeTestsPassed": 13,
-  "vitestTestsPassed": 145,
   "sha256": {
     "cordis.patch.yml": "5017a014506a399f5db4f08e523996c7c9ac68f2472c2809e022442db62a59cc",
-    "native-desktop/client.mjs": "54d2d8a68c4adf56ec3a1ce5db8138a6f34123d35d98143925afd2623777c767",
-    "native-desktop/server.mjs": "b643916341c85d8b7d0eed44f8f57e377f53e9d2eed706af97bda9ec535ede43"
-  }
+    "native-desktop/client.mjs": "2f7780c785b8cea6e2f70bfbdd4263dcf0569253ea4d978b6a466f03850c35ad",
+    "native-desktop/server.mjs": "7e732cfe4f872740480ad6366b911544a961962e685fda2486284d18e969b8fd"
+  },
+  "verifiedLocalDate": "2026-11-22",
+  "nativeTestsPassed": 16,
+  "vitestTestsPassed": 149,
+  "vitestFilesPassed": 20,
+  "officialHost": "DeepSeek Harness Desktop 0.2.2-rc.1",
+  "desktopChecks": {
+    "isolatedProfile": "Passed office, bedroom, Love House panel, scene menu and compact viewport checks with no page errors.",
+    "installedWindowsProfile": "Opened Luma from the native sidebar, observed the sidebar fold completely and the room reach both sides and the bottom of the content area, switched to the bedroom, and connected Love House from inside the room.",
+    "connectedLoveHouseVersion": "0.10.7rc1",
+    "memoryProtocolVersion": "0.4.0",
+    "verifiedSeparateEmployeeLibraries": 8
+  },
+  "cleanSourceRebuild": "Both the client and server reproduced byte-for-byte from a clean Git index archive with Node.js 24.19.0 and npm ci."
 }

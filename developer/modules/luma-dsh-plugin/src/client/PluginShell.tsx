@@ -9,9 +9,12 @@ import { CollectionHub } from './CollectionHub.tsx'
 import type { LocalCollectionRuntime } from './local-collection-store.ts'
 import { PluginSettingsPage } from './PluginSettingsPage.tsx'
 import type { PluginPreferencesRuntime } from './plugin-backup-runtime.ts'
+import { SceneLaunchers, type HostSidebar } from './SceneLaunchers.tsx'
+import { LoveHouseQuickConnect } from './LoveHouseQuickConnect.tsx'
 import './plugin.css'
 import './StudioLayout.css'
 import './Interface.css'
+import './SceneNavigation.css'
 
 export type LumaPage = 'office' | 'messages' | 'cards' | 'shop' | 'settings' | 'native'
 const pageIcons = { office:Building2, messages:MessagesSquare, cards:BookOpen, shop:Gift, settings:Settings2 }
@@ -24,8 +27,8 @@ export const LUMA_PAGES = Object.freeze([
 ] as const)
 
 /** Chat remains the DSH-owned conversation beneath the additive overlay. */
-export function PluginShell({ office, cards, collection, messages, preferences, onReturnToDSH, onOpenConversation }: { office: OfficePageRuntime; cards: CardsPageRuntime;
-  collection: LocalCollectionRuntime; messages: MessagesRuntime; preferences: PluginPreferencesRuntime; onReturnToDSH?: () => void; onOpenConversation?: () => void }) {
+export function PluginShell({ office, cards, collection, messages, preferences, hostSidebar, onReturnToDSH, onOpenConversation }: { office: OfficePageRuntime; cards: CardsPageRuntime;
+  collection: LocalCollectionRuntime; messages: MessagesRuntime; preferences: PluginPreferencesRuntime; hostSidebar?: HostSidebar; onReturnToDSH?: () => void; onOpenConversation?: () => void }) {
   const [page, setPage] = useState<LumaPage>('office')
   const [cardView, setCardView] = useState<'catalog' | 'owned' | 'rewards'>('catalog')
   const [shopPackId, setShopPackId] = useState<string>()
@@ -35,24 +38,28 @@ export function PluginShell({ office, cards, collection, messages, preferences, 
   const openRewards = () => { setCardView('rewards'); setPage('cards') }
   const openShop = (packId?: string) => { setShopPackId(packId); setPage('shop') }
   const [officeNotice, setOfficeNotice] = useState('')
+  const [houseOpen, setHouseOpen] = useState(false)
   const [employeeVisit, setEmployeeVisit] = useState<{ mode: 'chat' | 'task' }>()
   const openNative = onReturnToDSH ?? (() => setPage('native'))
+  const navigate = (id: LumaPage) => id === 'shop' ? openShop() : setPage(id)
   return <div className={`lumaPluginRoot is-${page}${page === 'native' ? ' is-chat' : ''}`} data-luma-plugin="integrated">
-    <nav className="lumaPluginNav" aria-label="Luma 页面">
+    {page !== 'office' && <nav className="lumaPluginNav" aria-label="Luma 页面">
       <span className="lumaPluginBrand">Luma</span>
       <div className="lumaPluginTabs">
         {LUMA_PAGES.map(item => {
           const Icon = pageIcons[item.id]
           return <button key={item.id} data-page={item.id} title={item.label} type="button" aria-current={page === item.id ? 'page' : undefined}
-            onClick={() => item.id === 'shop' ? openShop() : setPage(item.id)}><Icon aria-hidden="true" size={20} strokeWidth={1.75}/><span>{item.label}</span></button>
+            onClick={() => navigate(item.id)}><Icon aria-hidden="true" size={20} strokeWidth={1.75}/><span>{item.label}</span></button>
         })}
       </div>
       {onReturnToDSH && <button type="button" className="lumaReturnToDsh" onClick={onReturnToDSH}><ArrowLeft size={17} aria-hidden="true"/>返回 DSH</button>}
-    </nav>
+    </nav>}
     <main className="lumaPluginContent" hidden={page === 'native'}>
-      <div hidden={page !== 'office'}>
+      <div className="lumaScenePage" hidden={page !== 'office'}>
         {officeNotice && <p className="lumaDshOfficeNotice" role="status">{officeNotice}</p>}
-        <OfficePage runtime={office} active={page === 'office'} unlockedEmployeeIds={unlockedEmployeeIds} unlockedThemeIds={unlockedThemeIds} onOpenRewards={openRewards} onOpenChat={(id, intent) => {
+        <OfficePage runtime={office} active={page === 'office'} unlockedEmployeeIds={unlockedEmployeeIds} unlockedThemeIds={unlockedThemeIds}
+          sceneMenu={<SceneLaunchers hostSidebar={hostSidebar} onPage={navigate} onExit={openNative} onHouse={() => setHouseOpen(true)} />}
+          onOpenRewards={openRewards} onOpenChat={(id, intent) => {
           if (!unlockedEmployeeIds.includes(id)) { openRewards(); return }
           if (messages.selectRole(id, true)) { setOfficeNotice(''); setEmployeeVisit({ mode:intent ?? 'chat' }); setPage('messages') }
           else setOfficeNotice('当前操作处理中，请稍后重试。')
@@ -63,5 +70,6 @@ export function PluginShell({ office, cards, collection, messages, preferences, 
       {page === 'shop' && <CollectionHub runtime={collection} {...(shopPackId ? { initialPackId: shopPackId } : {})} onOpenOwned={() => { setCardView('owned'); setPage('cards') }} />}
       {page === 'settings' && <PluginSettingsPage runtime={preferences} onOpenNativeSettings={openNative} />}
     </main>
+    {houseOpen && <LoveHouseQuickConnect onClose={() => setHouseOpen(false)}/>}
   </div>
 }

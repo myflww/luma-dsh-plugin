@@ -1,0 +1,29 @@
+.lumaHouseCard {
+  box-sizing:border-box; color:#193653; background:white; font:14px/1.55 "Segoe UI","Microsoft YaHei",sans-serif;
+  border:1px solid #cfdeee; border-radius:16px; padding:20px;
+}
+.lumaHouseDialog { position:fixed; inset:0; margin:auto; width:min(370px,calc(100% - 28px)); height:max-content; max-height:calc(100% - 32px); overflow:auto; box-shadow:0 20px 65px #122f522c; }
+.lumaHouseDialog::backdrop { background:#152f4d50; }
+.lumaHouseDialog { pointer-events:auto; }
+.lumaHouseHeader,.lumaHouseStatus { display:flex; gap:10px; align-items:center; }
+.lumaHouseHeader h2 { margin:0; font-size:19px; line-height:1.3; font-weight:650; }
+.lumaHouseMark { color:#285c9f; background:#e8f2ff; padding:8px; display:inline-flex; border-radius:11px; }
+.lumaHouseCard button { cursor:pointer; font:inherit; }
+.lumaHouseCard .lumaHouseClose { margin-left:auto; display:grid; place-items:center; width:34px; height:34px; border:0; border-radius:8px; color:#4e6480; background:transparent; }
+.lumaHouseStatus { flex-wrap:wrap; margin:18px 0 7px; }
+.lumaHouseStatus strong { color:#245993; }
+.lumaHouseStatus span,.lumaHouseDetail { color:#566c85; font-size:13px; }
+.lumaHouseDetail { margin:6px 0 12px; }
+.lumaHouseDetail span { display:block; margin-top:4px; }
+.lumaHouseError { color:#8b3d32; }
+.lumaHouseCard .lumaHouseConnect { display:inline-flex; align-items:center; gap:7px; min-height:36px; margin-top:5px; border:0; border-radius:8px; background:#255b9e; color:white; padding:6px 14px; }
+.lumaHouseCard button:focus-visible { outline:2px solid #3484dd; outline-offset:3px; }
+.lumaHouseCard button:disabled { opacity:.65; cursor:progress; }
+.lumaHouseDirectory { border-top:1px solid #dce6f0; margin-top:16px; padding-top:10px; font-size:13px; }
+.lumaHouseDirectory summary { cursor:pointer; color:#45627f; }
+.lumaHouseDirectory form { display:grid; gap:8px; margin-top:10px; }
+.lumaHouseDirectory label { display:grid; gap:4px; }
+.lumaHouseDirectory input,.lumaHouseDirectory button { box-sizing:border-box; min-height:34px; border:1px solid #bacfe5; border-radius:6px; background:white; color:#214e7f; font:inherit; padding:6px 9px; }
+.lumaHouseDirectory button { justify-self:start; }
+.lumaHouseDirectory p { font-size:12px; color:#566c85; margin:0; }
+.lumaHouseDirectory a { color:#245b9c; text-underline-offset:3px; }

@@ -9,6 +9,9 @@ import {
   connectLoveHouse,
   loveHouseAvailable,
   houseRunning,
+  inspectHouse,
+  localHouseDirectory,
+  houseRuntime,
   openLoveHouse,
   roleLibraryName,
   recallHouse,
@@ -120,7 +123,7 @@ function openStore(root: string) {
 }
 type PortableLibraries = {
   read: () => Promise<HouseBinding | undefined>
-  verify: (binding: HouseBinding) => Promise<void>
+  verify: (binding: HouseBinding,runtimeFile?:string) => Promise<void>
 }
 export function createAgentWork(root: string, admitDesktopOwner?: (req: IncomingMessage) => boolean, portable?: PortableLibraries,
   readUnlockedEmployees: () => readonly string[] = () => WORK_ROLE_IDS, autoHouse = false) {
@@ -198,9 +201,9 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
     if (!portable || Object.keys(house.libraries).length) throw Error('当前档案已经选择了记忆库，无法替换。')
     const binding = await portable.read()
     if (!binding) throw Error('未找到完整的旧版员工库绑定，请稍后重试。')
-    await portable.verify(binding)
+    await portable.verify(binding,houseRuntime(house.directory))
     if (disposed) throw Error('插件已停用。')
-    const next: HouseBinding = {...binding, source:'portable'}
+    const next: HouseBinding = {...binding, source:'portable',directory:house.directory}
     saveHouse(next)
     house = next
   }
@@ -229,8 +232,10 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
     }
     return key
   }
+  let flushAgain=false
   function flush() {
-    if (syncing || disposed) return syncing
+    if (disposed) return
+    if (syncing) { flushAgain=true; return syncing }
     syncing = (async () => {
       let failed = false
       for (const [id, lib] of Object.entries(house.libraries)) {
@@ -240,7 +245,7 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
           .all(id) as unknown as Entry[]
         for (const n of pending) {
           try {
-            await writeHouseMemory(lib, n.id, n.role + ':' + n.topic, n.user, n.assistant, roleLibraryName(house, id))
+            await writeHouseMemory(lib, n.id, n.role + ':' + n.topic, n.user, n.assistant, roleLibraryName(house, id),house.directory)
           } catch {
             failed = true
             break
@@ -256,6 +261,7 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
       })
       .finally(() => {
         syncing = undefined
+        if (flushAgain) { flushAgain=false; void flush() }
       })
     return syncing
   }
@@ -269,6 +275,12 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
       .finally(() => { connecting = undefined; connectingSource = undefined })
     return connecting
   }
+  async function houseStatus() {
+    const info=await inspectHouse(house)
+    if (disposed) throw Error('插件已停用。')
+    const pending=Number(db.prepare('SELECT count(*) AS n FROM employee_private_notes WHERE synced=0').get()!.n)
+    return {...info,pending,total:WORK_ROLE_IDS.length,directory:house.directory}
+  }
   async function autoConnect(onFirstPrivateTurn = false) {
     if (!autoHouse || disposed || connecting) return
     const firstTurn = onFirstPrivateTurn && !triedLaunch
@@ -277,8 +289,8 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
     if (firstTurn) triedLaunch = true
     nextAutoCheck = Date.now() + 30000
     try {
-      if (firstTurn) await openLoveHouse(true)
-      else if (!await houseRunning()) return
+      if (firstTurn) await openLoveHouse(true,house.directory)
+      else if (!await houseRunning(house.directory)) return
       if (disposed || connecting) return
       if (complete) { void flush(); return }
       // A busy legacy SQLite profile must retry instead of provisioning duplicate libraries.
@@ -298,7 +310,7 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
     let remote = ''
     if (house.libraries[id] && !previewRoomRoles.has(id)) {
       try {
-        remote = await recallHouse(house.libraries[id]!, query, id + ':' + topic, roleLibraryName(house, id))
+        remote = await recallHouse(house.libraries[id]!, query, id + ':' + topic, roleLibraryName(house, id),house.directory)
       } catch {}
     }
     return JSON.stringify({ previous: recent, loveHouse: remote })
@@ -468,6 +480,29 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
             ? '有员工曾用旧预览版把群发言记入个人库。这些员工暂时从本机个人记录回忆，群历史仍可在原群查看。' : ''].filter(Boolean).join(' '),
         },
       }
+    }
+    if (action === 'housestatus') return houseStatus()
+    if (action === 'houseconnect') {
+      if (typeof b.directory !== 'undefined') {
+        const directory=await localHouseDirectory(b.directory)
+        if (directory!==house.directory) {
+          if (process.env.LUMA_LOVEHOUSE_RUNTIME_FILE) throw Error('本次运行已指定爱之屋连接路径。')
+          const before=house
+          const candidate={...house,directory}
+          const check=await inspectHouse(candidate)
+          if (check.status==='offline' || check.status==='unverified') throw Error('请先用这个数据目录打开爱之屋，再核验连接。')
+          if (check.status==='mismatch') throw Error('该目录与已绑定的角色库不匹配。')
+          const legacy=portable && !check.bound && await portable.read()
+          if (legacy) await portable!.verify(legacy,houseRuntime(directory))
+          if (disposed || connecting || syncing || before!==house || Object.keys(house.libraries).length!==check.bound) throw Error('角色库连接已变化，请再试一次。')
+          saveHouse(candidate)
+          house=candidate
+        }
+      }
+      await openLoveHouse(true,house.directory)
+      const legacy = portable && !Object.keys(house.libraries).length && await portable.read()
+      await connect(legacy ? 'portable' : 'new',false)
+      return houseStatus()
     }
     if (action === 'connect') {
       if (b.source !== undefined && b.source !== 'new' && b.source !== 'portable') throw Error('未知的记忆库来源。')

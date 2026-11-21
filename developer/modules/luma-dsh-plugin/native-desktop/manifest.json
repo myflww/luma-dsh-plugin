@@ -1,6 +1,6 @@
 {
   "name": "@luma/dsh-plugin",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "从鲸鱼娘开始，收集伙伴与房间，在 DeepSeek Harness 中聊天、协作和保存记忆。",
   "private": true,
   "type": "module",

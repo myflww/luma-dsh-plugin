@@ -1,4 +1,7 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
+import { BedDouble, ListTodo, MessageCircle, Sun } from 'lucide-react'
+import { SceneViewport } from './SceneViewport.tsx'
 import type { OfficeTimePhase } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/timePolicy.ts'
 import { getBrowserOfficeDefaultSkinId, getEmployeeCatalogWithSkin, getEmployeeSkinPack } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/employeeSkins.ts'
 import { getOfficeAsset, resolveOfficeAssetUrl } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/assets.ts'
@@ -51,18 +54,18 @@ function sleepingPose(room: typeof CLASSIC_BEDROOM_ART | typeof BEDROOM_ART[Resi
     transform={`translate(${room.head.join(' ')}) rotate(${rotation}) scale(${scale*mirror} ${scale}) translate(${-headX} ${-headY})`}/>
 }
 
-export function OfficeBedroom({id,name,skinId,themeOwner,phase,bedtime,location,officeActivity,onChat,onOffice,onWardrobe,onAssign,hasInspector=false}: {
+export function OfficeBedroom({id,name,skinId,themeOwner,phase,bedtime,location,officeActivity,onChat,onOffice,onWardrobe,onAssign,hasInspector=false,fit,actionsTarget}: {
   id:ResidentId; name:string; skinId?:string | undefined; themeOwner?:ResidentId | undefined; phase:OfficeTimePhase; bedtime:boolean
   location:EmployeeLocation; officeActivity:string
   onChat:()=>void; onOffice:()=>void; onWardrobe:()=>void; onAssign?:()=>void; hasInspector?:boolean
+  fit?:boolean; actionsTarget?:HTMLElement|null
 }) {
   const [pose,setPose] = useState<'awake'|'sleep'>()
   const room = themeOwner ? BEDROOM_ART[themeOwner] : CLASSIC_BEDROOM_ART
   const [w,h] = room.size
   const night = ['dusk','night','closed'].includes(phase)
   const asleep = pose ? pose === 'sleep' : bedtime
-  return <section className="lumaBedroomView" aria-label={name+'的卧室'}>
-    <div className="lumaBedroomArt" style={{aspectRatio:w+'/'+h}}>
+  const art = <div className="lumaBedroomArt" style={{aspectRatio:w+'/'+h}}>
       <img src={night ? room.night : room.day} alt={name+'的卧室 · '+(night?'夜景':'日景')}/>
       {location === 'bedroom' && <svg className="lumaBedroomResidentLayer" viewBox={`0 0 ${w} ${h}`} aria-hidden="true">
         {asleep ? sleepingPose(room,id,skinId) : <svg data-bedroom-pose="awake" x={room.stand[0]-h*.105} y={room.stand[1]-h*.22} width={h*.21} height={h*.22}>
@@ -70,13 +73,17 @@ export function OfficeBedroom({id,name,skinId,themeOwner,phase,bedtime,location,
         </svg>}
       </svg>}
     </div>
-    <div className="lumaRoomActions">
-      <strong>{name}</strong><span>{location==='office'?'在办公室 · '+officeActivity:location==='unknown'?'位置待同步':asleep?'在卧室小憩':'在卧室休息'}</span>
+  const actions = <div className="lumaRoomActions">
+      {!hasInspector && <strong>{name}</strong>}<span>{location==='office'?'在办公室 · '+officeActivity:location==='unknown'?'位置待同步':asleep?'在卧室小憩':'在卧室休息'}</span>
       {!hasInspector && <button type="button" onClick={onWardrobe}>换装</button>}
-      {location==='bedroom' && <button type="button" onClick={()=>setPose(asleep?'awake':'sleep')}>{asleep?'起身':'小憩'}</button>}
-      <button type="button" onClick={onChat}>联系{name}</button>
-      {onAssign && <button type="button" onClick={onAssign} aria-label={'给'+name+'派任务'}>派任务</button>}
+      {location==='bedroom' && <button type="button" onClick={()=>setPose(asleep?'awake':'sleep')}>{asleep?<Sun size={15}/>:<BedDouble size={15}/>} {asleep?'起身':'小憩'}</button>}
+      <button type="button" onClick={onChat} aria-label={'联系'+name}><MessageCircle size={15}/> 联系{name}</button>
+      {onAssign && <button type="button" onClick={onAssign} aria-label={'给'+name+'派任务'}><ListTodo size={15}/> 派任务</button>}
       {!hasInspector && <button type="button" onClick={onOffice}>返回办公室</button>}
     </div>
+  const target = location === 'bedroom' ? (asleep ? room.head : room.stand) : [w/2,h/2] as const
+  return <section className="lumaBedroomView" aria-label={name+'的卧室'}>
+    {fit === undefined ? art : <SceneViewport fit={fit} ratio={w/h} focusX={target[0]/w} focusY={target[1]/h}>{art}</SceneViewport>}
+    {actionsTarget === undefined ? actions : actionsTarget ? createPortal(actions,actionsTarget) : null}
   </section>
 }

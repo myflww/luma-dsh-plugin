@@ -3,6 +3,7 @@ import { MAX_PLUGIN_BACKUP_BYTES, PLUGIN_COMPATIBILITY_LINE, PLUGIN_VERSION,
   type PluginBackupPreview, type PluginPreferencesRuntime, type PluginRestoreResult } from './plugin-backup-runtime.ts'
 import './PluginSettingsPage.css'
 import { CloudOfficeConnection } from './CloudOfficePanel.tsx'
+import { LoveHouseQuickConnect } from './LoveHouseQuickConnect.tsx'
 
 export interface PluginSettingsPageProps {
   readonly runtime: PluginPreferencesRuntime
@@ -56,6 +57,7 @@ export function PluginSettingsPage({ runtime, onOpenNativeSettings }: PluginSett
       {state.problem && <p role="status">{state.problem}</p>}
       {!state.writable && <p role="status">当前 DSH 设置暂不可写。已保存的数据仍可浏览和导出。</p>}
     </section>
+    <LoveHouseQuickConnect />
     <section aria-labelledby="luma-cloud-heading"><h2 id="luma-cloud-heading">云办公服务器</h2>
       <p>让员工在你的云电脑上整理文档、制作任务表或调用云端模型写作。</p>
       <button type="button" aria-expanded={cloudOpen} onClick={()=>setCloudOpen(!cloudOpen)}>{cloudOpen ? '收起服务器设置' : '配置云办公服务器'}</button>

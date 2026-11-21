@@ -1,4 +1,4 @@
-"""Build the v0.5.0 Windows updater from the published v0.4.3 ZIP and a verified plugin directory."""
+"""Build the v0.5.1 Windows updater from the published v0.4.3 ZIP and a verified plugin directory."""
 import argparse
 import hashlib
 import json
@@ -7,7 +7,7 @@ import zipfile
 from pathlib import Path
 
 BASE = "0.4.3"
-VERSION = "0.5.0"
+VERSION = "0.5.1"
 BASE_SHA256 = "e949d369a89da2bf6ce01c2eabef4b8a3a95ced38db5ab625ea90c2bb0549c81"
 PATCH = f"Luma-DSH-{VERSION}-Update.zip"
 
@@ -41,7 +41,7 @@ def main():
             raise SystemExit("The v0.4.3 base ZIP does not match its published SHA-256.")
     metadata = json.loads((args.target / "package.json").read_text(encoding="utf-8"))
     if (metadata["name"], metadata["version"]) != ("@luma/dsh-plugin", VERSION):
-        raise SystemExit("The target must be the v0.5.0 DSH desktop package.")
+        raise SystemExit("The target must be the v0.5.1 DSH desktop package.")
     if args.output.resolve().is_relative_to(args.target.resolve()):
         raise SystemExit("The output must be outside the package.")
     args.output.mkdir(parents=True, exist_ok=True)

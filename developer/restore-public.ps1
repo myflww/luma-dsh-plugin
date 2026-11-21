@@ -15,7 +15,7 @@ $source = Get-Item -LiteralPath $Archive
 $archiveFile = $null
 if ($source.PSIsContainer) {
     $sourceManifest = Get-Content -LiteralPath (Join-Path $source.FullName 'package.json') -Raw -Encoding UTF8 | ConvertFrom-Json
-    if ($sourceManifest.name -cne '@luma/dsh-plugin' -or $sourceManifest.version -cne $version) { throw 'Expected a verified release directory of the current version.' }
+    if ($sourceManifest.name -cne '@luma/dsh-plugin' -or $sourceManifest.version -cnotin @($version, '0.5.0')) { throw 'Expected a verified Luma release directory (0.5.0 or current).' }
 } else { $archiveFile = [IO.Compression.ZipFile]::OpenRead($source.FullName) }
 $hash = [Security.Cryptography.SHA256]::Create()
 try {

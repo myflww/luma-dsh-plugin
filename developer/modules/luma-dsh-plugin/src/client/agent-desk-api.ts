@@ -25,7 +25,7 @@ export interface AgentState {
 }
 export interface AgentMemory { id: string; text: string; createdAt: number }
 type CloudAction = 'cloudstate' | 'cloudconfigure' | 'cloudprobe' | 'cloudsubmit' | 'cloudrefresh' | 'cloudretry' | 'cloudresult' | 'cloudcancel'
-type Action = 'state' | 'configure' | 'run' | 'cancel' | 'connect' | 'memory' | 'remember' | 'record' | 'recall' | 'createroom' | CloudAction
+type Action = 'state' | 'configure' | 'run' | 'cancel' | 'connect' | 'housestatus' | 'houseconnect' | 'memory' | 'remember' | 'record' | 'recall' | 'createroom' | CloudAction
 export async function agentRequest<T>(action: Action, data: object = {}, signal?: AbortSignal): Promise<T> {
   const response = await fetch('/luma-agents/' + action, {
     method: 'POST', credentials: 'same-origin', cache: 'no-store', redirect: 'error',

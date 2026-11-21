@@ -252,7 +252,7 @@ test('contacts automatically reserve eight verified libraries in an isolated hou
     for await (const part of req) raw += part
     const data = raw && JSON.parse(raw)
     const reply = value => { res.writeHead(200,{'content-type':'application/json'}); res.end(JSON.stringify(value)) }
-    if (req.url === '/api/health') return reply({ok:true,mode:'storage',controller_instance_id:'qa',protocol_version:'v1'})
+    if (req.url === '/api/health') return reply({ok:true,mode:'storage',version:'0.10.7rc1',controller_instance_id:'qa',protocol_version:'v1'})
     if (req.url === '/api/libraries' && req.method === 'GET') return reply({libraries:catalog,selected_id:selected})
     if (req.url === '/api/libraries' && req.method === 'POST') {
       const library = {id:'local-'+catalog.length,name:data.name}
@@ -279,6 +279,11 @@ test('contacts automatically reserve eight verified libraries in an isolated hou
   desk=connect(); await desk.call('state',{})
   const until = async check => { for(let i=0;i<200;i++){if(await check())return;await pause(10)}assert.fail('house operation timed out') }
   await until(async () => (await desk.call('state',{})).loveHouse.connected && (await desk.call('state',{})).loveHouse.pending === 0)
+  const quick = await desk.call('houseconnect',{})
+  assert.equal(quick.status,'connected')
+  assert.equal(quick.version,'0.10.7rc1')
+  assert.equal(quick.protocol,'v1')
+  assert.equal(quick.verified,8)
   assert.equal(catalog.length,8); assert.equal(new Set(catalog.map(row=>row.name)).size,8); assert.equal(selected,'personal')
   assert.equal(received.length,1)
   assert.equal(received[0].library,catalog.find(lib=>lib.name.includes('鲸鱼娘')).id)
@@ -287,6 +292,8 @@ test('contacts automatically reserve eight verified libraries in an isolated hou
   assert.equal(received[1].library,catalog.find(lib=>lib.name.includes('端木嫣')).id)
   // A restored/replaced service may recycle a numeric ID for an unrelated library.
   catalog.find(lib=>lib.name.includes('端木嫣')).name='其他人的库'
+  assert.equal((await desk.call('housestatus',{})).status,'mismatch')
+  await assert.rejects(desk.call('houseconnect',{}),/已绑定记忆库不可用/)
   await desk.call('record',{...turn,roleId:'shan',id:'next',assistant:'等待恢复'})
   await until(async () => (await desk.call('state',{})).loveHouse.message.includes('待同步'))
   assert.equal(received.length,2)

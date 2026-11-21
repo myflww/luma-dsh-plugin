@@ -9,12 +9,12 @@ param(
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $repo = 'myflww/luma-dsh-plugin'
-$patchName = 'Luma-DSH-0.5.0-Update.zip'
-$patchDigest = '8e6d401f17b65848f7e4d0dd47cb9bf6815ea299b384f7870c35e09019ddeb61'
+$patchName = 'Luma-DSH-0.5.1-Update.zip'
+$patchDigest = '8e55b85cfa0ec9f258e5721c3e3256b52559228d38fc2af91c34317decb4d8a2'
 $oldZip = 'Luma-DSH-0.4.3-Windows.zip'
 $oldDigest = 'e949d369a89da2bf6ce01c2eabef4b8a3a95ced38db5ab625ea90c2bb0549c81'
 $root = [IO.Directory]::CreateDirectory([IO.Path]::GetFullPath($Directory)).FullName
-$final = Join-Path $root 'DesktopPlugin-0.5.0'
+$final = Join-Path $root 'DesktopPlugin-0.5.1'
 $cache = Join-Path $root 'Downloads'
 function Extended([string]$absolute) {
     if ($absolute.StartsWith('\\')) { return '\\?\UNC\' + $absolute.Substring(2) }
@@ -42,12 +42,25 @@ function Get-PrivateAsset([string]$tag, [string]$name, [string]$destination) {
     }
     throw "未能下载 $tag 的 $name。请检查 GitHub 私有仓库访问权限与网络后重试。"
 }
-function Get-BasePackage {
+function Test-BaseFolder([string]$path, $files) {
+    $descriptor = Join-Path $path 'package.json'
+    if (![IO.File]::Exists($descriptor)) { return $false }
+    try { $package = Get-Content -LiteralPath $descriptor -Raw -Encoding UTF8 | ConvertFrom-Json } catch { return $false }
+    if ($package.name -cne '@luma/dsh-plugin' -or $package.version -cnotin @('0.4.3','0.5.0')) { return $false }
+    foreach ($row in $files) {
+        if ($row.source -ne 'base') { continue }
+        $item = [IO.FileInfo]::new((Extended ([IO.Path]::Combine($path, $row.path.Replace('/','\')))))
+        if (!$item.Exists -or $item.Length -ne $row.bytes) { return $false }
+    }
+    return $true
+}
+function Get-BasePackage($files) {
     if ($Base) { return (Get-Item -LiteralPath $Base).FullName }
     foreach ($directory in @($root, $PSScriptRoot, $cache)) {
-        foreach ($name in @('DesktopPlugin-0.4.3', $oldZip)) {
+        foreach ($name in @('DesktopPlugin-0.5.0', 'DesktopPlugin-0.4.3', $oldZip)) {
             $candidate = Join-Path $directory $name
-            if (Test-Path -LiteralPath $candidate) { return (Get-Item -LiteralPath $candidate).FullName }
+            if ([IO.Directory]::Exists($candidate) -and (Test-BaseFolder $candidate $files)) { return $candidate }
+            if ($name -eq $oldZip -and [IO.File]::Exists($candidate)) { return $candidate }
         }
     }
     $oldCache = Join-Path $cache 'v0.4.3'
@@ -125,25 +138,25 @@ if (!$Patch) {
     $Patch = Join-Path $PSScriptRoot $patchName
     if (!(Test-Path -LiteralPath $Patch -PathType Leaf)) {
         $Patch = Join-Path $cache $patchName
-        if (!(Test-Path -LiteralPath $Patch -PathType Leaf) -or (Hash-File $Patch) -cne $patchDigest) { Get-PrivateAsset 'v0.5.0' $patchName $cache }
+        if (!(Test-Path -LiteralPath $Patch -PathType Leaf) -or (Hash-File $Patch) -cne $patchDigest) { Get-PrivateAsset 'v0.5.1' $patchName $cache }
     }
 }
 $Patch = (Get-Item -LiteralPath $Patch).FullName
-if ((Hash-File $Patch) -cne $patchDigest) { throw "0.5.0 更新包 SHA-256 校验失败：$Patch" }
+if ((Hash-File $Patch) -cne $patchDigest) { throw "0.5.1 更新包 SHA-256 校验失败：$Patch" }
 $delta = [IO.Compression.ZipFile]::OpenRead($Patch)
 $archive = $null
 $stage = $null
 try {
     $reader = [IO.StreamReader]::new($delta.GetEntry('update.json').Open(), [Text.Encoding]::UTF8)
     try { $manifest = $reader.ReadToEnd() | ConvertFrom-Json } finally { $reader.Dispose() }
-    if ($manifest.schema -ne 1 -or $manifest.version -cne '0.5.0' -or $manifest.baseVersion -cne '0.4.3' -or !$manifest.files.Count) { throw '更新清单版本不匹配。' }
+    if ($manifest.schema -ne 1 -or $manifest.version -cne '0.5.1' -or $manifest.baseVersion -cne '0.4.3' -or !$manifest.files.Count) { throw '更新清单版本不匹配。' }
     $existing = [IO.Directory]::Exists($final)
     if (!$existing) {
-        $source = Get-BasePackage
+        $source = Get-BasePackage $manifest.files
         $isFolder = [IO.Directory]::Exists($source)
         if ($isFolder) {
             $package = Get-Content -LiteralPath (Join-Path $source 'package.json') -Raw -Encoding UTF8 | ConvertFrom-Json
-            if ($package.name -cne '@luma/dsh-plugin' -or $package.version -cne '0.4.3') { throw '请指定含 package.json 的 DesktopPlugin-0.4.3 目录。' }
+            if ($package.name -cne '@luma/dsh-plugin' -or $package.version -cnotin @('0.4.3','0.5.0')) { throw '请指定含 package.json 的 DesktopPlugin-0.4.3 或 DesktopPlugin-0.5.0 目录。' }
         } else {
             if ((Hash-File $source) -cne $oldDigest) { throw "0.4.3 基础 ZIP 校验失败：$source" }
             $archive = [IO.Compression.ZipFile]::OpenRead($source)
