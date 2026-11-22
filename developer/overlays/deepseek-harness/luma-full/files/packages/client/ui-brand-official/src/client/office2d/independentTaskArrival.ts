@@ -1,7 +1,7 @@
 import type { SceneCommand, SceneEventType } from '../office-harness/SceneProtocol.ts'
 import type { OfficeWalkDirection } from './employeeCatalog.ts'
 import type { OfficeFrameStrip } from './assets.ts'
-import { createOfficeFrameTimeline } from './frameTimeline.ts'
+import { createOfficeFrameTimeline, workstationArrivalStep } from './frameTimeline.ts'
 
 type Point = readonly [number, number]
 export type IndependentFloorNode = { readonly point: Point; readonly bodyCoreHeightPx: number }
@@ -148,12 +148,15 @@ export function advanceIndependentTaskArrival(previous: IndependentArrivalState,
       s.direction = Math.abs(dx) >= Math.abs(dy) ? dx >= 0 ? 'right' : 'left' : dy >= 0 ? 'down' : 'up'
       const speedFactor = input.speedFactorForDirection?.(s.direction) ?? 1.25
       // Solve dH/dt along this edge so perspective height is smooth and independent of RAF subdivision.
-      const h = s.bodyCoreHeightPx, k = (to.bodyCoreHeightPx - h) / distance, seconds = remaining / 1000
+      const h = s.bodyCoreHeightPx, k = (to.bodyCoreHeightPx - h) / distance
+      const cruiseMs = (Math.abs(k)<1e-9 ? distance/h : Math.log1p(k*distance/h)/k) / speedFactor*1000
+      const toSeat = (s.mode==='returning' || s.mode==='approaching') && s.waypointIndex===s.route.length-1 && !input.reduceMotion
+      const time = toSeat ? workstationArrivalStep(cruiseMs,remaining) : {travelMs:Math.min(remaining,cruiseMs),usedMs:Math.min(remaining,cruiseMs)}
+      const seconds=time.travelMs/1000
       const possible = Math.abs(k) < 1e-9 ? h * speedFactor * seconds : h * Math.expm1(speedFactor * k * seconds) / k
       const amount = input.reduceMotion ? distance : Math.min(distance, possible), ratio = amount / distance
-      const usedMs = Math.abs(k) < 1e-9 ? amount / (h * speedFactor) * 1000 : Math.log1p(k * amount / h) / (speedFactor * k) * 1000
       s.position = [s.position[0] + dx * ratio, s.position[1] + dy * ratio]; s.bodyCoreHeightPx = h + (to.bodyCoreHeightPx - h) * ratio
-      s.walkElapsedMs += input.reduceMotion ? 0 : usedMs; remaining -= usedMs
+      s.walkElapsedMs += input.reduceMotion ? 0 : time.travelMs; remaining -= time.usedMs
       if (amount >= distance - .01) { s.position = to.point; s.bodyCoreHeightPx = to.bodyCoreHeightPx; s.waypointIndex++ } else break
     }
     if (s.waypointIndex >= s.route.length) arrive(s)

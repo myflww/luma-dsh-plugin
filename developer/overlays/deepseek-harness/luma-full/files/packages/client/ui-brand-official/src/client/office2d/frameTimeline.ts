@@ -10,6 +10,21 @@ export function officeSkinTravelSpeed(baseSpeed: number, strip?: OfficeFrameStri
 
 export const OFFICE_WALK_SPEED = 80
 export const OFFICE_TASK_SPEED = 104
+/** Ease the final stride into a chair. The integral also drives the foot frames,
+ * so short and long render ticks cover the same ground at the same time. */
+export function workstationArrivalStep(cruiseMs:number, tickMs:number) {
+  const settlingMs=400
+  const cruiseThreshold=settlingMs*.7
+  if (cruiseMs-tickMs>=cruiseThreshold) return {travelMs:tickMs,usedMs:tickMs}
+  // During the final 400 ms, velocity falls linearly from full pace to 40%.
+  // Express remaining distance in milliseconds at full pace.
+  const wallRemaining = cruiseMs>=cruiseThreshold ? cruiseMs+settlingMs*.3
+    : (Math.sqrt(.16+1.2*cruiseMs/settlingMs)-.4)*settlingMs/.6
+  const usedMs=Math.min(tickMs,wallRemaining)
+  const wallAfter=Math.max(0,wallRemaining-usedMs)
+  const cruiseAfter=wallAfter>=settlingMs ? wallAfter-settlingMs*.3 : wallAfter*(.4+.3*wallAfter/settlingMs)
+  return {travelMs:Math.min(cruiseMs,Math.max(0,cruiseMs-cruiseAfter)),usedMs}
+}
 export type OfficeAutomaticWalkMode = 'ambient' | 'report' | 'task'
 
 /** One pace scales travel and authored exposures together for the selected strip. */

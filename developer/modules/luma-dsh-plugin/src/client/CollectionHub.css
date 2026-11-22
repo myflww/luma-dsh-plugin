@@ -46,16 +46,6 @@
 .lumaCollectionHubEmpty { text-align: center; padding: 50px 15px; border: 1px dashed #85829835; border-radius: 12px; }
 .lumaCollectionHubEmpty>span { font-size: 35px; color: #b2a0be; }
 .lumaCollectionHubEmpty button { margin-top: 14px; }
-.lumaCollectionHubSkinGrid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 18px; }
-.lumaCollectionHubSkin { padding: 15px; border: 1px solid #85829826; border-radius: 12px; }
-.lumaCollectionHubSkin>p { font-size: 12px; min-height: 40px; }
-.lumaCollectionHubBookPreview { border: 1px solid var(--local-album-line); border-left: 8px solid var(--local-album-accent); border-radius: 3px 9px 9px 3px; background: var(--local-album-paper); color: var(--local-album-ink); box-shadow: 3px 5px 0 var(--local-album-line); padding: 16px; min-height: 210px; }
-.lumaCollectionHubBookPreview>span { font: 17px Georgia,serif; letter-spacing: .15em; }
-.lumaCollectionHubBookPreview>div { display: flex; gap: 16px; margin: 12px 0; }
-.lumaCollectionHubBookPreview img { height: 105px; max-width: 55%; object-fit: contain; border-radius: 3px; }
-.lumaCollectionHubBookPreview>div>div { flex: 1; padding-top: 12px; }
-.lumaCollectionHubBookPreview i { height: 12px; display: block; margin-bottom: 10px; background: var(--local-album-panel); border-bottom: 1px solid var(--local-album-line); }
-.lumaCollectionHubBookPreview small { color: var(--local-album-muted); letter-spacing: .1em; font-size: 9px; }
 .lumaLocalAlbumSkin .lumaCardLibrary, body[data-ds-dark-theme] .lumaLocalAlbumSkin .lumaCardLibrary { --cl-bg: var(--local-album-paper); --cl-panel: var(--local-album-panel); --cl-text: var(--local-album-ink); --cl-muted: var(--local-album-muted); --cl-accent: var(--local-album-accent); --cl-line: var(--local-album-line); }
 .lumaCollectionHubHistory ol { list-style: none; padding: 0; }
 .lumaCollectionHubHistory li { display: grid; grid-template-columns: 1fr 70px 100px; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid #85829826; }
@@ -65,7 +55,7 @@
 .lumaCollectionHubHistory .is-credit { color: #67917b; }
 .lumaCollectionHubHistory li>small { text-align: right; }
 @media (max-width: 1050px) { .lumaCollectionHubGrid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
-@media (max-width: 700px) { .lumaCollectionHubHeader { flex-direction: column; align-items: stretch; gap: 15px; } .lumaCollectionHubWallet { min-width: 0; } .lumaCollectionHubSkinGrid { grid-template-columns: 1fr; } .lumaCollectionHubTabs { gap: 13px; } }
+@media (max-width: 700px) { .lumaCollectionHubHeader { flex-direction: column; align-items: stretch; gap: 15px; } .lumaCollectionHubWallet { min-width: 0; } .lumaCollectionHubTabs { gap: 13px; } }
 @media (max-width: 420px) { .lumaCollectionHubGrid { grid-template-columns: 1fr; } .lumaCollectionHubHistory li { grid-template-columns: 1fr 45px; } .lumaCollectionHubHistory li>small { grid-column: 1/-1; } }
 @media (prefers-reduced-motion: reduce) { .lumaCollectionHubPackArt img { transition: none; } }
 .lumaCollectionHubProduct .lumaPackTry { align-self:flex-start; margin:0 0 8px; border:1px solid #c4cfc4; border-radius:6px; padding:6px 12px; color:#31554b; background:#f2f6ef; font:inherit; font-size:12px; cursor:pointer; }

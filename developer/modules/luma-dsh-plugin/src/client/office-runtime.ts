@@ -9,7 +9,8 @@ import type { HarnessOfficeProjection, OfficeEmployeeVisualState } from '../../.
 import { createSceneCommand, SceneProtocolGuard, type SceneCommand, type SceneCommandType, type SceneEvent } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office-harness/SceneProtocol.ts'
 import { isOfficeWorkstationId } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/workstations.ts'
 import { OFFICE_PRESENTATION_NAMESPACE, decodeOfficePresentationSettings, type OfficePresentationSettings } from '../office-presentation-settings.ts'
-import { OfficePresentationStore, type OfficePresentationSnapshot } from './OfficePresentationStore.ts'
+import { OfficePresentationStore, type OfficePresentationSnapshot, type RoomAccess } from './OfficePresentationStore.ts'
+import { STARTER_EMPLOYEE_ID } from '../shared/local-collection-domain.ts'
 import { PLUGIN_PREFERENCES_NAMESPACE, decodePluginPreferencesSettings, type PluginMotionPreference, type PluginPreferencesSettings } from '../plugin-preferences-settings.ts'
 
 export interface OfficeRuntimeSnapshot {
@@ -33,7 +34,7 @@ function commandType(employee: OfficeEmployeeVisualState): SceneCommandType | un
 }
 
 /** The plugin reads real Harness work. Its scene has no prompt/cancel/completion authority. */
-export function createOfficePageRuntime(ctx: ClientContext) {
+export function createOfficePageRuntime(ctx: ClientContext, roomAccess: () => RoomAccess = () => ({unlockedEmployeeIds:[STARTER_EMPLOYEE_ID], unlockedThemeIds:[]})) {
   const connection = ctx.get('connection') as ConnectionHandle
   const settings = ctx.settingsScope.bind<OfficeRelationshipSettings>({
     namespace: OFFICE_RELATIONSHIP_SETTINGS_NAMESPACE,
@@ -64,7 +65,7 @@ export function createOfficePageRuntime(ctx: ClientContext) {
     motionSettings = ctx.settingsScope.bind<PluginPreferencesSettings>({ namespace: PLUGIN_PREFERENCES_NAMESPACE, decode: decodePluginPreferencesSettings })
     presentation = new OfficePresentationStore(ctx.settingsScope.bind<OfficePresentationSettings>({
       namespace: OFFICE_PRESENTATION_NAMESPACE, decode: decodeOfficePresentationSettings,
-    }))
+    }), roomAccess)
   } catch (error) { sessions.dispose(); relationships.dispose(); throw error }
 
   function refresh(): void {

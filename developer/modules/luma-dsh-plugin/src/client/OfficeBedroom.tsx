@@ -10,6 +10,7 @@ import { officeActorFramePresentation } from '../../../../overlays/deepseek-harn
 import type { OfficeWalkDirection } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/employeeCatalog.ts'
 import { BEDROOM_FLOORS, bedroomFootAt, bedroomStepAt, createBedroomRoutine, type ResidentId } from './bedroom-routine.ts'
 import { BEDROOM_ART, BEDROOM_SLEEP, CLASSIC_BEDROOM_ART } from './bedroom-art.generated.ts'
+import { BedroomDeskPose, BedroomPhonePose } from './BedroomFurniturePoses.tsx'
 import type { EmployeeLocation } from './office-presence.ts'
 export type { ResidentId } from './bedroom-routine.ts'
 type Pair = readonly [number, number]
@@ -45,7 +46,7 @@ function sleepingArt(id: ResidentId, selected?: string) {
   return {src:original.url, width:1254, height:1254, head:original.head, feet:original.feet}
 }
 
-function sleepingPose(room: typeof CLASSIC_BEDROOM_ART | typeof BEDROOM_ART[ResidentId], id: ResidentId, skinId?: string) {
+function sleepingPose(room: typeof CLASSIC_BEDROOM_ART | typeof BEDROOM_ART[ResidentId], id: ResidentId, animate: boolean, skinId?: string) {
   const art = sleepingArt(id, skinId)
   if (!art) return null
   const headX = art.head[0]*art.width, headY = art.head[1]*art.height
@@ -54,8 +55,11 @@ function sleepingPose(room: typeof CLASSIC_BEDROOM_ART | typeof BEDROOM_ART[Resi
   const mirror = Math.sign(dx) === Math.sign(tx) ? 1 : -1
   const scale = Math.hypot(tx,ty)/Math.hypot(dx,dy)
   const rotation = (Math.atan2(ty,tx)-Math.atan2(dy,mirror*dx))*180/Math.PI
-  return <image data-bedroom-pose="sleep" href={art.src} width={art.width} height={art.height}
-    transform={`translate(${room.head.join(' ')}) rotate(${rotation}) scale(${scale*mirror} ${scale}) translate(${-headX} ${-headY})`}/>
+  return <g data-bedroom-pose="sleep" transform={`translate(${room.head.join(' ')}) rotate(${rotation}) scale(${scale*mirror} ${scale})`}>
+    <g>{animate && <animateTransform attributeName="transform" type="scale" values="1 1;1.007 1.003;1 1" dur="4.8s" repeatCount="indefinite"/>}
+      <image href={art.src} x={-headX} y={-headY} width={art.width} height={art.height}/>
+    </g>
+  </g>
 }
 
 function walkingArt(id: ResidentId, skinId?:string) {
@@ -70,9 +74,9 @@ function walkingArt(id: ResidentId, skinId?:string) {
   return {catalog,durations,speeds}
 }
 
-function BedroomWalker({id,skinId,walk,point,direction,moving,elapsed,scale}:{
+function BedroomWalker({id,skinId,walk,point,direction,moving,elapsed,scale,resting}:{
   id:ResidentId; skinId?:string | undefined; walk: ReturnType<typeof walkingArt>; point:Pair
-  direction:OfficeWalkDirection; moving:boolean; elapsed:number; scale:number
+  direction:OfficeWalkDirection; moving:boolean; elapsed:number; scale:number; resting:boolean
 }) {
   const still=moving?undefined:walk.catalog.walkRest?.[direction]
   const record=getOfficeAsset(still?.asset ?? walk.catalog.walk[direction])
@@ -84,9 +88,10 @@ function BedroomWalker({id,skinId,walk,point,direction,moving,elapsed,scale}:{
   return <g data-bedroom-pose={moving?'walking':'awake'} data-bedroom-direction={direction} data-bedroom-frame={frame}
       transform={`translate(${point[0]} ${point[1]})`}>
     <ellipse cx={0} cy={1} rx={width*.14} ry={width*.035} fill="#392f3b" opacity=".19"/>
+    <g>{resting && <animateTransform attributeName="transform" type="rotate" values="0;-.85;0;.6;0" dur="5.7s" repeatCount="indefinite"/>}
     <svg x={-width*figure.anchor.x} y={-height*figure.anchor.y} width={width} height={height} viewBox={rect.join(' ')} overflow="hidden">
       <image href={resolveOfficeAssetUrl(record.id)} width={record.dimensions.width} height={record.dimensions.height}/>
-    </svg>
+    </svg></g>
   </g>
 }
 
@@ -108,32 +113,54 @@ export function OfficeBedroom({id,name,skinId,themeOwner,phase,bedtime,taskIdle,
   const routine=useMemo(()=>createBedroomRoutine(id,roomId,clock,workingDay,walk.speeds),[id,roomId,dateKey,returning,workingDay,walk])
   const [sample,setSample]=useState(()=>Date.now())
   useEffect(()=>{
-    if(!active || !atHome || bedtime) return
+    if(!active || !atHome || asleep) return
     let timer: ReturnType<typeof setTimeout>
     const tick=() => {
       clearTimeout(timer)
       if(document.hidden) return
       const now=Date.now()
       setSample(now)
+      if(bedtime && !reduceMotion) { timer=setTimeout(tick,150); return }
       if(now>=routine.end || now<routine.start) return
       const step=bedroomStepAt(routine,now)
       const untilNextStep=Math.max(1,Math.ceil(step.end-now))
-      timer=setTimeout(tick,step.moving && !reduceMotion ? Math.min(40,untilNextStep) : untilNextStep)
+      const livePose=step.pose!=='idle' && step.pose!=='phone'
+      const cadence=step.pose==='computer'?100:32
+      timer=setTimeout(tick,livePose && !reduceMotion ? Math.min(cadence,untilNextStep) : untilNextStep)
     }
     tick()
     document.addEventListener('visibilitychange',tick)
     return ()=>{clearTimeout(timer);document.removeEventListener('visibilitychange',tick)}
-  },[active,atHome,bedtime,reduceMotion,routine])
+  },[active,atHome,asleep,bedtime,reduceMotion,routine])
   const step=bedroomStepAt(routine,sample)
-  const moving=!bedtime && step.moving && !reduceMotion
-  const point=bedtime ? BEDROOM_FLOORS[roomId].desk : reduceMotion ? step.from : bedroomFootAt(step,sample)
+  const animate=active && !reduceMotion
+  const pose=bedtime?'computer':step.pose
+  const onBed=pose==='phone' || pose==='recline' || pose==='get-up'
+  const atDesk=pose==='computer' || pose==='sit' || pose==='rise'
+  const elapsed=Math.max(0,sample-step.start)
+  const progress=Math.max(0,Math.min(1,elapsed/(step.end-step.start)))
+  const smooth=progress*progress*(3-2*progress)
+  const settling=pose==='recline' || pose==='sit',leaving=pose==='rise' || pose==='get-up'
+  const contact=reduceMotion?1:settling?smooth:leaving?1-smooth:1
+  const weight=Math.max(0,Math.min(1,(contact-.04)/.28))
+  const floor=BEDROOM_FLOORS[roomId]
+  const point=bedtime ? floor.desk : reduceMotion ? step.from : bedroomFootAt(step,sample)
   const activity=bedtime ? asleep?'已入睡':officeActivity : step.activity
+  const background=night?room.night:room.day
   const art = <div className="lumaBedroomArt" style={{aspectRatio:w+'/'+h}}>
-      <img src={night ? room.night : room.day} alt={name+'的卧室 · '+(night?'夜景':'日景')}/>
+      <img src={background} alt={name+'的卧室 · '+(night?'夜景':'日景')}/>
       {atHome && <svg className="lumaBedroomResidentLayer" viewBox={`0 0 ${w} ${h}`} aria-hidden="true">
-        {asleep ? sleepingPose(room,id,skinId) : <BedroomWalker id={id} skinId={skinId} walk={walk}
-          point={point} direction={bedtime?'up':step.facing} elapsed={sample-step.start} moving={moving}
-          scale={w===1600?.72:1}/>}
+        {asleep ? sleepingPose(room,id,animate,skinId) : <g data-bedroom-action={pose}>
+          {(!onBed && !atDesk || weight<1) && <g opacity={onBed || atDesk?1-weight:1}>
+            <BedroomWalker id={id} skinId={skinId} walk={walk} point={point}
+              direction={step.facing} elapsed={elapsed} moving={pose==='walk' && animate} resting={pose==='idle' && animate} scale={1}/>
+          </g>}
+          {(onBed || atDesk) && weight>0 && <g opacity={weight}>
+            {onBed ? <BedroomPhonePose id={id} skinId={skinId} room={room} approach={floor.bed} reclined={contact}
+              animate={animate && pose==='phone'}/> : <BedroomDeskPose id={id} skinId={skinId} roomId={roomId}
+              room={room} background={background} approach={floor.desk} seated={contact} elapsed={elapsed} animate={animate && pose==='computer'}/>}
+          </g>}
+        </g>}
       </svg>}
     </div>
   const actions = <div className="lumaRoomActions">

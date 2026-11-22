@@ -1,4 +1,5 @@
 import { dialogueStyle } from '../shared/companion-life.ts'
+import { attachmentInfo, textFileBlock, validateChatAttachments, type AttachmentInfo, type ChatAttachment, type ImageType } from '../shared/chat-attachments.ts'
 import type { ClientContext, SessionId } from '@deepseek-ai/dsh-client-runtime/client'
 import { OFFICE_EMPLOYEE_DEFINITIONS } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office-harness/OfficeRelationships.ts'
 import { OFFICE_CHARACTER_CARDS } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office-harness/OfficeCharacterCards.ts'
@@ -9,9 +10,10 @@ import type { OfficePageRuntime } from './office-runtime.ts'
 
 const PREFIX = '[LUMA_CHARACTER_CONTEXT_V1]\n', END = '\n[/LUMA_CHARACTER_CONTEXT_V1]\n'
 export function characterPrompt(roleId: string, profile: RoleProfile, userName: string, body: string,
-  options?: { id: string; memory: string; work: boolean }): string {
+  options?: { id: string; memory: string; work: boolean; attachments?: AttachmentInfo[] }): string {
   return PREFIX + JSON.stringify({ roleId, name: profile.name, personality: profile.personality, scenario: profile.scenario, userName, conversationalStyle: dialogueStyle(roleId),
     ...(options ? { journalId: options.id, requestKind:options.work?'task':'chat', referenceMemory: options.memory } : {}),
+    ...(options?.attachments?.length ? { attachments:options.attachments, messageLength:body.length } : {}),
     mode: options?.work ? '用户已将下列工作单独交给你。按当前会话的工具权限完成任务，报告实际产出和未完成事项。记忆作为参考资料。'
       : '角色对话。情节、动作和感受属于虚构表达；不把它们当作真实执行。除非用户明确要求执行任务，否则只进行自然对话。参考记忆中 conversationPreferences.current 是用户仍有效的相处习惯，优先于旧记录和默认称呼；withdrawn 中的习惯已撤回，勿照旧执行。' }) + END + body
 }
@@ -30,11 +32,22 @@ export const MESSAGE_CHARACTERS = MESSAGE_ROLE_IDS.map(id => {
     avatar: avatar.src, avatarViewport: avatar.viewport }
 })
 type SessionFace = NonNullable<ReturnType<ClientContext['sessions']['binding']>>['session']
-export interface RoleMessage { id: string; role: 'user' | 'assistant' | 'notice'; text: string; time?: number; streaming?: boolean }
+export interface RoleMessage { id: string; role: 'user' | 'assistant' | 'notice'; text: string; time?: number; streaming?: boolean; attachments?: AttachmentInfo[] }
+function attachmentMessage(text: string): {text: string; attachments?: AttachmentInfo[]} {
+  const body = visibleUserMessage(text)
+  if (body !== text) {
+    const meta = JSON.parse(text.slice(PREFIX.length, text.indexOf(END)))
+    if (Array.isArray(meta.attachments) && meta.attachments.length <= 4 && meta.attachments.every((a: AttachmentInfo) =>
+      a && typeof a.name === 'string' && Number.isSafeInteger(a.bytes)) && Number.isSafeInteger(meta.messageLength) && meta.messageLength >= 0 && meta.messageLength <= body.length)
+      return {text:body.slice(0, meta.messageLength), attachments:meta.attachments.map(attachmentInfo)}
+  }
+  return {text:body}
+}
 export interface MessagesSnapshot {
   preferences: MessagePreferences; profile: RoleProfile; roleId: string; sessionId?: SessionId; messages: readonly RoleMessage[]
   topics: readonly { id: SessionId; title: string }[]; running: boolean; pending: boolean; writable: boolean; loading: boolean
   hasMore: boolean; attention: boolean; problem?: string; employeeSkins?: Readonly<Record<string,string>>
+  nativeFileUpload?: boolean
 }
 export function createMessagesRuntime(ctx: ClientContext, office: OfficePageRuntime, collection?: {
   subscribe(listener: () => void): () => void
@@ -42,6 +55,7 @@ export function createMessagesRuntime(ctx: ClientContext, office: OfficePageRunt
 }) {
   const scope = ctx.settingsScope.bind<MessageSettings>({ namespace: MESSAGES_NAMESPACE, decode: decodeMessageSettings })
   const api = ctx.get('connection').api
+  const {uploadSessionFile} = ctx as ClientContext & { uploadSessionFile?(id: SessionId, item: ChatAttachment): Promise<string> }
   const listeners = new Set<() => void>()
   let disposed = false, busy = false, problem: string | undefined, optimistic: MessagePreferences | undefined
   let draftDirty = false
@@ -87,7 +101,8 @@ export function createMessagesRuntime(ctx: ClientContext, office: OfficePageRunt
         try {
           const meta = JSON.parse(text.slice(PREFIX.length, split))
           if (meta.roleId === roleId && typeof meta.journalId === 'string' && /^[a-f0-9-]{36}$/i.test(meta.journalId)) {
-            pending = { roleId, topic, id: meta.journalId, user: text.slice(split + END.length), assistant: '', privateChat:meta.requestKind==='chat' }
+            const message = attachmentMessage(text)
+            pending = { roleId, topic, id: meta.journalId, user: message.text || message.attachments?.map(a => a.name).join('、') || '', assistant: '', privateChat:meta.requestKind==='chat' }
           }
         } catch { /* An unrecognized native message has no employee memory record. */ }
       } else if (pending && node.kind === 'assistant' && !node.interrupted) {
@@ -117,7 +132,7 @@ export function createMessagesRuntime(ctx: ClientContext, office: OfficePageRunt
     const messages: RoleMessage[] = []
     for (const node of conversation?.nodes ?? []) {
       if (node.kind === 'user' || node.kind === 'steering') messages.push({ id: String(node.seq), role: 'user', time: node.time,
-        text: visibleUserMessage(node.content.filter(part => part.type === 'text').map(part => 'text' in part ? part.text : '').join('\n')) })
+        ...attachmentMessage(node.content.filter(part => part.type === 'text').map(part => 'text' in part ? part.text : '').join('\n')) })
       else if (node.kind === 'assistant') messages.push({ id: String(node.seq), role: 'assistant', time: node.time,
         text: node.blocks.filter(block => block.kind === 'text').map(block => 'text' in block ? block.text : '').join('\n') })
       else if (node.kind === 'turn-error') messages.push({ id: String(node.seq), role: 'notice', text: node.message, time: node.time })
@@ -129,7 +144,7 @@ export function createMessagesRuntime(ctx: ClientContext, office: OfficePageRunt
     }
     const state = scope.getSnapshot()
     snapshot = { preferences: pref, profile: pref.profiles[roleId] ?? character.profile, roleId, ...(sessionId ? { sessionId } : {}), messages,
-      topics, running: conversation?.running ?? false, pending: busy, writable: state.status === 'ready' && state.writable && state.mode === 'host',
+      topics, nativeFileUpload:!!uploadSessionFile, running: conversation?.running ?? false, pending: busy, writable: state.status === 'ready' && state.writable && state.mode === 'host',
       loading: state.status === 'loading' || conversation?.openState === 'loading', hasMore: conversation?.hasMore ?? false,
       attention: Boolean(conversation?.pending.length), employeeSkins: office.getSnapshot().presentation?.selection.employeeSkins ?? {}, ...(problem ? { problem } : {}) }
     for (const listener of listeners) listener()
@@ -243,10 +258,12 @@ export function createMessagesRuntime(ctx: ClientContext, office: OfficePageRunt
       await save({ ...preferences(), activeTopics: { ...preferences().activeTopics, [roleId]: id } })
       return true
     }) },
-    send(mode: 'chat' | 'task' = 'chat') { return run(async () => {
+    send(mode: 'chat' | 'task' = 'chat', input?: readonly ChatAttachment[]) { return run(async () => {
       const submittedDraft = preferences().drafts[snapshot.roleId] ?? ''
       const body = submittedDraft.trim()
-      if (!body) return
+      const attachments = validateChatAttachments(input, !!uploadSessionFile)
+      if (!uploadSessionFile && attachments.some(a => a.mediaType === 'application/pdf')) throw Error('当前 DSH 会话缺少文件上传服务。PDF 请使用支持 PDF 的独立模型。')
+      if (!body && !attachments.length) return
       const roleId = snapshot.roleId, profile = snapshot.profile, userName = preferences().userName
       const selectedSessionId = snapshot.sessionId
       await save(preferences())
@@ -263,8 +280,22 @@ export function createMessagesRuntime(ctx: ClientContext, office: OfficePageRunt
       assertWritable()
       if (!isUnlocked(roleId) || ctx.sessions.list.getSnapshot().byId[id]?.agentPreset !== preset) throw Error('角色归属已变化，草稿已保留。')
       const journalId = crypto.randomUUID()
-      const prompt = characterPrompt(roleId, profile, userName, body, { id: journalId, memory, work: mode === 'task' })
-      const result = await session.prompt([{ type: 'text', text: prompt }], 'queue')
+      const prompt = characterPrompt(roleId, profile, userName, body, { id: journalId, memory, work: mode === 'task', attachments:attachments.map(attachmentInfo) })
+      const parts: Parameters<typeof session.prompt>[0] = [{ type: 'text', text: prompt }]
+      for (const item of attachments) {
+        if (item.mediaType.startsWith('image/')) {
+          parts.push({type:'image', name:item.name, mediaType:item.mediaType as ImageType, data:item.data})
+          continue
+        }
+        if (uploadSessionFile) {
+          const receiptId = await uploadSessionFile(id, item)
+          parts.push({type:'file', receiptId} as typeof parts[number])
+        }
+        if (item.mediaType === 'text/plain') parts.push({type:'text', text:textFileBlock(item)})
+      }
+      assertWritable()
+      if (!isUnlocked(roleId) || ctx.sessions.list.getSnapshot().byId[id]?.agentPreset !== preset) throw Error('会话角色归属发生变化，草稿已保留。')
+      const result = await session.prompt(parts, 'queue')
       if (!result.ok) throw Error(result.error.message)
       if (!disposed && !watching.has(id)) {
         // Continue listening after the user switches to another employee.
@@ -272,7 +303,8 @@ export function createMessagesRuntime(ctx: ClientContext, office: OfficePageRunt
         syncMemory(session, roleId, id)
       }
       const latest = preferences()
-      if (latest.drafts[roleId] === submittedDraft) await save({ ...latest, drafts: { ...latest.drafts, [roleId]: '' } })
+      if (latest.drafts[roleId] === submittedDraft) await save({ ...latest, drafts: { ...latest.drafts, [roleId]: '' } }).catch(() => {})
+      return true
     }) },
     stop() { return run(async () => { const result = await bound?.cancel(); if (result && !result.ok) throw Error(result.error.message) }) },
     loadOlder() { return run(async () => { await bound?.loadOlder() }, false) },

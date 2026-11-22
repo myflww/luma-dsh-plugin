@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { CollectionHub, localAlbumStyle } from '../src/client/CollectionHub.tsx'
+import { CollectionHub } from '../src/client/CollectionHub.tsx'
 import { CardsPage, createCardsPageRuntime } from '../src/client/CardsPage.tsx'
 import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
 import { LocalCollectionStore } from '../src/client/local-collection-store.ts'
-import { LOCAL_ALBUM_SKINS, LOCAL_PACKS, validateLocalCollectionSettings, type LocalCollectionSettings } from '../src/shared/local-collection-domain.ts'
+import { LOCAL_PACKS, validateLocalCollectionSettings, type LocalCollectionSettings } from '../src/shared/local-collection-domain.ts'
 import { OPENABLE_PACK_SKINS } from '../src/shared/pack-skin-catalog.ts'
 
 afterEach(cleanup)
@@ -86,7 +86,7 @@ describe('local collection product flow', () => {
     reopened.dispose()
   })
 
-  it('claims coins, buys and reveals a saved card, then buys/equips a real album style and shows receipts', async () => {
+  it('claims coins, buys and reveals a saved card, and shows pack receipts with no card backs for sale', async () => {
     const runtime = fixture()
     render(<CollectionHub runtime={runtime} />)
     expect(screen.getByLabelText('余额 0 星币')).toBeTruthy()
@@ -110,19 +110,28 @@ describe('local collection product flow', () => {
     expect(document.activeElement).toBe(finish)
     fireEvent.keyDown(document, { key: 'Escape' })
     expect(screen.queryByRole('dialog')).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: '卡册装帧' }))
-    const skin = screen.getByRole('heading', { name: '蓝蔷薇藏笺' }).closest('article')!
-    fireEvent.click(within(skin).getByRole('button', { name: '购买装帧' }))
-    const equip = await within(skin).findByRole('button', { name: '使用装帧' })
-    fireEvent.click(equip)
-    await within(skin).findByRole('button', { name: '使用中' })
-    expect(runtime.store.getSnapshot().albumSkin.id).toBe('blue-rose')
-    expect(runtime.store.getSnapshot().balance).toBe(160)
-    expect(localAlbumStyle(runtime.store.getSnapshot().albumSkin)).toEqual(localAlbumStyle(LOCAL_ALBUM_SKINS.find(row => row.id === 'blue-rose')!))
+    expect(screen.queryByRole('button', { name:'卡册装帧' })).toBeNull()
+    expect(screen.queryByRole('button', { name:'购买装帧' })).toBeNull()
+    expect(runtime.store.getSnapshot().balance).toBe(240)
     fireEvent.click(screen.getByRole('button', { name: '收支记录' }))
     expect(screen.getByText('购买 · 晨光序章')).toBeTruthy()
-    expect(screen.getByText('卡册装帧 · 蓝蔷薇藏笺')).toBeTruthy()
-    expect(screen.getByText('使用装帧 · 蓝蔷薇藏笺')).toBeTruthy()
+    runtime.dispose()
+  })
+
+  it('shows precise confirmed token totals per employee and preserves remainders across refresh', async () => {
+    const runtime = fixture()
+    let totalTokens = 10198
+    const readEmployeeUsage = async () => ({threshold:1000000,nativeHistoryComplete:true,collectionRevision:1,
+      roles:{jingyuniang:{totalTokens, earnedCoins:Math.floor(totalTokens/1000000), remainderTokens:totalTokens%1000000}}})
+    render(<CollectionHub runtime={{...runtime, readEmployeeUsage}}/>)
+    fireEvent.click(screen.getByRole('button',{name:'员工用量'}))
+    await screen.findByText('累计 10,198 token')
+    expect(screen.getByText('距下一枚还需 989,802 token')).toBeTruthy()
+    totalTokens += 1000000
+    fireEvent.click(screen.getByRole('button',{name:'刷新用量'}))
+    await screen.findByText('累计 1,010,198 token')
+    expect(screen.getByText('距下一枚还需 989,802 token')).toBeTruthy()
+    expect(screen.queryByText('端木嫣')).toBeNull()
     runtime.dispose()
   })
 

@@ -5,6 +5,14 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.IO.Compression.FileSystem
+function Read-FileSha256([string]$path) {
+    $absolute = (Get-Item -LiteralPath $path).FullName
+    $extended = if ($absolute.StartsWith('\\')) { '\\?\UNC\' + $absolute.Substring(2) } else { '\\?\' + $absolute }
+    $stream = [IO.File]::OpenRead($extended)
+    $hash = [Security.Cryptography.SHA256]::Create()
+    try { return [BitConverter]::ToString($hash.ComputeHash($stream)).Replace('-','').ToLowerInvariant() }
+    finally { $stream.Dispose(); $hash.Dispose() }
+}
 $root = (Get-Item -LiteralPath $Package).FullName
 $version = (Get-Content -LiteralPath (Join-Path $root 'package.json') -Raw -Encoding utf8 | ConvertFrom-Json).version
 $prefix = "DesktopPlugin-$version/"
@@ -13,23 +21,37 @@ $artifacts = [ordered]@{}
 $assetCount = 0
 if ($Update) {
     $delta = [IO.Compression.ZipFile]::OpenRead((Get-Item -LiteralPath $Update).FullName)
+    $payloadHash = [Security.Cryptography.SHA256]::Create()
     try {
         $reader = [IO.StreamReader]::new($delta.GetEntry('update.json').Open(),[Text.Encoding]::UTF8)
         try { $manifest = $reader.ReadToEnd() | ConvertFrom-Json } finally { $reader.Dispose() }
-        if ($manifest.version -cne $version -or $manifest.files.Count -ne $files.Count) { throw 'Release version or total number of files differs.' }
+        if ($manifest.schema -ne 1 -or $manifest.baseVersion -cne '0.4.3' -or $manifest.version -cne $version -or $manifest.files.Count -ne $files.Count) { throw 'Release metadata or number of files differs.' }
         $rows = [Collections.Generic.Dictionary[string,object]]::new([StringComparer]::Ordinal)
-        foreach ($row in $manifest.files) { $rows.Add($row.path,$row) }
+        $payloadCount = 0
+        foreach ($row in $manifest.files) {
+            $rows.Add($row.path,$row)
+            if ($row.source -ceq 'base') { continue }
+            if ($row.source -cne 'patch') { throw "Invalid file source: $($row.path)" }
+            $entry = $delta.GetEntry('payload/' + $row.path)
+            if (!$entry -or $entry.Length -ne $row.bytes) { throw "Payload missing or size differs: $($row.path)" }
+            $stream = $entry.Open()
+            try { $sha = [BitConverter]::ToString($payloadHash.ComputeHash($stream)).Replace('-','').ToLowerInvariant() }
+            finally { $stream.Dispose() }
+            if ($sha -cne $row.sha256) { throw "Payload SHA-256 differs: $($row.path)" }
+            $payloadCount++
+        }
+        if ($delta.Entries.Count -ne 1 + $payloadCount) { throw 'Update ZIP has unexpected entries.' }
         foreach ($file in $files) {
             $key = $file.FullName.Substring($root.Length + 1).Replace('\','/')
             $row = $rows[$key]
             if (!$row -or $row.bytes -ne $file.Length) { throw "File differs: $key" }
-            $sha = (Get-FileHash -Algorithm SHA256 -LiteralPath $file.FullName).Hash.ToLowerInvariant()
+            $sha = Read-FileSha256 $file.FullName
             if ($sha -cne $row.sha256) { throw "SHA-256 differs: $key" }
             if ($key.StartsWith('public/')) { $assetCount++ }
             if ($key -in 'native-desktop/client.mjs','native-desktop/server.mjs','cordis.patch.yml') { $artifacts[$key]=$sha }
         }
-        [ordered]@{version=$version;updateSha256=(Get-FileHash -Algorithm SHA256 -LiteralPath $Update).Hash.ToLowerInvariant();matchingFiles=$files.Count;matchingPublicAssets=$assetCount;sha256=$artifacts} | ConvertTo-Json
-    } finally { $delta.Dispose() }
+        [ordered]@{version=$version;updateSha256=(Read-FileSha256 $Update);matchingFiles=$files.Count;matchingPublicAssets=$assetCount;verifiedPayloadFiles=$payloadCount;sha256=$artifacts} | ConvertTo-Json
+    } finally { $delta.Dispose(); $payloadHash.Dispose() }
     return
 }
 $digest = [Security.Cryptography.SHA256]::Create()
@@ -48,8 +70,8 @@ try {
         $stream = $entries[$relative].Open()
         try { $expected = [BitConverter]::ToString($digest.ComputeHash($stream)).Replace('-','') }
         finally { $stream.Dispose() }
-        $actual = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash
-        if ($expected -cne $actual) { throw "SHA-256 differs: $relative" }
+        $actual = Read-FileSha256 $file.FullName
+        if ($expected.ToLowerInvariant() -cne $actual) { throw "SHA-256 differs: $relative" }
         if ($relative.StartsWith('public/')) { $assetCount++ }
         if ($relative -in 'native-desktop/client.mjs','native-desktop/server.mjs','cordis.patch.yml') {
             $artifacts[$relative] = $actual.ToLowerInvariant()
@@ -57,7 +79,7 @@ try {
     }
     [ordered]@{
         version = $version
-        referenceZipSha256 = (Get-FileHash -LiteralPath $Archive -Algorithm SHA256).Hash.ToLowerInvariant()
+        referenceZipSha256 = (Read-FileSha256 $Archive)
         matchingFiles = $files.Count
         matchingPublicAssets = $assetCount
         sha256 = $artifacts

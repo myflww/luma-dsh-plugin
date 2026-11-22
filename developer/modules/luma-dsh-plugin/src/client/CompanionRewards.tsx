@@ -23,7 +23,7 @@ export function CompanionRewards({ runtime, onFindPack, invitation }: { runtime:
     } else if (result.status === 'rejected') setNotice(result.message)
   }
   return <section className="lumaRewards" aria-label="伙伴与空间">
-    <header><div><h2>伙伴与空间</h2><p>选一张对应的兑换卡邀请伙伴。持有同一伙伴的全部正版卡面，即可获得专属办公室和卧室。</p></div><strong>{state.unlockedEmployeeIds.length} / {COMPANION_REWARDS.length} 位已入职</strong></header>
+    <header><div><h2>伙伴与空间</h2><p>每位入职伙伴都有普通卧室。用兑换卡邀请伙伴，集齐一位伙伴的全部正版卡面可永久解锁她的专属办公室和卧室。</p></div><strong>{state.unlockedEmployeeIds.length} / {COMPANION_REWARDS.length} 位已入职</strong></header>
     {notice && <p role="status">{notice}</p>}
     <div className="lumaRewardsGrid">{[...COMPANION_REWARDS].sort((a, b) => Number(b.id === STARTER_EMPLOYEE_ID) - Number(a.id === STARTER_EMPLOYEE_ID)).map(reward => {
       const joined = state.unlockedEmployeeIds.includes(reward.id), themed = state.unlockedThemeIds.includes(reward.office)

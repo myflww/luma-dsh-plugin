@@ -36,6 +36,55 @@ const stateResponse = (model: string) => Response.json({ ok: true, value: {
 } })
 const outage = () => Response.json({ ok: false, error: '员工服务连接中断' }, { status: 503 })
 
+it('selects and removes files and preserves attachment-only drafts until the host acknowledges submission', async () => {
+  const calls: any[] = []
+  vi.stubGlobal('fetch', vi.fn(async (url: string, init: RequestInit) => {
+    if (url.endsWith('/state')) return stateResponse('writer')
+    calls.push(JSON.parse(String(init.body)))
+    return calls.length === 1 ? Response.json({ok:false,error:'请重试本次提交'}, {status:400}) : Response.json({ok:true,value:{}})
+  }))
+  openDesk(['shan'])
+  await act(async () => {})
+  const input = screen.getByLabelText('选择图片或文件')
+  const file = new File(['题目：今天的菜单'],'题目.txt',{type:'text/plain'})
+  fireEvent.change(input, {target:{files:[file]}})
+  expect(button('发送').disabled).toBe(false)
+  fireEvent.click(button('移除 题目.txt'))
+  expect(button('发送').disabled).toBe(true)
+  fireEvent.change(input, {target:{files:[file]}})
+  fireEvent.click(button('发送'))
+  await screen.findByText('请重试本次提交')
+  expect(button('移除 题目.txt')).toBeTruthy()
+  fireEvent.click(button('发送'))
+  await vi.waitFor(() => expect(screen.queryByRole('button',{name:'移除 题目.txt'})).toBeNull())
+  expect(calls.map(call => call.requestId)).toEqual([calls[0].requestId,calls[0].requestId])
+  expect(Buffer.from(calls[1].attachments[0].data,'base64').toString()).toBe('题目：今天的菜单')
+})
+
+it('keeps room attachments in their own composer and sends them only to the selected group member', async () => {
+  const room = {id:'room-attachments',name:'周报小组',roleIds:['shan','lu-mi'],createdAt:1}
+  const roles = Object.fromEntries(room.roleIds.map(id => [id,{model:'local'}]))
+  const calls: any[] = []
+  vi.stubGlobal('fetch', vi.fn(async (url: string, init: RequestInit) => {
+    if (url.endsWith('/run')) calls.push(JSON.parse(String(init.body)))
+    return Response.json({ok:true,value:{roles,rooms:[room],jobs:[],memories:{},loveHouse:{available:false,connected:false}}})
+  }))
+  openDesk(room.roleIds)
+  const group = await screen.findByRole('button',{name:/周报小组/})
+  fireEvent.click(group)
+  const file = new File(['会议议程'],'会议.md',{type:'text/markdown'})
+  fireEvent.change(screen.getByLabelText('选择图片或文件'),{target:{files:[file]}})
+  fireEvent.click(button('返回私聊'))
+  expect(screen.queryByRole('button',{name:'移除 会议.md'})).toBeNull()
+  fireEvent.click(group)
+  expect(button('移除 会议.md')).toBeTruthy()
+  fireEvent.change(screen.getByRole('combobox',{name:'群聊发言对象'}),{target:{value:'lu-mi'}})
+  fireEvent.click(button('发送到群'))
+  await vi.waitFor(() => expect(calls).toHaveLength(1))
+  expect(calls[0]).toMatchObject({topic:room.id,roleIds:['lu-mi'],mode:'task',text:''})
+  expect(Buffer.from(calls[0].attachments[0].data,'base64').toString()).toBe('会议议程')
+})
+
 it('opens the bedroom task shortcut on single assignment, and an office visit returns the same employee to normal chat', async () => {
   vi.stubGlobal('fetch', vi.fn(() => Promise.resolve(stateResponse(''))))
   const desk = openDesk()

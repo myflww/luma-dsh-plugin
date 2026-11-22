@@ -6,6 +6,9 @@ import { fileURLToPath } from 'node:url'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { ASSET_PREFIXES, createAssetHandler } from '../src/host/assets.ts'
 import { createAgentWork } from '../src/host/agent-work.ts'
+import { createEmployeeUsage, type EmployeeUsage, type LiveUsageSession, type UsageQuery } from '../src/host/employee-usage.ts'
+import { createCollectionWallet } from './collection-wallet.ts'
+import type { NativeModels } from '../src/host/dsh-models.ts'
 import { readPortableBinding } from './portable-binding.ts'
 import { employeeWorkspaceHandler, type EmployeeWorkspaceHost } from './employee-workspace.ts'
 import { createEmployeePresetRoster, type DesktopPresetRegistry } from './employee-presets.ts'
@@ -21,10 +24,12 @@ import { COLLECTION_SETTINGS_NAMESPACE, validateCollectionSettingsWire } from '.
 import { OFFICE_RELATIONSHIP_SETTINGS_NAMESPACE, validateOfficeRelationshipSettingsWire } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/office-relationship-settings.ts'
 
 export const name = 'luma-dsh-plugin'
-export const inject = ['webServer', 'connection', 'profileContext', 'workspaceRegistry', 'sessionQuery', 'agentPresets']
+export const inject = ['webServer', 'connection', 'profileContext', 'workspaceRegistry', 'sessionQuery', 'agentPresets', 'llm', 'attachments']
 type Section = Record<string, unknown>
 type Handler = (req: IncomingMessage, res: ServerResponse) => Promise<void> | void
-type Context = EmployeeWorkspaceHost & {
+type Context = EmployeeWorkspaceHost & NativeModels & {
+  sessionQuery: UsageQuery
+  on?(name:'session/created'|'session/event', fn:(session:LiveUsageSession, event?:{type:string;data?:unknown}) => void, options:{global:boolean}): () => void
   agentPresets:DesktopPresetRegistry
   profileContext: { home: string; dir?: string; name?: string }
   connection: { browserPeer: object; admit: (req: IncomingMessage) => { peer?: object; rejection?: number } }
@@ -57,12 +62,18 @@ function ownerAdmission(ctx: Context, req: IncomingMessage) {
   return ctx.connection.browserPeer && admission.peer === ctx.connection.browserPeer ? 0 : 403
 }
 
-function settingsHandler(db: DatabaseSync, homes: Record<string,string>, syncPresets:()=>Promise<void>): Handler {
+function settingsHandler(db: DatabaseSync, homes: Record<string,string>, syncPresets:()=>Promise<void>, usage:EmployeeUsage) {
   db.exec('PRAGMA busy_timeout=3000; CREATE TABLE IF NOT EXISTS sections(ns TEXT PRIMARY KEY, revision INTEGER NOT NULL, value TEXT NOT NULL)')
   const read = db.prepare('SELECT revision,value FROM sections WHERE ns=?')
   const insert = db.prepare('INSERT OR IGNORE INTO sections VALUES(?,0,?)')
   const write = db.prepare('UPDATE sections SET value=?, revision=revision+1 WHERE ns=? AND revision=?')
   for (const ns of sections.keys()) insert.run(ns, '{}')
+  const wallet = createCollectionWallet(db, usage)
+  async function refreshWallet() {
+    const progress = await usage.progress()
+    const {revision} = wallet.reconcile()
+    return {...progress, collectionRevision:revision}
+  }
   function view(ns: string) {
     const row = read.get(ns)!
     const base = ns === MESSAGES_NAMESPACE ? { homes } : {}
@@ -70,7 +81,7 @@ function settingsHandler(db: DatabaseSync, homes: Record<string,string>, syncPre
     const effective = { ...base, ...user }
     return { ns, revision: Number(row.revision), user, effective, value: effective, base, secrets: [] }
   }
-  return async (req, res) => {
+  const handle: Handler = async (req, res) => {
     if (req.method !== 'POST') return send(res, 405, {ok:false,error:'设置只接受 POST 请求。'})
     if (!/^application\/json(?:;|$)/i.test(req.headers['content-type'] ?? '')) return send(res, 415, {ok:false,error:'请选择 JSON 格式。'})
     try {
@@ -83,7 +94,10 @@ function settingsHandler(db: DatabaseSync, homes: Record<string,string>, syncPre
       }
       const body = JSON.parse(Buffer.concat(chunks).toString('utf8'))
       if (!isObject(body)) throw Error()
-      if (body.action === 'describe') return send(res, 200, {ok:true,value:{writable:true,namespaces:Array.from(sections.keys(), view)}})
+      if (body.action === 'describe') {
+        await refreshWallet()
+        return send(res, 200, {ok:true,value:{writable:true,namespaces:Array.from(sections.keys(), view)}})
+      }
       if (body.action !== 'update' || typeof body.ns !== 'string' || !sections.has(body.ns) || !isObject(body.section)
           || !Number.isSafeInteger(body.expectedRevision) || Number(body.expectedRevision) < 0) throw Error()
       const ns = body.ns, section = { ...body.section }
@@ -92,9 +106,15 @@ function settingsHandler(db: DatabaseSync, homes: Record<string,string>, syncPre
         if (!isObject(section.homes) || Object.entries(section.homes).some(([id, path]) => homes[id] !== path)) throw Error()
         delete section.homes
       }
-      sections.get(ns)!(section)
-      const result = write.run(JSON.stringify(section), ns, Number(body.expectedRevision))
-      if (!result.changes) return send(res, 409, {ok:false,code:'settings-conflict',error:'设置已在其他窗口更新，请重新读取。'})
+      const expectedRevision = Number(body.expectedRevision)
+      let conflict: boolean
+      if (ns === LOCAL_COLLECTION_SETTINGS_NAMESPACE) {
+        conflict = wallet.reconcile({section, expectedRevision, restore:body.restore === true}).conflict
+      } else {
+        sections.get(ns)!(section)
+        conflict = !write.run(JSON.stringify(section), ns, expectedRevision).changes
+      }
+      if (conflict) return send(res, 409, {ok:false,code:'settings-conflict',error:'设置已在其他窗口更新，请重新读取。'})
       if (ns === LOCAL_COLLECTION_SETTINGS_NAMESPACE) {
         try { await syncPresets() } catch { return send(res,503,{ok:false,error:'收藏已保存，DSH 员工预设加载失败。请重新打开插件后重试。'}) }
       }
@@ -103,6 +123,7 @@ function settingsHandler(db: DatabaseSync, homes: Record<string,string>, syncPre
       return send(res, 400, {ok:false,error:'设置内容无效或无法保存。'})
     }
   }
+  return {handle,refreshWallet}
 }
 
 export async function apply(ctx: Context) {
@@ -129,7 +150,20 @@ export async function apply(ctx: Context) {
         try { send(res,200,await releases.check(query.get('action') ?? 'auto',query.get('tag') ?? undefined)) }
         catch { send(res,400,{error:'无法完成版本检查。'}) }
       })}))
-      const settings = settingsHandler(db, homes, () => presets.sync())
+      const usage = createEmployeeUsage(db,ctx.sessionQuery,homes)
+      clean.push(() => usage.dispose())
+      const settings = settingsHandler(db, homes, () => presets.sync(), usage)
+      if (ctx.on) {
+        clean.push(ctx.on('session/created',session=>usage.created(session.header,session.firstLifecycleSeq ?? session.seq,session.inheritedEventCount),{global:true}))
+        clean.push(ctx.on('session/event',(session,event)=>{
+          if (event && (event.type === 'assistant/message' || event.type === 'assistant/attempt' || event.type === 'agent-preset/selected')) usage.changed(session,event)
+        },{global:true}))
+      }
+      clean.push(ctx.webServer.register({kind:'exact', path:'/luma-native/token-usage', handler:protect(async (req,res) => {
+        if (req.method !== 'POST') return send(res,405,{ok:false,error:'请使用 POST 请求。'})
+        try { return send(res,200,{ok:true,value:await settings.refreshWallet()}) }
+        catch { return send(res,503,{ok:false,error:'无法读取本机员工用量与钱包，请重试。'}) }
+      })}))
       const readCollection = db.prepare('SELECT revision,value FROM sections WHERE ns=?')
       let cachedRevision = -1, unlocked: readonly string[] = []
       const readUnlockedEmployees = () => {
@@ -142,11 +176,11 @@ export async function apply(ctx: Context) {
       }
       const presets = createEmployeePresetRoster(ctx.agentPresets,readUnlockedEmployees)
       clean.push(()=>presets.dispose())
-      startup = presets.sync(false)
+      startup = Promise.all([presets.sync(false), settings.refreshWallet()]).then(() => {})
       const desk = createAgentWork(join(root, 'agent-workbench'), req => ownerAdmission(ctx, req) === 0,
-        { read:() => readPortableBinding(undefined, true), verify:verifyPortableLibraries }, readUnlockedEmployees, true)
+        { read:() => readPortableBinding(undefined, true), verify:verifyPortableLibraries }, readUnlockedEmployees, true, ctx, usage.recordModelUsage)
       clean.push(() => desk.dispose())
-      clean.push(ctx.webServer.register({ kind:'exact', path:'/luma-native/settings', handler:protect(settings) }))
+      clean.push(ctx.webServer.register({ kind:'exact', path:'/luma-native/settings', handler:protect(settings.handle) }))
       clean.push(ctx.webServer.register({ kind:'exact', path:'/luma-native/employee-workspace', handler:protect(employeeWorkspaceHandler(ctx,homes,readUnlockedEmployees)) }))
       clean.push(ctx.webServer.register({ kind:'prefix', path:'/luma-agents', handler:desk.handler }))
       for (const path of ASSET_PREFIXES) clean.push(ctx.webServer.register({ kind:'prefix', path, handler:protect(asset) }))

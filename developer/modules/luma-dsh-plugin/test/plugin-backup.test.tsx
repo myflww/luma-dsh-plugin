@@ -106,6 +106,41 @@ describe('allowlisted plugin backup and preferences', () => {
     backup.dispose()
   })
 
+  it('accepts only valid host deposits appended to the exact restored legacy wallet before continuing', async () => {
+    const ns = 'luma-dsh-local-collection'
+    const welcome = {id:'legacy-welcome',at:10,type:'welcome'}
+    const purchase = {id:'legacy-purchase',at:11,type:'buy-album-skin',skinId:'prism',price:100}
+    const reward = {id:'settled-employee',at:12,type:'token-reward',employeeId:'jingyuniang',throughCoins:1}
+    const refund = {id:'settled-refund',at:13,type:'album-skin-refund',purchaseId:purchase.id}
+    const cases = [
+      {ok:true, events:[welcome,purchase,reward,refund]},
+      {ok:false, events:[{...welcome,at:9},purchase,reward,refund]},
+      {ok:false, events:[welcome,purchase,{id:'appended-equip',at:12,type:'equip-album-skin',skinId:'prism'}]},
+      {ok:false, events:[welcome,purchase,{...refund,purchaseId:'unknown-receipt'}]},
+      {ok:false, events:[welcome,purchase,refund,{...refund,id:'duplicate-refund'}]},
+    ]
+    for (const sample of cases) {
+      const host = hostFixture(), backup = createPluginBackupRuntime(host.api)
+      const document = {...await backup.exportBackup(), pluginVersion:'0.4.3', namespaces:{
+        [ns]:{state:{schemaVersion:1,events:[welcome,purchase]}},
+        [PLUGIN_PREFERENCES_NAMESPACE]:{preferences:{schemaVersion:1,reducedMotion:'reduce'}},
+      }}
+      const preview = await backup.previewBackup(JSON.stringify(document))
+      const apply = host.api.replace.getMockImplementation()!
+      host.api.replace.mockImplementation(async request => {
+        const response = await apply(request)
+        if (response.result.ok && request.ns === ns) response.result.value.user = {state:{schemaVersion:1,events:sample.events}}
+        return response
+      })
+      const result = await backup.restoreBackup(preview.token)
+      expect(result.status).toBe(sample.ok ? 'complete' : 'stopped')
+      if (sample.ok) expect(result.applied).toEqual([ns,PLUGIN_PREFERENCES_NAMESPACE])
+      else expect(result.uncertain).toBe(ns)
+      expect(host.api.replace).toHaveBeenCalledTimes(sample.ok ? 2 : 1)
+      backup.dispose()
+    }
+  })
+
   it('refuses read-only and stale previews before the first write', async () => {
     const host = hostFixture(), backup = createPluginBackupRuntime(host.api), document = await backup.exportBackup()
     const preview = await backup.previewBackup(JSON.stringify(document))

@@ -1,0 +1,7 @@
+.lumaAttachmentPicker { display:flex; align-items:center; gap:8px; margin:6px 0; flex-wrap:wrap; }
+.lumaAttachmentChips { list-style:none; display:flex; flex-wrap:wrap; gap:5px; padding:0; margin:6px 0; }
+.lumaAttachmentChips li { display:flex; align-items:center; gap:6px; max-width:100%; background:#edf2ec; color:#42564e; border-radius:8px; padding:3px 8px; font-size:12px; }
+.lumaAttachmentChips li span { overflow-wrap:anywhere; min-width:0; }
+.lumaAttachmentChips small { white-space:nowrap; font-size:10px; }
+.lumaAttachmentThumbnail { width:42px; height:36px; object-fit:contain; border-radius:4px; background:white; flex:none; }
+.lumaMessages .lumaAttachmentChips button { padding:1px 5px; line-height:1.4; }

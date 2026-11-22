@@ -94,7 +94,7 @@ export function PluginSettingsPage({ runtime, onOpenNativeSettings, updates }: P
     <section aria-labelledby="luma-help-heading"><h2 id="luma-help-heading">使用与更新</h2>
       <ul><li>办公室跟随真实当前时间与日历；角色任务状态来自 DSH 会话。</li>
         <li>角色消息可流式对话。模型、连接与执行权限由 DSH 管理。</li>
-        <li>本地星币仅用于插件内的卡包与卡册装帧，不涉及真实付款。</li>
+        <li>本地星币可用于购买插件内的卡包，不涉及真实付款。</li>
         <li>更新前先导出备份。当前接收 {PLUGIN_COMPATIBILITY_LINE}.x 插件的 V1 备份；不兼容数据会保留原样，更新到兼容版本后再恢复。</li>
         <li>卸载插件会保留 DSH 用户设置和已安装的角色预设。重新安装兼容版本后可继续读取；卸载不会删除聊天记录。</li></ul>
       {onOpenNativeSettings && <><button type="button" onClick={onOpenNativeSettings}>前往 DSH 设置入口</button><p>进入原生页面后，点击侧栏的“设置”配置模型与连接。</p></>}

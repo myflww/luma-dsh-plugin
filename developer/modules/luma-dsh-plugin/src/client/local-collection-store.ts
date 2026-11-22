@@ -1,9 +1,10 @@
+import type { ConnectionHandle } from '@deepseek-ai/dsh-api-remotes/client'
 import type { ClientContext, SettingsScope } from '@deepseek-ai/dsh-client-runtime/client'
 import { drawPack, PACK_POOL_VERSION } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/economy/domain/cardPacks.ts'
 import {
-  EMPTY_LOCAL_COLLECTION_STATE, LOCAL_ALBUM_SKINS, LOCAL_COLLECTION_LIMIT, LOCAL_PACKS,
+  EMPTY_LOCAL_COLLECTION_STATE, localCollectionUserEventCount, LOCAL_COLLECTION_LIMIT, LOCAL_PACKS,
   decodeLocalCollectionSettings, localCollectionDay, localPackAvailability, projectLocalCollection, projectLocalCollectionSettings,
-  type CharacterId, canRedeemCard, characterIdForCard, type LocalAlbumSkinId, type LocalCollectionEvent, type LocalCollectionProjection, type LocalCollectionSettings, type LocalCollectionState,
+  type CharacterId, canRedeemCard, characterIdForCard, type LocalCollectionEvent, type LocalCollectionProjection, type LocalCollectionSettings, type LocalCollectionState,
 } from '../shared/local-collection-domain.ts'
 import { LOCAL_COLLECTION_SETTINGS_NAMESPACE } from '../local-collection-settings.ts'
 
@@ -70,28 +71,12 @@ export class LocalCollectionStore {
     if (!card || !canRedeemCard(card.versionKey) || characterIdForCard(card.versionKey) !== employeeId) throw new Error('请选择一张当前持有的对应兑换卡。')
     return { ...base, type: 'redeem-employee', employeeId, cardInstanceId }
   })
-  buyAlbumSkin = (skinId: LocalAlbumSkinId) => this.transact(base => {
-    const skin = LOCAL_ALBUM_SKINS.find(row => row.id === skinId)
-    if (!skin) throw new Error('没有这款卡册装帧。')
-    if (this.snapshot.albumSkinIds.includes(skin.id)) throw new Error('这款装帧已经在你的本地收藏中。')
-    if (this.snapshot.balance < skin.price) throw new Error('星币不足，可以领取每日星币后再购买。')
-    return { ...base, type: 'buy-album-skin', skinId: skin.id, price: skin.price }
-  })
-  equipAlbumSkin = (skinId: LocalAlbumSkinId) => {
-    if (this.disposed) return Promise.resolve(rejected('disposed', '收藏已关闭，请重新打开后重试。'))
-    if (this.snapshot.albumSkin.id === skinId) return Promise.resolve<LocalCollectionResult>({ status: 'unchanged' })
-    return this.transact(base => {
-      if (!this.snapshot.albumSkinIds.includes(skinId)) throw new Error('请先购买这款卡册装帧。')
-      return { ...base, type: 'equip-album-skin', skinId }
-    })
-  }
-
   private async transact(create: (base: { id: string; at: number }) => LocalCollectionEvent): Promise<LocalCollectionResult> {
     if (this.disposed) return rejected('disposed', '收藏已关闭，请重新打开后重试。')
     if (this.pending) return rejected('busy', '上一笔操作正在保存，请稍等。')
     this.refresh()
     if (!this.snapshot.writable) return rejected('unavailable', this.snapshot.problem ?? '当前连接不能保存本地收藏。')
-    if (this.state.events.length >= LOCAL_COLLECTION_LIMIT) return rejected('limit', '本地收藏记录已满，请先备份当前 DSH 设置。')
+    if (localCollectionUserEventCount(this.state.events) >= LOCAL_COLLECTION_LIMIT) return rejected('limit', '本地收藏记录已满，请先备份当前 DSH 设置。')
     let event: LocalCollectionEvent
     try {
       const id = this.options.id?.() ?? `local-${crypto.randomUUID()}`
@@ -152,10 +137,30 @@ export class LocalCollectionStore {
   }
 }
 
-export interface LocalCollectionRuntime { readonly store: LocalCollectionStore; dispose(): void }
+export interface EmployeeUsageReport {
+  threshold: number
+  nativeHistoryComplete: boolean
+  collectionRevision: number
+  roles: Record<string,{totalTokens:number; earnedCoins:number; remainderTokens:number}>
+}
+export interface LocalCollectionRuntime {
+  readonly store: LocalCollectionStore
+  readEmployeeUsage?(signal:AbortSignal): Promise<EmployeeUsageReport>
+  dispose(): void
+}
 export function createLocalCollectionRuntime(ctx: ClientContext): LocalCollectionRuntime {
   const store = new LocalCollectionStore(ctx.settingsScope.bind<LocalCollectionSettings>({
     namespace: LOCAL_COLLECTION_SETTINGS_NAMESPACE, decode: decodeLocalCollectionSettings,
   }))
-  return { store, dispose: () => store.dispose() }
+  return {
+    store, dispose: () => store.dispose(),
+    async readEmployeeUsage(signal) {
+      const response = await fetch('/luma-native/token-usage', { method:'POST', credentials:'same-origin', cache:'no-store', redirect:'error', signal })
+      if (!response.ok) throw Error('暂时无法读取员工用量，请重试。')
+      const report = await response.json()
+      if (!report.ok || !report.value?.roles || !(report.value.threshold > 0)) throw Error('宿主尚未返回员工用量。')
+      if (!signal.aborted) await (ctx.get('connection') as ConnectionHandle).api.settings.describe({})
+      return report.value
+    },
+  }
 }

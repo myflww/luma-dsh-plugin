@@ -58,6 +58,19 @@ function sectionOf(view: NamespaceView): Section {
   if (!record(value) || view.secrets.length) throw new Error(`${view.ns} 不是可备份的公开插件设置。`)
   return clone(value)
 }
+function matchesRestoredSection(name: string, expected: Section, view: NamespaceView) {
+  if (view.ns !== name) return false
+  const actual = sectionOf(view)
+  if (canonical(expected) === canonical(actual)) return true
+  if (name !== LOCAL_COLLECTION_SETTINGS_NAMESPACE) return false
+  // Restoring a legacy wallet may atomically append earned rewards and historical refunds.
+  validateLocalCollectionSettings(actual)
+  const before = (expected as LocalCollectionSettings).state?.events ?? []
+  const after = actual.state?.events ?? []
+  return after.length > before.length
+    && before.every((event, index) => canonical(event) === canonical(after[index]))
+    && after.slice(before.length).every(event => event.type === 'token-reward' || event.type === 'album-skin-refund')
+}
 function projectSection(spec: NamespaceSpec, source: Section): Section {
   spec.validate(source)
   const next = spec.fields ? Object.fromEntries(Object.entries(source).filter(([key]) => spec.fields!.includes(key))) : clone(source)
@@ -186,7 +199,7 @@ export function createPluginBackupRuntime(api: PluginBackupApi) {
           if (!response.result.ok) return stopped(response.result.error.code === 'settings-conflict'
             ? '此项遇到其他窗口修改，恢复已停止；先前项目已应用。' : 'DSH 拒绝了此项设置，恢复已停止；先前项目已应用。', item.spec.name)
           try {
-            if (canonical(sectionOf(response.result.value)) !== canonical(item.after)) return stopped('此项已提交但读回不同，请核对；后续项目尚未应用。', item.spec.name, item.spec.name)
+            if (!matchesRestoredSection(item.spec.name, item.after, response.result.value)) return stopped('此项已提交但读回不同，请核对；后续项目尚未应用。', item.spec.name, item.spec.name)
           } catch { return stopped('此项已提交但无法核对读回，后续项目尚未应用。', item.spec.name, item.spec.name) }
           applied.push(item.spec.name)
         }

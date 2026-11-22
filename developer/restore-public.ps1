@@ -9,14 +9,23 @@ function Get-ExtendedPath([string]$Path) {
 $pluginPath = Join-Path $PSScriptRoot 'modules/luma-dsh-plugin'
 $assets = Get-Content -LiteralPath (Join-Path $pluginPath 'lib/asset-manifest.json') -Raw -Encoding utf8 | ConvertFrom-Json
 $version = (Get-Content -LiteralPath (Join-Path $pluginPath 'native-desktop/manifest.json') -Raw -Encoding utf8 | ConvertFrom-Json).version
-$assetSourceVersions = @($version, '0.5.1', '0.5.0')
+$assetSourceVersions = @($version, '0.5.2', '0.5.1', '0.5.0', '0.4.3')
+$newArt = [IO.Path]::Combine($pluginPath, 'art', 'release-assets')
+$listed = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+foreach ($row in $assets) { if (!$listed.Add([string]$row.path)) { throw "Duplicate asset: $($row.path)" } }
+if ([IO.Directory]::Exists($newArt)) {
+    foreach ($file in [IO.Directory]::EnumerateFiles($newArt, '*', [IO.SearchOption]::AllDirectories)) {
+        $relative = $file.Substring($newArt.Length + 1).Replace('\','/')
+        if (!$listed.Contains($relative)) { throw "Release art is missing from asset-manifest.json: $relative" }
+    }
+}
 $publicPath = [IO.Path]::GetFullPath((Join-Path $pluginPath 'public'))
 $targetRoot = [IO.Directory]::CreateDirectory($publicPath).FullName + [IO.Path]::DirectorySeparatorChar
 $source = Get-Item -LiteralPath $Archive
 $archiveFile = $null
 if ($source.PSIsContainer) {
     $sourceManifest = Get-Content -LiteralPath (Join-Path $source.FullName 'package.json') -Raw -Encoding UTF8 | ConvertFrom-Json
-    if ($sourceManifest.name -cne '@luma/dsh-plugin' -or $sourceManifest.version -cnotin $assetSourceVersions) { throw "Expected a full Luma release directory: $($assetSourceVersions -join ', '). For a 0.4.3 base, use the release installer with -PrepareOnly first." }
+    if ($sourceManifest.name -cne '@luma/dsh-plugin' -or $sourceManifest.version -cnotin $assetSourceVersions) { throw "Expected a full Luma release directory: $($assetSourceVersions -join ', ')." }
 } else { $archiveFile = [IO.Compression.ZipFile]::OpenRead($source.FullName) }
 $hash = [Security.Cryptography.SHA256]::Create()
 try {
@@ -33,19 +42,20 @@ try {
                 break
             }
         }
-        if (!$prefix) { throw "Expected a full Luma release ZIP: $($assetSourceVersions -join ', '). For a 0.4.3 base, use the release installer with -PrepareOnly first." }
+        if (!$prefix) { throw "Expected a full Luma release ZIP: $($assetSourceVersions -join ', ')." }
         foreach ($entry in $archiveFile.Entries) {
             if ($entry.FullName.StartsWith($prefix, [StringComparison]::Ordinal) -and $entry.Name) {
                 $entries.Add($entry.FullName.Substring($prefix.Length), $entry)
             }
         }
-        if ($entries.Count -ne $assets.Count) { throw "Expected $($assets.Count) public files below $prefix. Found $($entries.Count)." }
     }
     foreach ($asset in $assets) {
         $key = [string]$asset.path
         $target = [IO.Path]::GetFullPath((Join-Path $publicPath $key))
         if (!$target.StartsWith($targetRoot, [StringComparison]::OrdinalIgnoreCase)) { throw "Invalid asset: $key" }
-        if ($archiveFile) {
+        $replacement = Get-ExtendedPath ([IO.Path]::Combine($newArt, $key.Replace('/','\')))
+        $hasReplacement = [IO.File]::Exists($replacement)
+        if ($archiveFile -and !$hasReplacement) {
             $entry = $entries[$key]
             if (!$entry -or $entry.Length -ne $asset.bytes) { throw "Unexpected size: $key" }
         }
@@ -53,7 +63,8 @@ try {
         $target = Get-ExtendedPath $target
         $temp = Get-ExtendedPath ([IO.Path]::Combine($publicPath, '.restore-' + [Guid]::NewGuid().ToString('N')))
         try {
-            if ($archiveFile) { [IO.Compression.ZipFileExtensions]::ExtractToFile($entry, $temp, $false) }
+            if ($hasReplacement) { [IO.File]::Copy($replacement,$temp) }
+            elseif ($archiveFile) { [IO.Compression.ZipFileExtensions]::ExtractToFile($entry, $temp, $false) }
             else {
                 $origin = Get-ExtendedPath ([IO.Path]::Combine($source.FullName, 'public', $key.Replace('/','\')))
                 if ([IO.FileInfo]::new($origin).Length -ne $asset.bytes) { throw "Unexpected size: $key" }

@@ -4,18 +4,19 @@ param(
     [string]$Base,
     [string]$Patch,
     [switch]$PrepareOnly,
+    [switch]$Rollback,
     [string]$DshCli
 )
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $repo = 'myflww/luma-dsh-plugin'
-$patchName = 'Luma-DSH-0.5.2-Update.zip'
+$patchName = 'Luma-DSH-@VERSION@-Update.zip'
 $patchDigest = '@PATCH_SHA256@'
-$compatibleBaseVersions = @('0.5.1','0.5.0','0.4.3')
+$compatibleBaseVersions = @('0.5.2','0.5.1','0.5.0','0.4.3')
 $oldZip = 'Luma-DSH-0.4.3-Windows.zip'
 $oldDigest = 'e949d369a89da2bf6ce01c2eabef4b8a3a95ced38db5ab625ea90c2bb0549c81'
 $root = [IO.Directory]::CreateDirectory([IO.Path]::GetFullPath($Directory)).FullName
-$final = Join-Path $root 'DesktopPlugin-0.5.2'
+$final = Join-Path $root 'DesktopPlugin-@VERSION@'
 $cache = Join-Path $root 'Downloads'
 function Extended([string]$absolute) {
     if ($absolute.StartsWith('\\')) { return '\\?\UNC\' + $absolute.Substring(2) }
@@ -111,7 +112,7 @@ function Check-File([string]$path, $row) {
     $item = [IO.FileInfo]::new((Extended $path))
     if (!$item.Exists -or $item.Length -ne $row.bytes -or (Hash-File $path) -cne $row.sha256) { throw "文件大小或 SHA-256 校验失败：$($row.path)。可通过 -Base 指定原版 ZIP 后重试。" }
 }
-function Register-Plugin {
+function Register-Plugin([string]$packagePath) {
     if ($PrepareOnly) { return }
     $cli = $DshCli
     if (!$cli) {
@@ -127,30 +128,42 @@ function Register-Plugin {
             }
         }
     }
-    if (!$cli) { throw "插件已准备好。请在 DSH 插件页添加 $final，或使用 -DshCli 参数指定桌面安装目录中的 resources\runtime\cli\bin\dsh.cmd。" }
+    if (!$cli) { throw "请在 DSH 插件页添加 $packagePath，或使用 -DshCli 参数指定桌面安装目录中的 resources\runtime\cli\bin\dsh.cmd。" }
     $version = (& $cli --version | Out-String).Trim()
-    if ($LASTEXITCODE -ne 0 -or !$version) { throw "DSH CLI 无法启动。可从桌面插件页添加已验证的目录 $final。" }
+    if ($LASTEXITCODE -ne 0 -or !$version) { throw "DSH CLI 无法启动。可从桌面插件页添加目录 $packagePath。" }
     Write-Host "正在使用当前 DeepSeek Harness CLI ($version) 安装 Luma。"
-    & $cli plugin --profile desktop add $final
-    if ($LASTEXITCODE -ne 0) { throw "DSH 未完成安装，可从插件页添加已验证的目录 $final。" }
+    & $cli plugin --profile desktop add $packagePath
+    if ($LASTEXITCODE -ne 0) { throw "DSH 未完成安装。首次使用请先打开一次 DSH 桌面客户端，再重试安装器，也可从插件页添加目录 $packagePath。" }
     Write-Host '已添加到桌面 DSH。重新打开 DSH 后，从侧栏进入 Luma 办公室。'
+}
+if ($Rollback) {
+    if ($PrepareOnly -or $Patch) { throw '回退模式只重新注册指定的旧版本目录。请移除 -PrepareOnly 和 -Patch。' }
+    $previous = if ($Base) { (Get-Item -LiteralPath $Base).FullName } else { Join-Path $root 'DesktopPlugin-0.5.2' }
+    $requiredFiles = @('cordis.patch.yml','native-desktop\server.mjs','native-desktop\client.mjs')
+    $missing = @($requiredFiles | Where-Object { !(Test-Path -LiteralPath (Join-Path $previous $_) -PathType Leaf) })
+    if (!(Test-BaseFolder $previous @()) -or $missing.Count -or !(Test-Path -LiteralPath (Join-Path $previous 'public') -PathType Container)) {
+        throw '没有找到完整的旧版 Luma 插件。请使用 -Base 指定保留的旧版插件目录。'
+    }
+    Write-Host "正在恢复旧版插件目录：$previous"
+    Register-Plugin $previous
+    return
 }
 if (!$Patch) {
     $Patch = Join-Path $PSScriptRoot $patchName
     if (!(Test-Path -LiteralPath $Patch -PathType Leaf)) {
         $Patch = Join-Path $cache $patchName
-        if (!(Test-Path -LiteralPath $Patch -PathType Leaf) -or (Hash-File $Patch) -cne $patchDigest) { Get-PrivateAsset 'v0.5.2' $patchName $cache }
+        if (!(Test-Path -LiteralPath $Patch -PathType Leaf) -or (Hash-File $Patch) -cne $patchDigest) { Get-PrivateAsset 'v@VERSION@' $patchName $cache }
     }
 }
 $Patch = (Get-Item -LiteralPath $Patch).FullName
-if ((Hash-File $Patch) -cne $patchDigest) { throw "0.5.2 更新包 SHA-256 校验失败：$Patch" }
+if ((Hash-File $Patch) -cne $patchDigest) { throw "@VERSION@ 更新包 SHA-256 校验失败：$Patch" }
 $delta = [IO.Compression.ZipFile]::OpenRead($Patch)
 $archive = $null
 $stage = $null
 try {
     $reader = [IO.StreamReader]::new($delta.GetEntry('update.json').Open(), [Text.Encoding]::UTF8)
     try { $manifest = $reader.ReadToEnd() | ConvertFrom-Json } finally { $reader.Dispose() }
-    if ($manifest.schema -ne 1 -or $manifest.version -cne '0.5.2' -or $manifest.baseVersion -cne '0.4.3' -or !$manifest.files.Count) { throw '更新清单版本不匹配。' }
+    if ($manifest.schema -ne 1 -or $manifest.version -cne '@VERSION@' -or $manifest.baseVersion -cne '0.4.3' -or !$manifest.files.Count) { throw '更新清单版本不匹配。' }
     $existing = [IO.Directory]::Exists($final)
     if (!$existing) {
         $source = Get-BasePackage $manifest.files
@@ -206,4 +219,4 @@ try {
     }
 }
 Write-Host "已校验全部 $($paths.Count) 个文件：$final"
-Register-Plugin
+Register-Plugin $final

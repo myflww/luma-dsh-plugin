@@ -8,15 +8,15 @@ import { CompanionRewards } from '../src/client/CompanionRewards.tsx'
 afterEach(cleanup)
 const employee = COMPANION_REWARDS.find(row => row.id === 'shan')!
 const exchangeable = employee.invitations.find(card => card.edition === 'standard')!
-function openings(keys: readonly string[]) {
+function openings(keys: readonly string[], owner = employee) {
   let at = Date.UTC(2026, 0, 1)
   const events: LocalCollectionEvent[] = [{id:'welcome-0001', at, type:'welcome'}]
   const counts: Record<string, number> = {}
-  const pack = LOCAL_PACKS.find(row => row.id === employee.packId)!
+  const pack = LOCAL_PACKS.find(row => row.id === owner.packId)!
   keys.forEach((key, index) => {
     at += 86_400_000
     const packInstanceId = 'purchased-' + index
-    const card = employee.targets.find(row => row.key === key)!
+    const card = owner.targets.find(row => row.key === key)!
     events.push({id:'daily-gift-' + index, at, type:'daily', day:localCollectionDay(at)},
       {id:packInstanceId, at, type:'buy-pack', packId:pack.id, price:pack.price, poolVersion:PACK_POOL_VERSION},
       {id:'opening-id-' + index, at, type:'open-pack', packInstanceId, versionKey:key, rarity:card.rarity, poolVersion:PACK_POOL_VERSION, odds:getPackOdds(pack.id, counts)})
@@ -27,7 +27,7 @@ function openings(keys: readonly string[]) {
 it('replays original v1 holdings, awards both spaces when the last standard arrives, and retains them after redemption', () => {
   const start = projectLocalCollection(EMPTY_LOCAL_COLLECTION_STATE)
   expect(start.unlockedEmployeeIds).toEqual(['jingyuniang'])
-  expect(start.unlockedThemeIds).toEqual(['office.jingyuniang.v1','bedroom.jingyuniang.v1'])
+  expect(start.unlockedThemeIds).toEqual([])
   const events = openings(employee.targets.map(card => card.key))
   const project = (rows: LocalCollectionEvent[]) => projectLocalCollection({schemaVersion:1, events:rows})
   expect(project(events.slice(0,-1)).unlockedThemeIds).not.toContain(employee.bedroom)
@@ -45,6 +45,12 @@ it('replays original v1 holdings, awards both spaces when the last standard arri
   expect(restored.unlockedEmployeeIds).toEqual(['jingyuniang','shan'])
   expect(() => project([...events,{...redeem,employeeId:'grok'}])).toThrow()
   expect(() => project([...events,redeem,{...redeem,id:'another-invitation'}])).toThrow()
+})
+it('requires the whale collection too and restores earned whale rooms by replaying legacy card events', () => {
+  const whale = COMPANION_REWARDS.find(row => row.id === 'jingyuniang')!
+  const events = openings(whale.targets.map(card => card.key), whale)
+  expect(projectLocalCollection({schemaVersion:1, events:events.slice(0,-1)}).unlockedThemeIds).toEqual([])
+  expect(projectLocalCollection({schemaVersion:1, events:JSON.parse(JSON.stringify(events))}).unlockedThemeIds).toEqual([whale.office,whale.bedroom])
 })
 it('requires a confirmed, currently held instance and changes contacts only after persistence', async () => {
   let value: LocalCollectionSettings = {state:{schemaVersion:1, events:openings([exchangeable.key])}}, revision=0

@@ -5,7 +5,7 @@ import type { OfficeAssetId } from '../../../../overlays/deepseek-harness/luma-f
 import '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/OfficeExperience.css'
 import type { OfficePageRuntime } from './office-runtime.ts'
 import { OFFICE_OUTFIT_CHOICES, OFFICE_THEME_CHOICES } from './office-theme-catalog.ts'
-import { STARTER_BEDROOMS, type OfficePresentationSelection } from '../office-presentation-settings.ts'
+import type { OfficePresentationSelection } from '../office-presentation-settings.ts'
 import { COMPANION_REWARDS, STARTER_EMPLOYEE_ID } from '../shared/local-collection-domain.ts'
 import { withActiveTaskMonitors } from './office-presence.ts'
 import { OfficeBedroom, type ResidentId } from './OfficeBedroom.tsx'
@@ -35,8 +35,7 @@ export interface OfficePageProps {
 // separate IDs and source pins; the old records are never represented as recovered.
 const unavailableHistoricalRestArt: readonly OfficeAssetId[] = ['employee.lu-mi.rest.left.whole.v2', 'employee.lu-mi.rest.right.whole.v2']
 
-const starterThemes = ['office.jingyuniang.v1','bedroom.jingyuniang.v1'] as const
-export function OfficePage({ runtime, onOpenChat, active = true, sceneMenu, unlockedEmployeeIds = [STARTER_EMPLOYEE_ID], unlockedThemeIds = starterThemes, onOpenRewards }: OfficePageProps) {
+export function OfficePage({ runtime, onOpenChat, active = true, sceneMenu, unlockedEmployeeIds = [STARTER_EMPLOYEE_ID], unlockedThemeIds = [], onOpenRewards }: OfficePageProps) {
   const [snapshot, setSnapshot] = useState(() => runtime.getSnapshot())
   const [scene,setScene] = useState<'office'|'bedroom'>('office')
   const [panel,setPanel] = useState<'roster'|'wardrobe'|'themes'|null>(null)
@@ -103,7 +102,7 @@ export function OfficePage({ runtime, onOpenChat, active = true, sceneMenu, unlo
   const visit = (id:ResidentId) => { setResident(id); setPanel(null); setScene('bedroom') }
   const dress = (id:ResidentId) => { setResident(id); setPanel('wardrobe') }
   const officeTheme = selection.officeTheme && unlockedThemeIds.includes(selection.officeTheme) ? selection.officeTheme : null
-  const bedrooms: NonNullable<OfficePresentationSelection['bedroomThemes']> = selection.bedroomThemes ?? STARTER_BEDROOMS
+  const bedrooms: NonNullable<OfficePresentationSelection['bedroomThemes']> = selection.bedroomThemes ?? {}
   const equippedBedroom = bedrooms[resident]
   const bedroomTheme = equippedBedroom && unlockedThemeIds.includes(equippedBedroom) ? equippedBedroom : null
   const roomArtOwner = COMPANION_REWARDS.find(reward => reward.bedroom === bedroomTheme)?.id

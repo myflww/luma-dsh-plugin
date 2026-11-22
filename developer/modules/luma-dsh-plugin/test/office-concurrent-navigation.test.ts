@@ -5,6 +5,7 @@ import { createIndependentArrivalState, advanceIndependentTaskArrival, independe
 import { advanceIndependentAmbient, independentFloorLanePosition, independentTrafficMayAdvance, initialIndependentAmbient } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/independentAmbient.ts'
 import { initialRuntime, officeLaneRoute, advanceOfficeActorTrafficFrame, prepareActorRuntime } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/officeSceneActorRuntime.ts'
 import { sampleDeskRhythm } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/deskRhythm.ts'
+import { workstationArrivalStep } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/frameTimeline.ts'
 import { isOfficeFootSegmentWalkable, findWorkstationRouteFromPoint } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/navigation.ts'
 import { createOfficeAutonomyState, advanceOfficeAutonomyController } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/autonomyController.ts'
 import { createOfficeTimePolicy } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/timePolicy.ts'
@@ -38,8 +39,29 @@ it('pauses on a reading pose between complete typing cycles at an employee-speci
   expect(boundary * first.rate / 1200).toBeCloseTo(Math.round(boundary * first.rate / 1200), 8)
   const reading = at('shan',boundary+1)
   expect(reading.reading).toBe(true)
-  expect(at('shan',boundary+reading.untilChangeMs+2).reading).toBe(false)
+  const edit=at('shan',boundary+reading.untilChangeMs+2)
+  expect(edit.reading).toBe(false)
+  expect(edit.rate).toBeLessThan(first.rate)
   expect(first.rate).not.toBe(at('jingyuniang',0).rate)
+})
+
+it('slows the last stride at a chair equally across render rates and keeps a projected worker seated between tasks',()=>{
+  const at=(tick:number)=>{
+    let distance=500
+    for(let wall=0;wall<400;wall+=tick) distance-=workstationArrivalStep(distance,Math.min(tick,400-wall)).travelMs
+    return distance
+  }
+  expect(at(8)).toBeCloseTo(at(40),8)
+  expect(at(8)).toBeGreaterThan(100)
+  expect(workstationArrivalStep(30,10).travelMs).toBeLessThan(workstationArrivalStep(300,10).travelMs)
+  const employee={id:'shan',name:'端木嫣',activity:'整理资料',availability:'available' as const,sceneActivity:'idle' as const,ambientDesk:true,workstationId:'north-private' as const,canDrag:true}
+  const seated={...initialRuntime('shan',0,0),mode:'desk-break' as const,targetWorkstationId:employee.workstationId}
+  const command={type:'start-task' as const,commandId:'start',taskId:'a',employeeId:'shan',workstationId:employee.workstationId}
+  const events:string[]=[]
+  const working=prepareActorRuntime(seated,employee,100,command,type=>events.push(type))
+  expect(working).toMatchObject({mode:'working',position:seated.position,route:null})
+  expect(events).toEqual(['workstation-arrived','work-animation-ready'])
+  expect(prepareActorRuntime(working,employee,500,undefined,()=>{})).toMatchObject({mode:'desk-break',position:seated.position,route:null})
 })
 
 it('gives all eight classic employees distinct floor starts', () => {

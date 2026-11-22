@@ -47,8 +47,8 @@ it('desktop routes grant the second contact only after a persisted exchange, inc
     const address = server.address()
     if (!address || typeof address === 'string') throw Error('No HTTP port')
     const post = (path:string, body:unknown)=>fetch(`http://127.0.0.1:${address.port}${path}`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)})
-    const write = (events: LocalCollectionEvent[], expectedRevision:number) => post('/luma-native/settings',{
-      action:'update', ns:LOCAL_COLLECTION_SETTINGS_NAMESPACE,section:{state:{schemaVersion:1,events}},expectedRevision,
+    const write = (events: LocalCollectionEvent[], expectedRevision:number, restore = false) => post('/luma-native/settings',{
+      action:'update', restore, ns:LOCAL_COLLECTION_SETTINGS_NAMESPACE,section:{state:{schemaVersion:1,events}},expectedRevision,
     })
     const room = () => post('/luma-agents/createroom',{requestId:'joined-cohort',name:'小组',roleIds:['jingyuniang','shan']})
     expect((await room()).status).toBe(403)
@@ -69,7 +69,8 @@ it('desktop routes grant the second contact only after a persisted exchange, inc
     expect(registered).toEqual(new Set([whale,second]))
     expect((await room()).status).toBe(200)
     // Restoring the earlier save must hide the existing group without deleting its history.
-    expect((await write(events,2)).status).toBe(200)
+    expect((await write(events,2)).status).toBe(400)
+    expect((await write(events,2,true)).status).toBe(200)
     expect(registered).toEqual(new Set([whale]))
     expect((await room()).status).toBe(403)
     const state = await (await post('/luma-agents/state',{})).json()

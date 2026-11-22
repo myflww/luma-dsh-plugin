@@ -1,4 +1,4 @@
-"""Build the v0.5.2 Windows updater from the published v0.4.3 ZIP and a verified plugin directory."""
+"""Build the desktop updater from the published v0.4.3 ZIP and a verified plugin directory."""
 import argparse
 import hashlib
 import json
@@ -7,7 +7,7 @@ import zipfile
 from pathlib import Path
 
 BASE = "0.4.3"
-VERSION = "0.5.2"
+VERSION = json.loads((Path(__file__).parent / "modules/luma-dsh-plugin/native-desktop/manifest.json").read_text(encoding="utf-8"))["version"]
 BASE_SHA256 = "e949d369a89da2bf6ce01c2eabef4b8a3a95ced38db5ab625ea90c2bb0549c81"
 PATCH = f"Luma-DSH-{VERSION}-Update.zip"
 
@@ -41,7 +41,7 @@ def main():
             raise SystemExit("The v0.4.3 base ZIP does not match its published SHA-256.")
     metadata = json.loads((args.target / "package.json").read_text(encoding="utf-8"))
     if (metadata["name"], metadata["version"]) != ("@luma/dsh-plugin", VERSION):
-        raise SystemExit("The target must be the v0.5.2 DSH desktop package.")
+        raise SystemExit(f"The target must be the v{VERSION} DSH desktop package.")
     if args.output.resolve().is_relative_to(args.target.resolve()):
         raise SystemExit("The output must be outside the package.")
     args.output.mkdir(parents=True, exist_ok=True)
@@ -74,10 +74,10 @@ def main():
     with patch_path.open("rb") as stream:
         patch_hash = digest(stream)
     template = Path(__file__).with_name("Install-Update.template.ps1").read_text(encoding="utf-8")
-    if template.count("@PATCH_SHA256@") != 1:
-        raise SystemExit("Missing installer hash marker.")
+    if template.count("@PATCH_SHA256@") != 1 or "@VERSION@" not in template:
+        raise SystemExit("Missing installer hash or version marker.")
     installer = args.output / "Get-Luma-DSH.ps1"
-    installer.write_bytes(template.replace("@PATCH_SHA256@", patch_hash).encode("utf-8-sig"))
+    installer.write_bytes(template.replace("@PATCH_SHA256@", patch_hash).replace("@VERSION@", VERSION).encode("utf-8-sig"))
     (args.output / (PATCH + ".sha256")).write_bytes(f"{patch_hash}  {PATCH}\n".encode("ascii"))
     launcher = (b'@echo off\r\npowershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0Get-Luma-DSH.ps1"\r\n'
                 b'set "LUMA_INSTALL_RESULT=%ERRORLEVEL%"\r\npause\r\nexit /b %LUMA_INSTALL_RESULT%\r\n')

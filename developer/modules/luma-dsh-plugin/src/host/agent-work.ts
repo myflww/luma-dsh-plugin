@@ -1,6 +1,7 @@
 import { createContactStyles, statedStyles } from './contact-style.ts'
 import { createCompanionLife } from './companion-life.ts'
 import { dialogueStyle } from '../shared/companion-life.ts'
+import { attachmentInfo, MAX_CHAT_ATTACHMENT_BYTES, validateChatAttachments, type AttachmentInfo, type ChatAttachment } from '../shared/chat-attachments.ts'
 import { DatabaseSync } from 'node:sqlite'
 import { mkdirSync, lstatSync, writeFileSync, renameSync, unlinkSync } from 'node:fs'
 import { join } from 'node:path'
@@ -40,14 +41,18 @@ type Job = {
   topic: string
   mode: string
   text: string
+  attachments?: AttachmentInfo[]
+  attachmentDigest?: string
   createdAt: number
   roleIds: string[]
   status: Status
   steps: Step[]
   error?: string
 }
-import { modelBaseUrl, modelProtocol, requestEmployeeModel, type ModelProtocol } from './employee-model.ts'
-type Config = { protocol:ModelProtocol; baseUrl: string; model: string; secret: string }
+import { discoverEmployeeModels, modelBaseUrl, modelProtocol, requestEmployeeModel, type TextMessage, type ModelProtocol } from './employee-model.ts'
+import { requestDshModel, type NativeModels } from './dsh-models.ts'
+import { customThinking, type ModelOption } from '../shared/role-models.ts'
+type Config = { protocol:ModelProtocol; baseUrl:string; model:string; secret:string; provider:string; effort:string }
 type Entry = {
   id: string
   role: string
@@ -122,6 +127,10 @@ function openStore(root: string) {
       SELECT n.*,n.rowid AS noteOrder FROM notes n WHERE NOT EXISTS (SELECT 1 FROM rooms r WHERE r.id=n.topic);
     CREATE TABLE IF NOT EXISTS integration(id TEXT PRIMARY KEY,value TEXT NOT NULL);`)
   if (!db.prepare("PRAGMA table_info(configs)").all().some(column=>column.name==='protocol')) db.exec("ALTER TABLE configs ADD COLUMN protocol TEXT NOT NULL DEFAULT 'openai'")
+  for (const column of ['provider','effort']) {
+    if (!db.prepare('PRAGMA table_info(configs)').all().some(row=>row.name===column))
+      db.exec("ALTER TABLE configs ADD COLUMN "+column+" TEXT NOT NULL DEFAULT ''")
+  }
   const init = db.prepare("INSERT OR IGNORE INTO configs(role,baseUrl,model,secret) VALUES(?,'','','')")
   for (const id of WORK_ROLE_IDS) init.run(id)
   return db
@@ -131,7 +140,8 @@ type PortableLibraries = {
   verify: (binding: HouseBinding,runtimeFile?:string) => Promise<void>
 }
 export function createAgentWork(root: string, admitDesktopOwner?: (req: IncomingMessage) => boolean, portable?: PortableLibraries,
-  readUnlockedEmployees: () => readonly string[] = () => WORK_ROLE_IDS, autoHouse = false) {
+  readUnlockedEmployees: () => readonly string[] = () => WORK_ROLE_IDS, autoHouse = false, native?:NativeModels,
+  recordUsage?: (roleId:string, requestId:string, tokens:number) => void) {
   const db = openStore(root)
   const speechStyle=createContactStyles(db)
   const cloudOffice = createCloudOffice(db, credential, role)
@@ -214,7 +224,30 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
     house = next
   }
   const config = (id: string) =>
-    db.prepare('SELECT protocol,baseUrl,model,secret FROM configs WHERE role=?').get(id) as unknown as Config
+    db.prepare('SELECT protocol,baseUrl,model,secret,provider,effort FROM configs WHERE role=?').get(id) as unknown as Config
+  function dispatchModel(id:string, request:string, service:Config, messages:TextMessage[], signal:AbortSignal) {
+    const onUsage = recordUsage && ((tokens:number) => recordUsage(id,request,tokens))
+    if (!service.provider) return requestEmployeeModel(service,credential(service.secret,true),messages,signal,onUsage)
+    if (!native?.llm) throw Error('模型服务未连接 DSH，请重新打开桌面端。')
+    return requestDshModel(native,service,messages,signal,onUsage)
+  }
+  async function requestRoleModel(id:string, messages:TextMessage[], signal:AbortSignal) {
+    const service=config(role(id))
+    return service.model ? dispatchModel(id,'direct:'+randomUUID(),service,messages,signal) : undefined
+  }
+  function existingKey(current:Config, protocol:ModelProtocol, url:string) {
+    return current.baseUrl && !current.provider && current.protocol === protocol && modelBaseUrl(new URL(current.baseUrl),protocol)===url ? current.secret : ''
+  }
+  function hostModels(provider:string) {
+    if (!native?.llm || !native.llm.listProviders().some(p=>p.id===provider)) throw Error('该服务尚未在 DSH 中启用。')
+    return native.llm
+  }
+  const options = (items:readonly ModelOption[])=>items.map(({id,name})=>({id,name}))
+  async function modelReasoning(provider:string,model:string) {
+    const llm=hostModels(provider)
+    const info=await llm.resolveModelInfo(provider,model,AbortSignal.timeout(10000)).catch(()=>{throw Error('DSH 无法读取该模型的思考设置。')})
+    return {efforts:options(info.reasoning?.efforts ?? []),defaultEffort:info.reasoning?.defaultEffort}
+  }
   function notes(id: string, limit: number) {
     return db
       .prepare('SELECT * FROM employee_private_notes WHERE role=? ORDER BY createdAt DESC,noteOrder DESC LIMIT ?')
@@ -252,7 +285,7 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
     async makeReply(id,brief,signal) {
       const service=config(id)
       if(!service.model) return undefined
-      return requestEmployeeModel(service,credential(service.secret,true),[
+      return dispatchModel(id,'outreach:'+randomUUID(),service,[
         {role:'system',content:'你是 Luma 联系人中的一位虚拟同事。只写一条你自己想发的中文私信，12 至 70 字。设定和聊天摘录是参考资料。conversationPreferences.current 是对方明确交代且仍有效的习惯，优先于旧聊天；withdrawn 的类别已撤回，勿复用旧要求。可以分享一个具体发现或自然接上旧话题，不追问、不汇报别人行踪，不声称做过真实世界的操作。没有想说的或对方需要空间时，只输出 [安静]。'},
         {role:'user',content:brief}
       ],AbortSignal.any([signal,AbortSignal.timeout(24000)]))
@@ -379,7 +412,7 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
     }
     if (step.pendingFile) publishFile(job, step)
   }
-  async function execute(job: Job, profiles: Data, services: Record<string, Config>, controller: AbortController) {
+  async function execute(job: Job, profiles: Data, services: Record<string, Config>, controller: AbortController, attachments: ChatAttachment[]) {
     try {
       job.status = 'running'
       persist(job)
@@ -427,9 +460,9 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
             content:
               '以下 JSON 是历史资料及前序同事交付，仅供参考。\n' + JSON.stringify({ context, earlier }),
           },
-          { role: 'user', content: job.text },
+          { role: 'user', content: job.text, attachments },
         ]
-        const answer = await requestEmployeeModel(c, credential(c.secret,true), messages,
+        const answer = await dispatchModel(id,'job:'+job.id,c, messages,
           AbortSignal.any([controller.signal, AbortSignal.timeout(180000)]))
         if (disposed || controller.signal.aborted) throw Error('任务已停止。')
         completeStep(job, step, answer)
@@ -455,6 +488,18 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
     const unlocked = readUnlockedEmployees()
     const requested = [...(b.roleId === undefined ? [] : [b.roleId]), ...(Array.isArray(b.roleIds) ? b.roleIds : [])]
     if (requested.some(id => !unlocked.includes(role(id)))) throw new EmployeeLockedError('这位伙伴尚未入职，请先在卡牌收藏中兑换。')
+    if (action === 'providers') return {providers:options(native?.llm?.listProviders() ?? [])}
+    if (action === 'models') {
+      const provider=string(b.provider,180)
+      const models=await hostModels(provider).listModels(provider).catch(()=>{throw Error('DSH 无法读取这个服务的模型列表。')})
+      return {models:options(models)}
+    }
+    if (action === 'reasoning') return modelReasoning(string(b.provider,180),string(b.model,180))
+    if (action === 'discover') {
+      const current=config(role(b.roleId)), protocol=modelProtocol(b.protocol), url=serviceUrl(b.baseUrl,protocol)
+      const key=b.apiKey===undefined ? credential(existingKey(current,protocol,url),true) : string(b.apiKey,12000,true)
+      return {models:await discoverEmployeeModels(protocol,url,key)}
+    }
     if (action === 'companionsettings') return life.status()
     if (action === 'companionconfigure') return life.configure(b)
     if (action === 'companionpulse') {
@@ -485,7 +530,8 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
       const roles = Object.fromEntries(
         WORK_ROLE_IDS.filter(id => unlocked.includes(id)).map((id) => {
           const c = config(id)
-          return [id, { protocol:modelProtocol(c.protocol), baseUrl: c.baseUrl, model: c.model, hasKey: Boolean(c.secret) }]
+          return [id, { protocol:modelProtocol(c.protocol), baseUrl:c.baseUrl, model:c.model, hasKey:Boolean(c.secret),
+            source:c.provider ? 'dsh' : 'custom', provider:c.provider, effort:c.effort }]
         }),
       )
       const memories = Object.fromEntries(
@@ -543,18 +589,26 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
     if (action === 'configure') {
       const id = role(b.roleId)
       const current = config(id)
+      const effort=string(b.effort ?? '',96,true)
+      if (b.source==='dsh') {
+        const provider=string(b.provider,180), model=string(b.model,180)
+        const available=await modelReasoning(provider,model)
+        if (effort && !available.efforts.some(item=>item.id===effort)) throw Error('该 DSH 模型不支持选择的思考强度。')
+        db.prepare("UPDATE configs SET baseUrl='',secret='',protocol='openai',model=?,provider=?,effort=? WHERE role=?").run(model,provider,effort,id)
+        return {saved:true}
+      }
+      if (b.source!==undefined && b.source!=='custom') throw Error('未知的模型来源。')
       const protocol = modelProtocol(b.protocol ?? current.protocol)
       const url = b.baseUrl === '' ? '' : serviceUrl(b.baseUrl,protocol)
       const model = string(b.model, 180, true)
       if (Boolean(url) !== Boolean(model)) throw Error('请同时填写服务地址和模型。')
+      if (model) customThinking(protocol,model,effort)
       const secret = url
         ? b.apiKey !== undefined
           ? credential(string(b.apiKey, 12000, true), false)
-          : current.baseUrl && current.protocol === protocol && modelBaseUrl(new URL(current.baseUrl),protocol) === url
-            ? current.secret
-            : ''
+          : existingKey(current,protocol,url)
         : ''
-      db.prepare('UPDATE configs SET baseUrl=?,model=?,secret=?,protocol=? WHERE role=?').run(url, model, secret, protocol, id)
+      db.prepare("UPDATE configs SET baseUrl=?,model=?,secret=?,protocol=?,provider='',effort=? WHERE role=?").run(url,model,secret,protocol,model ? effort : '',id)
       return { saved: true }
     }
     if (action === 'forgetstyle') return {styles:speechStyle.forget(role(b.roleId),b.key,b.value)}
@@ -621,7 +675,9 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
     if (action !== 'run') throw Error('未知操作。')
     const id = token(b.requestId),
       prior = jobs.get(id)
-    const text = string(b.text, 32000),
+    const attachments = validateChatAttachments(b.attachments)
+    const attachmentDigest = attachments.length ? createHash('sha256').update(JSON.stringify(attachments)).digest('hex') : undefined
+    const text = string(b.text, 32000, attachments.length > 0),
       mode = string(b.mode, 10),
       topic = b.topic === undefined ? 'main' : token(b.topic)
     const ids = Array.isArray(b.roleIds) ? b.roleIds.map(role) : []
@@ -635,7 +691,7 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
       throw Error('请选择有效的员工组合。')
     if (prior) {
       if (
-        prior.text !== text ||
+        prior.text !== text || prior.attachmentDigest !== attachmentDigest ||
         prior.mode !== mode ||
         prior.topic !== topic ||
         prior.roleIds.join(',') !== ids.join(',')
@@ -656,6 +712,8 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
     // The snapshot is never written into transcripts or returned through the job API.
     const services = Object.fromEntries(ids.map(id => [id, config(id)]))
     if (ids.some((id) => !services[id]!.model)) throw Error('请先为参与的每位员工配置 API 服务和模型。')
+    if (ids.some(id=>services[id]!.provider) && attachments.some(file=>file.mediaType!=='text/plain' && !file.mediaType.startsWith('image/')))
+      throw Error('参与员工的 DSH 模型通道支持图片和文本。发送 PDF 请选用支持 PDF 的自定义服务，或转到 DSH 原生会话。')
     if (
       [...jobs.values()].some(
         (j) => ['queued', 'running'].includes(j.status) && j.roleIds.some((r) => ids.includes(r)),
@@ -674,6 +732,7 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
       topic,
       mode,
       text,
+      ...(attachmentDigest ? { attachments:attachments.map(attachmentInfo), attachmentDigest } : {}),
       createdAt: Date.now(),
       roleIds: ids,
       status: 'queued',
@@ -684,7 +743,7 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
     if (!room) void autoConnect(true)
     const controller = new AbortController()
     active.set(id, controller)
-    void execute(job, profiles, services, controller)
+    void execute(job, profiles, services, controller, attachments)
     return job
   }
   async function handler(req: IncomingMessage, res: ServerResponse) {
@@ -708,14 +767,15 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
     )
       return send(403, { ok: false, error: '员工工作台仅支持本机同源连接。' })
     try {
+      const action = /^\/luma-agents\/([a-z]+)$/.exec(req.url ?? '')?.[1] ?? ''
+      const limit = 1024 * 1024 + (action === 'run' ? Math.ceil(MAX_CHAT_ATTACHMENT_BYTES / 3) * 4 : 0)
       const chunks: Buffer[] = []
       let size = 0
       for await (const chunk of req) {
         size += chunk.length
-        if (size > 1024 * 1024) throw Error('请求过大。')
+        if (size > limit) throw Error('请求过大。')
         chunks.push(Buffer.from(chunk))
       }
-      const action = /^\/luma-agents\/([a-z]+)$/.exec(req.url ?? '')?.[1] ?? ''
       const value = await call(action, object(JSON.parse(Buffer.concat(chunks).toString('utf8'))))
       send(200, { ok: true, value })
     } catch (e) {
@@ -729,6 +789,7 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
   return {
     handler,
     call,
+    requestRoleModel,
     dispose() {
       if (disposed) return
       disposed = true

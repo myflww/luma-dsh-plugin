@@ -14,7 +14,7 @@ import {
   type OfficeWalkDirection
 } from './office2d/employeeCatalog.ts'
 import { getEmployeeCatalogWithSkin } from './office2d/employeeSkins.ts'
-import { officeAutomaticWalkCadence, OFFICE_WALK_SPEED } from './office2d/frameTimeline.ts'
+import { officeAutomaticWalkCadence, OFFICE_WALK_SPEED, workstationArrivalStep } from './office2d/frameTimeline.ts'
 import {
   findOfficeRouteFromPoint,
   findWorkstationRouteFromPoint,
@@ -148,7 +148,10 @@ function candidateAlongRoute(actor: ActorRuntime, deltaMs: number, speedForDirec
     direction = directionForDelta(dx, dy, direction)
     const speed = speedForDirection(direction)
     if (!Number.isFinite(speed) || speed <= 0) break
-    const amount = Math.min(distance, speed * remainingMs / 1000)
+    const cruiseMs=distance/speed*1000
+    const toSeat=actor.targetWorkstationId && waypointIndex===route.points.length-1
+    const time=toSeat ? workstationArrivalStep(cruiseMs,remainingMs) : {travelMs:Math.min(cruiseMs,remainingMs),usedMs:Math.min(cruiseMs,remainingMs)}
+    const amount = Math.min(distance, speed * time.travelMs / 1000)
     const reached = amount >= distance - 0.01
     const next = reached ? target : { x: position.x + dx / distance * amount, y: position.y + dy / distance * amount }
     if (!isOfficeFootSegmentWalkable(position, next)) break
@@ -157,7 +160,7 @@ function candidateAlongRoute(actor: ActorRuntime, deltaMs: number, speedForDirec
     // Cadence retains OFFICE_WALK_SPEED pixels per authored cycle at every
     // mode/direction. Sum successful segments, including turns in one tick.
     walkPhase = (walkPhase + acceptedDistance / OFFICE_WALK_SPEED) % 1
-    remainingMs -= amount / speed * 1000
+    remainingMs -= time.usedMs
     if (reached) waypointIndex += 1
   }
   return { position, direction, waypointIndex, arrived: waypointIndex >= route.points.length, walkPhase }
@@ -178,6 +181,11 @@ export function prepareActorRuntime(
   if (command?.type === 'start-task' && workstationId) {
     if (actor.activeCommandId !== command.commandId
       || actor.targetWorkstationId !== workstationId) {
+      if (actor.targetWorkstationId===workstationId && (actor.mode==='desk-break' || actor.mode==='working')) {
+        emitSceneEvent('workstation-arrived',command)
+        emitSceneEvent('work-animation-ready',command)
+        return {...actor,mode:'working',activeCommandId:command.commandId,activeTaskCommand:command,activeReportCommand:null}
+      }
       try {
         actor = {
           ...beginRoute(actor, findWorkstationRouteFromPoint(actor.position, workstationId), 'task', workstationId),
@@ -259,6 +267,9 @@ export function prepareActorRuntime(
       }
     }
     if (actor.mode === 'task' || actor.mode === 'working') {
+      if (actor.mode==='working' && employee.ambientDesk && actor.targetWorkstationId===employee.workstationId) {
+        return {...actor,mode:'desk-break',activeTaskCommand:null,activeReportCommand:null,activeCommandId:null}
+      }
       actor = {
         ...actor,
         mode: 'idle',

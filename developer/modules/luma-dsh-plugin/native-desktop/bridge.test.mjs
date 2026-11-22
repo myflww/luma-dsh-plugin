@@ -40,6 +40,7 @@ test('scope shares readback with backups, respects conflicts and reloads another
     await scope.unset('saved')
     assert.deepEqual(scope.getSnapshot().value, { home:'assigned' })
     assert.deepEqual(received.filter(item=>item.action==='update').map(item=>item.expectedRevision), [0,1,2,3,4])
+    assert.deepEqual(received.filter(item=>item.action==='update').map(item=>item.restore), [undefined,undefined,undefined,true,undefined])
   } finally { bridge.dispose() }
 })
 
@@ -93,7 +94,11 @@ test('desktop session bridge projects employee identity, real Chat target, permi
   const chat = store({legacy:{nodes:[{kind:'assistant',seq:1}], partial:null},timeline:{turnOrder:[],turns:new Map()}})
   const session = Object.assign(store({openState:'open',running:false}), {prompt: async (content, mode)=>({ok:true,value:{content,mode}})})
   const retained = [], released = [], native = []
-  const ctx = {sessions:{list,retain(id, {source}) {
+  const staged = []
+  const ctx = {fileUpload:{async upload(id, blob, name, signal) {
+    staged.push({id, bytes:Buffer.from(await blob.arrayBuffer()), name, aborted:signal.aborted})
+    return {ok:true,value:{receiptId:'receipt-fixture'}}
+  }},sessions:{list,retain(id, {source}) {
     assert.equal(source,'lumaEmployee'); retained.push(id)
     return {binding:{session}, ready:Promise.resolve(), release:()=>released.push(id)}
   }},uiSession:{sessionStatus:status},uiConversation:{binding:()=>({target(key){assert.equal(key,'chat');return chat}})},
@@ -107,6 +112,8 @@ test('desktop session bridge projects employee identity, real Chat target, permi
     bridge.sessions.showTopic('role')
     await Promise.resolve()
     const face = bridge.sessions.binding('role').session
+    assert.equal(await bridge.uploadSessionFile('role',{name:'sample.bin', mediaType:'application/octet-stream',data:'AAEC/w=='}),'receipt-fixture')
+    assert.deepEqual(staged,[{id:'role',bytes:Buffer.from([0,1,2,255]),name:'sample.bin',aborted:false}])
     status.publish(new Map([['role',{pendingInteraction:{kind:'approval'}}]]))
     assert.deepEqual(face.getSnapshot().pending,[{kind:'approval'}])
     assert.equal(face.getSnapshot().nodes[0].seq,1)

@@ -12,7 +12,7 @@ import { getHostSidebar } from './host-sidebar.mjs'
 import './client.css'
 
 const PANEL_ID = 'luma-office'
-export const inject = ['slots', 'layout', 'sessions', 'workspaces', 'connection', 'remote', 'remote.settings', 'remoteAccess',
+export const inject = ['slots', 'layout', 'sessions', 'workspaces', 'fileUpload', 'connection', 'remote', 'remote.settings', 'remoteAccess',
   'uiConversation', 'uiSession', 'uiWorkspace', 'remote.session', 'remote.agentPresets', 'remote.workspace']
 
 function ReturnNotice({ message, onReturnToDSH }) {
@@ -71,9 +71,9 @@ export function apply(ctx) {
     if (runtimes) return runtimes
     try {
       const { context } = own(createDesktopContext(ctx))
-      const office = own(createOfficePageRuntime(context))
-      const cards = own(createCardsPageRuntime(context))
       const collection = own(createLocalCollectionRuntime(context))
+      const office = own(createOfficePageRuntime(context, collection.store.getSnapshot))
+      const cards = own(createCardsPageRuntime(context))
       const messages = own(createMessagesRuntime(context, office, collection.store))
       const preferences = own(createPluginPreferencesRuntime(context))
       runtimes = { office, cards, collection, messages, preferences,

@@ -4,6 +4,7 @@ import type { RoleProfile } from '../messages-settings.ts'
 import { AgentMemoryPanel, AgentServicePanel, EmployeeFace, JobCard } from './AgentDeskPanels.tsx'
 import { agentRequest, inProgress, useAgentDesk, type AgentJob, type AgentMode, type WorkRoom } from './agent-desk-api.ts'
 import { RoomConversation, RoomCreator } from './WorkRooms.tsx'
+import { AttachmentNames, AttachmentPicker, readChatFiles, useAttachmentDrafts } from './ChatAttachments.tsx'
 import './MessagesPage.css'
 import './AgentDesk.css'
 import './Contacts.css'
@@ -22,7 +23,8 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
   const [chosen, setChosen] = useState<Record<string,string>>({}), [sending, setSending] = useState(false)
   const [actionError, setActionError] = useState('')
   const submitLock = useRef(false)
-  const retries = useRef(new Map<string, { signature: string; id: string }>())
+  const retries = useRef(new Map<string, { signature: string; id: string; files: readonly File[] }>())
+  const attachmentDrafts = useAttachmentDrafts()
   const desk = useAgentDesk(active)
   const [profile, setProfile] = useState<RoleProfile>(state.profile), [notice, setNotice] = useState('')
   const [userName, setUserName] = useState(state.preferences.userName)
@@ -54,7 +56,7 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
   const workTopics = new Map<string,string>()
   for (const job of [...roleJobs].sort((a,b) => a.createdAt - b.createdAt)) {
     const key = topicFor(job)
-    if (!workTopics.has(key)) workTopics.set(key, job.text.slice(0, 30))
+    if (!workTopics.has(key)) workTopics.set(key, (job.text || job.attachments?.[0]?.name || '工作记录').slice(0, 30))
   }
   const newestJob = roleJobs.reduce<AgentJob | undefined>((latest, job) => !latest || latest.createdAt < job.createdAt ? job : latest, undefined)
   const defaultTopic = configured ? (newestJob ? topicFor(newestJob) : 'desk-' + roleId) : 'native'
@@ -76,10 +78,13 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
     ? handoff.filter(id => !serviceConfigs[id]?.model) : []
   const teamReady = mode !== 'team' || (optedTeam.length > 0 && missingServices.length === 0)
   const sendViaNative = mode !== 'team' && nativeView
+  const dshAttachments = sendViaNative || (mode==='team' ? handoff : [roleId]).some(id=>serviceConfigs?.[id]?.source==='dsh')
+  const attachmentKey = JSON.stringify([roleId, nativeView ? 'native' : topic, nativeView ? state.sessionId : ''])
+  const files = attachmentDrafts.filesFor(attachmentKey)
   const deskReady = Boolean(desk.state) && !desk.problem
   const serviceReady = sendViaNative ? !state.running && !state.attention
     : deskReady && (mode === 'team' ? teamReady : configured)
-  const canSend = visibleRoles.has(roleId) && state.writable && !busy && !!drafting.trim() && !runningJob && serviceReady
+  const canSend = visibleRoles.has(roleId) && state.writable && !busy && (!!drafting.trim() || !!files.length) && !runningJob && serviceReady
   const serviceRole = serviceTarget?.owner === roleId ? serviceTarget.id : roleId
   const [localRefresh, setLocalRefresh] = useState(0)
   const scrollFingerprint = (letters.at(-1)?.id ?? '') + jobs.map(job => [job.id, job.status, job.steps.map(step => step.output.length).join(',')].join(':')).join('|')
@@ -106,7 +111,7 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
   async function send() {
     if (!canSend || submitLock.current) return
     setActionError('')
-    if (sendViaNative) {
+    if (sendViaNative && !files.length) {
       await runtime.send(mode === 'task' ? 'task' : 'chat')
       return
     }
@@ -114,17 +119,32 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
     const retryKey = JSON.stringify([roleId, topic])
     const signature = JSON.stringify([roleIds, mode, drafting, topic])
     const previous = retries.current.get(retryKey)
-    const requestId = previous?.signature === signature ? previous.id : crypto.randomUUID()
+    const sameFiles = previous && previous.files.length === files.length && files.every((f, i) => previous.files[i] === f)
+    const requestId = previous?.signature === signature && sameFiles ? previous.id : crypto.randomUUID()
     const profiles = Object.fromEntries(roleIds.map(id => {
       const profile = state.preferences.profiles[id] ?? MESSAGE_CHARACTERS.find(role => role.id === id)!.profile
       return [id, { name: profile.name, personality: profile.personality, scenario: profile.scenario }]
     }))
     submitLock.current = true; setSending(true)
-    retries.current.set(retryKey, { signature, id: requestId })
     const timeout = AbortSignal.timeout(15_000)
     try {
-      await agentRequest<AgentJob>('run', { requestId, roleIds, mode, text: drafting.trim(), topic, profiles }, timeout)
+      const attachments = files.length ? await readChatFiles(files, dshAttachments, sendViaNative && state.nativeFileUpload) : []
+      if (sendViaNative) {
+        const current = runtime.getSnapshot()
+        if (current.roleId !== roleId || current.sessionId !== state.sessionId || (current.preferences.drafts[roleId] ?? '') !== drafting) throw Error('会话或草稿已变化，请返回对应话题后重试。')
+        const nativeMode = mode === 'task' ? 'task' : 'chat'
+        const sent = await runtime.send(nativeMode, attachments)
+        if (sent) attachmentDrafts.change(attachmentKey, [])
+        else if (!state.sessionId && runtime.getSnapshot().roleId === roleId && runtime.getSnapshot().sessionId) {
+          attachmentDrafts.change(attachmentKey, [])
+          attachmentDrafts.change(JSON.stringify([roleId, 'native', runtime.getSnapshot().sessionId]), files)
+        }
+        return
+      }
+      retries.current.set(retryKey, { signature, id: requestId, files })
+      await agentRequest<AgentJob>('run', { requestId, roleIds, mode, text: drafting.trim(), topic, profiles, ...(attachments.length ? {attachments} : {}) }, timeout)
       retries.current.delete(retryKey)
+      attachmentDrafts.change(attachmentKey, [])
       const now = runtime.getSnapshot()
       if (now.roleId === roleId && now.preferences.drafts[roleId] === drafting) runtime.setDraft('')
       selectLocal(topic); await desk.refresh(); setLocalRefresh(value => value + 1)
@@ -199,7 +219,8 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
     </aside>
     {roomView && desk.state && (roomView === 'new' || rooms.some(room => room.id === roomView.id)) ? (roomView === 'new'
       ? <RoomCreator availableRoleIds={unlockedEmployeeIds} snapshot={state} state={desk.state} names={names} refresh={desk.refresh} close={() => showRoom(null)} onCreated={showRoom} />
-      : <RoomConversation key={roomView.id} room={roomView} snapshot={state} state={desk.state} names={names} refresh={desk.refresh} close={() => showRoom(null)} />)
+      : <RoomConversation key={roomView.id} room={roomView} snapshot={state} state={desk.state} names={names} refresh={desk.refresh} close={() => showRoom(null)}
+          files={attachmentDrafts.filesFor(roomView.id)} changeFiles={next => attachmentDrafts.change(roomView.id, next)} />)
       : <div className="lumaMessagesConversation">
       <header className="lumaMessageToolbar">
         <button type="button" className="lumaContactMobile" onClick={() => setRosterOpen(true)}>联系人</button>
@@ -221,7 +242,7 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
         {showNative && state.loading && <p role="status">正在读取对话…</p>}
         {!letters.length && !(showNative ? state.messages.length : jobs.length) && !state.loading && <article className="lumaMessageBubble is-assistant lumaGreeting"><EmployeeFace id={roleId} skin={skins[roleId]} /><div><header><strong>{state.profile.name}</strong></header><p>{state.profile.greeting}</p></div></article>}
         {[...jobs.map(job => ({time:job.createdAt, node:job.mode === 'chat' ? <div key={job.id}>
-          <article className="lumaMessageBubble is-user"><div><header><strong>{state.preferences.userName}</strong><time>{clockText(job.createdAt)}</time></header><p>{job.text}</p><small>已发送</small></div></article>
+          <article className="lumaMessageBubble is-user"><div><header><strong>{state.preferences.userName}</strong><time>{clockText(job.createdAt)}</time></header><p>{job.text}</p><AttachmentNames items={job.attachments}/><small>已发送</small></div></article>
           {job.steps[0]?.output ? <article className="lumaMessageBubble is-assistant"><EmployeeFace id={roleId} skin={skins[roleId]}/><div><header><strong>{names[roleId]}</strong></header><p>{job.steps[0].output}</p></div></article>
             : <p className="lumaMessageThinking" role="status">{inProgress(job.status) ? state.profile.name + '正在输入…' : job.error || (job.status === 'cancelled' ? '已停止回复' : '回复未完成')}</p>}
         </div> : <JobCard key={job.id} job={job} names={names} skins={skins} canWrite={state.writable} cancel={() => void cancel(job.id)} />})),
@@ -232,7 +253,7 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
           {message.role === 'assistant' && <EmployeeFace id={roleId} skin={skins[roleId]} />}
           <div><header><strong>{message.role === 'user' ? state.preferences.userName : message.role === 'assistant' ? state.profile.name : '对话提示'}</strong>
             {message.time !== undefined && <time dateTime={new Date(message.time).toISOString()}>{new Intl.DateTimeFormat('zh-CN', { hour: '2-digit', minute: '2-digit' }).format(message.time)}</time>}</header>
-            <p>{message.text || (message.streaming ? '…' : '此条消息没有文本内容，可在原生会话查看附件。')}</p>{message.role === 'user' && <small>已发送</small>}{message.streaming && <small>正在输入…</small>}</div>
+            <p>{message.text || (message.streaming ? '…' : message.attachments?.length ? '' : '此条消息没有文本内容，可在原生会话查看附件。')}</p><AttachmentNames items={message.attachments}/>{message.role === 'user' && <small>已发送</small>}{message.streaming && <small>正在输入…</small>}</div>
         </article>}))].sort((a,b)=>a.time-b.time).map(row=>row.node)}
         {showNative && state.running && !state.messages.some(message => message.streaming) && <p className="lumaMessageThinking" role="status">{state.profile.name}正在组织回复…</p>}
       </div>
@@ -255,6 +276,7 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
             if (preferred && !chosen[roleId]) selectLocal(preferred)
             runtime.setDraft(event.target.value)
           }} onKeyDown={event => { if (event.key === 'Enter' && (event.ctrlKey || event.metaKey) && !event.nativeEvent.isComposing) { event.preventDefault(); event.currentTarget.form?.requestSubmit() } }} />
+        <AttachmentPicker files={files} native={dshAttachments} nativeUploads={sendViaNative && state.nativeFileUpload} disabled={busy || !state.writable || !preferred} change={next => attachmentDrafts.change(attachmentKey, next)} error={setActionError}/>
         <div className="lumaContactSendRow"><button type="button" className="lumaContactAdd" aria-label="更多聊天操作" aria-expanded={actionsOpen} onClick={() => setActionsOpen(v => !v)}>＋</button>
           <span>Ctrl / ⌘ + Enter 发送</span><div>
           {sendViaNative && state.running ? <button type="button" disabled={state.pending} onClick={() => { void runtime.stop() }}>停止生成</button>

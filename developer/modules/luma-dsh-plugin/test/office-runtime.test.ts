@@ -65,9 +65,15 @@ describe('DSH plugin office runtime', () => {
     runtime.dispose()
   })
   it('subscribes to the dedicated theme settings without changing task/session records', async () => {
-    const f = fixture(), runtime = createOfficePageRuntime(f.ctx)
+    const access = {unlockedEmployeeIds:['jingyuniang'],unlockedThemeIds:[] as string[]}
+    const f = fixture(), runtime = createOfficePageRuntime(f.ctx, () => access)
     expect(f.setPresentation).not.toHaveBeenCalled()
-    expect((await runtime.setTheme('office.jingyuniang.v1')).status).toBe('unchanged')
+    expect((await runtime.setTheme(null)).status).toBe('unchanged')
+    expect((await runtime.setTheme('office.jingyuniang.v1')).status).toBe('rejected')
+    expect((await runtime.setBedroomTheme('shan',null)).status).toBe('rejected')
+    expect((await runtime.setBedroomTheme('jingyuniang','bedroom.jingyuniang.v1')).status).toBe('rejected')
+    expect(f.setPresentation).not.toHaveBeenCalled()
+    access.unlockedThemeIds.push('office.grok.v1')
     expect((await runtime.setTheme('office.grok.v1')).status).toBe('saved')
     expect(runtime.getSnapshot().presentation.selection.officeTheme).toBe('office.grok.v1')
     expect(f.set).not.toHaveBeenCalled()

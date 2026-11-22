@@ -45,9 +45,9 @@ export function createDesktopSettings(fetcher = fetch) {
     }).finally(() => { pendingRead = undefined })
     return pendingRead
   }
-  async function replace(input: { ns: string; section: Section; expectedRevision: number }) {
+  async function replace(input: { ns: string; section: Section; expectedRevision: number }, restore = false) {
     try {
-      const view = await request<Namespace>({ action: 'update', ...input })
+      const view = await request<Namespace>({ action: 'update', ...input, ...(restore ? { restore: true } : {}) })
       accept(view)
       emit()
       return view
@@ -123,6 +123,6 @@ export function createDesktopSettings(fetcher = fetch) {
   globalThis.window?.addEventListener('focus', refresh)
   const timer = setInterval(() => { if (globalThis.document?.visibilityState === 'visible') refresh() }, 15_000)
   return { bind, api: { describe: () => asEnvelope(describe),
-      replace: (input: Parameters<typeof replace>[0]) => asEnvelope(() => replace(input)) },
+      replace: (input: Parameters<typeof replace>[0]) => asEnvelope(() => replace(input, true)) },
     dispose() { clearInterval(timer); globalThis.window?.removeEventListener('focus', refresh); listeners.clear(); abort.abort() } }
 }

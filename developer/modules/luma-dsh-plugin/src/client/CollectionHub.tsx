@@ -1,9 +1,10 @@
 import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react'
 import { getPackOdds, getPackPool, drawCountForCard, MAX_CARD_DRAWS } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/economy/domain/cardPacks.ts'
-import { LOCAL_ALBUM_SKINS, LOCAL_DAILY_COINS, LOCAL_PACKS, LOCAL_WELCOME_COINS, CARD_DRAW_LIMIT_RULE,
+import { LOCAL_DAILY_COINS, LOCAL_PACKS, LOCAL_WELCOME_COINS, CARD_DRAW_LIMIT_RULE,
   localCollectionDay, localPackAvailability, canRedeemCard, characterIdForCard, CHARACTER_NAMES, type CharacterId, type LocalAlbumSkin } from '../shared/local-collection-domain.ts'
 import type { LocalCollectionResult, LocalCollectionRuntime } from './local-collection-store.ts'
 import './CollectionHub.css'
+import { EmployeeUsagePanel } from './EmployeeUsagePanel.tsx'
 import { Coins } from 'lucide-react'
 import { SealedPackShelf } from './SealedPackShelf.tsx'
 import { PackOpeningScene } from './PackOpeningScene.tsx'
@@ -20,7 +21,7 @@ const percent = (value: number) => `${(value * 100).toLocaleString('zh-CN', { ma
 /** Purchases and revealed cards render only after the Host confirms the complete transaction. */
 export function CollectionHub({ runtime, onOpenOwned, initialPackId }: { runtime: LocalCollectionRuntime; onOpenOwned?(): void; initialPackId?: string | undefined }) {
   const snapshot = useSyncExternalStore(runtime.store.subscribe, runtime.store.getSnapshot, runtime.store.getSnapshot)
-  const [tab, setTab] = useState<'packs' | 'sealed' | 'skins' | 'history' | 'rewards'>(initialPackId === 'sealed' ? 'sealed' : 'packs')
+  const [tab, setTab] = useState<'packs' | 'sealed' | 'usage' | 'history' | 'rewards'>(initialPackId === 'sealed' ? 'sealed' : 'packs')
   const [targetPack, setTargetPack] = useState(initialPackId === 'sealed' ? undefined : initialPackId)
   const [invitation, setInvitation] = useState<{employeeId: CharacterId; instanceId: string}>()
   const [message, setMessage] = useState('')
@@ -95,9 +96,9 @@ export function CollectionHub({ runtime, onOpenOwned, initialPackId }: { runtime
     setMessage(problem ? (saved.length ? `已保存 ${saved.length} 张卡片。` : '') + problem : `${saved.length} 张卡片已保存到本地持有记录`)
   }
   if (materialPreview) return <PackCollectionPreview onClose={() => setMaterialPreview(false)} />
-  return <section ref={hubRef} className="lumaCollectionHub" data-shop-tab={tab} aria-label="本地卡包与卡册装帧">
+  return <section ref={hubRef} className="lumaCollectionHub" data-shop-tab={tab} aria-label="本地卡包商店">
     <header className="lumaCollectionHubHeader">
-      <div><h2>卡包与装帧</h2><p>挑一包收藏，拆开后收入自己的卡册。</p></div>
+      <div><h2>卡包商店</h2><p>挑一包收藏，拆开后收入自己的卡册。</p></div>
       <div className="lumaCollectionHubWallet"><span><Coins size={16} aria-hidden="true"/>星币</span><strong aria-label={`余额 ${snapshot.balance} 星币`}>{snapshot.balance.toLocaleString('zh-CN')}</strong>
         <div>{!snapshot.welcomeClaimed && <button type="button" disabled={disabled} onClick={() => { void act(runtime.store.claimWelcome, '新册礼已存入本地钱包') }}>领取 {LOCAL_WELCOME_COINS} 新册礼</button>}
           <button type="button" disabled={disabled || !!snapshot.lastDailyClaim && today <= snapshot.lastDailyClaim} onClick={() => { void act(runtime.store.claimDaily, '今日星币已存入本地钱包') }}>{snapshot.lastDailyClaim && today <= snapshot.lastDailyClaim ? '今日已领取' : `领取每日 ${LOCAL_DAILY_COINS} 星币`}</button></div>
@@ -106,8 +107,8 @@ export function CollectionHub({ runtime, onOpenOwned, initialPackId }: { runtime
     </header>
     {snapshot.problem && <p className="lumaCollectionHubMessage is-error" role="alert">{snapshot.problem}</p>}
     {(message || snapshot.pending) && <p className={`lumaCollectionHubMessage${failed ? ' is-error' : ''}`} role={failed ? 'alert' : 'status'}>{snapshot.pending ? '正在保存到 DSH…' : message}</p>}
-    <nav className="lumaCollectionHubTabs" aria-label="卡包与装帧导航">{([
-      ['packs', '卡包店'], ['sealed', `未开封 · ${sealed.length}`], ['rewards', '伙伴与空间'], ['skins', '卡册装帧'], ['history', '收支记录'],
+    <nav className="lumaCollectionHubTabs" aria-label="卡包商店导航">{([
+      ['packs', '卡包店'], ['sealed', `未开封 · ${sealed.length}`], ['rewards', '伙伴与空间'], ['usage', '员工用量'], ['history', '收支记录'],
     ] as const).map(([id, label]) => <button key={id} type="button" aria-current={tab === id ? 'page' : undefined} aria-controls={`${tabsId}-${id}`} onClick={() => { setInvitation(undefined); setTab(id) }}>{label}</button>)}</nav>
 
     {tab === 'packs' && <div id={`${tabsId}-packs`}>
@@ -136,17 +137,7 @@ export function CollectionHub({ runtime, onOpenOwned, initialPackId }: { runtime
       onOpen={ids=>{void openPacks(ids)}} onShop={()=>setTab('packs')}/></div>}
 
     {tab === 'rewards' && <div id={`${tabsId}-rewards`}><CompanionRewards runtime={runtime} invitation={invitation} onFindPack={id => { setTargetPack(id); setTab('packs') }} /></div>}
-    {tab === 'skins' && <div id={`${tabsId}-skins`}>
-      <div className="lumaCollectionHubSectionHeading"><h3>给收藏换一页心情</h3><p>购买后可随时切换。预览使用现有原始卡背，不改变卡片本身。</p></div>
-      <div className="lumaCollectionHubSkinGrid">{LOCAL_ALBUM_SKINS.map(skin => {
-        const owned = snapshot.albumSkinIds.includes(skin.id), equipped = snapshot.albumSkin.id === skin.id
-        return <article key={skin.id} className="lumaCollectionHubSkin" style={localAlbumStyle(skin)}>
-          <div className="lumaCollectionHubBookPreview" aria-label={`${skin.name}装帧预览`}><span>我的收藏</span><div><img src={skin.coverUrl} alt="" /><div><i /><i /><i /></div></div><small>一册相遇 · LUMA</small></div>
-          <h3>{skin.name}</h3><p>{skin.description}</p><div className="lumaCollectionHubPrice"><strong>{owned ? '已收藏' : `${skin.price} 星币`}</strong>
-            <button type="button" aria-pressed={equipped} disabled={disabled || equipped || !owned && snapshot.balance < skin.price} onClick={() => { void act(() => owned ? runtime.store.equipAlbumSkin(skin.id) : runtime.store.buyAlbumSkin(skin.id), owned ? `已使用${skin.name}装帧` : `${skin.name}已购入，点击使用即可装备`) }}>{equipped ? '使用中' : owned ? '使用装帧' : '购买装帧'}</button></div>
-        </article>
-      })}</div>
-    </div>}
+    {tab === 'usage' && <div id={`${tabsId}-usage`}><EmployeeUsagePanel runtime={runtime} unlocked={snapshot.unlockedEmployeeIds}/></div>}
 
     {tab === 'history' && <div id={`${tabsId}-history`} className="lumaCollectionHubHistory"><div className="lumaCollectionHubSectionHeading"><h3>每一次收藏，都有来处</h3><p>已购入 {snapshot.purchases.length} 笔 · 开出 {snapshot.openedCards.length} 张卡片 · 当前余额 {snapshot.balance} 星币</p></div>
       {!snapshot.ledger.length ? <p className="lumaCollectionHubEmpty">领取新册礼后，第一条记录会从这里开始。</p> : <><ol>{snapshot.ledger.slice(-historyCount).reverse().map(entry => <li key={entry.id}>

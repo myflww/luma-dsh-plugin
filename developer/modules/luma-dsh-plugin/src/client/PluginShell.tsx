@@ -24,7 +24,7 @@ export const LUMA_PAGES = Object.freeze([
   { id: 'office', label: '办公室' },
   { id: 'messages', label: '联系' },
   { id: 'cards', label: '卡牌收藏' },
-  { id: 'shop', label: '卡包与装帧' },
+  { id: 'shop', label: '卡包商店' },
   { id: 'settings', label: '插件设置' },
 ] as const)
 

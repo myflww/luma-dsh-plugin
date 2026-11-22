@@ -4,6 +4,9 @@ import { BEDROOM_FLOORS, bedroomFootAt, bedroomStepAt, createBedroomRoutine } fr
 import { OfficeBedroom, type ResidentId } from '../src/client/OfficeBedroom.tsx'
 import { BEDROOM_ART } from '../src/client/bedroom-art.generated.ts'
 import { OfficeActionMenu } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/OfficeActionMenu.tsx'
+import { getEmployeeCatalogWithSkin } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/employeeSkins.ts'
+import { getOfficeAsset } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/assets.ts'
+import { officeAutomaticWalkCadence } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/frameTimeline.ts'
 
 const speeds={left:65,right:65,up:72,down:72}
 afterEach(()=>{ cleanup(); vi.useRealTimers() })
@@ -23,6 +26,10 @@ it('uses continuous floor routes in every room, with sleep and attendance transi
       step.start!==routine.steps[i-1]!.end || step.from!==routine.steps[i-1]!.to))
     expect(broken).toBeUndefined()
     expect(routine.steps.filter(s=>s.moving).every(s=>s.from===floor.center || s.to===floor.center)).toBe(true)
+    for(const [pose,arrival,departure] of [['computer','sit','rise'],['phone','recline','get-up']] as const){
+      const i=routine.steps.findIndex((s,i)=>i>0 && s.pose===pose)
+      expect(routine.steps.slice(i-2,i+3).map(s=>s.pose)).toEqual(['walk',arrival,pose,departure,'walk'])
+    }
     const walk=routine.steps.find(s=>s.moving)!
     const middle=(walk.start+walk.end)/2
     expect(bedroomStepAt(routine,middle)).toBe(walk)
@@ -65,6 +72,41 @@ it('respects reduced motion and the same authoritative office membership',()=>{
   view.rerender(<OfficeBedroom {...props} clock={new Date()} location="office" officeActivity="正在处理任务"/>)
   expect(view.container.querySelector('.lumaBedroomResidentLayer')).toBeNull()
   expect(view.getByText('在办公室 · 正在处理任务')).toBeTruthy()
+})
+
+it('renders each resident in the matching phone outfit and animated chair pose at the real routine times',()=>{
+  vi.useFakeTimers()
+  const date=new Date(2026,10,22,8)
+  for(const id of Object.keys(BEDROOM_ART) as ResidentId[]) for(const skinId of [undefined,'skin.'+id+'.v1']){
+    const catalog=getEmployeeCatalogWithSkin(id,skinId)!
+    const cadence=Object.fromEntries(Object.entries(catalog.walk).map(([dir,asset])=>[
+      dir,officeAutomaticWalkCadence('ambient',getOfficeAsset(asset).frameStrip!).travelSpeed,
+    ])) as typeof speeds
+    const room=skinId?id:'classic'
+    const routine=createBedroomRoutine(id,room,date,false,cadence)
+    const phone=routine.steps.find(s=>s.pose==='phone' && s.start>routine.start)!
+    vi.setSystemTime(phone.start+500)
+    const opts={...props,id,skinId,themeOwner:room==='classic'?undefined:id}
+    const view=render(<OfficeBedroom {...opts} clock={new Date()}/>)
+    const image=view.container.querySelector('[data-bedroom-pose="phone"] svg g image')
+    expect(image?.getAttribute('href')).toContain(skinId?'phone-outfit.webp':'phone-standard.webp')
+    expect(view.getByText('躺在床上看手机')).toBeTruthy()
+    view.unmount()
+    const desk=routine.steps.find(s=>s.pose==='computer')!
+    vi.setSystemTime(desk.start+20)
+    const computer=render(<OfficeBedroom {...opts} clock={new Date()}/>)
+    const actor=computer.container.querySelector('[data-bedroom-pose="computer"]')!
+    expect(actor.querySelector('[data-bedroom-monitor="awake"]')).toBeTruthy()
+    expect(actor.querySelector('svg image')?.getAttribute('href')).toContain(getOfficeAsset(catalog.typing.backRight).sha256.slice(0,12))
+    const initial=actor.getAttribute('data-bedroom-frame')
+    act(()=>vi.advanceTimersByTime(320))
+    expect(actor.getAttribute('data-bedroom-frame')).not.toBe(initial)
+    computer.rerender(<OfficeBedroom {...opts} clock={new Date()} reduceMotion/>)
+    const fixed=actor.getAttribute('data-bedroom-frame')
+    act(()=>vi.advanceTimersByTime(700))
+    expect(actor.getAttribute('data-bedroom-frame')).toBe(fixed)
+    computer.unmount()
+  }
 })
 
 it('opens contact from a live employee without exposing the manual animation controls',()=>{

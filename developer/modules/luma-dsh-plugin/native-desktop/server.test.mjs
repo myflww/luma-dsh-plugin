@@ -6,6 +6,7 @@ import { copyFile, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
+import { DatabaseSync } from 'node:sqlite'
 
 test('desktop proxy owner, role memories, revision conflicts, assets and reactivation', async t => {
   const base = await mkdtemp(join(tmpdir(), 'luma-native-backend-'))
@@ -20,8 +21,10 @@ test('desktop proxy owner, role memories, revision conflicts, assets and reactiv
   const routes = new Map(), stops = new Set(), browserPeer = {}
   const presets = new Map()
   const archived = new Set(), sessions = new Map(), workspaces = []
+  const lifecycle = new Map()
   let attachCount = 0
   const ctx = {
+    on(name, handle) { lifecycle.set(name,handle); return () => lifecycle.delete(name) },
     profileContext:{home:join(base,'profile')},
     agentPresets:{
       async readDocument(id) {
@@ -35,7 +38,7 @@ test('desktop proxy owner, role memories, revision conflicts, assets and reactiv
       },
       async resolve(id) { assert.ok(presets.has(id)); return {id} },
     },
-    sessionQuery:{ async readSession(id) {
+    sessionQuery:{async listSessions(){return [...sessions.values()].map(({session:header})=>({header,live:false}))}, async readSession(id) {
       if (!sessions.has(id)) throw Error('missing')
       return structuredClone(sessions.get(id))
     } },
@@ -102,7 +105,7 @@ test('desktop proxy owner, role memories, revision conflicts, assets and reactiv
   })
   const settings = body => post('/luma-native/settings',body)
   const describe = async () => (await (await settings({action:'describe'})).json()).value.namespaces
-  for (const path of ['/luma-native/settings', '/luma-agents/memory','/luma-native/employee-workspace']) {
+  for (const path of ['/luma-native/settings', '/luma-agents/memory','/luma-native/employee-workspace','/luma-native/token-usage']) {
     const args = path.endsWith('settings') ? {action:'describe'} : {roleId:'shan'}
     assert.ok(!(await post(path,args,{cookie:''})).ok)
     assert.equal((await post(path,args,{cookie:'fixture=limited'})).status,403)
@@ -113,8 +116,18 @@ test('desktop proxy owner, role memories, revision conflicts, assets and reactiv
   const initial = await describe()
   assert.equal(initial.length,7)
   const homes = initial.find(x=>x.ns==='luma-dsh-messages').base.homes
+  const usageResponse=await (await post('/luma-native/token-usage',{role:'jingyuniang',tokens:9000000})).json()
+  assert.equal(usageResponse.value.roles.jingyuniang.totalTokens,0)
   assert.equal(Object.keys(homes).length,8)
   const hydrate = (id,cwd=homes.jingyuniang,agentPreset='luma-jingyuniang',events=[])=>sessions.set(id,{session:{id,cwd,agentPreset},events})
+  const directId='native-role-outside-luma'
+  const billed={type:'assistant/message',data:{turn:1,step:1,usage:{inputTokens:9886,outputTokens:312}}}
+  hydrate(directId,join(base,'work-project'),'luma-jingyuniang',[billed])
+  const liveSession={id:directId,header:sessions.get(directId).session,seq:0,firstLifecycleSeq:0,inheritedEventCount:0,snapshotEvents:()=>[billed]}
+  lifecycle.get('session/created')(liveSession)
+  lifecycle.get('session/event')(liveSession,billed)
+  const tokens = async () => (await (await post('/luma-native/token-usage',{})).json()).value.roles.jingyuniang
+  assert.deepEqual(await tokens(),{totalTokens:10198,earnedCoins:0,remainderTokens:10198})
   const attach = (id,roleId='jingyuniang') => post('/luma-native/employee-workspace',{sessionId:id,roleId})
   assert.equal((await attach('locked','shan')).status,403)
   assert.equal((await post('/luma-agents/createroom',{requestId:'locked',name:'test',roleIds:['jingyuniang','shan']})).status,403)
@@ -154,5 +167,48 @@ test('desktop proxy owner, role memories, revision conflicts, assets and reactiv
   await apply(ctx)
   assert.deepEqual([...presets.keys()],['luma-jingyuniang'])
   assert.equal((await memories('jingyuniang')).length,1)
+  assert.equal((await tokens()).totalTokens,10198)
   assert.equal((await describe()).find(x=>x.ns===update.ns).revision,1)
+  const walletNs = 'luma-dsh-local-collection'
+  const walletView = async () => (await describe()).find(x=>x.ns===walletNs)
+  assert.equal((await walletView()).revision,0)
+  const history = {state:{schemaVersion:1,events:[
+    {type:'welcome',id:'historic-welcome',at:10},
+    {type:'buy-album-skin',id:'historic-purchase',at:11,skinId:'prism',price:100},
+    {type:'equip-album-skin',id:'historic-selection',at:12,skinId:'prism'},
+  ]}}
+  await unload()
+  const profile = new DatabaseSync(join(ctx.profileContext.home,'profiles','desktop','luma-plugin','desktop-settings.sqlite3'))
+  try {
+    profile.prepare('UPDATE sections SET revision=1,value=? WHERE ns=?').run(JSON.stringify(history),walletNs)
+    profile.prepare('INSERT INTO employee_usage_requests VALUES(?,?,?)').run('shan','startup-fixture',1_000_100)
+  } finally { profile.close() }
+  await apply(ctx)
+  const startup = new DatabaseSync(join(ctx.profileContext.home,'profiles','desktop','luma-plugin','desktop-settings.sqlite3'),{readOnly:true})
+  try {
+    const row = startup.prepare('SELECT revision,value FROM sections WHERE ns=?').get(walletNs)
+    assert.equal(row.revision,2)
+    assert.deepEqual(JSON.parse(row.value).state.events.slice(-2).map(e=>e.type),['token-reward','album-skin-refund'])
+  } finally { startup.close() }
+  const startWallet = await walletView()
+  const next={type:'assistant/message',data:{turn:2,step:1,usage:{inputTokens:1_000_000,outputTokens:0}}}
+  sessions.get(directId).events.push(next)
+  lifecycle.get('session/event')({...liveSession,snapshotEvents:()=>sessions.get(directId).events},next)
+  const progress = await (await post('/luma-native/token-usage',{})).json()
+  assert.equal(progress.value.collectionRevision,3)
+  assert.deepEqual(progress.value.roles.jingyuniang,{totalTokens:1_010_198,earnedCoins:1,remainderTokens:10198})
+  const stale = {action:'update',ns:walletNs,section:history,expectedRevision:startWallet.revision,restore:true}
+  assert.equal((await settings(stale)).status,409)
+  const second={...next,data:{...next.data,turn:3}}
+  sessions.get(directId).events.push(second)
+  lifecycle.get('session/event')({...liveSession,snapshotEvents:()=>sessions.get(directId).events},second)
+  const observed = await walletView()
+  assert.equal(observed.revision,4)
+  assert.equal(observed.user.state.events.at(-1).throughCoins,2)
+  const restored = await (await settings({...stale,expectedRevision:4})).json()
+  assert.equal(restored.ok,true)
+  assert.deepEqual(restored.value.user.state.events.slice(0,3),history.state.events)
+  assert.deepEqual(restored.value.user.state.events.filter(e=>e.type==='token-reward').map(e=>e.throughCoins).sort(),[1,2])
+  assert.equal(restored.value.user.state.events.filter(e=>e.type==='album-skin-refund').length,1)
+  assert.equal((await walletView()).revision,5)
 })

@@ -27,7 +27,7 @@ const rejected = (message: string) => ({ rpcId: 'fixture-rpc' as never, result: 
 const cleanups: Array<() => void> = []
 afterEach(() => { while (cleanups.length) cleanups.pop()!(); vi.useRealTimers(); vi.restoreAllMocks() })
 
-async function fixture(options: { writable?: boolean; seed?: boolean; preferences?: Partial<MessagePreferences> } = {}) {
+async function fixture(options: { writable?: boolean; seed?: boolean; preferences?: Partial<MessagePreferences>; uploadSessionFile?: ReturnType<typeof vi.fn> } = {}) {
   const preference = { ...structuredClone(DEFAULT_MESSAGE_PREFERENCES), selectedRole: 'shan', ...options.preferences }
   const settings = feed({ status: 'ready', mode: 'host', writable: options.writable ?? true, revision: 1,
     value: { homes: Object.fromEntries(MESSAGE_ROLE_IDS.map(id => [id, `C:/isolated-role-homes/${id}`])), preferences: preference } as MessageSettings })
@@ -68,7 +68,7 @@ async function fixture(options: { writable?: boolean; seed?: boolean; preference
     const state = officeState.getSnapshot(); officeState.set({ ...state, projection: { employees: state.projection.employees.map(employee =>
       employee.employeeId === roleId ? { ...employee, sessionId } : employee) } })
   })
-  const ctx = { get: () => ({ api }), settingsScope: { bind: vi.fn(({ namespace }: { namespace: string }) => {
+  const ctx = { get: () => ({ api }), uploadSessionFile:options.uploadSessionFile, settingsScope: { bind: vi.fn(({ namespace }: { namespace: string }) => {
     expect(namespace).toBe(MESSAGES_NAMESPACE); return { ...settings, set }
   }) }, sessions: { list, binding: (id: SessionId) => sessions.has(id) ? { session: sessions.get(id) } : undefined,
     open, noteAgentPreset }, workspaces: { archiveSession } } as unknown as ClientContext
@@ -80,6 +80,40 @@ async function fixture(options: { writable?: boolean; seed?: boolean; preference
 async function flush() { for (let i = 0; i < 8; i++) await Promise.resolve() }
 
 describe('role messages use actual DSH sessions', () => {
+  it('stages arbitrary files against the sending DSH session and only prompts once all receipts exist', async () => {
+    const uploadSessionFile = vi.fn().mockRejectedValueOnce(Error('文件上传失败')).mockResolvedValue('session-receipt-1')
+    const f = await fixture({preferences:{drafts:{shan:'检查电子表格'}}, uploadSessionFile})
+    const bytes = Buffer.from([0x50,0x4b,3,4,0])
+    const item = {name:'预算.xlsx',mediaType:'application/octet-stream' as const,bytes:bytes.length,data:bytes.toString('base64')}
+    expect(f.runtime.getSnapshot().nativeFileUpload).toBe(true)
+    await f.runtime.send('chat', [item])
+    expect(f.prompt).not.toHaveBeenCalled()
+    expect(f.runtime.getSnapshot().preferences.drafts.shan).toBe('检查电子表格')
+    expect(await f.runtime.send('chat',[item])).toBe(true)
+    expect(uploadSessionFile).toHaveBeenCalledWith('shan-own',item)
+    const {content} = f.prompt.mock.calls[0]![0] as {content: any[]}
+    expect(content.at(-1)).toEqual({type:'file',receiptId:'session-receipt-1'})
+  })
+  it('queues native image bytes and the full text file with no typed message and keeps raw file contents out of the rendered transcript', async () => {
+    const f = await fixture()
+    const data = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGMQmbAbAAIbAWC6n0m1AAAAAElFTkSuQmCC'
+    const image = {name:'一像素.png', mediaType:'image/png' as const, bytes:Buffer.from(data,'base64').length, data}
+    const bytes = Buffer.from('a,b\n甲,乙')
+    const file = {name:'表.csv', mediaType:'text/plain' as const, bytes:bytes.length, data:bytes.toString('base64')}
+    expect(await f.runtime.send('task', [image,file])).toBe(true)
+    const {content} = f.prompt.mock.calls[0]![0] as {content: any[]}
+    expect(content[1]).toEqual({type:'image',mediaType:'image/png',name:image.name,data})
+    expect(content[2]).toEqual({type:'text',text:'附件「表.csv」\na,b\n甲,乙'})
+    const session = f.sessions.get('shan-own')!
+    for (const event of plainTurn(10, 1, content[0].text + '\n' + content[2].text, '已收到')) {
+      session.handleMuxEnvelope('mux' as never, { type:'session/event', sessionId:'shan-own' as SessionId, event })
+    }
+    await flush()
+    const sent = f.runtime.getSnapshot().messages.find(m => m.role === 'user')
+    expect(sent?.text).toBe('')
+    expect(sent?.attachments?.map(item => item.name)).toEqual(['一像素.png','表.csv'])
+    expect(JSON.stringify(sent)).not.toContain('甲,乙')
+  })
   it('saves an accepted native employee turn against its original role and topic after switching staff', async () => {
     const f = await fixture({ preferences: { drafts: { shan: '复核设备清单' } } })
     const recording = vi.spyOn(globalThis, 'fetch').mockResolvedValue(Response.json({ ok: true, value: { saved: true } }))

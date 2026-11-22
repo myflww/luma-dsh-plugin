@@ -10,7 +10,6 @@ export type OfficePresentationEmployeeId = RegisteredSkinEmployeeId
 export type OfficePresentationSkinId = `skin.${OfficePresentationEmployeeId}.v1`
 export type OfficePresencePreference = 'all' | 'schedule'
 export const DEFAULT_OFFICE_PRESENCE: OfficePresencePreference = 'schedule'
-export const STARTER_BEDROOMS = Object.freeze({ jingyuniang: 'bedroom.jingyuniang.v1' } as const)
 export interface OfficePresentationSelection {
   readonly schemaVersion: 1
   readonly officeTheme: OfficePresentationThemeId | null
@@ -22,7 +21,7 @@ export interface OfficePresentationSelection {
 export interface OfficePresentationSettings { readonly selection?: OfficePresentationSelection }
 
 export const DEFAULT_OFFICE_PRESENTATION: OfficePresentationSelection = Object.freeze({
-  schemaVersion: 1, officeTheme: 'office.jingyuniang.v1', employeeSkins: Object.freeze({}),
+  schemaVersion: 1, officeTheme: null, employeeSkins: Object.freeze({}),
 })
 const record = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value)
   && (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null)

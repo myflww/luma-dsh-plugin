@@ -1,3 +1,4 @@
+import type { AttachmentInfo } from '../shared/chat-attachments.ts'
 import type { LifeLetter } from '../shared/companion-life.ts'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
@@ -9,12 +10,16 @@ export interface AgentJob {
   mode: AgentMode
   topic?: string
   text: string
+  attachments?: AttachmentInfo[]
   status: JobStatus
   steps: { roleId: string; model?:string; status: JobStatus; output: string }[]
   error?: string
   createdAt: number
 }
-export interface AgentConfig { protocol?: 'openai' | 'anthropic' | 'gemini'; baseUrl: string; model: string; hasKey: boolean }
+export interface AgentConfig {
+  protocol?: 'openai' | 'anthropic' | 'gemini'; source?:'dsh'|'custom'; provider?:string; effort?:string
+  baseUrl: string; model: string; hasKey: boolean
+}
 export interface WorkRoom { duties?:Record<string,string>; id: string; name: string; roleIds: string[]; createdAt: number }
 export interface AgentState {
   roles: Record<string, AgentConfig>
@@ -27,7 +32,8 @@ export interface AgentState {
 }
 export interface AgentMemory { id: string; text: string; createdAt: number }
 type CloudAction = 'cloudstate' | 'cloudconfigure' | 'cloudprobe' | 'cloudsubmit' | 'cloudrefresh' | 'cloudretry' | 'cloudresult' | 'cloudcancel'
-type Action = 'state' | 'configure' | 'run' | 'cancel' | 'connect' | 'housestatus' | 'houseconnect' | 'memory' | 'remember' | 'record' | 'recall' | 'createroom' | 'companionsettings' | 'companionconfigure' | 'companionpulse' | 'forgetstyle' | CloudAction
+type ModelAction = 'providers' | 'models' | 'reasoning' | 'discover' | 'configure'
+type Action = 'state' | ModelAction | 'run' | 'cancel' | 'connect' | 'housestatus' | 'houseconnect' | 'memory' | 'remember' | 'record' | 'recall' | 'createroom' | 'companionsettings' | 'companionconfigure' | 'companionpulse' | 'forgetstyle' | CloudAction
 export async function agentRequest<T>(action: Action, data: object = {}, signal?: AbortSignal): Promise<T> {
   const response = await fetch('/luma-agents/' + action, {
     method: 'POST', credentials: 'same-origin', cache: 'no-store', redirect: 'error',

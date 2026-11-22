@@ -7,6 +7,7 @@ export function createDesktopContext(ctx: Parameters<typeof createDesktopSession
   const settings = createDesktopSettings()
   const connection = { api: { ...native.api, settings: settings.api } }
   return { context: { sessions: native.sessions, workspaces: native.workspaces, settingsScope: { bind: settings.bind },
+      uploadSessionFile: native.uploadSessionFile,
       get(name: string) { return name === 'connection' ? connection : ctx.get(name) },
       openNativeSession: native.openNativeSession },
     dispose() { native.dispose(); settings.dispose() } }

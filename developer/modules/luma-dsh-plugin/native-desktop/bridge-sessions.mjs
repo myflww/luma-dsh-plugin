@@ -1,4 +1,5 @@
 import { OFFICE_EMPLOYEE_FOLDER_NAMES, OFFICE_EMPLOYEE_PRESET_IDS } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/office-employee-presets.ts'
+import { attachmentBytes } from '../src/shared/chat-attachments.ts'
 
 const emptyTimeline = Object.freeze({ turnOrder: [], turns: new Map() })
 const roleForPreset = preset => Object.keys(OFFICE_EMPLOYEE_PRESET_IDS).find(key => OFFICE_EMPLOYEE_PRESET_IDS[key] === preset)
@@ -173,7 +174,15 @@ export function createDesktopSessions(ctx, fetcher = fetch) {
     if (disposed || displayed !== id) throw Error('当前话题已切换，请从当前员工的工作台重新打开。')
     ctx.uiWorkspace.openSession(id)
   }
-  return { sessions, workspaces, api: { sessions: sessionApi, agentPresets: {
+  async function uploadSessionFile(id, item) {
+    if (disposed || !retained.has(id)) throw Error('当前 DSH 会话已关闭，草稿已保留。')
+    const bytes = attachmentBytes(item)
+    const result = await ctx.fileUpload.upload(id, new Blob([bytes], {type:item.mediaType}), item.name, lifetime.signal)
+    if (!result.ok) throw Error('DSH 文件上传失败：' + result.error.message)
+    if (!result.value.receiptId) throw Error('DSH 未返回文件凭据，请重试。')
+    return result.value.receiptId
+  }
+  return { sessions, workspaces, uploadSessionFile, api: { sessions: sessionApi, agentPresets: {
     async select({sessionId, agentPreset}) {
       const result = await ctx.remote.agentPresets.select(sessionId, agentPreset)
       return { result: result.ok ? {ok:true, value:{agentPreset:result.value}} : result }

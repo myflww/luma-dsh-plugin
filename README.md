@@ -2,23 +2,29 @@
 
 Luma 在 DeepSeek Harness Desktop 内提供办公室、伙伴卧室和联系人。新档从鲸鱼娘开始。选中她可以聊天或交办工作，抽到对应的卡片后可以邀请更多伙伴。
 
-## 安装 0.5.2
+## 安装 0.5.3
 
-Windows 安装器通过当前 DeepSeek Harness Desktop 的插件命令加载 Luma。用有仓库权限的 GitHub 账号下载 `Luma-DSH-0.5.2-Installer.zip`，解压后双击 `Install-Luma-DSH.cmd`。安装包自带更新，已有完整的 0.5.1、0.5.0 或 0.4.3 插件目录即可离线升级。[下载 0.5.2 安装包](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.5.2)
+首次使用 DeepSeek Harness Desktop 时，请先打开一次桌面客户端，让 DSH 建立桌面档案。Windows 安装器会通过该客户端的插件命令加载 Luma。用有仓库权限的 GitHub 账号下载 `Luma-DSH-0.5.3-Installer.zip`，解压后双击 `Install-Luma-DSH.cmd`。安装包自带更新，已有完整的 0.5.2、0.5.1、0.5.0 或 0.4.3 插件目录即可离线升级。[下载 0.5.3 安装包](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.5.3)
 
 使用命令行安装时，先用有权限的账号登录 GitHub CLI，再运行以下命令。
 
 ```powershell
-gh release download v0.5.2 --repo myflww/luma-dsh-plugin --pattern Get-Luma-DSH.ps1 --dir .\LumaInstaller --clobber
+gh release download v0.5.3 --repo myflww/luma-dsh-plugin --pattern Get-Luma-DSH.ps1 --dir .\LumaInstaller --clobber
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\LumaInstaller\Get-Luma-DSH.ps1
 ```
 
 安装器在桌面 `Luma-DSH` 中创建新版本的独立目录，核对每个文件的 SHA-256，再通过 DSH 自身的 CLI 安装。重新打开 DSH，点侧栏的「Luma 办公室」。DSH 会引用该目录，请长期保留。
 
-- **从旧版升级**　安装器会在桌面 `Luma-DSH` 目录中查找 `DesktopPlugin-0.5.1`、`DesktopPlugin-0.5.0`、`DesktopPlugin-0.4.3` 和 `Luma-DSH-0.4.3-Windows.zip`。旧版存放在别处时，可在命令末尾添加 `-Base "D:\Luma\DesktopPlugin-0.5.1"` 或 `-Base "D:\Downloads\Luma-DSH-0.4.3-Windows.zip"`。
-- **首次安装**　安装器从本仓库的 0.4.3 发布取得基础美术，再应用 0.5.2 更新。首次下载约 1.87 GB，包含分卷、合并 ZIP 与完整插件时，建议预留 6 GiB。
-- **离线安装**　将 0.5.2 发布中的 `Get-Luma-DSH.ps1` 和 `Luma-DSH-0.5.2-Update.zip` 放在一起，再使用上面的 `-Base` 指定本地基础包。
-- **手动添加**　运行安装器时追加 `-PrepareOnly`，然后从 DSH 的插件页添加生成的 `DesktopPlugin-0.5.2` 目录。使用 `-Directory "D:\Luma"` 可以更改输出位置。
+- **从旧版升级**　安装器会在桌面 `Luma-DSH` 目录中依次查找 `DesktopPlugin-0.5.2`、`DesktopPlugin-0.5.1`、`DesktopPlugin-0.5.0`、`DesktopPlugin-0.4.3` 和 `Luma-DSH-0.4.3-Windows.zip`。旧版存放在别处时，可在命令末尾添加 `-Base "D:\Luma\DesktopPlugin-0.5.2"` 或 `-Base "D:\Downloads\Luma-DSH-0.4.3-Windows.zip"`。
+- **首次安装**　安装器从本仓库的 0.4.3 发布取得基础美术，再应用 0.5.3 更新。首次下载约 1.87 GB，包含分卷、合并 ZIP 与完整插件时，建议预留 6 GiB。
+- **离线安装**　将 0.5.3 发布中的 `Get-Luma-DSH.ps1` 和 `Luma-DSH-0.5.3-Update.zip` 放在一起，再使用上面的 `-Base` 指定本地基础包。
+- **手动添加**　运行安装器时追加 `-PrepareOnly`，然后从 DSH 的插件页添加生成的 `DesktopPlugin-0.5.3` 目录。使用 `-Directory "D:\Luma"` 可以更改输出位置。
+
+如需退回上一个版本，保留旧目录，关闭 DSH，运行以下命令再重新打开 DSH。安装器会重新注册桌面的 `DesktopPlugin-0.5.2`。旧目录位于其他位置时，追加 `-Base "D:\Luma\DesktopPlugin-0.5.2"`。回退只切换插件程序，收藏和会话继续使用当前 DSH 档案。
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\LumaInstaller\Get-Luma-DSH.ps1 -Rollback
+```
 
 ## 场景和爱之屋快捷连接
 
@@ -28,8 +34,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\LumaInstaller\Get-Luma
 
 ## 从第一位伙伴开始
 
-1. 新的 DSH 档案从鲸鱼娘、她的主题空间和空卡册开始。她会按本地时间上班、午休、下班回家和就寝。白天在卧室时会自己走动、在桌边整理手记或去角落休息。进入任一空间都沿用同一份作息。
-2. 在「联系」中点头像发消息。点右上角「•••」可以设置人格、选择模型服务、查看记忆或切换对话。个人聊天默认使用 DSH 会话。私聊中说「下次先给结论」即可告诉这位伙伴你的习惯，改口或在记忆库撤回都可以。已有两位入职伙伴后，可以选人建群，排定接力顺序，写明谁起草、谁审阅、谁汇总。各人可使用不同的模型服务，支持 Chat Completions、Anthropic Messages 和 Gemini。
+1. 新的 DSH 档案从鲸鱼娘、普通办公室、她的普通卧室和空卡册开始。她会按本地时间上班、午休、下班回家和就寝。到办公室后，每位伙伴会走到自己的工位，在电脑前敲键盘、阅读和核对工作。在卧室中，她们会走动、坐到电脑前，也会躺到床上看手机。进入任一空间都沿用同一份作息。
+2. 在「联系」中点头像发消息。点右上角「•••」可以设置人格、选择模型服务、查看记忆或切换对话。个人聊天默认使用 DSH 会话。私聊中说「下次先给结论」即可告诉这位伙伴你的习惯，改口或在记忆库撤回都可以。已有两位入职伙伴后，可以选人建群，排定接力顺序，写明谁起草、谁审阅、谁汇总。在「API 服务」中可以为每位伙伴分别选择 DSH 已配置的服务、具体模型与可用的思考强度。自定义端点支持 Chat Completions、Anthropic Messages 和 Gemini，可以读取服务列出的模型，也可以手动填模型 ID。设置会用于该伙伴的私聊、单人派工和群聊发言。
 3. 去卡包商店领取本地星币，购买并打开卡包。开出入职卡后，在开包结果中选择邀请，或到「卡牌收藏 → 伙伴与空间」选择想消耗的一张卡并确认。入职后即可在联系列表和 DSH「新会话」的预设中找到她。
 4. 「伙伴与空间」也列出了各人的正版卡面和所属卡包。持有该角色的全部正版卡面，自动获得专属办公室与卧室。此后即使消耗卡片，已经取得的空间依然保留。历史开包可在商店的收支记录中回看。
 5. 打开桌面上的爱之屋后，插件会通过本机连接为每位伙伴绑定各自的记忆库。爱之屋关闭时，新增的记忆先保存在本机，恢复连接后再同步。「聊天设置 → 记忆库」可查看状态与记录。要连接自建的云办公服务器，请查看发布包的 `cloud-office/README.md`。
@@ -37,6 +43,10 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\LumaInstaller\Get-Luma
 想先邀请第二位伙伴，可以用 300 星币的新册礼挑选单角色卡包。晨光序章对应端木嫣，蓝蔷薇回响对应陆弥，月相典藏对应白霜命。龙妈妈、克劳德、吉米和绯洛的入职卡出自初见与远行。各卡包当前概率和具体可兑换版本都能在插件内查看。免费试拆可体验动画，持有卡来自实际购入并开启的卡包。
 
 「我的卡册」只展示当前档案实际持有的卡。想了解各卡包的收录范围，可以切到「卡池图鉴」。已兑换的卡仍保留获取记录。在同一 DSH 档案更新插件会延续进度。切换到全新档案时，收藏与解锁从头开始。
+
+私聊、派工和协作群的输入框下都有「添加图片或文件」。每条可附 4 个文件，单个最多 4 MiB，合计最多 6 MiB。DSH 默认会话可使用文件工具处理文档。指定 DSH 模型时可发送文本和受模型支持的图片。自定义端点也支持将 PDF 交给兼容模型。选择全员接力时，每位参与伙伴都会收到这条消息的附件。
+
+在「菜单 → 卡包商店 → 员工用量」查看每位伙伴的累计 token。用量按模型返回的记录计入对应伙伴。每人每满 100 万 token，钱包自动增加 1 星币，余量继续累计。旧档可回填能确认归属、且留有用量记录的 DSH 会话。独立 API 的用量从升级到本版后开始累计。旧版装帧商店已下架，升级后会按购买记录中的实付金额自动退还星币。
 
 ## 伙伴来信、隐私与版本更新
 

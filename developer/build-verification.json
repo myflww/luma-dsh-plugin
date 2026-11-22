@@ -1,62 +1,66 @@
 {
-  "version": "0.5.2",
+  "version": "0.5.3",
   "platform": "Windows x64",
-  "node": "24.19.0",
+  "node": "v24.22.3",
   "installerPowerShell": "Windows PowerShell 5.1",
-  "method": "Compared the complete desktop package and four installations reconstructed with the release installer against all per-file SHA-256 digests. Verified the nested update and standalone installer, idempotent reinstall, and automatic ZIP fallback with a partially restored old directory.",
-  "recoveryInputs": [
-    "Complete v0.5.1 desktop package",
-    "Complete v0.5.0 plugin directory restored with its published installer",
-    "Unpacked v0.4.3 plugin directory independently compared against its published ZIP",
-    "Published v0.4.3 Windows ZIP"
-  ],
   "baseZipSha256": "e949d369a89da2bf6ce01c2eabef4b8a3a95ced38db5ab625ea90c2bb0549c81",
-  "updateBytes": 1758517,
-  "updateSha256": "0e7666c2edd80b3454b680318b11db5c955649c8a436babb0ec41cb2849e0f2b",
+  "updateBytes": 2913063,
+  "updateSha256": "8d7e2010c4828e39bfb79d183dadef0cba2ac500c921edde2e34d472dc6722fe",
   "changedFiles": 7,
-  "installerBytes": 1755960,
-  "installerSha256": "783b5aa3c70416d0976faf8b4c9fb74033dfe7dfd2146b7d33c74a61cd87753e",
+  "installerBytes": 2911213,
+  "installerSha256": "10995ddf9dd1be38c69d91b5854ae7f9178cc3f095ef2468db67ccfa198a2b3d",
   "matchingFiles": 1779,
   "matchingPublicAssets": 1755,
   "sha256": {
     "cordis.patch.yml": "5017a014506a399f5db4f08e523996c7c9ac68f2472c2809e022442db62a59cc",
-    "native-desktop/client.mjs": "fd860776b04ed6e3c47caa85c8e0d108364613c5ce8991fb02899472b9afdaa4",
-    "native-desktop/server.mjs": "445e18ccb7884b1e423d26dc401bcffac6b7bfcc091d019f3c421e5ade347dd5"
+    "native-desktop/client.mjs": "db3e87ce71bcd9b4ffc27db38934fba64f09f3c6c318dd4a7f5f0eae7ae57d3c",
+    "native-desktop/server.mjs": "de0817a997b12e85b7383b835151ddbe6ff7e8ac7112827c3e0d96835b3cbeb7"
   },
-  "verifiedLocalDate": "2026-11-22",
-  "nativeTestsPassed": 26,
-  "vitestTestsPassed": 160,
-  "vitestFilesPassed": 24,
-  "officialDesktopChecks": {
-    "0.2.2-rc.1": [
-      "office",
-      "house",
-      "bedroom",
-      "menu",
-      "decor",
-      "empty-album",
-      "shop",
-      "compact"
-    ],
-    "0.2.2-rc.5": [
-      "office",
-      "house",
-      "bedroom",
-      "menu",
-      "decor",
-      "empty-album",
-      "shop",
-      "compact"
-    ]
+  "embeddedBedroomAtlases": {
+    "phone-standard.webp": "6021e198138d6525fd6b187ec08d08a99cedc7a99e9f73daba748c4aebbb2e0f",
+    "phone-outfit.webp": "7ba849b8d5d99605a998bdb75d521edda17ca9d6b42beca317dac3f61d30c50c"
   },
+  "recoveryInputs": [
+    "Published 0.4.3 Windows ZIP",
+    "Complete 0.5.2 desktop directory"
+  ],
+  "verifiedLocalDate": "2026-11-23",
+  "nativeTestsPassed": 31,
+  "vitestTestsPassed": 175,
+  "vitestFilesPassed": 26,
+  "method": "Built from the 0.5.2 desktop directory and verified every file and payload SHA-256. Reconstructed the 0.5.3 installation from the published 0.4.3 Windows ZIP in an empty directory, and from 0.5.2 in its final desktop directory. Verified the nested update and PowerShell installer inside the one-click ZIP and repeated the desktop preparation.",
   "cleanSourceRebuild": {
-    "sourceFiles": 398,
-    "node": "v24.19.0",
+    "sourceFiles": 418,
+    "node": "v24.22.3",
     "artifactSha256": {
-      "client.mjs": "fd860776b04ed6e3c47caa85c8e0d108364613c5ce8991fb02899472b9afdaa4",
-      "server.mjs": "445e18ccb7884b1e423d26dc401bcffac6b7bfcc091d019f3c421e5ade347dd5"
+      "client.mjs": "db3e87ce71bcd9b4ffc27db38934fba64f09f3c6c318dd4a7f5f0eae7ae57d3c",
+      "server.mjs": "de0817a997b12e85b7383b835151ddbe6ff7e8ac7112827c3e0d96835b3cbeb7"
     },
-    "method": "Built both bundles in a separate directory from all version-controlled and new release source files with npm ci --offline; compared the resulting SHA-256 to the Desktop package."
+    "method": "Rebuilt 418 source files from a canonical git checkout-index of the staged release in an empty directory using npm ci --offline. Both generated bundle SHA-256 digests and the other 22 packaged runtime files and guides matched. Ran the full test suite from that checkout against separately restored, verified public assets."
   },
-  "installedWindowsProfile": "Opened v0.5.2 in the existing Windows desktop profile. Verified the weekend bedroom, the empty owned album and an unchanged pre/post collection digest."
+  "publicAssetRestore": {
+    "verifiedAssets": 1755,
+    "method": "Restored the complete public asset manifest into an empty directory using the published 0.4.3 ZIP and the two checked-in ordinary bedroom backgrounds."
+  },
+  "installerChecks": {
+    "isolatedSmallPackage": [
+      "automatic base selection",
+      "idempotent reinstall",
+      "prepare only",
+      "default offline rollback",
+      "explicit old-directory rollback",
+      "reject equal-size modified payload",
+      "old-directory bytes preserved"
+    ],
+    "officialOfflineRollback": {
+      "cli": "0.2.2-rc.1",
+      "isolatedProfile": true,
+      "before": "0.5.1",
+      "after": "0.5.2",
+      "beforeAndAfterBundleCount": 3,
+      "lumaBundles": 1,
+      "resolvedNodeModuleVersion": "0.5.2",
+      "usedPatch": false
+    }
+  }
 }

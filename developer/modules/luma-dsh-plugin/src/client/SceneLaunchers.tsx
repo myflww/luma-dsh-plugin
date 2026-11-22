@@ -11,7 +11,7 @@ type Destination = 'messages' | 'cards' | 'shop' | 'settings'
 const destinations = [
   { page: 'messages', label: '联系', Icon: MessagesSquare },
   { page: 'cards', label: '卡牌收藏', Icon: BookOpen },
-  { page: 'shop', label: '卡包与装帧', Icon: Gift },
+  { page: 'shop', label: '卡包商店', Icon: Gift },
   { page: 'settings', label: '插件设置', Icon: Settings2 },
 ] as const
 

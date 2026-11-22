@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { agentRequest, inProgress, type AgentConfig, type AgentJob, type AgentMemory, type AgentState } from './agent-desk-api.ts'
+import { agentRequest, inProgress, type AgentJob, type AgentMemory, type AgentState } from './agent-desk-api.ts'
 import { getChibiAvatar } from './employee-avatar.ts'
 import { MessageAvatar } from './MessageAvatar.tsx'
+import { AttachmentNames } from './ChatAttachments.tsx'
 import { CloudOfficeLauncher } from './CloudOfficePanel.tsx'
 
 export function EmployeeFace({ id, skin }: { id: string; skin?: string | undefined }) {
@@ -27,6 +28,7 @@ export function JobCard({ job, names, skins, canWrite, cancel }: {
       <span data-status={job.status}>{statusText[job.status]}</span>
       {canWrite && inProgress(job.status) && <button type="button" onClick={cancel}>取消</button>}</header>
     <p className="lumaDeskRequest">{job.text}</p>
+    <AttachmentNames items={job.attachments}/>
     <ol>{job.steps.map((step, index) => <li key={step.roleId}><EmployeeFace id={step.roleId} skin={skins[step.roleId]} />
       <div><header><strong>{names[step.roleId] ?? step.roleId}</strong>{job.mode === 'team' && <span>第 {index + 1} 棒</span>}
         <small>{statusText[step.status]}</small></header>{step.output && <p>{step.output}</p>}
@@ -36,39 +38,7 @@ export function JobCard({ job, names, skins, canWrite, cancel }: {
   </section>
 }
 interface PanelProps { roleId: string; name: string; canWrite: boolean; refresh(): Promise<unknown>; close(): void }
-export function AgentServicePanel({ roleId, name, config, canWrite, refresh, close, onSaved, forHandoff = false }: PanelProps & { config?: AgentConfig | undefined; onSaved?(): void; forHandoff?: boolean }) {
-  const [protocol,setProtocol] = useState<NonNullable<AgentConfig['protocol']>>(config?.protocol ?? 'openai')
-  const endpoints={openai:'',anthropic:'https://api.anthropic.com/v1',gemini:'https://generativelanguage.googleapis.com/v1beta'}
-  const [url, setUrl] = useState(config?.baseUrl ?? ''), [model, setModel] = useState(config?.model ?? '')
-  const [secret, setSecret] = useState(''), [busy, setBusy] = useState(false), [note, setNote] = useState('')
-  const lock = useRef(false)
-  async function save(remove: boolean) {
-    if (lock.current || !canWrite) return
-    lock.current = true; setBusy(true); setNote('')
-    try {
-      await agentRequest('configure', { roleId, protocol, baseUrl: remove ? '' : url.trim(), model: remove ? '' : model.trim(),
-        ...(remove ? { apiKey: '' } : secret ? { apiKey: secret } : {}) })
-      setSecret('')
-      if (remove) { setUrl(''); setModel('') }
-      await refresh(); onSaved?.(); setNote(remove ? '已切换为 DSH 会话。' : '员工 API 服务已保存。')
-    } catch (error) { setNote(error instanceof Error ? error.message : '保存失败。') }
-    finally { lock.current = false; setBusy(false) }
-  }
-  return <aside className="lumaRoleEditor" aria-label="员工 API 服务"><header><h2>{forHandoff ? name + '的 API 服务' : 'API 服务'}</h2><button onClick={close} aria-label="关闭 API 服务">×</button></header>
-    <p>给{name}选择模型服务。私聊和群内交付都使用这位员工自己的配置。</p>
-    <form onSubmit={e => { e.preventDefault(); void save(false) }}>
-      <label>服务协议<select value={protocol} onChange={e=>{
-        const next=e.target.value as typeof protocol
-        setProtocol(next);setSecret('')
-        if(!url || Object.values(endpoints).includes(url)) setUrl(endpoints[next])
-      }}><option value="openai">Chat Completions · DeepSeek 等兼容服务</option><option value="anthropic">Anthropic Messages · Claude</option><option value="gemini">Google Gemini</option></select></label>
-      <label>服务地址<input type="url" autoFocus={forHandoff} value={url} onChange={e => setUrl(e.target.value)} placeholder="https://api.example.com/v1" required maxLength={2048} /></label>
-      <label>模型标识<input value={model} onChange={e => setModel(e.target.value)} placeholder="服务提供的模型名称" required maxLength={200} /></label>
-      <label>API 密钥<input key={roleId} type="password" autoComplete="new-password" value={secret} onChange={e => setSecret(e.target.value)} placeholder={config?.hasKey && protocol===(config.protocol ?? 'openai') && url.trim()===config.baseUrl ? '已保存，留空可沿用同一服务的密钥' : '本机免密服务可留空'} /></label>
-      <button className="is-primary" disabled={!canWrite || busy || !url.trim() || !model.trim()} type="submit">保存服务</button>
-      {config?.model && <button type="button" disabled={!canWrite || busy} onClick={() => void save(true)}>改用 DSH</button>}
-    </form>{note && <p role="status">{note}</p>}</aside>
-}
+export { AgentServicePanel } from './RoleModelPanel.tsx'
 export function AgentMemoryPanel({ roleId, name, canWrite, refresh, close, house, count }: PanelProps & {
   house: AgentState['loveHouse'] | undefined; count: number
 }) {

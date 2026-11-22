@@ -3,6 +3,7 @@ import { EmployeeFace, AgentServicePanel, exportResult } from './AgentDeskPanels
 import { CloudOfficeLauncher } from './CloudOfficePanel.tsx'
 import { agentRequest, inProgress, type AgentState, type WorkRoom } from './agent-desk-api.ts'
 import { MESSAGE_CHARACTERS, type MessagesSnapshot } from './messages-runtime.ts'
+import { AttachmentNames, AttachmentPicker, readChatFiles } from './ChatAttachments.tsx'
 import './WorkRooms.css'
 
 type Props = {
@@ -70,7 +71,7 @@ function readDraft(id: string): Draft {
   return emptyDraft()
 }
 
-export function RoomConversation({ room, snapshot, state, names, refresh, close }: Props & { room: WorkRoom }) {
+export function RoomConversation({ room, snapshot, state, names, refresh, close, files, changeFiles }: Props & { room: WorkRoom; files: File[]; changeFiles(files: File[]): void }) {
   const [draft, setDraft] = useState(() => readDraft(room.id))
   const [service, setService] = useState(''), [error, setError] = useState(''), [sending, setSending] = useState(false)
   const lock = useRef(false), scroll = useRef<HTMLDivElement>(null), stick = useRef(true)
@@ -78,8 +79,9 @@ export function RoomConversation({ room, snapshot, state, names, refresh, close 
   const running = jobs.find(job => inProgress(job.status))
   const target = room.roleIds.includes(draft.target) ? draft.target : ''
   const ids = target ? [target] : room.roleIds
+  const dshAttachments = ids.some(id=>state.roles[id]?.source==='dsh')
   const missing = ids.filter(id => !state.roles[id]?.model)
-  const canSend = snapshot.writable && !sending && !running && !missing.length && !!draft.text.trim()
+  const canSend = snapshot.writable && !sending && !running && !missing.length && (!!draft.text.trim() || !!files.length)
   const signature = JSON.stringify(jobs.map(j => [j.id, j.status, j.steps.map(s => s.status)]))
   function saveDraft(next: Draft) {
     try { localStorage.setItem('luma.room.draft.' + room.id, JSON.stringify(next)) } catch {}
@@ -89,7 +91,9 @@ export function RoomConversation({ room, snapshot, state, names, refresh, close 
     if (stick.current) scroll.current?.scrollTo({ top: scroll.current.scrollHeight })
   }, [signature])
   useEffect(() => {
-    if (draft.requestId && jobs.some(job => job.id === draft.requestId)) saveDraft({ ...draft, text:'', requestId:'' })
+    if (draft.requestId && jobs.some(job => job.id === draft.requestId)) {
+      saveDraft({ ...draft, text:'', requestId:'' }); changeFiles([])
+    }
   }, [signature, draft.requestId])
   async function send() {
     if (!canSend || lock.current) return
@@ -102,8 +106,10 @@ export function RoomConversation({ room, snapshot, state, names, refresh, close 
       return [id, { name, personality, scenario }]
     }))
     try {
-      await agentRequest('run', { requestId, topic:room.id, mode: target ? 'task' : 'team', roleIds:ids, profiles, text:draft.text.trim() }, AbortSignal.timeout(15000))
+      const attachments = files.length ? await readChatFiles(files, dshAttachments) : []
+      await agentRequest('run', { requestId, topic:room.id, mode: target ? 'task' : 'team', roleIds:ids, profiles, text:draft.text.trim(), ...(attachments.length ? {attachments} : {}) }, AbortSignal.timeout(15000))
       saveDraft({ ...submitted, text:'', requestId:'' })
+      changeFiles([])
       await refresh()
     } catch (e) { setError(e instanceof Error ? e.message : '提交未确认，草稿已保留。') }
     finally { lock.current = false; setSending(false) }
@@ -123,7 +129,7 @@ export function RoomConversation({ room, snapshot, state, names, refresh, close 
         <article className="lumaMessageBubble is-user"><div><header><strong>{snapshot.preferences.userName}</strong>
           <span>{job.roleIds.length === 1 ? '@' + names[job.roleIds[0]!] : '@全员'}</span>
           <time dateTime={new Date(job.createdAt).toISOString()}>{new Date(job.createdAt).toLocaleTimeString('zh-CN', {hour:'2-digit', minute:'2-digit'})}</time>
-        </header><p>{job.text}</p></div></article>
+        </header><p>{job.text}</p><AttachmentNames items={job.attachments}/></div></article>
         {job.steps.map(step => <article key={step.roleId} className="lumaMessageBubble is-assistant">
           <EmployeeFace id={step.roleId} skin={snapshot.employeeSkins?.[step.roleId]} /><div><header><strong>{names[step.roleId]}</strong>
             <span>{statuses[step.status]}{step.model?' · '+step.model:''}</span></header>{step.output && <><p>{step.output}</p>
@@ -141,6 +147,7 @@ export function RoomConversation({ room, snapshot, state, names, refresh, close 
           if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && !e.nativeEvent.isComposing) { e.preventDefault(); e.currentTarget.form?.requestSubmit() }
         }} />
       {error && <p role="alert">{error}</p>}
+      <AttachmentPicker files={files} native={dshAttachments} disabled={sending || !snapshot.writable} change={next => { changeFiles(next); saveDraft({...draft, requestId:''}) }} error={setError}/>
       <div><span>Ctrl / ⌘ + Enter 发送到群</span>{running
         ? <button type="button" disabled={!snapshot.writable} onClick={() => void cancel(running.id)}>停止本轮</button>
         : <button className="is-primary" disabled={!canSend} type="submit">发送到群</button>}</div>

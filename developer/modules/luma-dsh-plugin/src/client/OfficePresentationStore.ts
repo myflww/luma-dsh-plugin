@@ -1,5 +1,5 @@
 import { DEFAULT_OFFICE_PRESENTATION, DEFAULT_OFFICE_PRESENCE, OFFICE_PRESENTATION_FIELD, decodeOfficePresentationSettings,
-  isOfficePresentationEmployee, isOfficePresentationTheme, isBedroomPresentationTheme, STARTER_BEDROOMS,
+  isOfficePresentationEmployee, isOfficePresentationTheme, isBedroomPresentationTheme,
   type OfficePresentationSelection, type OfficePresentationSettings } from '../office-presentation-settings.ts'
 import { OFFICE_OUTFIT_CHOICES } from './office-theme-catalog.ts'
 
@@ -17,12 +17,13 @@ export interface OfficePresentationSnapshot {
   readonly message: string
 }
 export type OfficePresentationResult = Readonly<{ status: 'saved' | 'unchanged' }> | Readonly<{ status: 'rejected'; message: string }>
+export interface RoomAccess { unlockedEmployeeIds: readonly string[]; unlockedThemeIds: readonly string[] }
 const sameAssignments = (a: Readonly<Record<string,string>>, b: Readonly<Record<string,string>>) =>
   Object.keys(a).length === Object.keys(b).length && Object.entries(a).every(([key,value]) => b[key] === value)
 const equal = (a: OfficePresentationSelection, b: OfficePresentationSelection): boolean => a.officeTheme === b.officeTheme
   && (a.presence ?? DEFAULT_OFFICE_PRESENCE) === (b.presence ?? DEFAULT_OFFICE_PRESENCE)
   && sameAssignments(a.employeeSkins,b.employeeSkins)
-  && sameAssignments(a.bedroomThemes ?? STARTER_BEDROOMS,b.bedroomThemes ?? STARTER_BEDROOMS)
+  && sameAssignments(a.bedroomThemes ?? {},b.bedroomThemes ?? {})
 
 /** One confirmed Host field. Reads never award equipment or write defaults. */
 export class OfficePresentationStore {
@@ -34,7 +35,7 @@ export class OfficePresentationStore {
   private message = ''
   private tail: Promise<void> = Promise.resolve()
   private disposed = false
-  constructor(private readonly scope: OfficePresentationScope) {
+  constructor(private readonly scope: OfficePresentationScope, private readonly roomAccess?: () => RoomAccess) {
     this.snapshot = this.derive()
     this.stop = scope.subscribe(() => this.refresh())
   }
@@ -43,7 +44,7 @@ export class OfficePresentationStore {
 
   setTheme(theme: string | null): Promise<OfficePresentationResult> {
     if (theme !== null && !isOfficePresentationTheme(theme)) return Promise.resolve(this.reject('所选办公室不在当前目录中。'))
-    return this.change(selection => ({ ...selection, officeTheme: theme }))
+    return this.change(selection => ({ ...selection, officeTheme: theme }), () => this.roomError(theme))
   }
   setPresence(presence: string): Promise<OfficePresentationResult> {
     if (presence !== 'all' && presence !== 'schedule') return Promise.resolve(this.reject('请选择有效的场景成员显示方式。'))
@@ -53,10 +54,10 @@ export class OfficePresentationStore {
     if (!isOfficePresentationEmployee(employeeId) || theme !== null && !isBedroomPresentationTheme(theme))
       return Promise.resolve(this.reject('所选卧室或装饰不在当前目录中。'))
     return this.change(selection => {
-      const bedrooms = { ...(selection.bedroomThemes ?? STARTER_BEDROOMS) } as NonNullable<OfficePresentationSelection['bedroomThemes']>
+      const bedrooms = selection.bedroomThemes ?? {}
       const remaining = Object.fromEntries(Object.entries(bedrooms).filter(([room, equipped]) => room !== employeeId && equipped !== theme))
       return { ...selection, bedroomThemes: theme ? { ...remaining, [employeeId]:theme } : remaining }
-    })
+    }, () => this.roomError(theme, employeeId))
   }
   setOutfit(employeeId: string, skinId: string | null): Promise<OfficePresentationResult> {
     if (!isOfficePresentationEmployee(employeeId) || skinId !== null && skinId !== `skin.${employeeId}.v1`) return Promise.resolve(this.reject('所选衣装不属于该角色。'))
@@ -70,12 +71,20 @@ export class OfficePresentationStore {
   }
   dispose(): void { if (this.disposed) return; this.disposed = true; this.stop(); this.listeners.clear() }
 
-  private change(update: (selection: OfficePresentationSelection) => OfficePresentationSelection): Promise<OfficePresentationResult> {
+  private roomError(theme: string | null, employeeId?: string) {
+    const access = this.roomAccess?.()
+    if (!access) return
+    if (employeeId && !access.unlockedEmployeeIds.includes(employeeId)) return '请先邀请这位伙伴入职。'
+    if (theme && !access.unlockedThemeIds.includes(theme)) return '集齐对应伙伴的全部正版卡面后，即可使用这款主题。'
+  }
+  private change(update: (selection: OfficePresentationSelection) => OfficePresentationSelection, check?: () => string | undefined): Promise<OfficePresentationResult> {
     if (this.disposed) return Promise.resolve(this.reject('办公室设置已关闭。'))
     this.pending++; this.refresh()
     const result = this.tail.then(async (): Promise<OfficePresentationResult> => {
       this.refresh()
       if (this.disposed || !this.snapshot.canEdit) return this.reject('办公室设置暂时无法保存，请检查 DSH 连接后重试。')
+      const error = check?.()
+      if (error) return this.reject(error)
       const next = update(this.snapshot.selection)
       if (equal(next, this.snapshot.selection)) { this.message = ''; this.refresh(); return { status: 'unchanged' } }
       try { await this.scope.set(OFFICE_PRESENTATION_FIELD, next) } catch { /* Confirm by Host readback. */ }

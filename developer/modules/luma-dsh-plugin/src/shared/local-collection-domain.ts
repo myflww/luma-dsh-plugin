@@ -60,7 +60,12 @@ export type LocalCollectionEvent = EventBase & (
   | { readonly type: 'redeem-employee'; readonly employeeId: CharacterId; readonly cardInstanceId: string }
   | { readonly type: 'buy-album-skin'; readonly skinId: LocalAlbumSkinId; readonly price: number }
   | { readonly type: 'equip-album-skin'; readonly skinId: LocalAlbumSkinId }
+  | { readonly type: 'token-reward'; readonly employeeId: CharacterId; readonly throughCoins: number }
+  | { readonly type: 'album-skin-refund'; readonly purchaseId: string }
 )
+export function localCollectionUserEventCount(events: readonly LocalCollectionEvent[]) {
+  return events.reduce((count, event) => count + Number(event?.type !== 'token-reward' && event?.type !== 'album-skin-refund'), 0)
+}
 export interface LocalCollectionState { readonly schemaVersion: 1; readonly events: readonly LocalCollectionEvent[] }
 export interface LocalCollectionSettings { readonly state?: LocalCollectionState }
 export interface LocalOwnedPack { readonly id: string; readonly packId: string; readonly purchasedAt: number; readonly price: number; readonly openedAt?: number }
@@ -74,6 +79,8 @@ export interface LocalCollectionProjection {
   readonly unlockedEmployeeIds: readonly CharacterId[]; readonly unlockedThemeIds: readonly string[]
   readonly ownedCounts: Readonly<Record<string, number>>; readonly purchases: readonly LocalPurchase[]
   readonly albumSkinIds: readonly LocalAlbumSkinId[]; readonly albumSkin: LocalAlbumSkin
+  readonly tokenRewardCoins: Readonly<Partial<Record<CharacterId, number>>>
+  readonly refundedAlbumPurchaseIds: readonly string[]
   readonly ledger: readonly LocalLedgerEntry[]; readonly drawCounts: Readonly<Record<string, number>>
 }
 export const EMPTY_LOCAL_COLLECTION_STATE: LocalCollectionState = Object.freeze({ schemaVersion: 1, events: Object.freeze([]) })
@@ -88,15 +95,17 @@ function invalid(): never { throw new Error('本地收藏记录格式不受支�
 
 /** Replaying a valid log proves coin conservation and every holding's acquisition chain. */
 export function projectLocalCollection(state: LocalCollectionState): LocalCollectionProjection {
-  if (!object(state) || state.schemaVersion !== 1 || !only(state, ['schemaVersion', 'events']) || !Array.isArray(state.events) || state.events.length > LOCAL_COLLECTION_LIMIT) invalid()
+  if (!object(state) || state.schemaVersion !== 1 || !only(state, ['schemaVersion', 'events']) || !Array.isArray(state.events)
+    || state.events.length > LOCAL_COLLECTION_LIMIT && localCollectionUserEventCount(state.events) > LOCAL_COLLECTION_LIMIT) invalid()
   let balance = 0, welcomeClaimed = false, lastDailyClaim: string | undefined
   let albumSkin: LocalAlbumSkin = LOCAL_ALBUM_SKINS[0]!
   const packs: LocalOwnedPack[] = [], cards: LocalOwnedCard[] = [], purchases: LocalPurchase[] = [], ledger: LocalLedgerEntry[] = []
   const openedCards: LocalOwnedCard[] = []
   const unlockedEmployeeIds: CharacterId[] = [STARTER_EMPLOYEE_ID]
-  const starter = COMPANION_REWARDS.find(reward => reward.id === STARTER_EMPLOYEE_ID)!
-  const unlockedThemeIds = new Set([starter.office, starter.bedroom])
+  const unlockedThemeIds = new Set<string>()
   const heldEditions = new Map<string, number>()
+  const tokenRewardCoins: Partial<Record<CharacterId, number>> = {}
+  const refundedAlbumPurchaseIds = new Set<string>()
   const ids = new Set<string>(), albumSkinIds: LocalAlbumSkinId[] = ['classic'], ownedCounts: Record<string, number> = {}, drawCounts: Record<string, number> = {}
   for (const event of state.events) {
     if (!object(event) || typeof event.id !== 'string' || !/^[A-Za-z0-9_-]{10,100}$/u.test(event.id)
@@ -160,23 +169,41 @@ export function projectLocalCollection(state: LocalCollectionState): LocalCollec
       case 'buy-album-skin': {
         const skin = LOCAL_ALBUM_SKINS.find(row => row.id === event.skinId)
         if (!only(event, ['id', 'at', 'type', 'skinId', 'price']) || !skin || !skin.price || event.price !== skin.price || balance < skin.price || albumSkinIds.includes(skin.id)) invalid()
-        albumSkinIds.push(skin.id); delta = -skin.price; label = `卡册装帧 · ${skin.name}`
-        purchases.push({ id: event.id, at: event.at, kind: 'album-skin', productId: skin.id, price: skin.price }); break
+        albumSkinIds.push(skin.id); delta = -event.price; label = `卡册装帧 · ${skin.name}`
+        purchases.push({ id: event.id, at: event.at, kind: 'album-skin', productId: skin.id, price: event.price }); break
       }
       case 'equip-album-skin': {
         const skin = LOCAL_ALBUM_SKINS.find(row => row.id === event.skinId)
         if (!only(event, ['id', 'at', 'type', 'skinId']) || !skin || !albumSkinIds.includes(skin.id)) invalid()
         albumSkin = skin; label = `使用装帧 · ${skin.name}`; break
       }
+      case 'token-reward': {
+        if (!only(event, ['id', 'at', 'type', 'employeeId', 'throughCoins']) || typeof event.employeeId !== 'string'
+          || !Object.hasOwn(CHARACTER_NAMES, event.employeeId) || !integer(event.throughCoins)) invalid()
+        delta = event.throughCoins - (tokenRewardCoins[event.employeeId] ?? 0)
+        if (delta <= 0) invalid()
+        tokenRewardCoins[event.employeeId] = event.throughCoins
+        label = `员工用量奖励 · ${CHARACTER_NAMES[event.employeeId]}`; break
+      }
+      case 'album-skin-refund': {
+        if (!only(event, ['id', 'at', 'type', 'purchaseId']) || typeof event.purchaseId !== 'string' || refundedAlbumPurchaseIds.has(event.purchaseId)) invalid()
+        const purchase = purchases.find(row => row.kind === 'album-skin' && row.id === event.purchaseId)
+        if (!purchase) invalid()
+        refundedAlbumPurchaseIds.add(purchase.id)
+        delta = purchase.price
+        label = `装帧退款 · ${LOCAL_ALBUM_SKINS.find(skin => skin.id === purchase.productId)!.name}`; break
+      }
       default: invalid()
     }
     balance += delta
+    if (!integer(balance)) invalid()
     ledger.push(Object.freeze({ id: event.id, at: event.at, label, delta, balance }))
   }
   return Object.freeze({ balance, welcomeClaimed, lastDailyClaim, packs: Object.freeze(packs.map(row => Object.freeze(row))),
     cards: Object.freeze(cards), openedCards: Object.freeze(openedCards), unlockedEmployeeIds: Object.freeze(unlockedEmployeeIds), unlockedThemeIds: Object.freeze([...unlockedThemeIds]),
     ownedCounts: Object.freeze(ownedCounts), purchases: Object.freeze(purchases.map(row => Object.freeze(row))),
-    albumSkinIds: Object.freeze(albumSkinIds), albumSkin, ledger: Object.freeze(ledger), drawCounts: Object.freeze(drawCounts) })
+    albumSkinIds: Object.freeze(albumSkinIds), albumSkin, tokenRewardCoins: Object.freeze(tokenRewardCoins),
+    refundedAlbumPurchaseIds: Object.freeze([...refundedAlbumPurchaseIds]), ledger: Object.freeze(ledger), drawCounts: Object.freeze(drawCounts) })
 }
 
 /** A successful projection also validates the complete persisted section. */
