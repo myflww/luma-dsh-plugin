@@ -1,0 +1,38 @@
+.lumaPouchStudio { --pouch-glow:#c5dcf4; --pouch-deep:#87a7cc; --pouch-tint:#f0f7fd; width:100%; position:relative; isolation:isolate; overflow:hidden; display:grid; grid-template-columns:1.1fr minmax(265px,.9fr); align-items:center; min-height:clamp(390px,58vh,690px); border:1px solid #cbddea; border-radius:24px; background:linear-gradient(116deg,var(--pouch-tint),#fafcfe 71%,#f0f5fa); box-shadow:0 16px 44px #274c7c0b; }
+.lumaPouchStudio[data-pack="dawn-prelude"] { --pouch-glow:#e4d2e7; --pouch-deep:#b99fba; --pouch-tint:#fbf3f9; }
+.lumaPouchStudio[data-pack="blue-rose-echo"] { --pouch-glow:#b7cede; --pouch-deep:#7093b2; --pouch-tint:#eaf1f8; }
+.lumaPouchStudio[data-pack="moon-collection"] { --pouch-glow:#d6cee9; --pouch-deep:#9e92bf; --pouch-tint:#f2effa; }
+.lumaPouchExhibit { position:relative; isolation:isolate; display:grid; place-items:center; align-self:stretch; min-width:0; min-height:300px; overflow:hidden; background:radial-gradient(ellipse at 50% 52%,var(--pouch-glow),transparent 62%); }
+.lumaPouchExhibit::before { content:''; position:absolute; z-index:-2; width:69%; aspect-ratio:1; inset:50% auto auto 50%; transform:translate(-50%,-52%) rotate(-24deg); border:1px solid #ffffffca; border-radius:50%; box-shadow:0 0 0 23px #ffffff1c,0 0 0 24px #ffffff5c; }
+.lumaPouchPlinth { position:absolute; width:73%; max-width:430px; height:15%; bottom:10%; left:50%; transform:translateX(-50%); border-radius:50%; background:linear-gradient(167deg,#fff 5%,var(--pouch-glow) 68%,#e5edf5); border:1px solid #ffffffd9; box-shadow:0 6px 0 var(--pouch-deep),0 19px 32px #374d6b20; }
+.lumaPouchExhibit>img { display:block; position:relative; width:67%; height:clamp(260px,45vh,520px); max-width:360px; margin-bottom:4%; object-fit:contain; transform:rotate(-6deg); filter:drop-shadow(9px 14px 10px #263c5845); }
+.lumaPouchDesk { min-width:0; padding:clamp(28px,5vw,70px) clamp(22px,5vw,70px) clamp(28px,5vw,70px) 6%; }
+.lumaPouchCount { display:inline-flex; gap:6px; align-items:center; color:#536e87; font-size:12px; font-weight:600; }
+.lumaCollectionHub .lumaPouchDesk h2 { margin:14px 0 6px; font-size:clamp(27px,3.2vw,46px); font-weight:650; letter-spacing:.04em; color:#1e3751; }
+.lumaCollectionHub .lumaPouchDesk>p { color:#536b81; font-size:14px; line-height:1.75; max-width:30em; }
+.lumaPouchDesk dl { display:flex; gap:28px; margin:22px 0 26px; padding-block:13px; border-block:1px solid #cad8e5; }
+.lumaPouchDesk dt { color:#577087; font-size:12px; }
+.lumaPouchDesk dd { margin:3px 0 0; color:#244363; font-size:22px; font-variant-numeric:tabular-nums; font-weight:650; line-height:1.3; }
+.lumaPouchDesk dd small { padding-left:4px; font-weight:400; }
+.lumaPouchActions { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+.lumaPluginRoot .lumaCollectionHub .lumaPouchOpen,.lumaCollectionHub .lumaPouchOpen { display:inline-flex; align-items:center; gap:9px; justify-content:center; min-height:44px; border-radius:10px; padding:9px 21px; background:#235781; border:1px solid #204d71; color:#fff; font-size:14px; font-weight:600; }
+.lumaPluginRoot .lumaCollectionHub .lumaPouchOpen:hover:not(:disabled) { background:#194668; color:#fff; }
+.lumaPouchDesk>.lumaPouchOpen { margin-top:17px; }
+.lumaCollectionHub .lumaPouchFootnote { color:#607387; display:block; margin-top:9px; }
+.lumaPouchPicker { margin-top:20px; }
+.lumaCollectionHub .lumaPouchPicker h3 { font-size:12px; color:#4e6882; margin:0 0 7px; font-weight:500; }
+.lumaPouchPicker>div { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; }
+.lumaPluginRoot .lumaCollectionHub .lumaPouchPicker button,.lumaCollectionHub .lumaPouchPicker button { display:flex; align-items:center; gap:8px; padding:5px 7px; font-size:12px; min-height:42px; line-height:1.3; white-space:normal; text-align:left; border-radius:7px; }
+.lumaPouchPicker button[aria-pressed=true] { background:#e9f3fe; box-shadow:inset 0 0 0 1px #77a0c6; }
+.lumaPouchPicker img { width:23px; height:33px; object-fit:contain; }
+.lumaPouchPicker span { display:grid; gap:1px; }
+@container (max-width:680px) {
+  .lumaPouchStudio { grid-template-columns:1fr; border-radius:16px; min-height:0; }
+  .lumaPouchExhibit { min-height:176px; height:clamp(176px,28vh,243px); }
+  .lumaPouchExhibit>img { position:absolute; top:47%; left:50%; height:83%; width:70%; margin:0; transform:translate(-50%,-50%) rotate(-6deg); }
+  .lumaPouchExhibit::before { width:auto; height:75%; }
+  .lumaPouchPlinth { width:55%; max-width:240px; height:12%; bottom:6%; }
+  .lumaPouchDesk { padding:16px 24px 24px; }
+  .lumaPouchDesk dl { margin:12px 0; padding-block:8px; }
+  .lumaCollectionHub .lumaPouchDesk h2 { margin:5px 0; font-size:25px; }
+}

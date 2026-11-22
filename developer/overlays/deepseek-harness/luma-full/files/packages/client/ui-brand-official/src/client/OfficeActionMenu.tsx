@@ -3,12 +3,13 @@ import { officeManualActionChoices, type OfficeManualActionId, type OfficeManual
 import './OfficeActionMenu.css'
 
 export interface OfficeActionMenuTarget { readonly employeeId: string; readonly name: string; readonly x: number; readonly y: number }
-export function OfficeActionMenu({ target, skinId, onAction, onRestore, onClose }: Readonly<{
+export function OfficeActionMenu({ target, skinId, onAction, onRestore, onClose, contact }: Readonly<{
   skinId?: string | undefined
   target: OfficeActionMenuTarget
   onAction: (id: OfficeManualActionId, mode: OfficeManualPlayback) => void
   onRestore: () => void
   onClose: () => void
+  contact?: { activity?: string | undefined; open: () => void } | undefined
 }>) {
   const menu = useRef<HTMLDivElement>(null)
   const [mode, setMode] = useState<OfficeManualPlayback>('once')
@@ -19,11 +20,16 @@ export function OfficeActionMenu({ target, skinId, onAction, onRestore, onClose 
     return () => window.removeEventListener('keydown', escape)
   }, [onClose])
   const x = Math.max(8, Math.min(target.x, window.innerWidth - 252))
-  const y = Math.max(8, Math.min(target.y, window.innerHeight - 326))
+  const y = Math.max(8, Math.min(target.y, window.innerHeight - (contact ? 150 : 326)))
   return <div className="lumaOfficeActionBackdrop" onPointerDown={event => { event.stopPropagation(); if (event.target === event.currentTarget) onClose() }}
     onContextMenu={event => event.preventDefault()}>
-    <div ref={menu} className="lumaOfficeActionMenu" role="dialog" aria-label={`${target.name}的动作清单`}
+    <div ref={menu} className={contact?'lumaOfficeActionMenu lumaOfficeContactMenu':'lumaOfficeActionMenu'} role="dialog" aria-label={contact?target.name:`${target.name}的动作清单`}
       style={{ left: x, top: y, maxHeight: window.innerHeight - y - 8, overflowY: 'auto' }} onPointerDown={event => event.stopPropagation()}>
+      {contact ? <>
+        <strong>{target.name}</strong>
+        {contact.activity && <span>{contact.activity}</span>}
+        <button type="button" onClick={()=>{onClose();contact.open()}}>联系{target.name}</button>
+      </> : <>
       <strong>{target.name} · 动作</strong>
       <div role="group" aria-label="播放方式" className="lumaOfficeActionPlayback">
         {(['once', 'loop', 'hold'] as const).map(value => <button key={value} type="button" aria-pressed={mode === value}
@@ -32,6 +38,7 @@ export function OfficeActionMenu({ target, skinId, onAction, onRestore, onClose 
       {officeManualActionChoices(target.employeeId, skinId).map(action => <button key={action.id} type="button"
         onClick={() => onAction(action.id, mode)}>{action.label}</button>)}
       <button type="button" className="lumaOfficeActionRestore" onClick={onRestore}>恢复自动行为</button>
+      </>}
       <button type="button" onClick={onClose}>关闭</button>
     </div>
   </div>

@@ -38,7 +38,7 @@ function backFor(character: string) {
 }
 export const LOCAL_ALBUM_SKINS = Object.freeze([
   { id: 'classic', name: '素笺', price: 0, description: '留白与细线，安静地收录每一次相遇。',
-    coverUrl: LOCAL_PACKS[0]!.coverUrl, paper: '#f6f5f2', panel: '#ffffff', ink: '#34353b', muted: '#777881', accent: '#746184', line: '#dedce3' },
+    coverUrl: LOCAL_PACKS[0]!.coverUrl, paper: '#f2f7fb', panel: '#ffffff', ink: '#20384f', muted: '#576d83', accent: '#346490', line: '#d5e1ed' },
   { id: 'dawn', name: '晨光绢页', price: 80, description: '奶油绢纸、淡金压线与晨光序章的原始卡背。',
     coverUrl: LOCAL_PACKS.find(pack => pack.id === 'dawn-prelude')!.coverUrl, paper: '#fcf6e9', panel: '#fffdf5', ink: '#4c3d2e', muted: '#8c795e', accent: '#9a7137', line: '#e2d3b4' },
   { id: 'blue-rose', name: '蓝蔷薇藏笺', price: 80, description: '雾蓝纸页、钴蓝书脊与蓝蔷薇回响的原始卡背。',

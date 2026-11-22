@@ -1,6 +1,6 @@
 import { independentFloorRoute, type IndependentArrivalState, type IndependentFloorGraph } from './independentTaskArrival.ts'
 import type { BrowserIndependentFloorGraph } from './browserOfficeNavigation.ts'
-import type { OfficeTimePolicy } from './timePolicy.ts'
+import { floorPauseRange, type OfficeTimePolicy } from './timePolicy.ts'
 import type { SceneCommand } from '../office-harness/SceneProtocol.ts'
 
 export type IndependentAmbientState = { ordinal: number; nextAt: number; travelling: boolean; wasTask: boolean; policyMode?: OfficeTimePolicy['autonomy']['mode'] }
@@ -44,7 +44,9 @@ export function advanceIndependentAmbient(previous:IndependentAmbientState, acto
       direction = Math.abs(dx) > Math.abs(dy) ? dx > 0 ? 'right' : 'left' : dy > 0 ? 'down' : 'up'
     }
     const returningToDesk = actor.mode === 'floor' && input.boundStationId && input.policy.autonomy.preferBoundWorkstation
-    const pause = returningToDesk ? 1600 + seed(input.employeeId) % 1900 : delay(input.employeeId,ambient.ordinal,input.policy)
+    const [min,max]=floorPauseRange(input.policy)
+    const pause = actor.mode==='seated' ? delay(input.employeeId,ambient.ordinal,input.policy)
+      : returningToDesk ? 1600 + seed(input.employeeId) % 1900 : min+seed(input.employeeId+':pause:'+ambient.ordinal)%(max-min+1)
     return { ambient:{...ambient,travelling:false,nextAt:input.now+pause}, actor:{...actor,direction} }
   }
   if(input.now<ambient.nextAt) return {ambient,actor}
@@ -52,7 +54,9 @@ export function advanceIndependentAmbient(previous:IndependentAmbientState, acto
   const targetSeat=(input.ambientDesk||input.policy.autonomy.preferBoundWorkstation)&&input.boundStationId&&actor.seatedStationId!==input.boundStationId?input.boundStationId:undefined
   const candidates=(g.ambientNodes??Object.keys(g.nodes).filter(id=>!id.startsWith('seat-'))).filter(id=>Math.hypot(g.nodes[id]!.point[0]-actor.position[0],g.nodes[id]!.point[1]-actor.position[1])>80
     && !input.occupiedTargets?.some(point=>Math.hypot(point[0]-g.nodes[id]!.point[0],point[1]-g.nodes[id]!.point[1])<55))
-  const goal=targetSeat?g.targets[targetSeat]?.approachNode:candidates[seed(input.employeeId+':roam:'+ambient.ordinal)%Math.max(1,candidates.length)]
+  const nearby=candidates.filter(id=>Math.hypot(g.nodes[id]!.point[0]-actor.position[0],g.nodes[id]!.point[1]-actor.position[1])<380)
+  const choices=nearby.length && ambient.ordinal%4!==3 ? nearby : candidates
+  const goal=targetSeat?g.targets[targetSeat]?.approachNode:choices[seed(input.employeeId+':roam:'+ambient.ordinal)%Math.max(1,choices.length)]
   if(!goal) return {ambient:{...ambient,nextAt:input.now+3000},actor}
   let next={...actor}
   if(next.seatedStationId) { const exit=g.nodes[g.targets[next.seatedStationId]!.exitNode]!; next={...next,position:exit.point,bodyCoreHeightPx:exit.bodyCoreHeightPx,seatedStationId:undefined} }

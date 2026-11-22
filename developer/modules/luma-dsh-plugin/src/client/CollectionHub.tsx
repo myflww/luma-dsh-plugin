@@ -4,6 +4,8 @@ import { LOCAL_ALBUM_SKINS, LOCAL_DAILY_COINS, LOCAL_PACKS, LOCAL_WELCOME_COINS,
   localCollectionDay, localPackAvailability, canRedeemCard, characterIdForCard, CHARACTER_NAMES, type CharacterId, type LocalAlbumSkin } from '../shared/local-collection-domain.ts'
 import type { LocalCollectionResult, LocalCollectionRuntime } from './local-collection-store.ts'
 import './CollectionHub.css'
+import { Coins } from 'lucide-react'
+import { SealedPackShelf } from './SealedPackShelf.tsx'
 import { PackOpeningScene } from './PackOpeningScene.tsx'
 import { PackCollectionPreview } from './PackCollectionPreview.tsx'
 import { CompanionRewards } from './CompanionRewards.tsx'
@@ -18,8 +20,8 @@ const percent = (value: number) => `${(value * 100).toLocaleString('zh-CN', { ma
 /** Purchases and revealed cards render only after the Host confirms the complete transaction. */
 export function CollectionHub({ runtime, onOpenOwned, initialPackId }: { runtime: LocalCollectionRuntime; onOpenOwned?(): void; initialPackId?: string | undefined }) {
   const snapshot = useSyncExternalStore(runtime.store.subscribe, runtime.store.getSnapshot, runtime.store.getSnapshot)
-  const [tab, setTab] = useState<'packs' | 'sealed' | 'skins' | 'history' | 'rewards'>('packs')
-  const [targetPack, setTargetPack] = useState(initialPackId)
+  const [tab, setTab] = useState<'packs' | 'sealed' | 'skins' | 'history' | 'rewards'>(initialPackId === 'sealed' ? 'sealed' : 'packs')
+  const [targetPack, setTargetPack] = useState(initialPackId === 'sealed' ? undefined : initialPackId)
   const [invitation, setInvitation] = useState<{employeeId: CharacterId; instanceId: string}>()
   const [message, setMessage] = useState('')
   const [failed, setFailed] = useState(false)
@@ -69,6 +71,7 @@ export function CollectionHub({ runtime, onOpenOwned, initialPackId }: { runtime
       if (result.status === 'rejected') { setMessage(result.message); setFailed(true); return }
       setMessage(success)
       if (result.status === 'saved' && result.event.type === 'open-pack') setRevealedIds([result.event.id])
+      if (result.status === 'saved' && result.event.type === 'buy-pack') setTab('sealed')
     } catch { setMessage('没有收到保存确认，请检查连接后重试。'); setFailed(true) }
   }
   async function openPacks(ids: readonly string[]) {
@@ -92,16 +95,15 @@ export function CollectionHub({ runtime, onOpenOwned, initialPackId }: { runtime
     setMessage(problem ? (saved.length ? `已保存 ${saved.length} 张卡片。` : '') + problem : `${saved.length} 张卡片已保存到本地持有记录`)
   }
   if (materialPreview) return <PackCollectionPreview onClose={() => setMaterialPreview(false)} />
-  return <section ref={hubRef} className="lumaCollectionHub" aria-label="本地卡包与卡册装帧">
+  return <section ref={hubRef} className="lumaCollectionHub" data-shop-tab={tab} aria-label="本地卡包与卡册装帧">
     <header className="lumaCollectionHubHeader">
-      <div><span className="lumaCollectionHubEyebrow">LUMA · LOCAL COLLECTION</span><h2>把相遇，收入册中</h2><p>卡包、星币与装帧保存在当前 DSH 本地设置中。星币通过免费领取获得，仅用于此档案。</p></div>
-      <div className="lumaCollectionHubWallet"><span>本地星币</span><strong aria-label={`余额 ${snapshot.balance} 星币`}>{snapshot.balance.toLocaleString('zh-CN')}</strong>
+      <div><h2>卡包与装帧</h2><p>挑一包收藏，拆开后收入自己的卡册。</p></div>
+      <div className="lumaCollectionHubWallet"><span><Coins size={16} aria-hidden="true"/>星币</span><strong aria-label={`余额 ${snapshot.balance} 星币`}>{snapshot.balance.toLocaleString('zh-CN')}</strong>
         <div>{!snapshot.welcomeClaimed && <button type="button" disabled={disabled} onClick={() => { void act(runtime.store.claimWelcome, '新册礼已存入本地钱包') }}>领取 {LOCAL_WELCOME_COINS} 新册礼</button>}
           <button type="button" disabled={disabled || !!snapshot.lastDailyClaim && today <= snapshot.lastDailyClaim} onClick={() => { void act(runtime.store.claimDaily, '今日星币已存入本地钱包') }}>{snapshot.lastDailyClaim && today <= snapshot.lastDailyClaim ? '今日已领取' : `领取每日 ${LOCAL_DAILY_COINS} 星币`}</button></div>
-        <small>每日按北京时间更新 · 无充值或真实付款</small>
+
       </div>
     </header>
-    <div className="lumaCollectionHubMaterials"><button type="button" disabled={openingBusy} onClick={() => setSamplePack(LOCAL_PACKS[0]!)}>免费体验拆包</button><button type="button" disabled={openingBusy} onClick={() => setMaterialPreview(true)} aria-label="打开全量素材预览">查看全部卡包皮肤与卡牌</button><small>自由搭配预览，不消耗卡包或星币</small></div>
     {snapshot.problem && <p className="lumaCollectionHubMessage is-error" role="alert">{snapshot.problem}</p>}
     {(message || snapshot.pending) && <p className={`lumaCollectionHubMessage${failed ? ' is-error' : ''}`} role={failed ? 'alert' : 'status'}>{snapshot.pending ? '正在保存到 DSH…' : message}</p>}
     <nav className="lumaCollectionHubTabs" aria-label="卡包与装帧导航">{([
@@ -109,12 +111,12 @@ export function CollectionHub({ runtime, onOpenOwned, initialPackId }: { runtime
     ] as const).map(([id, label]) => <button key={id} type="button" aria-current={tab === id ? 'page' : undefined} aria-controls={`${tabsId}-${id}`} onClick={() => { setInvitation(undefined); setTab(id) }}>{label}</button>)}</nav>
 
     {tab === 'packs' && <div id={`${tabsId}-packs`}>
-      <p className="lumaCollectionHubRule">每包一张，使用浏览器安全随机抽取。{CARD_DRAW_LIMIT_RULE} 原有收藏数据独立保留；此处只计入本地开包实际获得的卡片。</p>
+      <p className="lumaCollectionHubRule">每包一张，购买后放入「未开封」。{CARD_DRAW_LIMIT_RULE}</p>
       <div className="lumaCollectionHubGrid">{LOCAL_PACKS.map(pack => {
         const capacity = localPackAvailability(snapshot, pack.id), odds = getPackOdds(pack.id, snapshot.drawCounts)[0]
         const pool = getPackPool(pack.id)
         return <article key={pack.id} data-pack-id={pack.id} tabIndex={-1} className="lumaCollectionHubProduct">
-          <div className="lumaCollectionHubPackArt"><img src={pack.artworkUrl} alt={`${pack.name}卡包`} loading="lazy" /><span>单张收藏包</span></div>
+          <div className="lumaCollectionHubPackArt"><img src={pack.artworkUrl} alt={`${pack.name}卡包`} loading="lazy" /><span>{pack.id === 'first-meeting-journey' ? '吉米 · 折光未来包装' : '单张收藏包'}</span></div>
           <h3>{pack.name}</h3><p>{pack.description}</p>
           <button type="button" className="lumaPackTry" disabled={openingBusy} onClick={() => setSamplePack(pack)} aria-label={'免费试拆'+pack.name}>免费试拆</button>
           <div className="lumaCollectionHubPrice"><strong>{pack.price} <small>星币</small></strong><button type="button" disabled={disabled || snapshot.balance < pack.price || capacity < 1} onClick={() => { void act(() => runtime.store.buyPack(pack.id), `${pack.name}已放入未开封卡包`) }}>购买一包</button></div>
@@ -127,17 +129,11 @@ export function CollectionHub({ runtime, onOpenOwned, initialPackId }: { runtime
           </details>
         </article>
       })}</div>
+    <details className="lumaCollectionHubMaterials"><summary>试拆与美术预览</summary><div><p>在这里欣赏的样卡不会计入卡册。</p><button type="button" disabled={openingBusy} onClick={() => setSamplePack(LOCAL_PACKS[0]!)}>免费体验拆包</button><button type="button" disabled={openingBusy} onClick={() => setMaterialPreview(true)}>浏览美术素材</button></div></details>
     </div>}
 
-    {tab === 'sealed' && <div id={`${tabsId}-sealed`} className="lumaCollectionHubSealed">
-      <div className="lumaCollectionHubSectionHeading lumaCollectionHubSealedHeading"><div><h3>等待揭晓的相遇</h3><p>沿封口轻轻拆开。每包一张，也可以让几次相遇一起到来。</p></div>
-        {sealed.length > 1 && <button type="button" disabled={disabled} onClick={() => { void openPacks(sealed.slice(0, 5).map(pack => pack.id)) }}>一起拆开 · {Math.min(5, sealed.length)} 包</button>}</div>
-      {!sealed.length ? <div className="lumaCollectionHubEmpty"><span aria-hidden="true">✦</span><h3>书页还在等下一次相遇</h3><p>购买的卡包会放在这里，随时可以开启。</p><button type="button" onClick={() => setTab('packs')}>去选一包</button></div>
-        : <ul>{[...sealed].reverse().map(pack => {
-          const definition = LOCAL_PACKS.find(row => row.id === pack.packId)!
-          return <li key={pack.id}><img src={definition.artworkUrl} alt="" /><div><strong>{definition.name}</strong><p>{time(pack.purchasedAt)} · {pack.price} 星币</p><small>编号 {pack.id.slice(-12)}</small></div><button type="button" disabled={disabled} onClick={() => { void openPacks([pack.id]) }}>开启卡包</button></li>
-        })}</ul>}
-    </div>}
+    {tab === 'sealed' && <div id={`${tabsId}-sealed`}><SealedPackShelf packs={sealed} disabled={disabled}
+      onOpen={ids=>{void openPacks(ids)}} onShop={()=>setTab('packs')}/></div>}
 
     {tab === 'rewards' && <div id={`${tabsId}-rewards`}><CompanionRewards runtime={runtime} invitation={invitation} onFindPack={id => { setTargetPack(id); setTab('packs') }} /></div>}
     {tab === 'skins' && <div id={`${tabsId}-skins`}>

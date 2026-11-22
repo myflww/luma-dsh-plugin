@@ -47,6 +47,12 @@ const WORK_AUTONOMY: OfficeAutonomyPolicy = Object.freeze({
 // Being seated never starts a Harness task or a taskless typing animation.
 const LUNCH_AUTONOMY: OfficeAutonomyPolicy = Object.freeze({ ...WORK_AUTONOMY })
 
+/** The four-to-seven minute work interval belongs to someone at a desk. A
+ * colleague already on the floor pauses briefly between visits. */
+export function floorPauseRange(policy:OfficeTimePolicy):readonly [number,number] {
+  return policy.attendancePeriod==='lunch' ? [18_000,38_000] : [9_000,24_000]
+}
+
 const CLOSED_AUTONOMY: OfficeAutonomyPolicy = Object.freeze({
   mode: 'absent', preferredActivity: 'absent',
   preferBoundWorkstation: false, allowRoaming: false, returnToBoundWorkstation: false,

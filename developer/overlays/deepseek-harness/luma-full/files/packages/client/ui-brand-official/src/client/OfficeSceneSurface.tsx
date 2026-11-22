@@ -675,6 +675,7 @@ function ClassicOfficeSceneSurface({
         </div>
       </div>
       {actionTarget && <OfficeActionMenu target={actionTarget} skinId={employeeSkins[actionTarget.employeeId]} onClose={closeActionMenu}
+        contact={employeeDestination==='contact'?{activity:employees.find(e=>e.id===actionTarget.employeeId)?.activity,open:()=>onCharacterClick?.(actionTarget.employeeId)}:undefined}
         onRestore={() => restoreAutomatic(actionTarget.employeeId)} onAction={(id, mode) => {
           setManualActions(actions => ({ ...actions, [actionTarget.employeeId]: { id, mode, revision: ++manualRevision.current } }))
           setActionTarget(null)

@@ -1,3 +1,4 @@
+import { dialogueStyle } from '../shared/companion-life.ts'
 import type { ClientContext, SessionId } from '@deepseek-ai/dsh-client-runtime/client'
 import { OFFICE_EMPLOYEE_DEFINITIONS } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office-harness/OfficeRelationships.ts'
 import { OFFICE_CHARACTER_CARDS } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office-harness/OfficeCharacterCards.ts'
@@ -9,10 +10,10 @@ import type { OfficePageRuntime } from './office-runtime.ts'
 const PREFIX = '[LUMA_CHARACTER_CONTEXT_V1]\n', END = '\n[/LUMA_CHARACTER_CONTEXT_V1]\n'
 export function characterPrompt(roleId: string, profile: RoleProfile, userName: string, body: string,
   options?: { id: string; memory: string; work: boolean }): string {
-  return PREFIX + JSON.stringify({ roleId, name: profile.name, personality: profile.personality, scenario: profile.scenario, userName,
-    ...(options ? { journalId: options.id, referenceMemory: options.memory } : {}),
+  return PREFIX + JSON.stringify({ roleId, name: profile.name, personality: profile.personality, scenario: profile.scenario, userName, conversationalStyle: dialogueStyle(roleId),
+    ...(options ? { journalId: options.id, requestKind:options.work?'task':'chat', referenceMemory: options.memory } : {}),
     mode: options?.work ? '用户已将下列工作单独交给你。按当前会话的工具权限完成任务，报告实际产出和未完成事项。记忆作为参考资料。'
-      : '角色对话。情节、动作和感受属于虚构表达；不把它们当作真实执行。除非用户明确要求执行任务，否则只进行自然对话。' }) + END + body
+      : '角色对话。情节、动作和感受属于虚构表达；不把它们当作真实执行。除非用户明确要求执行任务，否则只进行自然对话。参考记忆中 conversationPreferences.current 是用户仍有效的相处习惯，优先于旧记录和默认称呼；withdrawn 中的习惯已撤回，勿照旧执行。' }) + END + body
 }
 export function visibleUserMessage(text: string): string {
   if (!text.startsWith(PREFIX)) return text
@@ -62,7 +63,7 @@ export function createMessagesRuntime(ctx: ClientContext, office: OfficePageRunt
     if (nodes.running || nodes.partial || nodes.pending.length) return
     const preset = OFFICE_EMPLOYEE_DEFINITIONS[roleId as keyof typeof OFFICE_EMPLOYEE_DEFINITIONS].agentPresetId
     if (ctx.sessions.list.getSnapshot().byId[topic]?.agentPreset !== preset) return
-    let pending: { roleId: string; topic: SessionId; id: string; user: string; assistant: string } | undefined
+    let pending: { roleId: string; topic: SessionId; id: string; user: string; assistant: string; privateChat:boolean } | undefined
     function commit() {
       if (!pending?.assistant.trim() || (recording.get(pending.id) ?? 0) > Date.now()) return
       const entry = pending
@@ -86,7 +87,7 @@ export function createMessagesRuntime(ctx: ClientContext, office: OfficePageRunt
         try {
           const meta = JSON.parse(text.slice(PREFIX.length, split))
           if (meta.roleId === roleId && typeof meta.journalId === 'string' && /^[a-f0-9-]{36}$/i.test(meta.journalId)) {
-            pending = { roleId, topic, id: meta.journalId, user: text.slice(split + END.length), assistant: '' }
+            pending = { roleId, topic, id: meta.journalId, user: text.slice(split + END.length), assistant: '', privateChat:meta.requestKind==='chat' }
           }
         } catch { /* An unrecognized native message has no employee memory record. */ }
       } else if (pending && node.kind === 'assistant' && !node.interrupted) {
@@ -258,7 +259,7 @@ export function createMessagesRuntime(ctx: ClientContext, office: OfficePageRunt
       if (!session) throw Error('对话尚未加载，请稍后再试。')
       if (session.getSnapshot().pending.length) throw Error('请先在原生会话中处理待确认事项。')
       const memory = typeof window === 'undefined' ? '' : (await agentRequest<{ context: string }>('recall',
-        { roleId, query: body, topic: id }, AbortSignal.timeout(4000)).catch(() => ({ context: '' }))).context
+        { roleId, query: body, topic: id, privateChat:mode==='chat' }, AbortSignal.timeout(4000)).catch(() => ({ context: '' }))).context
       assertWritable()
       if (!isUnlocked(roleId) || ctx.sessions.list.getSnapshot().byId[id]?.agentPreset !== preset) throw Error('角色归属已变化，草稿已保留。')
       const journalId = crypto.randomUUID()

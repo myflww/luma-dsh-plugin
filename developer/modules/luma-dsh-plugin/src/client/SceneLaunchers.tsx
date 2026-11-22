@@ -23,7 +23,8 @@ function SidebarSwitch({ sidebar }: { sidebar: HostSidebar }) {
     onClick={() => sidebar.toggle()}><Icon size={17} aria-hidden="true" /></button>
 }
 
-export function SceneLaunchers({ hostSidebar, onPage, onHouse, onExit }: {
+export function SceneLaunchers({ hostSidebar, onPage, onHouse, onExit, current }: {
+  current?: string
   hostSidebar?: HostSidebar | undefined
   onPage(page: Destination): void
   onHouse(): void
@@ -55,7 +56,7 @@ export function SceneLaunchers({ hostSidebar, onPage, onHouse, onExit }: {
     <button ref={trigger} type="button" aria-expanded={open} aria-controls={open ? menuId : undefined}
       onClick={() => setOpen(value => !value)}><LayoutGrid size={17} aria-hidden="true" /><span>菜单</span></button>
     {open && <nav id={menuId} className="lumaSceneNavigation" aria-label="Luma 页面">
-      {destinations.map(({ page, label, Icon }) => <button key={page} type="button" onClick={() => {
+      {destinations.map(({ page, label, Icon }) => <button key={page} aria-current={current === page ? 'page' : undefined} type="button" onClick={() => {
         setOpen(false)
         onPage(page)
       }}><Icon size={17} aria-hidden="true" />{label}</button>)}

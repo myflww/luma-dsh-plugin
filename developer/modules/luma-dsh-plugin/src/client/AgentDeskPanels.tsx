@@ -37,6 +37,8 @@ export function JobCard({ job, names, skins, canWrite, cancel }: {
 }
 interface PanelProps { roleId: string; name: string; canWrite: boolean; refresh(): Promise<unknown>; close(): void }
 export function AgentServicePanel({ roleId, name, config, canWrite, refresh, close, onSaved, forHandoff = false }: PanelProps & { config?: AgentConfig | undefined; onSaved?(): void; forHandoff?: boolean }) {
+  const [protocol,setProtocol] = useState<NonNullable<AgentConfig['protocol']>>(config?.protocol ?? 'openai')
+  const endpoints={openai:'',anthropic:'https://api.anthropic.com/v1',gemini:'https://generativelanguage.googleapis.com/v1beta'}
   const [url, setUrl] = useState(config?.baseUrl ?? ''), [model, setModel] = useState(config?.model ?? '')
   const [secret, setSecret] = useState(''), [busy, setBusy] = useState(false), [note, setNote] = useState('')
   const lock = useRef(false)
@@ -44,7 +46,7 @@ export function AgentServicePanel({ roleId, name, config, canWrite, refresh, clo
     if (lock.current || !canWrite) return
     lock.current = true; setBusy(true); setNote('')
     try {
-      await agentRequest('configure', { roleId, baseUrl: remove ? '' : url.trim(), model: remove ? '' : model.trim(),
+      await agentRequest('configure', { roleId, protocol, baseUrl: remove ? '' : url.trim(), model: remove ? '' : model.trim(),
         ...(remove ? { apiKey: '' } : secret ? { apiKey: secret } : {}) })
       setSecret('')
       if (remove) { setUrl(''); setModel('') }
@@ -53,11 +55,16 @@ export function AgentServicePanel({ roleId, name, config, canWrite, refresh, clo
     finally { lock.current = false; setBusy(false) }
   }
   return <aside className="lumaRoleEditor" aria-label="员工 API 服务"><header><h2>{forHandoff ? name + '的 API 服务' : 'API 服务'}</h2><button onClick={close} aria-label="关闭 API 服务">×</button></header>
-    <p>{name}可使用独立的 OpenAI 兼容服务。填写服务的基础地址及模型标识。</p>
+    <p>给{name}选择模型服务。私聊和群内交付都使用这位员工自己的配置。</p>
     <form onSubmit={e => { e.preventDefault(); void save(false) }}>
+      <label>服务协议<select value={protocol} onChange={e=>{
+        const next=e.target.value as typeof protocol
+        setProtocol(next);setSecret('')
+        if(!url || Object.values(endpoints).includes(url)) setUrl(endpoints[next])
+      }}><option value="openai">Chat Completions · DeepSeek 等兼容服务</option><option value="anthropic">Anthropic Messages · Claude</option><option value="gemini">Google Gemini</option></select></label>
       <label>服务地址<input type="url" autoFocus={forHandoff} value={url} onChange={e => setUrl(e.target.value)} placeholder="https://api.example.com/v1" required maxLength={2048} /></label>
       <label>模型标识<input value={model} onChange={e => setModel(e.target.value)} placeholder="服务提供的模型名称" required maxLength={200} /></label>
-      <label>API 密钥<input key={roleId} type="password" autoComplete="new-password" value={secret} onChange={e => setSecret(e.target.value)} placeholder={config?.hasKey ? '已保存，留空可沿用同一服务的密钥' : '本机免密服务可留空'} /></label>
+      <label>API 密钥<input key={roleId} type="password" autoComplete="new-password" value={secret} onChange={e => setSecret(e.target.value)} placeholder={config?.hasKey && protocol===(config.protocol ?? 'openai') && url.trim()===config.baseUrl ? '已保存，留空可沿用同一服务的密钥' : '本机免密服务可留空'} /></label>
       <button className="is-primary" disabled={!canWrite || busy || !url.trim() || !model.trim()} type="submit">保存服务</button>
       {config?.model && <button type="button" disabled={!canWrite || busy} onClick={() => void save(true)}>改用 DSH</button>}
     </form>{note && <p role="status">{note}</p>}</aside>
@@ -65,17 +72,27 @@ export function AgentServicePanel({ roleId, name, config, canWrite, refresh, clo
 export function AgentMemoryPanel({ roleId, name, canWrite, refresh, close, house, count }: PanelProps & {
   house: AgentState['loveHouse'] | undefined; count: number
 }) {
+  const [styles,setStyles]=useState<{key:string;label:string;value:string}[]>([])
   const [entries, setEntries] = useState<AgentMemory[]>([]), [draft, setDraft] = useState('')
   const [busy, setBusy] = useState(false), [note, setNote] = useState(''), [loaded, setLoaded] = useState(false)
   const [epoch, setEpoch] = useState(0)
   const lock = useRef(false)
   useEffect(() => {
     const request = new AbortController()
-    void agentRequest<{ entries: AgentMemory[] }>('memory', { roleId }, request.signal).then(result => {
-      if (!request.signal.aborted) { setEntries(result.entries); setLoaded(true) }
+    void agentRequest<{ entries: AgentMemory[]; styles?:typeof styles }>('memory', { roleId }, request.signal).then(result => {
+      if (!request.signal.aborted) { setEntries(result.entries); setStyles(result.styles ?? []); setLoaded(true) }
     }).catch(error => { if (!request.signal.aborted) setNote(error instanceof Error ? error.message : '记忆读取失败。') })
     return () => request.abort()
   }, [roleId, count, epoch])
+  async function forgetStyle(item: typeof styles[number]){
+    if(lock.current || !canWrite)return
+    lock.current=true;setBusy(true)
+    try {
+      const next=await agentRequest<{styles:typeof styles}>('forgetstyle',{roleId,key:item.key,value:item.value},AbortSignal.timeout(8000))
+      setStyles(next.styles);setNote('已撤回这条相处习惯，原对话可继续查看。')
+    } catch(error){setNote(error instanceof Error?error.message:'暂时无法保存。')}
+    finally{lock.current=false;setBusy(false)}
+  }
   async function act(action: 'remember' | 'new' | 'portable') {
     if (lock.current || !canWrite) return
     lock.current = true; setBusy(true); setNote('')
@@ -95,6 +112,9 @@ export function AgentMemoryPanel({ roleId, name, canWrite, refresh, close, house
     {!house?.connected && house?.portableAvailable && <p>桌面 Luma 便携版已绑定八个员工库。复用后，两版会把同一员工的新记忆写入同一个库。</p>}
     {!house?.connected && house?.portableAvailable && <button type="button" className="is-primary" disabled={!canWrite || busy} onClick={() => void act('portable')}>复用便携版的八个记忆库</button>}
     {!house?.connected && <button type="button" disabled={!house || !canWrite || busy} onClick={() => void act('new')}>{house?.portableAvailable ? '新建独立的八个记忆库' : '连接桌面爱之屋'}</button>}
+    <section className="lumaLearnedStyles"><h3>你们的相处习惯</h3><p>在私聊里告诉{name}「下次先给结论」或「别叫我老板」。以后可以直接改口，也可以在这里撤回。</p>
+      {styles.length ? <ul>{styles.map(item=><li key={item.key}><span><small>{item.label}</small>{item.value}</span><button type="button" disabled={!canWrite || busy} aria-label={'撤回'+item.label} onClick={()=>void forgetStyle(item)}>撤回</button></li>)}</ul> : loaded && <small>还没有约定过相处习惯。</small>}
+    </section>
     <label>新增记忆<textarea value={draft} maxLength={4000} placeholder="例如客户偏好、既定约定或项目背景" onChange={e => setDraft(e.target.value)} /></label>
     <button type="button" className="is-primary" disabled={!canWrite || busy || !draft.trim()} onClick={() => void act('remember')}>保存记忆</button>
     {note && <p role="status">{note}</p>}

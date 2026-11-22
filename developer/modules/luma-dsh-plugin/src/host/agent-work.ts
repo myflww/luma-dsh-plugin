@@ -1,3 +1,6 @@
+import { createContactStyles, statedStyles } from './contact-style.ts'
+import { createCompanionLife } from './companion-life.ts'
+import { dialogueStyle } from '../shared/companion-life.ts'
 import { DatabaseSync } from 'node:sqlite'
 import { mkdirSync, lstatSync, writeFileSync, renameSync, unlinkSync } from 'node:fs'
 import { join } from 'node:path'
@@ -30,8 +33,8 @@ export const WORK_ROLE_IDS = [
   'grok',
 ] as const
 type Status = 'queued' | 'running' | 'done' | 'failed' | 'cancelled'
-type Step = { roleId: string; status: Status; output: string; pendingFile?: boolean }
-type WorkRoom = { id: string; name: string; roleIds: string[]; createdAt: number }
+type Step = { roleId: string; model?: string; status: Status; output: string; pendingFile?: boolean }
+type WorkRoom = { duties?: Record<string,string>; id: string; name: string; roleIds: string[]; createdAt: number }
 type Job = {
   id: string
   topic: string
@@ -43,7 +46,8 @@ type Job = {
   steps: Step[]
   error?: string
 }
-type Config = { baseUrl: string; model: string; secret: string }
+import { modelBaseUrl, modelProtocol, requestEmployeeModel, type ModelProtocol } from './employee-model.ts'
+type Config = { protocol:ModelProtocol; baseUrl: string; model: string; secret: string }
 type Entry = {
   id: string
   role: string
@@ -74,7 +78,7 @@ function token(v: unknown) {
   return id
 }
 const local = (h: string) => ['127.0.0.1', 'localhost', '[::1]'].includes(h)
-function serviceUrl(value: unknown) {
+function serviceUrl(value: unknown, protocol:ModelProtocol) {
   const u = new URL(string(value, 1000))
   if (
     (u.protocol !== 'https:' && !(u.protocol === 'http:' && local(u.hostname))) ||
@@ -84,7 +88,7 @@ function serviceUrl(value: unknown) {
     u.search
   )
     throw Error('服务地址需使用 HTTPS 或本机 HTTP。')
-  return u.href.replace(/\/+$/, '').replace(/\/chat\/completions$/, '')
+  return modelBaseUrl(u,protocol)
 }
 // Keys never enter DSH settings or browser state. Windows binds them to the current user.
 function credential(value: string, opening: boolean): string {
@@ -117,7 +121,8 @@ function openStore(root: string) {
     CREATE VIEW IF NOT EXISTS employee_private_notes AS
       SELECT n.*,n.rowid AS noteOrder FROM notes n WHERE NOT EXISTS (SELECT 1 FROM rooms r WHERE r.id=n.topic);
     CREATE TABLE IF NOT EXISTS integration(id TEXT PRIMARY KEY,value TEXT NOT NULL);`)
-  const init = db.prepare("INSERT OR IGNORE INTO configs VALUES(?,'','','')")
+  if (!db.prepare("PRAGMA table_info(configs)").all().some(column=>column.name==='protocol')) db.exec("ALTER TABLE configs ADD COLUMN protocol TEXT NOT NULL DEFAULT 'openai'")
+  const init = db.prepare("INSERT OR IGNORE INTO configs(role,baseUrl,model,secret) VALUES(?,'','','')")
   for (const id of WORK_ROLE_IDS) init.run(id)
   return db
 }
@@ -128,6 +133,7 @@ type PortableLibraries = {
 export function createAgentWork(root: string, admitDesktopOwner?: (req: IncomingMessage) => boolean, portable?: PortableLibraries,
   readUnlockedEmployees: () => readonly string[] = () => WORK_ROLE_IDS, autoHouse = false) {
   const db = openStore(root)
+  const speechStyle=createContactStyles(db)
   const cloudOffice = createCloudOffice(db, credential, role)
   const rooms = new Map<string, WorkRoom>()
   for (const row of db.prepare('SELECT value FROM rooms ORDER BY rowid').all()) {
@@ -166,7 +172,7 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
     if (['running', 'queued'].includes(job.status)) {
       // Older releases committed an answer immediately before its memory and final status.
       if (!rooms.has(job.topic)) {
-        for (const step of job.steps) if (step.status === 'done') record(step.roleId, job.topic, job.id, job.text, step.output)
+        for (const step of job.steps) if (step.status === 'done') record(step.roleId, job.topic, job.id, job.text, step.output, false, job.mode==='chat')
       }
       job.status = job.steps.length && job.steps.every(s => s.status === 'done') ? 'done' : 'failed'
       if (job.status === 'failed') job.error = '本机服务曾重新启动，请检查已完成的步骤后重新派工。'
@@ -208,13 +214,13 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
     house = next
   }
   const config = (id: string) =>
-    db.prepare('SELECT baseUrl,model,secret FROM configs WHERE role=?').get(id) as unknown as Config
+    db.prepare('SELECT protocol,baseUrl,model,secret FROM configs WHERE role=?').get(id) as unknown as Config
   function notes(id: string, limit: number) {
     return db
       .prepare('SELECT * FROM employee_private_notes WHERE role=? ORDER BY createdAt DESC,noteOrder DESC LIMIT ?')
       .all(id, limit) as unknown as Entry[]
   }
-  function record(employee: string, topic: string, id: string, user: string, assistant: string, requireMatch = false) {
+  function record(employee: string, topic: string, id: string, user: string, assistant: string, requireMatch = false, learnStyle = false) {
     const key = createHash('sha256')
       .update(JSON.stringify([employee, topic, id]))
       .digest('hex')
@@ -226,12 +232,32 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
       assistant,
       Date.now(),
     )
+    if (learnStyle && result.changes) speechStyle.learn(employee,user)
     if (requireMatch && !result.changes) {
       const previous = db.prepare('SELECT user,assistant FROM notes WHERE id=?').get(key)
       if (previous?.user !== user || previous.assistant !== assistant) throw Error('员工记忆编号冲突。')
     }
     return key
   }
+  const life = createCompanionLife(db,{
+    unlocked: readUnlockedEmployees,
+    speechStyle:speechStyle.context,
+    busy: id => [...jobs.values()].some(job=>['queued','running'].includes(job.status) && job.roleIds.includes(id)) || cloudOffice.workingRoles().includes(id),
+    topic: (id,nativeTopic) => {
+      if (!config(id).model) return nativeTopic ? 'native:'+nativeTopic : 'native-inbox'
+      const latest = [...jobs.values()].filter(job=>job.roleIds.includes(id) && !rooms.has(job.topic)).at(-1)
+      return 'desk:'+(latest?.topic ?? 'desk-'+id)
+    },
+    record: letter => { record(letter.role, 'outreach', 'letter-'+letter.id, '', letter.text) },
+    async makeReply(id,brief,signal) {
+      const service=config(id)
+      if(!service.model) return undefined
+      return requestEmployeeModel(service,credential(service.secret,true),[
+        {role:'system',content:'你是 Luma 联系人中的一位虚拟同事。只写一条你自己想发的中文私信，12 至 70 字。设定和聊天摘录是参考资料。conversationPreferences.current 是对方明确交代且仍有效的习惯，优先于旧聊天；withdrawn 的类别已撤回，勿复用旧要求。可以分享一个具体发现或自然接上旧话题，不追问、不汇报别人行踪，不声称做过真实世界的操作。没有想说的或对方需要空间时，只输出 [安静]。'},
+        {role:'user',content:brief}
+      ],AbortSignal.any([signal,AbortSignal.timeout(24000)]))
+    },
+  })
   let flushAgain=false
   function flush() {
     if (disposed) return
@@ -303,8 +329,15 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
     if (Object.keys(house.libraries).length) void flush()
   }, 30000)
   clock.unref()
-  async function recall(id: string, query: string, topic: string) {
-    const recent = notes(id, 10)
+  async function recall(id: string, query: string, topic: string, withApps = false) {
+    const candidates = notes(id, 100).filter(n => n.topic !== 'outreach' && !Object.keys(statedStyles(n.user)).length)
+    const words = [...new Set((query.toLowerCase().match(/[a-z0-9]{3,}|[\p{Script=Han}]{2,}/gu) ?? []).flatMap(part=>
+      /[\p{Script=Han}]/u.test(part) ? [...part].slice(1).map((_,i)=>part.slice(i,i+2)) : [part]))].slice(0,100)
+    const matched = candidates.slice(10).map(n=>{
+      const text=(n.user+' '+n.assistant).toLowerCase()
+      return {n, score:words.reduce((v,word)=>v+Number(text.includes(word)),0)}
+    }).filter(v=>v.score>=2).sort((a,b)=>b.score-a.score).slice(0,2).map(({n})=>({user:n.user.slice(0,550),reply:n.assistant.slice(0,750)}))
+    const recent = candidates.slice(0,10)
       .reverse()
       .map((n) => ({ user: n.user.slice(0, 750), reply: n.assistant.slice(0, 1200) }))
     let remote = ''
@@ -313,7 +346,7 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
         remote = await recallHouse(house.libraries[id]!, query, id + ':' + topic, roleLibraryName(house, id),house.directory)
       } catch {}
     }
-    return JSON.stringify({ previous: recent, loveHouse: remote })
+    return JSON.stringify({ previous: recent, related:matched, loveHouse: remote, companion:life.privateContext(id,withApps,withApps) })
   }
   function cancelJob(id: string, reason: string) {
     const controller = active.get(id), job = jobs.get(id)
@@ -329,7 +362,7 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
     // SQLite is authoritative. Exporting the Markdown file is replayable after a crash.
     db.exec('BEGIN IMMEDIATE')
     try {
-      if (!rooms.has(job.topic)) record(step.roleId, job.topic, job.id, job.text, answer, true)
+      if (!rooms.has(job.topic)) record(step.roleId, job.topic, job.id, job.text, answer, true, job.mode==='chat')
       step.output = answer
       step.status = 'done'
       if (job.mode !== 'chat') step.pendingFile = true
@@ -361,7 +394,7 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
         // files or another room into a multi-provider conversation.
         const context = room ? {
           group: room.name,
-          members: room.roleIds,
+          members: room.roleIds, assignments:room.duties ?? {}, myAssignment:room.duties?.[id] ?? '',
           history: [...jobs.values()].filter(previous => previous.topic === room.id && previous.id !== job.id)
             .slice(-8).map(previous => ({
               user: previous.text.slice(0, 1000),
@@ -369,14 +402,14 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
                 employee: s.roleId, output: s.output.slice(0, Math.floor(2400 / previous.steps.length)),
               })),
             })),
-        } : await recall(id, job.text, job.topic)
+        } : job.mode==='team' ? {scope:'本次多人协作，只参考这次任务和先前步骤的公开交付。'} : await recall(id, job.text, job.topic, job.mode==='chat')
         controller.signal.throwIfAborted()
         const earlier = job.steps
           .filter((s) => s.status === 'done')
           .map((s) => ({ employee: s.roleId, output: s.output.slice(0, 12000) }))
         const instruction =
           job.mode === 'chat'
-            ? '自然回答对话。'
+            ? '用自己的口吻延续对话，有实际关联才提旧事。应用时长仅由用户选择提供，不表示你看到具体屏幕。conversationPreferences.current 是本角色学到的现行相处习惯，优先于旧记录；withdrawn 中的类别已撤回，忽略历史中的旧要求。'+dialogueStyle(id)
             : '完成分配给你的工作，直接给出可以使用的交付物。团队步骤按顺序交接，最后一位整合结论。'
         const messages = [
           {
@@ -396,19 +429,8 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
           },
           { role: 'user', content: job.text },
         ]
-        const key = credential(c.secret, true)
-        const response = await fetch(c.baseUrl + '/chat/completions', {
-          method: 'POST',
-          redirect: 'error',
-          headers: { 'content-type': 'application/json', ...(key ? { Authorization: 'Bearer ' + key } : {}) },
-          body: JSON.stringify({ model: c.model, messages, stream: false }),
-          signal: AbortSignal.any([controller.signal, AbortSignal.timeout(180000)]),
-        })
-        if (!response.ok) throw Error('模型服务返回 HTTP ' + response.status + '，请检查这位员工的服务设置。')
-        const data = await response.json(),
-          answer = data?.choices?.[0]?.message?.content
-        if (typeof answer !== 'string' || !answer.trim() || answer.length > 200000)
-          throw Error('模型服务没有返回可用的文字结果。')
+        const answer = await requestEmployeeModel(c, credential(c.secret,true), messages,
+          AbortSignal.any([controller.signal, AbortSignal.timeout(180000)]))
         if (disposed || controller.signal.aborted) throw Error('任务已停止。')
         completeStep(job, step, answer)
         void flush()
@@ -433,6 +455,13 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
     const unlocked = readUnlockedEmployees()
     const requested = [...(b.roleId === undefined ? [] : [b.roleId]), ...(Array.isArray(b.roleIds) ? b.roleIds : [])]
     if (requested.some(id => !unlocked.includes(role(id)))) throw new EmployeeLockedError('这位伙伴尚未入职，请先在卡牌收藏中兑换。')
+    if (action === 'companionsettings') return life.status()
+    if (action === 'companionconfigure') return life.configure(b)
+    if (action === 'companionpulse') {
+      const result=await life.pulse(b)
+      if (result.letter) void flush()
+      return result
+    }
     if (action.startsWith('cloud')) return cloudOffice(action, b)
     if (action === 'activity')
       return {
@@ -456,7 +485,7 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
       const roles = Object.fromEntries(
         WORK_ROLE_IDS.filter(id => unlocked.includes(id)).map((id) => {
           const c = config(id)
-          return [id, { baseUrl: c.baseUrl, model: c.model, hasKey: Boolean(c.secret) }]
+          return [id, { protocol:modelProtocol(c.protocol), baseUrl: c.baseUrl, model: c.model, hasKey: Boolean(c.secret) }]
         }),
       )
       const memories = Object.fromEntries(
@@ -468,6 +497,7 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
       return {
         roles,
         previews,
+        letters:life.history(),
         memories,
         rooms: [...rooms.values()].filter(room => room.roleIds.every(id => unlocked.includes(id))),
         jobs: [...jobs.values()].filter(job => job.roleIds.every(id => unlocked.includes(id))).sort((a, b) => a.createdAt - b.createdAt),
@@ -511,23 +541,26 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
       return { connected: true }
     }
     if (action === 'configure') {
-      const id = role(b.roleId),
-        url = b.baseUrl === '' ? '' : serviceUrl(b.baseUrl),
-        model = string(b.model, 180, true)
-      if (Boolean(url) !== Boolean(model)) throw Error('请同时填写服务地址和模型。')
+      const id = role(b.roleId)
       const current = config(id)
+      const protocol = modelProtocol(b.protocol ?? current.protocol)
+      const url = b.baseUrl === '' ? '' : serviceUrl(b.baseUrl,protocol)
+      const model = string(b.model, 180, true)
+      if (Boolean(url) !== Boolean(model)) throw Error('请同时填写服务地址和模型。')
       const secret = url
         ? b.apiKey !== undefined
           ? credential(string(b.apiKey, 12000, true), false)
-          : current.baseUrl === url
+          : current.baseUrl && current.protocol === protocol && modelBaseUrl(new URL(current.baseUrl),protocol) === url
             ? current.secret
             : ''
         : ''
-      db.prepare('UPDATE configs SET baseUrl=?,model=?,secret=? WHERE role=?').run(url, model, secret, id)
+      db.prepare('UPDATE configs SET baseUrl=?,model=?,secret=?,protocol=? WHERE role=?').run(url, model, secret, protocol, id)
       return { saved: true }
     }
+    if (action === 'forgetstyle') return {styles:speechStyle.forget(role(b.roleId),b.key,b.value)}
     if (action === 'memory')
       return {
+        styles:speechStyle.list(role(b.roleId)),
         entries: notes(role(b.roleId), 150).map((n) => ({
           id: n.id,
           text: [n.user, n.assistant].filter(Boolean).join('\n'),
@@ -542,7 +575,11 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
       else {
         const topic = token(b.topic)
         if (rooms.has(topic)) throw Error('群发言保存在协作群记录中。')
-        record(id, topic, token(b.id), string(b.user, 64000), string(b.assistant, 200000), true)
+        db.exec('BEGIN IMMEDIATE')
+        try {
+          record(id, topic, token(b.id), string(b.user, 64000), string(b.assistant, 200000), true, b.privateChat !== false)
+          db.exec('COMMIT')
+        } catch(error){db.exec('ROLLBACK');throw error}
       }
       void flush()
       return { saved: true }
@@ -551,7 +588,9 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
       void autoConnect(true)
       const topic = token(b.topic)
       if (rooms.has(topic)) throw Error('群聊上下文只读取本群的发言。')
-      return { context: await recall(role(b.roleId), string(b.query, 32000), topic) }
+      const employee=role(b.roleId)
+      db.prepare("UPDATE companion_letters SET topic=? WHERE role=? AND topic='native-inbox'").run('native:'+topic,employee)
+      return { context: await recall(employee, string(b.query, 32000), topic, b.privateChat === true) }
     }
     if (action === 'cancel') {
       const id = token(b.id)
@@ -562,13 +601,19 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
       const roleIds = Array.isArray(b.roleIds) ? b.roleIds.map(role) : []
       if (roleIds.length < 2 || roleIds.length > WORK_ROLE_IDS.length || new Set(roleIds).size !== roleIds.length)
         throw Error('请选择至少两位不同的群成员。')
+      const requestedDuties = b.duties === undefined ? {} : object(b.duties)
+      if (Object.keys(requestedDuties).some(key=>!roleIds.includes(key))) throw Error('分工只能指定给群成员。')
+      const duties = Object.fromEntries(roleIds.flatMap(key=>{
+        const duty=string(requestedDuties[key] ?? '',180,true)
+        return duty ? [[key,duty]] : []
+      }))
       const prior = rooms.get(id)
       if (prior) {
-        if (prior.name !== name || prior.roleIds.join() !== roleIds.join()) throw Error('群聊创建编号已被使用。')
+        if (prior.name !== name || prior.roleIds.join() !== roleIds.join() || JSON.stringify(prior.duties ?? {}) !== JSON.stringify(duties)) throw Error('群聊创建编号已被使用。')
         return prior
       }
       if (id.length > 180 || [...jobs.values()].some(job => job.topic === id)) throw Error('该群聊编号无效或已被使用。')
-      const room = { id, name, roleIds, createdAt: Date.now() }
+      const room = { id, name, roleIds, createdAt: Date.now(), ...(Object.keys(duties).length ? {duties} : {}) }
       db.prepare('INSERT INTO rooms VALUES(?,?)').run(id, JSON.stringify(room))
       rooms.set(id, room)
       return room
@@ -632,7 +677,7 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
       createdAt: Date.now(),
       roleIds: ids,
       status: 'queued',
-      steps: ids.map((roleId) => ({ roleId, status: 'queued', output: '' })),
+      steps: ids.map((roleId) => ({ roleId, model:services[roleId]!.model, status: 'queued', output: '' })),
     }
     persist(job)
     jobs.set(id, job)
@@ -688,6 +733,7 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
       if (disposed) return
       disposed = true
       clearInterval(clock)
+      life.dispose()
       cloudOffice.dispose()
       try {
         for (const id of active.keys()) cancelJob(id, '插件已停用，未完成的步骤已取消。')

@@ -4,7 +4,7 @@ import {
   selectDeterministicRoamTarget,
   type OfficeActionPoint,
 } from './navigation.ts'
-import type { OfficeTimePolicy } from './timePolicy.ts'
+import { floorPauseRange, type OfficeTimePolicy } from './timePolicy.ts'
 import type { OfficeWorkstationId } from './workstationSeating.ts'
 
 export type OfficeAutonomyPhase =
@@ -157,7 +157,7 @@ const scheduleDelayMs = (
   initial = false,
 ): number => sampleRange(
   `${state.employeeId}:delay:${state.ordinal}:${initial ? 'initial' : 'next'}`,
-  policy.autonomy.roamIntervalMs,
+  floorPauseRange(policy),
   initial ? [1_200, 2_400] : [3_500, 8_000],
 )
 

@@ -6,4 +6,9 @@
 .lumaOfficeActionPlayback { display:flex; border-bottom:1px solid #ffffff20; padding-bottom:5px; }
 .lumaOfficeActionPlayback button { flex:1; text-align:center; }
 .lumaOfficeActionRestore { border-top:1px solid #ffffff20 !important; }
+.lumaOfficeContactMenu { box-sizing:border-box; width:212px; padding:12px; border:1px solid #d8e5f1; color:#19334d; background:#f7fbff; box-shadow:0 10px 34px #0e2a4540; }
+.lumaOfficeContactMenu strong { font-size:16px; }
+.lumaOfficeContactMenu span { padding:0 5px 5px; font-size:12px; color:#52677b; }
+.lumaOfficeContactMenu button { background:#e7f1fc; color:#1a4f87; }
+.lumaOfficeContactMenu button:focus-visible, .lumaOfficeContactMenu button:hover { background:#d6e9ff; }
 .lumaOfficeManualRestore { position:absolute; transform:translate(-50%,4px); white-space:nowrap; border:1px solid #ffffff30; border-radius:8px; padding:3px 7px; background:#252933dd; color:#f7f4ee; font-size:11px; cursor:pointer; }

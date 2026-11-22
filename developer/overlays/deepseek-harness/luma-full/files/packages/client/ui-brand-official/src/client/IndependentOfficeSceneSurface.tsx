@@ -730,6 +730,8 @@ export function IndependentOfficeSceneSurface(props: OfficeSceneSurfaceProps) {
       employeeSkins={props.employeeSkins} missingFinalPoses={missingFinalPoses} />
     {error && <div role="status">主题资源读取失败：{error}</div>}
     {props.reports.map(report => <button key={report.reportId} type="button" onClick={() => props.onReportClick?.(report.reportId)}>{report.title}</button>)}
-    {target && <OfficeActionMenu target={target} skinId={props.employeeSkins?.[target.employeeId]} onClose={() => setTarget(null)} onRestore={() => { setManual(value => { const next = { ...value }; delete next[target.employeeId]; return next }); setTarget(null) }} onAction={(id, mode) => { const revision = ++manualRevision.current; setManual(value => ({ ...value, [target.employeeId]: { id, mode, revision } })); setTarget(null) }} />}
+    {target && <OfficeActionMenu target={target} skinId={props.employeeSkins?.[target.employeeId]} onClose={() => setTarget(null)}
+      contact={props.employeeDestination==='contact'?{activity:props.employees.find(e=>e.id===target.employeeId)?.activity,open:()=>props.onCharacterClick?.(target.employeeId)}:undefined}
+      onRestore={() => { setManual(value => { const next = { ...value }; delete next[target.employeeId]; return next }); setTarget(null) }} onAction={(id, mode) => { const revision = ++manualRevision.current; setManual(value => ({ ...value, [target.employeeId]: { id, mode, revision } })); setTarget(null) }} />}
   </div>
 }

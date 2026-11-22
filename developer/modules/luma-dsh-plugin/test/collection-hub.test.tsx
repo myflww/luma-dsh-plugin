@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { CollectionHub, localAlbumStyle } from '../src/client/CollectionHub.tsx'
+import { CardsPage, createCardsPageRuntime } from '../src/client/CardsPage.tsx'
+import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
 import { LocalCollectionStore } from '../src/client/local-collection-store.ts'
 import { LOCAL_ALBUM_SKINS, LOCAL_PACKS, validateLocalCollectionSettings, type LocalCollectionSettings } from '../src/shared/local-collection-domain.ts'
 import { OPENABLE_PACK_SKINS } from '../src/shared/pack-skin-catalog.ts'
@@ -26,6 +28,32 @@ function fixture(initialValue: LocalCollectionSettings = {}, writable = true) {
 }
 
 describe('local collection product flow', () => {
+  it('starts on an empty personal album, reveals no unearned fronts, and reopens only saved acquisitions', async () => {
+    const collection = fixture()
+    const annotations = createCardsPageRuntime({settingsScope:{bind: () => ({
+      getSnapshot: () => ({status:'ready', mode:'host', writable:true, revision:0, value:{}}),
+      subscribe: () => () => {}, set:async () => {},
+    })}} as unknown as ClientContext)
+    const page = (state:typeof collection) => <CardsPage runtime={annotations} collection={state} onOpenShop={() => {}}/>
+    const view = render(page(collection))
+    expect(screen.getByRole('heading',{name:'我的卡册'})).toBeTruthy()
+    expect(screen.getByRole('heading',{name:'翻开你的第一张卡'})).toBeTruthy()
+    fireEvent.click(screen.getByRole('button',{name:'卡池图鉴'}))
+    expect(view.container.querySelectorAll('[data-discovered=true]')).toHaveLength(0)
+    expect(view.container.querySelector('.lumaGuideSlots img')).toBeNull()
+    expect(collection.writes()).toBe(0)
+    view.unmount()
+    await collection.store.claimWelcome()
+    await collection.store.buyPack('first-meeting-journey')
+    await collection.store.openPack(collection.store.getSnapshot().packs[0]!.id)
+    const restored = fixture(structuredClone(collection.settings()))
+    const fresh = fixture()
+    const reopened = render(page(restored))
+    expect(reopened.container.querySelectorAll('[data-edition-key]')).toHaveLength(1)
+    expect(fresh.store.getSnapshot().cards).toHaveLength(0)
+    expect(fresh.store.getSnapshot().unlockedEmployeeIds).toEqual(['jingyuniang'])
+    reopened.unmount(); fresh.dispose(); restored.dispose(); collection.dispose(); annotations.dispose()
+  })
   it('replays a specific saved opening after reload, including with a read-only connection', async () => {
     const original = fixture()
     await original.store.claimWelcome()
@@ -70,7 +98,8 @@ describe('local collection product flow', () => {
     await screen.findByLabelText('余额 240 星币')
     expect(runtime.store.getSnapshot().purchases).toHaveLength(1)
     fireEvent.click(screen.getByRole('button', { name: '未开封 · 1' }))
-    const sealed = screen.getByText('晨光序章', { selector: 'li strong' }).closest('li')!
+    const sealed = screen.getByRole('region',{name:'未开封卡包'})
+    expect(within(sealed).getByRole('heading',{name:'晨光序章'})).toBeTruthy()
     expect(sealed.querySelector('img')?.getAttribute('src')).toBe('/luma-economy/packs/dawn-cutout-r1.png')
     fireEvent.click(within(sealed).getByRole('button', { name: '开启卡包' }))
     const dialog = await screen.findByRole('dialog', { name: '开包结果' })
@@ -105,8 +134,10 @@ describe('local collection product flow', () => {
       const skin = OPENABLE_PACK_SKINS.find(row => row.packId === pack.id)!
       expect(screen.getByAltText(`${pack.name}卡包`).getAttribute('src')).toBe(skin.openingArtworkUrl ?? skin.artworkUrl)
     }
-    expect(screen.getByText(/仅用于此档案/)).toBeTruthy()
-    expect(screen.getByText(/此处只计入本地开包实际获得的卡片/)).toBeTruthy()
+    const previews = screen.getByText('试拆与美术预览').closest('details')!
+    expect(previews.open).toBe(false)
+    fireEvent.click(within(previews).getByText('试拆与美术预览'))
+    expect(within(previews).getByText(/样卡不会计入卡册/)).toBeTruthy()
     expect(runtime.store.getSnapshot().cards).toEqual([])
     runtime.dispose()
   })
@@ -155,6 +186,22 @@ describe('local collection product flow', () => {
     runtime.dispose()
   })
 
+  it('lets the player choose a stocked physical package and opens the selected edition',async () => {
+    const runtime=fixture()
+    await runtime.store.claimWelcome()
+    for (const id of ['first-meeting-journey','dawn-prelude','first-meeting-journey']) await runtime.store.buyPack(id)
+    render(<CollectionHub runtime={runtime} initialPackId="sealed"/>)
+    const shelf=within(screen.getByRole('region',{name:'未开封卡包'}))
+    expect(shelf.getByRole('heading',{name:'初见与远行'})).toBeTruthy()
+    fireEvent.click(shelf.getByRole('button',{name:'晨光序章，库存 1 包'}))
+    expect(shelf.getByAltText('晨光序章实物包装').getAttribute('src')).toBe('/luma-economy/packs/dawn-cutout-r1.png')
+    fireEvent.click(shelf.getByRole('button',{name:'开启卡包'}))
+    await screen.findByRole('dialog',{name:'开包结果'})
+    expect(runtime.store.getSnapshot().cards.map(card=>card.packId)).toEqual(['dawn-prelude'])
+    expect(runtime.store.getSnapshot().packs.filter(pack=>!pack.openedAt)).toHaveLength(2)
+    runtime.dispose()
+  })
+
   it('opens at most five purchased packs in a batch and leaves the sixth sealed', async () => {
     const runtime = fixture()
     await runtime.store.claimWelcome()
@@ -193,7 +240,8 @@ describe('local collection product flow', () => {
     expect(within(dialog).getAllByRole('button', { name: /^查看卡片 / })).toHaveLength(1)
     fireEvent.click(within(dialog).getByRole('button', { name: '收好这次相遇' }))
     expect(screen.getByText(/已保存 1 张卡片。/)).toBeTruthy()
-    expect(screen.getAllByRole('button', { name: '开启卡包' })).toHaveLength(2)
+    expect(screen.getByRole('button', { name: '开启卡包' })).toBeTruthy()
+    expect(screen.getByText('未开封库存 · 2 包')).toBeTruthy()
     runtime.dispose()
   })
 })

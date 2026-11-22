@@ -1,38 +1,62 @@
 {
-  "version": "0.5.1",
+  "version": "0.5.2",
   "platform": "Windows x64",
   "node": "24.19.0",
   "installerPowerShell": "Windows PowerShell 5.1",
-  "method": "Compared the complete desktop package and three installations reconstructed with the release installer against all per-file SHA-256 digests. Verified the nested update and standalone installer, idempotent reinstall, and automatic ZIP fallback with a partially restored old directory.",
+  "method": "Compared the complete desktop package and four installations reconstructed with the release installer against all per-file SHA-256 digests. Verified the nested update and standalone installer, idempotent reinstall, and automatic ZIP fallback with a partially restored old directory.",
   "recoveryInputs": [
-    "Complete v0.5.0 directory rebuilt using the published 0.5.0 installer",
+    "Complete v0.5.1 desktop package",
+    "Complete v0.5.0 plugin directory restored with its published installer",
     "Unpacked v0.4.3 plugin directory independently compared against its published ZIP",
     "Published v0.4.3 Windows ZIP"
   ],
   "baseZipSha256": "e949d369a89da2bf6ce01c2eabef4b8a3a95ced38db5ab625ea90c2bb0549c81",
-  "updateBytes": 1700448,
-  "updateSha256": "8e55b85cfa0ec9f258e5721c3e3256b52559228d38fc2af91c34317decb4d8a2",
+  "updateBytes": 1758517,
+  "updateSha256": "0e7666c2edd80b3454b680318b11db5c955649c8a436babb0ec41cb2849e0f2b",
   "changedFiles": 7,
-  "installerBytes": 1698275,
-  "installerSha256": "19615115ac9c4f09388174a4b9b04bb251e2e3be4dc7432b958c068e43c6de46",
+  "installerBytes": 1755960,
+  "installerSha256": "783b5aa3c70416d0976faf8b4c9fb74033dfe7dfd2146b7d33c74a61cd87753e",
   "matchingFiles": 1779,
   "matchingPublicAssets": 1755,
   "sha256": {
     "cordis.patch.yml": "5017a014506a399f5db4f08e523996c7c9ac68f2472c2809e022442db62a59cc",
-    "native-desktop/client.mjs": "2f7780c785b8cea6e2f70bfbdd4263dcf0569253ea4d978b6a466f03850c35ad",
-    "native-desktop/server.mjs": "7e732cfe4f872740480ad6366b911544a961962e685fda2486284d18e969b8fd"
+    "native-desktop/client.mjs": "fd860776b04ed6e3c47caa85c8e0d108364613c5ce8991fb02899472b9afdaa4",
+    "native-desktop/server.mjs": "445e18ccb7884b1e423d26dc401bcffac6b7bfcc091d019f3c421e5ade347dd5"
   },
   "verifiedLocalDate": "2026-11-22",
-  "nativeTestsPassed": 16,
-  "vitestTestsPassed": 149,
-  "vitestFilesPassed": 20,
-  "officialHost": "DeepSeek Harness Desktop 0.2.2-rc.1",
-  "desktopChecks": {
-    "isolatedProfile": "Passed office, bedroom, Love House panel, scene menu and compact viewport checks with no page errors.",
-    "installedWindowsProfile": "Opened Luma from the native sidebar, observed the sidebar fold completely and the room reach both sides and the bottom of the content area, switched to the bedroom, and connected Love House from inside the room.",
-    "connectedLoveHouseVersion": "0.10.7rc1",
-    "memoryProtocolVersion": "0.4.0",
-    "verifiedSeparateEmployeeLibraries": 8
+  "nativeTestsPassed": 26,
+  "vitestTestsPassed": 160,
+  "vitestFilesPassed": 24,
+  "officialDesktopChecks": {
+    "0.2.2-rc.1": [
+      "office",
+      "house",
+      "bedroom",
+      "menu",
+      "decor",
+      "empty-album",
+      "shop",
+      "compact"
+    ],
+    "0.2.2-rc.5": [
+      "office",
+      "house",
+      "bedroom",
+      "menu",
+      "decor",
+      "empty-album",
+      "shop",
+      "compact"
+    ]
   },
-  "cleanSourceRebuild": "Both the client and server reproduced byte-for-byte from a clean Git index archive with Node.js 24.19.0 and npm ci."
+  "cleanSourceRebuild": {
+    "sourceFiles": 398,
+    "node": "v24.19.0",
+    "artifactSha256": {
+      "client.mjs": "fd860776b04ed6e3c47caa85c8e0d108364613c5ce8991fb02899472b9afdaa4",
+      "server.mjs": "445e18ccb7884b1e423d26dc401bcffac6b7bfcc091d019f3c421e5ade347dd5"
+    },
+    "method": "Built both bundles in a separate directory from all version-controlled and new release source files with npm ci --offline; compared the resulting SHA-256 to the Desktop package."
+  },
+  "installedWindowsProfile": "Opened v0.5.2 in the existing Windows desktop profile. Verified the weekend bedroom, the empty owned album and an unchanged pre/post collection digest."
 }

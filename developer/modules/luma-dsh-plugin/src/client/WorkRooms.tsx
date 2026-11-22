@@ -16,16 +16,19 @@ const statuses = { queued: '等待接手', running: '正在处理', done: '已�
 
 export function RoomCreator({ snapshot, names, close, onCreated, refresh, state, availableRoleIds }: Props & { availableRoleIds: readonly string[]; onCreated(room: WorkRoom): void }) {
   const [members, setMembers] = useState<string[]>([snapshot.roleId])
+  const [duties,setDuties]=useState<Record<string,string>>({})
   const [title, setTitle] = useState(''), [busy, setBusy] = useState(false), [error, setError] = useState('')
   const submission = useRef({ signature: '', requestId: '' }), lock = useRef(false)
   const defaultName = members.map(id => names[id]).slice(0, 2).join('、').slice(0, 48) + '协作群'
   async function create() {
     if (lock.current || members.length < 2 || !snapshot.writable || members.some(id => !availableRoleIds.includes(id))) return
-    const name = title.trim() || defaultName, signature = JSON.stringify([members, name])
+    const name = title.trim() || defaultName
+    const assignments=Object.fromEntries(members.filter(id=>duties[id]?.trim()).map(id=>[id,duties[id]!.trim()]))
+    const signature = JSON.stringify([members, name, assignments])
     if (submission.current.signature !== signature) submission.current = { signature, requestId: crypto.randomUUID() }
     lock.current = true; setBusy(true); setError('')
     try {
-      const room = await agentRequest<WorkRoom>('createroom', { name, roleIds: members, requestId: submission.current.requestId }, AbortSignal.timeout(15000))
+      const room = await agentRequest<WorkRoom>('createroom', { name, roleIds: members, duties:assignments, requestId: submission.current.requestId }, AbortSignal.timeout(15000))
       onCreated(room)
       await refresh()
     } catch (e) { setError(e instanceof Error ? e.message : '创建失败，请重试。') }
@@ -42,7 +45,15 @@ export function RoomCreator({ snapshot, names, close, onCreated, refresh, state,
             setMembers(current => e.target.checked ? [...current, person.id] : current.filter(id => id !== person.id))
           }} /><EmployeeFace id={person.id} skin={snapshot.employeeSkins?.[person.id]} /><span>{names[person.id]}</span></label>
         })}</div></fieldset>
-      {members.length >= 2 && <p>发言顺序　{members.map(id => names[id]).join(' → ')}</p>}
+      {members.length>=2 && <fieldset className="lumaRoomAssignments" disabled={busy}><legend>接力分工</legend>
+        <ol>{members.map((id,index)=><li key={id}>
+          <span className="lumaRoomStep">{index+1}</span><label><strong>{names[id]}</strong>
+            <small>{state.roles[id]?.model || '尚未配置模型'}</small>
+            <input aria-label={names[id]+'的分工'} maxLength={180} value={duties[id] ?? ''} placeholder={index===members.length-1?'汇总交付，可自定分工':index===0?'起草，可自定分工':'补充或审阅，可自定分工'} onChange={e=>setDuties({...duties,[id]:e.target.value})}/></label>
+          {index>0 && <button type="button" aria-label={'提前'+names[id]+'的发言顺序'} onClick={()=>setMembers(current=>{
+            const next=[...current]; [next[index-1],next[index]]=[next[index]!,next[index-1]!]; return next
+          })}>上移</button>}
+        </li>)}</ol></fieldset>}
       {error && <p role="alert">{error}</p>}
       <button className="is-primary" disabled={!snapshot.writable || members.length < 2 || busy}>{busy ? '创建中…' : '创建群聊'}</button>
     </form>
@@ -102,7 +113,7 @@ export function RoomConversation({ room, snapshot, state, names, refresh, close 
     catch (e) { setError(e instanceof Error ? e.message : '停止任务失败。') }
   }
   return <><section className="lumaMessagesConversation lumaRoomConversation" aria-label="协作群对话">
-    <header className="lumaMessageToolbar"><div><h2>{room.name}</h2><span>{room.roleIds.length} 位员工 · {room.roleIds.map(id => names[id]).join('、')}</span></div>
+    <header className="lumaMessageToolbar"><div><h2>{room.name}</h2><span>{room.roleIds.length} 位员工 · {room.roleIds.map(id => names[id]+(room.duties?.[id]?'（'+room.duties[id]+'）':'')).join(' → ')}</span></div>
       <button type="button" onClick={close}>返回私聊</button></header>
     <div className="lumaMessageHistory" ref={scroll} role="log" aria-label="群聊记录" aria-live="polite"
       onScroll={e => { const el = e.currentTarget; stick.current = el.scrollHeight - el.scrollTop - el.clientHeight < 90 }}>
@@ -115,7 +126,7 @@ export function RoomConversation({ room, snapshot, state, names, refresh, close 
         </header><p>{job.text}</p></div></article>
         {job.steps.map(step => <article key={step.roleId} className="lumaMessageBubble is-assistant">
           <EmployeeFace id={step.roleId} skin={snapshot.employeeSkins?.[step.roleId]} /><div><header><strong>{names[step.roleId]}</strong>
-            <span>{statuses[step.status]}</span></header>{step.output && <><p>{step.output}</p>
+            <span>{statuses[step.status]}{step.model?' · '+step.model:''}</span></header>{step.output && <><p>{step.output}</p>
             <footer className="lumaRoomResultActions"><button type="button" onClick={() => exportResult(job.id, step.roleId, step.output)}>导出成果</button>
               {snapshot.writable && <CloudOfficeLauncher roleId={step.roleId} name={names[step.roleId]!} initialText={step.output} />}</footer></>}</div></article>)}
         {job.error && <p className="lumaMessageNotice" role="status">{job.error}</p>}

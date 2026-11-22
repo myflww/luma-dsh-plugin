@@ -1,6 +1,7 @@
+import { releaseChecker } from './release-check.ts'
 import { DatabaseSync } from 'node:sqlite'
-import { lstat, mkdir } from 'node:fs/promises'
-import { isAbsolute, join } from 'node:path'
+import { join } from 'node:path'
+import { resolveLumaProfileRoot } from './profile-data.mjs'
 import { fileURLToPath } from 'node:url'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { ASSET_PREFIXES, createAssetHandler } from '../src/host/assets.ts'
@@ -25,7 +26,7 @@ type Section = Record<string, unknown>
 type Handler = (req: IncomingMessage, res: ServerResponse) => Promise<void> | void
 type Context = EmployeeWorkspaceHost & {
   agentPresets:DesktopPresetRegistry
-  profileContext: { home: string }
+  profileContext: { home: string; dir?: string; name?: string }
   connection: { browserPeer: object; admit: (req: IncomingMessage) => { peer?: object; rejection?: number } }
   webServer: { register: (route: {kind: string; path: string; handler: Handler}) => () => void }
   effect: (setup: () => () => void, label: string) => unknown
@@ -105,11 +106,7 @@ function settingsHandler(db: DatabaseSync, homes: Record<string,string>, syncPre
 }
 
 export async function apply(ctx: Context) {
-  const home = ctx.profileContext.home
-  if (!isAbsolute(home)) throw Error('DSH 未提供本机档案目录。')
-  const root = join(home, 'luma-plugin')
-  await mkdir(root, { recursive:true, mode:0o700 })
-  if ((await lstat(root)).isSymbolicLink()) throw Error('Luma 数据目录不能指向链接。')
+  const root = await resolveLumaProfileRoot(ctx.profileContext)
   const homes = await prepareRoleHomes(join(root, 'characters'))
   const asset = createAssetHandler(fileURLToPath(new URL('../public/', import.meta.url)))
   const protect = (handler: Handler): Handler => (req, res) => {
@@ -124,6 +121,14 @@ export async function apply(ctx: Context) {
     try {
       const db = new DatabaseSync(join(root, 'desktop-settings.sqlite3'))
       clean.push(() => db.close())
+      const releases = releaseChecker(db)
+      clean.push(() => releases.close())
+      clean.push(ctx.webServer.register({kind:'exact', path:'/luma-native/release', handler:protect(async (req,res)=>{
+        if(req.method !== 'POST') return send(res,405,{error:'请使用 POST 请求。'})
+        const query=new URL(req.url ?? '/', 'http://localhost').searchParams
+        try { send(res,200,await releases.check(query.get('action') ?? 'auto',query.get('tag') ?? undefined)) }
+        catch { send(res,400,{error:'无法完成版本检查。'}) }
+      })}))
       const settings = settingsHandler(db, homes, () => presets.sync())
       const readCollection = db.prepare('SELECT revision,value FROM sections WHERE ns=?')
       let cachedRevision = -1, unlocked: readonly string[] = []

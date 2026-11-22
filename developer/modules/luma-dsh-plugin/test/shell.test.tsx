@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { PluginShell, LUMA_PAGES } from '../src/client/PluginShell.tsx'
 
+vi.mock('../src/client/CompanionPresence.tsx', () => ({ CompanionPresence: () => null }))
 vi.mock('../src/client/OfficePage.tsx', () => ({ OfficePage: ({ active, onOpenChat, sceneMenu }: { active: boolean; onOpenChat(id: string): void; sceneMenu: ReactNode }) =>
   <section data-testid="office" data-active={String(active)}>{sceneMenu}<button onClick={() => onOpenChat('lu-mi')}>与露米聊天</button></section> }))
 vi.mock('../src/client/LoveHouseQuickConnect.tsx', () => ({ LoveHouseQuickConnect: ({ onClose }: { onClose(): void }) =>
@@ -22,14 +23,15 @@ it('keeps office and role chat resident and releases native DSH for model settin
   const office = screen.getByTestId('office')
   fireEvent.click(screen.getByRole('button', { name: '与露米聊天' }))
   expect(messages.selectRole).toHaveBeenCalledWith('lu-mi', true)
-  expect(screen.getByRole('button', { name: '联系' }).getAttribute('aria-current')).toBe('page')
+  expect(screen.getByRole('button', { name: '返回场景' })).toBeTruthy()
   expect(office.getAttribute('data-active')).toBe('false')
   fireEvent.click(screen.getByRole('button', { name: '模型设置' }))
   expect(office.closest('main')?.hidden).toBe(true)
+  fireEvent.click(screen.getByRole('button', { name: '菜单' }))
   fireEvent.click(screen.getByRole('button', { name: '卡牌收藏' }))
   expect(screen.getByTestId('cards').textContent).toBe('我的卡牌')
   expect(screen.getByTestId('office')).toBe(office)
-  fireEvent.click(screen.getByRole('button', { name: '办公室' }))
+  fireEvent.click(screen.getByRole('button', { name: '返回场景' }))
   expect(office.getAttribute('data-active')).toBe('true')
   expect(office.closest('main')?.hidden).toBe(false)
 })
@@ -45,7 +47,7 @@ it('keeps the office visible when role switching is rejected and allows a later 
   expect(screen.getByRole('status').textContent).toBe('当前操作处理中，请稍后重试。')
 
   fireEvent.click(screen.getByRole('button', { name: '与露米聊天' }))
-  expect(screen.getByRole('button', { name: '联系' }).getAttribute('aria-current')).toBe('page')
+  expect(screen.getByRole('button', { name: '返回场景' })).toBeTruthy()
   expect(screen.getByTestId('office').getAttribute('data-active')).toBe('false')
   expect(screen.queryByRole('status')).toBeNull()
 })
@@ -64,7 +66,7 @@ it('opens destinations, memory and native sidebar controls from the scene withou
   fireEvent.click(screen.getByRole('button',{name:'菜单'}))
   fireEvent.click(screen.getByRole('button',{name:'插件设置'}))
   expect(screen.getByText('插件偏好')).toBeTruthy()
-  fireEvent.click(screen.getByRole('button',{name:'办公室'}))
+  fireEvent.click(screen.getByRole('button',{name:'返回场景'}))
   fireEvent.click(screen.getByRole('button',{name:'菜单'}))
   fireEvent.click(screen.getByRole('button',{name:'返回 DSH'}))
   expect(exit).toHaveBeenCalledOnce()

@@ -1,0 +1,27 @@
+.lumaDanmakuTrack{position:absolute;inset:clamp(70px,10vh,108px) 0 auto;height:48px;z-index:6;overflow:hidden;pointer-events:none;display:flex;align-items:center}
+.lumaLifeDanmaku{width:max-content;max-width:min(90%,650px);position:absolute;left:100%;display:inline-flex;align-items:center;gap:.55em;border:1px solid #b5d9f5;border-radius:30px;background:rgba(240,249,255,.96);color:#173854;box-shadow:0 4px 16px #133a6533;padding:5px 14px 5px 6px;font:500 .91rem/1.45 system-ui;pointer-events:auto;cursor:pointer;animation:luma-letter-drift 17s linear forwards}
+.lumaLifeDanmaku:hover,.lumaLifeDanmaku:focus-visible{animation-play-state:paused}
+.lumaLifeDanmaku b{color:#23557c;white-space:nowrap}
+.lumaLifeDanmaku span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lumaLifeDanmaku .lumaMessageAvatar,.lumaLifeDanmaku .lumaEmployeeFace{width:28px;height:28px;flex:none}
+.lumaPluginRoot:has(.lumaImmersiveOffice[data-hud="hidden"]) .lumaDanmakuTrack{display:none}
+@keyframes luma-letter-drift{to{left:0;transform:translateX(-100%)}}
+@media(prefers-reduced-motion:reduce){.lumaLifeDanmaku{animation:none;left:50%;transform:translateX(-50%)}}
+.lumaDanmakuTrack.is-reduced .lumaLifeDanmaku{animation:none;left:50%;transform:translateX(-50%)}
+.lumaLifeSettings h2,.lumaAppSharing summary{display:flex;gap:.5rem;align-items:center}
+.lumaLifeSettings fieldset{border:0;padding:0;margin:0;display:grid;gap:.7rem}
+.lumaLifeSettings fieldset label{display:flex;align-items:center;gap:.55rem;font-weight:500}
+.lumaLifeSettings input[type="checkbox"]{accent-color:#38719c}
+.lumaLifeSettings small,.lumaLifeSettings p{color:#536b7f;line-height:1.6}
+.lumaAppSharing{border-top:1px solid #d8e4ee;padding-top:.85rem;margin-top:1rem}
+.lumaAppSharing summary{cursor:pointer;color:#23557c;font-weight:650}
+.lumaUsagePreview{padding:0!important;margin:0;list-style:none}
+.lumaUsagePreview li{display:flex;justify-content:space-between;gap:.7rem}
+.lumaLifeLetter small{color:#617789}
+
+
+.lumaLearnedStyles{border-block:1px solid #d7e4ee;padding-block:1rem;margin-block:1.2rem}
+.lumaLearnedStyles h3{margin-top:0}
+.lumaLearnedStyles ul{padding:0;margin:.6rem 0 0;list-style:none;display:grid;gap:.45rem}
+.lumaLearnedStyles li{display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:.45rem .65rem;border-radius:10px;background:#edf5fa}
+.lumaLearnedStyles li>span{display:grid;gap:.2em}.lumaLearnedStyles small{color:#516b7e}

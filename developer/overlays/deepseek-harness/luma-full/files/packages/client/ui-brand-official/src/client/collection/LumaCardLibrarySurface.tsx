@@ -56,7 +56,7 @@ export function LumaCardLibrarySurface({ cards, snapshot, actions, onOpenShop, o
   const [query, setQuery] = useState('')
   const [series, setSeries] = useState('')
   const [character, setCharacter] = useState('')
-  const [sort, setSort] = useState('catalog')
+  const [sort, setSort] = useState(acquiredAtByKey ? 'recent' : 'catalog')
   const [showHistory, setShowHistory] = useState(false)
   const [albumId, setAlbumId] = useState<string | null>(null)
   const [selectedKey, setSelectedKey] = useState<string | null>(null)

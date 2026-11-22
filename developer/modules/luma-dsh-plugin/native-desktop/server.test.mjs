@@ -24,6 +24,10 @@ test('desktop proxy owner, role memories, revision conflicts, assets and reactiv
   const ctx = {
     profileContext:{home:join(base,'profile')},
     agentPresets:{
+      async readDocument(id) {
+        assert.equal(id,'standard')
+        return {content:JSON.stringify([{id:'persona',name:'@deepseek-ai/dsh-persona'},{id:'tool-pwsh',name:'@deepseek-ai/dsh-tool-pwsh',disabled:false},{id:'tool-bash',name:'@deepseek-ai/dsh-tool-bash',disabled:true},{id:'host-revision',name:'runtime-extension'},{id:'mode',group:[],isolate:{planMode:true}}])}
+      },
       async register(definition) {
         assert.ok(!presets.has(definition.id))
         presets.set(definition.id,structuredClone(definition))
@@ -80,6 +84,7 @@ test('desktop proxy owner, role memories, revision conflicts, assets and reactiv
   await apply(ctx)
   assert.deepEqual([...presets.keys()],['luma-jingyuniang'])
   const nativeWhale = presets.get('luma-jingyuniang')
+  assert.ok(nativeWhale.plugins.some(plugin=>plugin.id==='host-revision'))
   assert.equal(nativeWhale.name,'鲸鱼娘')
   assert.match(nativeWhale.plugins.find(entry=>entry.id==='persona').config.prefix,/鲸鱼娘/)
   assert.equal(nativeWhale.plugins.find(entry=>entry.id==='tool-pwsh').disabled,false)

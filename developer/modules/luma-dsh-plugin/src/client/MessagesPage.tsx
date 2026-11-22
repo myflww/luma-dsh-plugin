@@ -14,7 +14,7 @@ export function downloadJson(name: string, value: unknown) {
   const anchor = document.createElement('a'); anchor.href = url; anchor.download = name; anchor.click()
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
-export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNative, unlockedEmployeeIds = MESSAGE_CHARACTERS.map(role => role.id), onOpenRewards }: { unlockedEmployeeIds?: readonly string[] | undefined; onOpenRewards?(): void; runtime: MessagesRuntime; active?: boolean; employeeVisit?: { mode: 'chat' | 'task' } | undefined; onOpenNative(): void }) {
+export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNative, unlockedEmployeeIds = MESSAGE_CHARACTERS.map(role => role.id), onOpenRewards }: { unlockedEmployeeIds?: readonly string[] | undefined; onOpenRewards?(): void; runtime: MessagesRuntime; active?: boolean; employeeVisit?: { mode: 'chat' | 'task'; topic?: string; roleId?: string } | undefined; onOpenNative(): void }) {
   const state = useSyncExternalStore(runtime.subscribe, runtime.getSnapshot, runtime.getSnapshot)
   const [query, setQuery] = useState(''), [panel, setPanel] = useState<'settings' | 'persona' | 'api' | 'memory' | null>(null)
   const [mode, setMode] = useState<AgentMode>('chat'), [team, setTeam] = useState<string[]>([])
@@ -62,6 +62,9 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
   const nativeView = preferred === 'native'
   const topic = preferred && !nativeView ? preferred : 'desk-' + roleId
   const jobs = nativeView ? [] : roleJobs.filter(job => topicFor(job) === topic).sort((a,b) => a.createdAt - b.createdAt)
+  const letters = (desk.state?.letters ?? []).filter(letter=>letter.role===roleId && (nativeView
+    ? letter.topic==='native:'+state.sessionId || letter.topic==='native-inbox' && (!state.sessionId || state.sessionId===(state.preferences.activeTopics[roleId] ?? state.topics[0]?.id))
+    : letter.topic==='desk:'+topic))
   const runningJob = jobs.find(job => inProgress(job.status))
   const showNative = nativeView
   const busy = state.pending || sending
@@ -79,7 +82,7 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
   const canSend = visibleRoles.has(roleId) && state.writable && !busy && !!drafting.trim() && !runningJob && serviceReady
   const serviceRole = serviceTarget?.owner === roleId ? serviceTarget.id : roleId
   const [localRefresh, setLocalRefresh] = useState(0)
-  const scrollFingerprint = jobs.map(job => [job.id, job.status, job.steps.map(step => step.output.length).join(',')].join(':')).join('|')
+  const scrollFingerprint = (letters.at(-1)?.id ?? '') + jobs.map(job => [job.id, job.status, job.steps.map(step => step.output.length).join(',')].join(':')).join('|')
   const selectLocal = (key: string) => setChosen(old => ({ ...old, [roleId]: key }))
   async function selectHistory(value: string) {
     if (value.startsWith('native:')) {
@@ -88,6 +91,18 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
       selectLocal('native')
     } else if (value.startsWith('desk:')) selectLocal(value.slice('desk:'.length))
   }
+  const appliedVisit=useRef<typeof employeeVisit>(undefined)
+  useEffect(()=>{
+    if(!employeeVisit?.topic || appliedVisit.current===employeeVisit || state.pending || (employeeVisit.roleId && employeeVisit.roleId!==roleId)) return
+    const key=employeeVisit.topic
+    if(key.startsWith('native:') && key.slice(7)!==state.sessionId && !state.topics.some(t=>t.id===key.slice(7)))return
+    appliedVisit.current=employeeVisit
+    if(key.startsWith('desk:'))setChosen(old=>({...old,[roleId]:key.slice(5)}))
+    else {
+      setChosen(old=>({...old,[roleId]:'native'}))
+      if(key.startsWith('native:') && key.slice(7)!==state.sessionId)void runtime.selectTopic(key.slice(7) as never)
+    }
+  },[employeeVisit,roleId,runtime,state.pending,state.sessionId,state.topics])
   async function send() {
     if (!canSend || submitLock.current) return
     setActionError('')
@@ -204,18 +219,21 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
         onScroll={event => { const el = event.currentTarget; stick.current = el.scrollHeight - el.scrollTop - el.clientHeight < 90 }}>
         {showNative && state.hasMore && <button type="button" className="lumaLoadOlder" disabled={state.pending} onClick={() => { void runtime.loadOlder() }}>读取更早的消息</button>}
         {showNative && state.loading && <p role="status">正在读取对话…</p>}
-        {!(showNative ? state.messages.length : jobs.length) && !state.loading && <article className="lumaMessageBubble is-assistant lumaGreeting"><EmployeeFace id={roleId} skin={skins[roleId]} /><div><header><strong>{state.profile.name}</strong></header><p>{state.profile.greeting}</p></div></article>}
-        {jobs.map(job => job.mode === 'chat' ? <div key={job.id}>
+        {!letters.length && !(showNative ? state.messages.length : jobs.length) && !state.loading && <article className="lumaMessageBubble is-assistant lumaGreeting"><EmployeeFace id={roleId} skin={skins[roleId]} /><div><header><strong>{state.profile.name}</strong></header><p>{state.profile.greeting}</p></div></article>}
+        {[...jobs.map(job => ({time:job.createdAt, node:job.mode === 'chat' ? <div key={job.id}>
           <article className="lumaMessageBubble is-user"><div><header><strong>{state.preferences.userName}</strong><time>{clockText(job.createdAt)}</time></header><p>{job.text}</p><small>已发送</small></div></article>
           {job.steps[0]?.output ? <article className="lumaMessageBubble is-assistant"><EmployeeFace id={roleId} skin={skins[roleId]}/><div><header><strong>{names[roleId]}</strong></header><p>{job.steps[0].output}</p></div></article>
             : <p className="lumaMessageThinking" role="status">{inProgress(job.status) ? state.profile.name + '正在输入…' : job.error || (job.status === 'cancelled' ? '已停止回复' : '回复未完成')}</p>}
-        </div> : <JobCard key={job.id} job={job} names={names} skins={skins} canWrite={state.writable} cancel={() => void cancel(job.id)} />)}
-        {showNative && state.messages.map(message => <article key={message.id} className={`lumaMessageBubble is-${message.role}`}>
+        </div> : <JobCard key={job.id} job={job} names={names} skins={skins} canWrite={state.writable} cancel={() => void cancel(job.id)} />})),
+          ...letters.map(letter=>({time:letter.time,node:<article key={'life:'+letter.id} className="lumaMessageBubble is-assistant lumaLifeLetter">
+            <EmployeeFace id={letter.role} skin={skins[letter.role]}/><div><header><strong>{names[letter.role]}</strong><time>{clockText(letter.time)}</time></header>
+              <p>{letter.text}</p><small>{letter.source==='model'?'主动来信 · 独立模型':'主动来信 · 日常对白'}</small></div></article>})),
+          ...(showNative ? state.messages : []).map(message => ({time:message.time ?? Infinity,node:<article key={message.id} className={`lumaMessageBubble is-${message.role}`}>
           {message.role === 'assistant' && <EmployeeFace id={roleId} skin={skins[roleId]} />}
           <div><header><strong>{message.role === 'user' ? state.preferences.userName : message.role === 'assistant' ? state.profile.name : '对话提示'}</strong>
             {message.time !== undefined && <time dateTime={new Date(message.time).toISOString()}>{new Intl.DateTimeFormat('zh-CN', { hour: '2-digit', minute: '2-digit' }).format(message.time)}</time>}</header>
             <p>{message.text || (message.streaming ? '…' : '此条消息没有文本内容，可在原生会话查看附件。')}</p>{message.role === 'user' && <small>已发送</small>}{message.streaming && <small>正在输入…</small>}</div>
-        </article>)}
+        </article>}))].sort((a,b)=>a.time-b.time).map(row=>row.node)}
         {showNative && state.running && !state.messages.some(message => message.streaming) && <p className="lumaMessageThinking" role="status">{state.profile.name}正在组织回复…</p>}
       </div>
       <form className="lumaMessageComposer" onSubmit={event => { event.preventDefault(); void send() }}>
@@ -261,7 +279,7 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
             <optgroup label="DSH 历史">{!state.sessionId && <option value="native:">DSH 对话</option>}{state.topics.map(t => <option value={'native:' + t.id} key={t.id}>{t.title}</option>)}</optgroup>
             <optgroup label="员工工作记录">{(configured || (preferred && !nativeView)) && !workTopics.has(topic) && <option value={'desk:' + topic}>独立服务对话</option>}{[...workTopics].map(([id,title]) => <option key={id} value={'desk:' + id}>{title}</option>)}</optgroup></select>
       <button type="button" onClick={() => { void runtime.setDisplay(state.preferences.display === 'bubbles' ? 'novel' : 'bubbles') }}>{state.preferences.display === 'bubbles' ? '阅读模式' : '气泡模式'}</button>
-          <button type="button" disabled={!(nativeView ? state.messages.length : jobs.length)} onClick={() => downloadJson(`Luma-${state.profile.name}-对话.json`, nativeView ? runtime.exportTranscript() : { roleId, topic, jobs })}>导出对话</button>
+          <button type="button" disabled={!letters.length && !(nativeView ? state.messages.length : jobs.length)} onClick={() => downloadJson(`Luma-${state.profile.name}-对话.json`, { ...(nativeView ? runtime.exportTranscript() : { roleId, topic, jobs }), letters })}>导出对话</button>
 
       <button type="button" onClick={onOpenNative}>原生会话与模型设置 ↗</button>
     </aside>}

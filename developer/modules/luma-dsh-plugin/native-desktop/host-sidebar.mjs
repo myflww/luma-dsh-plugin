@@ -3,10 +3,10 @@
 const COMPACT_WIDTH = 1024
 
 export function getHostSidebar(ctx) {
-  const frame = ctx.slots.entries?.('root').find(entry => entry.children?.['sidebar'] && entry.children?.['main'])
-  const store = frame?.store?.create()
-  if (!store?.getSnapshot().layoutInfo || typeof store.actions?.setSidebar !== 'function' ||
-      typeof ctx.layout.toggleSidebar !== 'function') return undefined
+  const frame = ctx.slots?.entries?.('root')?.find(entry => entry.children?.['sidebar'] && entry.children?.['main'])
+  const store = frame?.store?.create?.()
+  if (!store?.getSnapshot?.()?.layoutInfo || typeof store.subscribe !== 'function' || typeof store.actions?.setSidebar !== 'function' ||
+      typeof ctx.layout?.toggleSidebar !== 'function') return undefined
 
   const read = () => store.getSnapshot().layoutInfo
   const small = info => info.viewportWidth < COMPACT_WIDTH

@@ -322,6 +322,13 @@ export async function writeHouseMemory(
   const confirmed = (v: { saved?: boolean; id?: string }) => {
     if (v.saved !== true || !v.id) throw Error('爱之屋尚未确认写入。')
   }
+  if (!user && assistant) {
+    confirmed(await request(origin,'/api/ai/event',library,{
+      text:'伙伴主动写来：'+assistant, source_url:'http://localhost/luma-agents/companionpulse',
+      outcome:'observed', session_id:session, request_id:id, origin:'luma-dsh',
+    }))
+    return
+  }
   if (!assistant) {
     confirmed(
       await request(origin, '/api/ai/event', library, {

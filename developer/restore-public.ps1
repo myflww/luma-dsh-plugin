@@ -9,24 +9,38 @@ function Get-ExtendedPath([string]$Path) {
 $pluginPath = Join-Path $PSScriptRoot 'modules/luma-dsh-plugin'
 $assets = Get-Content -LiteralPath (Join-Path $pluginPath 'lib/asset-manifest.json') -Raw -Encoding utf8 | ConvertFrom-Json
 $version = (Get-Content -LiteralPath (Join-Path $pluginPath 'native-desktop/manifest.json') -Raw -Encoding utf8 | ConvertFrom-Json).version
+$assetSourceVersions = @($version, '0.5.1', '0.5.0')
 $publicPath = [IO.Path]::GetFullPath((Join-Path $pluginPath 'public'))
 $targetRoot = [IO.Directory]::CreateDirectory($publicPath).FullName + [IO.Path]::DirectorySeparatorChar
 $source = Get-Item -LiteralPath $Archive
 $archiveFile = $null
 if ($source.PSIsContainer) {
     $sourceManifest = Get-Content -LiteralPath (Join-Path $source.FullName 'package.json') -Raw -Encoding UTF8 | ConvertFrom-Json
-    if ($sourceManifest.name -cne '@luma/dsh-plugin' -or $sourceManifest.version -cnotin @($version, '0.5.0')) { throw 'Expected a verified Luma release directory (0.5.0 or current).' }
+    if ($sourceManifest.name -cne '@luma/dsh-plugin' -or $sourceManifest.version -cnotin $assetSourceVersions) { throw "Expected a full Luma release directory: $($assetSourceVersions -join ', '). For a 0.4.3 base, use the release installer with -PrepareOnly first." }
 } else { $archiveFile = [IO.Compression.ZipFile]::OpenRead($source.FullName) }
 $hash = [Security.Cryptography.SHA256]::Create()
 try {
     $entries = [Collections.Generic.Dictionary[string,IO.Compression.ZipArchiveEntry]]::new([StringComparer]::Ordinal)
-    $prefix = "DesktopPlugin-$version/public/"
-    foreach ($entry in $archiveFile.Entries) {
-        if ($entry.FullName.StartsWith($prefix, [StringComparison]::Ordinal) -and $entry.Name) {
-            $entries.Add($entry.FullName.Substring($prefix.Length), $entry)
+    if ($archiveFile) {
+        $prefix = $null
+        foreach ($candidateVersion in $assetSourceVersions) {
+            $packageEntry = $archiveFile.GetEntry("DesktopPlugin-$candidateVersion/package.json")
+            if (!$packageEntry) { continue }
+            $reader = [IO.StreamReader]::new($packageEntry.Open(), [Text.Encoding]::UTF8)
+            try { $package = $reader.ReadToEnd() | ConvertFrom-Json } finally { $reader.Dispose() }
+            if ($package.name -ceq '@luma/dsh-plugin' -and $package.version -ceq $candidateVersion) {
+                $prefix = "DesktopPlugin-$candidateVersion/public/"
+                break
+            }
         }
+        if (!$prefix) { throw "Expected a full Luma release ZIP: $($assetSourceVersions -join ', '). For a 0.4.3 base, use the release installer with -PrepareOnly first." }
+        foreach ($entry in $archiveFile.Entries) {
+            if ($entry.FullName.StartsWith($prefix, [StringComparison]::Ordinal) -and $entry.Name) {
+                $entries.Add($entry.FullName.Substring($prefix.Length), $entry)
+            }
+        }
+        if ($entries.Count -ne $assets.Count) { throw "Expected $($assets.Count) public files below $prefix. Found $($entries.Count)." }
     }
-    if ($archiveFile -and $entries.Count -ne $assets.Count) { throw "Expected $($assets.Count) public files below $prefix. Found $($entries.Count)." }
     foreach ($asset in $assets) {
         $key = [string]$asset.path
         $target = [IO.Path]::GetFullPath((Join-Path $publicPath $key))

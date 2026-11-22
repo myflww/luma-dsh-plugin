@@ -9,6 +9,7 @@ import { STARTER_BEDROOMS, type OfficePresentationSelection } from '../office-pr
 import { COMPANION_REWARDS, STARTER_EMPLOYEE_ID } from '../shared/local-collection-domain.ts'
 import { withActiveTaskMonitors } from './office-presence.ts'
 import { OfficeBedroom, type ResidentId } from './OfficeBedroom.tsx'
+import { RoomThemePicker } from './RoomThemePicker.tsx'
 import { OfficeWardrobe } from './OfficeWardrobe.tsx'
 import { projectPluginSceneEmployees } from './office-scene-employees.ts'
 import { useAgentWorkRoles } from './agent-work-activity.ts'
@@ -128,9 +129,10 @@ export function OfficePage({ runtime, onOpenChat, active = true, sceneMenu, unlo
             onSceneEvent={event=>runtime.handleSceneEvent(event)}
             onReportClick={reportId=>{void runtime.openReport(reportId).then(employeeId=>{if(employeeId) onOpenChat(employeeId)})}}/>
         </div>
-      </SceneViewport> : <OfficeBedroom hasInspector fit={fit} actionsTarget={actionsTarget} key={[resident,selectedEmployee?.location,policy.bedtime].join('/')} id={resident} name={owner.name}
+      </SceneViewport> : <OfficeBedroom hasInspector fit={fit} actionsTarget={actionsTarget} key={resident} id={resident} name={owner.name}
           skinId={selection.employeeSkins[resident]} themeOwner={roomArtOwner} phase={policy.phase}
-          bedtime={policy.bedtime === true && selectedEmployee?.taskState==='idle'} location={selectedEmployee?.location ?? 'unknown'}
+          clock={now} workingDay={policy.isWorkingDate === true} active={active} reduceMotion={reduceMotion || snapshot.motionPreference==='reduce'}
+          bedtime={policy.bedtime === true} taskIdle={selectedEmployee?.taskState==='idle'} location={selectedEmployee?.location ?? 'unknown'}
           officeActivity={selectedEmployee?.activity ?? ''} onChat={()=>onOpenChat(resident)} onOffice={()=>setScene('office')} onWardrobe={()=>dress(resident)}
           onAssign={()=>onOpenChat(resident,'task')}/>}
     </div>
@@ -171,27 +173,10 @@ export function OfficePage({ runtime, onOpenChat, active = true, sceneMenu, unlo
       </div>
       {panel && <div className="lumaStageFlyout" ref={panelRef} role="dialog" aria-label={{themes:'换肤',roster:'员工列表',wardrobe:'换装'}[panel]}>
         <button className="lumaStageClose" type="button" aria-label="关闭场景面板" onClick={closePanel}><X size={16}/></button>
-    {panel==='themes' && <section className="lumaOfficePanel lumaRoomDecor" aria-label="场景换肤">
-      {officeVisible ? <label>办公室主题
-        <select aria-label="办公室主题" value={officeTheme ?? ''} disabled={presentationDisabled}
-          onChange={event=>{ const theme=event.target.value; if (!theme || unlockedThemeIds.includes(theme)) void runtime.setTheme(theme || null) }}>
-          {OFFICE_THEME_CHOICES.map(theme=>{
-            const locked=!!theme.id && !unlockedThemeIds.includes(theme.id)
-            return <option key={theme.id ?? 'classic'} value={theme.id ?? ''} disabled={locked}>{theme.name}{locked?' · 待解锁':''}</option>
-          })}
-        </select></label> : <label>卧室主题
-        <select aria-label="卧室主题" value={bedroomTheme ?? ''} disabled={presentationDisabled}
-          onChange={event=>{ const theme=event.target.value; if (!theme || unlockedThemeIds.includes(theme)) void runtime.setBedroomTheme(resident,theme || null) }}>
-          <option value="">经典卧室</option>
-          {COMPANION_REWARDS.map(reward=>{
-            const locked=!unlockedThemeIds.includes(reward.bedroom)
-            const other=Object.entries(bedrooms).find(([id,theme])=>id!==resident && theme===reward.bedroom)?.[0]
-            const otherOwner=OFFICE_OUTFIT_CHOICES.find(choice=>choice.employeeId===other && unlockedEmployeeIds.includes(choice.employeeId))
-            return <option key={reward.bedroom} value={reward.bedroom} disabled={locked}>{reward.name}主题{locked?' · 待解锁':otherOwner?' · 从'+otherOwner.name+'的卧室移入':''}</option>
-          })}
-        </select></label>}
-      {onOpenRewards && <button type="button" onClick={onOpenRewards}>查看主题解锁进度</button>}
-    </section>}
+    {panel==='themes' && <RoomThemePicker space={scene} selected={officeVisible ? officeTheme : bedroomTheme}
+      resident={resident} bedrooms={bedrooms} unlocked={unlockedThemeIds} disabled={presentationDisabled}
+      onEquip={theme => { if (officeVisible) void runtime.setTheme(theme); else void runtime.setBedroomTheme(resident, theme) }}
+      onProgress={onOpenRewards}/>}
     {panel==='roster' && <section className="lumaOfficePanel" aria-label="AI 员工列表">
       <div className="lumaOfficePanelTitle"><h2>我的伙伴</h2><span>{unlockedEmployeeIds.length} 位已加入</span>
         {onOpenRewards && <button type="button" onClick={onOpenRewards}>邀请伙伴</button>}</div>
@@ -199,7 +184,7 @@ export function OfficePage({ runtime, onOpenChat, active = true, sceneMenu, unlo
         const id=employee.id as ResidentId
         return <li key={id}>
           <MessageAvatar {...getChibiAvatar(id,selection.employeeSkins[id])}/>
-          <div><strong>{employee.name}</strong><small>{employee.location==='office'?'办公室 · '+employee.activity:employee.location==='bedroom'?'卧室 · '+(policy.bedtime?'休息中':'自由活动'):'位置待同步'}</small></div>
+          <div><strong>{employee.name}</strong><small>{employee.location==='office'?'办公室 · '+employee.activity:employee.location==='bedroom'?'卧室 · '+(policy.bedtime && employee.taskState==='idle'?'已入睡':employee.taskState!=='idle'?employee.activity:'自由活动'):'位置待同步'}</small></div>
           <div className="lumaOfficeMemberActions">
             <button type="button" onClick={()=>visit(id)} aria-label={'进入'+employee.name+'的卧室'}>卧室</button>
             <button type="button" onClick={()=>dress(id)} aria-label={employee.name+'换装'}>换装</button>

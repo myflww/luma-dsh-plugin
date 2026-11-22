@@ -1,13 +1,17 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { BedDouble, ListTodo, MessageCircle, Sun } from 'lucide-react'
+import { ListTodo, MessageCircle } from 'lucide-react'
 import { SceneViewport } from './SceneViewport.tsx'
 import type { OfficeTimePhase } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/timePolicy.ts'
 import { getBrowserOfficeDefaultSkinId, getEmployeeCatalogWithSkin, getEmployeeSkinPack } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/employeeSkins.ts'
-import { getOfficeAsset, resolveOfficeAssetUrl } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/assets.ts'
+import { getOfficeAsset, officeFrameRect, resolveOfficeAssetUrl } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/assets.ts'
+import { createOfficeFrameTimeline, officeAutomaticWalkCadence } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/frameTimeline.ts'
+import { officeActorFramePresentation } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/restPresentation.ts'
+import type { OfficeWalkDirection } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/employeeCatalog.ts'
+import { BEDROOM_FLOORS, bedroomFootAt, bedroomStepAt, createBedroomRoutine, type ResidentId } from './bedroom-routine.ts'
 import { BEDROOM_ART, BEDROOM_SLEEP, CLASSIC_BEDROOM_ART } from './bedroom-art.generated.ts'
 import type { EmployeeLocation } from './office-presence.ts'
-export type ResidentId = keyof typeof BEDROOM_ART
+export type { ResidentId } from './bedroom-routine.ts'
 type Pair = readonly [number, number]
 type Bounds = readonly [number, number, number, number]
 // First forward-facing frame, measured on visible pixels rather than sheet margins.
@@ -54,34 +58,92 @@ function sleepingPose(room: typeof CLASSIC_BEDROOM_ART | typeof BEDROOM_ART[Resi
     transform={`translate(${room.head.join(' ')}) rotate(${rotation}) scale(${scale*mirror} ${scale}) translate(${-headX} ${-headY})`}/>
 }
 
-export function OfficeBedroom({id,name,skinId,themeOwner,phase,bedtime,location,officeActivity,onChat,onOffice,onWardrobe,onAssign,hasInspector=false,fit,actionsTarget}: {
+function walkingArt(id: ResidentId, skinId?:string) {
+  const catalog=getEmployeeCatalogWithSkin(id,skinId)!
+  const durations={} as Record<OfficeWalkDirection, ReturnType<typeof createOfficeFrameTimeline>>
+  const speeds={} as Record<OfficeWalkDirection,number>
+  for(const dir of ['left','right','up','down'] as const) {
+    const strip=getOfficeAsset(catalog.walk[dir]).frameStrip!
+    durations[dir]=createOfficeFrameTimeline(strip)
+    speeds[dir]=officeAutomaticWalkCadence('ambient',strip).travelSpeed
+  }
+  return {catalog,durations,speeds}
+}
+
+function BedroomWalker({id,skinId,walk,point,direction,moving,elapsed,scale}:{
+  id:ResidentId; skinId?:string | undefined; walk: ReturnType<typeof walkingArt>; point:Pair
+  direction:OfficeWalkDirection; moving:boolean; elapsed:number; scale:number
+}) {
+  const still=moving?undefined:walk.catalog.walkRest?.[direction]
+  const record=getOfficeAsset(still?.asset ?? walk.catalog.walk[direction])
+  const strip=record.frameStrip!
+  const frame=moving ? walk.durations[direction].frameAt(elapsed,true) : still?.frameIndex ?? 0
+  const rect=officeFrameRect(strip,frame)
+  const figure=officeActorFramePresentation(id,point[1],direction,skinId,still)
+  const width=figure.width*scale, height=width*strip.frameHeight/strip.frameWidth
+  return <g data-bedroom-pose={moving?'walking':'awake'} data-bedroom-direction={direction} data-bedroom-frame={frame}
+      transform={`translate(${point[0]} ${point[1]})`}>
+    <ellipse cx={0} cy={1} rx={width*.14} ry={width*.035} fill="#392f3b" opacity=".19"/>
+    <svg x={-width*figure.anchor.x} y={-height*figure.anchor.y} width={width} height={height} viewBox={rect.join(' ')} overflow="hidden">
+      <image href={resolveOfficeAssetUrl(record.id)} width={record.dimensions.width} height={record.dimensions.height}/>
+    </svg>
+  </g>
+}
+
+export function OfficeBedroom({id,name,skinId,themeOwner,phase,bedtime,taskIdle,workingDay,clock,active,reduceMotion,location,officeActivity,onChat,onOffice,onWardrobe,onAssign,hasInspector=false,fit,actionsTarget}: {
   id:ResidentId; name:string; skinId?:string | undefined; themeOwner?:ResidentId | undefined; phase:OfficeTimePhase; bedtime:boolean
+  taskIdle:boolean; workingDay:boolean; clock:Date; active:boolean; reduceMotion:boolean
   location:EmployeeLocation; officeActivity:string
   onChat:()=>void; onOffice:()=>void; onWardrobe:()=>void; onAssign?:()=>void; hasInspector?:boolean
   fit?:boolean; actionsTarget?:HTMLElement|null
 }) {
-  const [pose,setPose] = useState<'awake'|'sleep'>()
   const room = themeOwner ? BEDROOM_ART[themeOwner] : CLASSIC_BEDROOM_ART
   const [w,h] = room.size
   const night = ['dusk','night','closed'].includes(phase)
-  const asleep = pose ? pose === 'sleep' : bedtime
+  const asleep = bedtime && taskIdle
+  const walk=useMemo(()=>walkingArt(id,skinId),[id,skinId])
+  const roomId=themeOwner ?? 'classic'
+  const atHome=location==='bedroom'
+  const dateKey=clock.toDateString(), returning=clock.getHours()>=18
+  const routine=useMemo(()=>createBedroomRoutine(id,roomId,clock,workingDay,walk.speeds),[id,roomId,dateKey,returning,workingDay,walk])
+  const [sample,setSample]=useState(()=>Date.now())
+  useEffect(()=>{
+    if(!active || !atHome || bedtime) return
+    let timer: ReturnType<typeof setTimeout>
+    const tick=() => {
+      clearTimeout(timer)
+      if(document.hidden) return
+      const now=Date.now()
+      setSample(now)
+      if(now>=routine.end || now<routine.start) return
+      const step=bedroomStepAt(routine,now)
+      const untilNextStep=Math.max(1,Math.ceil(step.end-now))
+      timer=setTimeout(tick,step.moving && !reduceMotion ? Math.min(40,untilNextStep) : untilNextStep)
+    }
+    tick()
+    document.addEventListener('visibilitychange',tick)
+    return ()=>{clearTimeout(timer);document.removeEventListener('visibilitychange',tick)}
+  },[active,atHome,bedtime,reduceMotion,routine])
+  const step=bedroomStepAt(routine,sample)
+  const moving=!bedtime && step.moving && !reduceMotion
+  const point=bedtime ? BEDROOM_FLOORS[roomId].desk : reduceMotion ? step.from : bedroomFootAt(step,sample)
+  const activity=bedtime ? asleep?'已入睡':officeActivity : step.activity
   const art = <div className="lumaBedroomArt" style={{aspectRatio:w+'/'+h}}>
       <img src={night ? room.night : room.day} alt={name+'的卧室 · '+(night?'夜景':'日景')}/>
-      {location === 'bedroom' && <svg className="lumaBedroomResidentLayer" viewBox={`0 0 ${w} ${h}`} aria-hidden="true">
-        {asleep ? sleepingPose(room,id,skinId) : <svg data-bedroom-pose="awake" x={room.stand[0]-h*.105} y={room.stand[1]-h*.22} width={h*.21} height={h*.22}>
-          <EmployeeFigure id={id} skinId={skinId}/>
-        </svg>}
+      {atHome && <svg className="lumaBedroomResidentLayer" viewBox={`0 0 ${w} ${h}`} aria-hidden="true">
+        {asleep ? sleepingPose(room,id,skinId) : <BedroomWalker id={id} skinId={skinId} walk={walk}
+          point={point} direction={bedtime?'up':step.facing} elapsed={sample-step.start} moving={moving}
+          scale={w===1600?.72:1}/>}
       </svg>}
     </div>
   const actions = <div className="lumaRoomActions">
-      {!hasInspector && <strong>{name}</strong>}<span>{location==='office'?'在办公室 · '+officeActivity:location==='unknown'?'位置待同步':asleep?'在卧室小憩':'在卧室休息'}</span>
+      {!hasInspector && <strong>{name}</strong>}<span>{location==='office'?'在办公室 · '+officeActivity:location==='unknown'?'位置待同步':activity}</span>
       {!hasInspector && <button type="button" onClick={onWardrobe}>换装</button>}
-      {location==='bedroom' && <button type="button" onClick={()=>setPose(asleep?'awake':'sleep')}>{asleep?<Sun size={15}/>:<BedDouble size={15}/>} {asleep?'起身':'小憩'}</button>}
       <button type="button" onClick={onChat} aria-label={'联系'+name}><MessageCircle size={15}/> 联系{name}</button>
       {onAssign && <button type="button" onClick={onAssign} aria-label={'给'+name+'派任务'}><ListTodo size={15}/> 派任务</button>}
       {!hasInspector && <button type="button" onClick={onOffice}>返回办公室</button>}
     </div>
-  const target = location === 'bedroom' ? (asleep ? room.head : room.stand) : [w/2,h/2] as const
+  const target = atHome ? (asleep ? room.head : BEDROOM_FLOORS[roomId].center) : [w/2,h/2] as const
   return <section className="lumaBedroomView" aria-label={name+'的卧室'}>
     {fit === undefined ? art : <SceneViewport fit={fit} ratio={w/h} focusX={target[0]/w} focusY={target[1]/h}>{art}</SceneViewport>}
     {actionsTarget === undefined ? actions : actionsTarget ? createPortal(actions,actionsTarget) : null}

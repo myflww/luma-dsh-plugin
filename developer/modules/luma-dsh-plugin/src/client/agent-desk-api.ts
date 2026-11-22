@@ -1,3 +1,4 @@
+import type { LifeLetter } from '../shared/companion-life.ts'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 export type AgentMode = 'chat' | 'task' | 'team'
@@ -9,23 +10,24 @@ export interface AgentJob {
   topic?: string
   text: string
   status: JobStatus
-  steps: { roleId: string; status: JobStatus; output: string }[]
+  steps: { roleId: string; model?:string; status: JobStatus; output: string }[]
   error?: string
   createdAt: number
 }
-export interface AgentConfig { baseUrl: string; model: string; hasKey: boolean }
-export interface WorkRoom { id: string; name: string; roleIds: string[]; createdAt: number }
+export interface AgentConfig { protocol?: 'openai' | 'anthropic' | 'gemini'; baseUrl: string; model: string; hasKey: boolean }
+export interface WorkRoom { duties?:Record<string,string>; id: string; name: string; roleIds: string[]; createdAt: number }
 export interface AgentState {
   roles: Record<string, AgentConfig>
   jobs: AgentJob[]
   rooms?: WorkRoom[]
+  letters?: LifeLetter[]
   loveHouse: { available: boolean; connected: boolean; pending?: number; message?: string; portableAvailable?: boolean; reusedPortable?: boolean }
   previews?: Record<string, {text: string; time: number}>
   memories: Record<string, number>
 }
 export interface AgentMemory { id: string; text: string; createdAt: number }
 type CloudAction = 'cloudstate' | 'cloudconfigure' | 'cloudprobe' | 'cloudsubmit' | 'cloudrefresh' | 'cloudretry' | 'cloudresult' | 'cloudcancel'
-type Action = 'state' | 'configure' | 'run' | 'cancel' | 'connect' | 'housestatus' | 'houseconnect' | 'memory' | 'remember' | 'record' | 'recall' | 'createroom' | CloudAction
+type Action = 'state' | 'configure' | 'run' | 'cancel' | 'connect' | 'housestatus' | 'houseconnect' | 'memory' | 'remember' | 'record' | 'recall' | 'createroom' | 'companionsettings' | 'companionconfigure' | 'companionpulse' | 'forgetstyle' | CloudAction
 export async function agentRequest<T>(action: Action, data: object = {}, signal?: AbortSignal): Promise<T> {
   const response = await fetch('/luma-agents/' + action, {
     method: 'POST', credentials: 'same-origin', cache: 'no-store', redirect: 'error',

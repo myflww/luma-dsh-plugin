@@ -9,12 +9,13 @@ param(
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $repo = 'myflww/luma-dsh-plugin'
-$patchName = 'Luma-DSH-0.5.1-Update.zip'
-$patchDigest = '8e55b85cfa0ec9f258e5721c3e3256b52559228d38fc2af91c34317decb4d8a2'
+$patchName = 'Luma-DSH-0.5.2-Update.zip'
+$patchDigest = '0e7666c2edd80b3454b680318b11db5c955649c8a436babb0ec41cb2849e0f2b'
+$compatibleBaseVersions = @('0.5.1','0.5.0','0.4.3')
 $oldZip = 'Luma-DSH-0.4.3-Windows.zip'
 $oldDigest = 'e949d369a89da2bf6ce01c2eabef4b8a3a95ced38db5ab625ea90c2bb0549c81'
 $root = [IO.Directory]::CreateDirectory([IO.Path]::GetFullPath($Directory)).FullName
-$final = Join-Path $root 'DesktopPlugin-0.5.1'
+$final = Join-Path $root 'DesktopPlugin-0.5.2'
 $cache = Join-Path $root 'Downloads'
 function Extended([string]$absolute) {
     if ($absolute.StartsWith('\\')) { return '\\?\UNC\' + $absolute.Substring(2) }
@@ -46,7 +47,7 @@ function Test-BaseFolder([string]$path, $files) {
     $descriptor = Join-Path $path 'package.json'
     if (![IO.File]::Exists($descriptor)) { return $false }
     try { $package = Get-Content -LiteralPath $descriptor -Raw -Encoding UTF8 | ConvertFrom-Json } catch { return $false }
-    if ($package.name -cne '@luma/dsh-plugin' -or $package.version -cnotin @('0.4.3','0.5.0')) { return $false }
+    if ($package.name -cne '@luma/dsh-plugin' -or $package.version -cnotin $compatibleBaseVersions) { return $false }
     foreach ($row in $files) {
         if ($row.source -ne 'base') { continue }
         $item = [IO.FileInfo]::new((Extended ([IO.Path]::Combine($path, $row.path.Replace('/','\')))))
@@ -57,7 +58,7 @@ function Test-BaseFolder([string]$path, $files) {
 function Get-BasePackage($files) {
     if ($Base) { return (Get-Item -LiteralPath $Base).FullName }
     foreach ($directory in @($root, $PSScriptRoot, $cache)) {
-        foreach ($name in @('DesktopPlugin-0.5.0', 'DesktopPlugin-0.4.3', $oldZip)) {
+        foreach ($name in (@($compatibleBaseVersions | ForEach-Object { "DesktopPlugin-$_" }) + $oldZip)) {
             $candidate = Join-Path $directory $name
             if ([IO.Directory]::Exists($candidate) -and (Test-BaseFolder $candidate $files)) { return $candidate }
             if ($name -eq $oldZip -and [IO.File]::Exists($candidate)) { return $candidate }
@@ -129,7 +130,7 @@ function Register-Plugin {
     if (!$cli) { throw "插件已准备好。请在 DSH 插件页添加 $final，或使用 -DshCli 参数指定桌面安装目录中的 resources\runtime\cli\bin\dsh.cmd。" }
     $version = (& $cli --version | Out-String).Trim()
     if ($LASTEXITCODE -ne 0 -or !$version) { throw "DSH CLI 无法启动。可从桌面插件页添加已验证的目录 $final。" }
-    if ($version -ne '0.2.2-rc.1') { Write-Host "当前 DSH 版本为 $version；本插件已在 0.2.2-rc.1 验证，将通过当前 DSH 的插件命令安装。" }
+    Write-Host "正在使用当前 DeepSeek Harness CLI ($version) 安装 Luma。"
     & $cli plugin --profile desktop add $final
     if ($LASTEXITCODE -ne 0) { throw "DSH 未完成安装，可从插件页添加已验证的目录 $final。" }
     Write-Host '已添加到桌面 DSH。重新打开 DSH 后，从侧栏进入 Luma 办公室。'
@@ -138,25 +139,25 @@ if (!$Patch) {
     $Patch = Join-Path $PSScriptRoot $patchName
     if (!(Test-Path -LiteralPath $Patch -PathType Leaf)) {
         $Patch = Join-Path $cache $patchName
-        if (!(Test-Path -LiteralPath $Patch -PathType Leaf) -or (Hash-File $Patch) -cne $patchDigest) { Get-PrivateAsset 'v0.5.1' $patchName $cache }
+        if (!(Test-Path -LiteralPath $Patch -PathType Leaf) -or (Hash-File $Patch) -cne $patchDigest) { Get-PrivateAsset 'v0.5.2' $patchName $cache }
     }
 }
 $Patch = (Get-Item -LiteralPath $Patch).FullName
-if ((Hash-File $Patch) -cne $patchDigest) { throw "0.5.1 更新包 SHA-256 校验失败：$Patch" }
+if ((Hash-File $Patch) -cne $patchDigest) { throw "0.5.2 更新包 SHA-256 校验失败：$Patch" }
 $delta = [IO.Compression.ZipFile]::OpenRead($Patch)
 $archive = $null
 $stage = $null
 try {
     $reader = [IO.StreamReader]::new($delta.GetEntry('update.json').Open(), [Text.Encoding]::UTF8)
     try { $manifest = $reader.ReadToEnd() | ConvertFrom-Json } finally { $reader.Dispose() }
-    if ($manifest.schema -ne 1 -or $manifest.version -cne '0.5.1' -or $manifest.baseVersion -cne '0.4.3' -or !$manifest.files.Count) { throw '更新清单版本不匹配。' }
+    if ($manifest.schema -ne 1 -or $manifest.version -cne '0.5.2' -or $manifest.baseVersion -cne '0.4.3' -or !$manifest.files.Count) { throw '更新清单版本不匹配。' }
     $existing = [IO.Directory]::Exists($final)
     if (!$existing) {
         $source = Get-BasePackage $manifest.files
         $isFolder = [IO.Directory]::Exists($source)
         if ($isFolder) {
             $package = Get-Content -LiteralPath (Join-Path $source 'package.json') -Raw -Encoding UTF8 | ConvertFrom-Json
-            if ($package.name -cne '@luma/dsh-plugin' -or $package.version -cnotin @('0.4.3','0.5.0')) { throw '请指定含 package.json 的 DesktopPlugin-0.4.3 或 DesktopPlugin-0.5.0 目录。' }
+            if ($package.name -cne '@luma/dsh-plugin' -or $package.version -cnotin $compatibleBaseVersions) { throw "请选择含 package.json 的完整 Luma 插件目录，支持版本 $($compatibleBaseVersions -join '、')。" }
         } else {
             if ((Hash-File $source) -cne $oldDigest) { throw "0.4.3 基础 ZIP 校验失败：$source" }
             $archive = [IO.Compression.ZipFile]::OpenRead($source)

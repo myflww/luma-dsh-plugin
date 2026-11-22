@@ -1,10 +1,17 @@
+import { DEFAULT_SCHEMA, Type, load } from 'js-yaml'
 import { OFFICE_EMPLOYEE_PRESET_IDS, isOfficeEmployeeKey } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/office-employee-presets.ts'
 
 type Metadata = { name:string; description:string; order:number }
-type Entry = { id:string; name:string; config?:Record<string,unknown> }
+type Entry = { id:string; name?:string; group?:Entry[]; config?:Record<string,unknown> }
+const conditions = new Map([["process.platform === 'win32'",true],["process.platform !== 'win32'",false],["!ctx.get('profileContext')",false]])
+const presetSchema=DEFAULT_SCHEMA.extend([new Type('tag:yaml.org,2002:js',{kind:'scalar',construct(value){
+  if (!conditions.has(value)) throw Error('Unsupported preset expression')
+  return conditions.get(value)
+}})])
 type Definition = Metadata & { id:string; plugins:Entry[] }
 type Dispose = () => Promise<void>
 export interface DesktopPresetRegistry {
+  readDocument?(id:string):Promise<{content:string}>
   register(definition:Definition):Promise<Dispose>
   resolve(id:string):Promise<{ id:string; broken?:string }>
 }
@@ -15,6 +22,16 @@ export function createEmployeePresetRoster(registry:DesktopPresetRegistry, readU
   const mounted = new Map<string,Dispose>()
   let closed = false
   let pending:Promise<void> = Promise.resolve()
+  async function standardPlugins():Promise<Entry[]> {
+    try {
+      const document = await registry.readDocument?.('standard')
+      if (document) {
+        const entries = load(document.content,{schema:presetSchema})
+        if (Array.isArray(entries) && entries.every(row=>row && (typeof row.name==='string' || Array.isArray(row.group))) && entries.some(row=>row.id==='persona')) return entries
+      }
+    } catch { /* Hosts without a readable declaration use the bundled standard preset. */ }
+    return __LUMA_DESKTOP_PRESETS__.plugins
+  }
   async function refresh(verify:boolean) {
     if (closed) return
     const owned = new Set<string>(readUnlocked().filter(isOfficeEmployeeKey).map(id=>OFFICE_EMPLOYEE_PRESET_IDS[id]))
@@ -25,7 +42,7 @@ export function createEmployeePresetRoster(registry:DesktopPresetRegistry, readU
     for (const id of owned) {
       if (closed || mounted.has(id)) continue
       const meta = __LUMA_DESKTOP_PRESETS__.employees[id]!
-      const entries = structuredClone(__LUMA_DESKTOP_PRESETS__.plugins)
+      const entries = structuredClone(await standardPlugins())
       const persona = entries.find(row=>row.id==='persona')!
       persona.config={...persona.config, prefix:`你是 Luma 员工${meta.name}。${meta.description} 当前模型为 {{model}}。`}
       const remove = await registry.register({id,...meta,plugins:entries})

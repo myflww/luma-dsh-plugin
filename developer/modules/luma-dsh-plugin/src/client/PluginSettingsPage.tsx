@@ -1,15 +1,17 @@
-import { useRef, useState, useSyncExternalStore } from 'react'
+import { type ReactNode, useRef, useState, useSyncExternalStore } from 'react'
 import { MAX_PLUGIN_BACKUP_BYTES, PLUGIN_COMPATIBILITY_LINE, PLUGIN_VERSION,
   type PluginBackupPreview, type PluginPreferencesRuntime, type PluginRestoreResult } from './plugin-backup-runtime.ts'
 import './PluginSettingsPage.css'
 import { CloudOfficeConnection } from './CloudOfficePanel.tsx'
+import { CompanionSettingsPanel } from './CompanionPresence.tsx'
 import { LoveHouseQuickConnect } from './LoveHouseQuickConnect.tsx'
 
 export interface PluginSettingsPageProps {
+  readonly updates?: ReactNode
   readonly runtime: PluginPreferencesRuntime
   readonly onOpenNativeSettings?: () => void
 }
-export function PluginSettingsPage({ runtime, onOpenNativeSettings }: PluginSettingsPageProps) {
+export function PluginSettingsPage({ runtime, onOpenNativeSettings, updates }: PluginSettingsPageProps) {
   const state = useSyncExternalStore(runtime.subscribe, runtime.getSnapshot, runtime.getSnapshot)
   const [busy, setBusy] = useState(false)
   const [cloudOpen, setCloudOpen] = useState(false)
@@ -57,6 +59,7 @@ export function PluginSettingsPage({ runtime, onOpenNativeSettings }: PluginSett
       {state.problem && <p role="status">{state.problem}</p>}
       {!state.writable && <p role="status">当前 DSH 设置暂不可写。已保存的数据仍可浏览和导出。</p>}
     </section>
+    <CompanionSettingsPanel />
     <LoveHouseQuickConnect />
     <section aria-labelledby="luma-cloud-heading"><h2 id="luma-cloud-heading">云办公服务器</h2>
       <p>让员工在你的云电脑上整理文档、制作任务表或调用云端模型写作。</p>
@@ -87,6 +90,7 @@ export function PluginSettingsPage({ runtime, onOpenNativeSettings }: PluginSett
       </div>}
       {(busy || message) && <p role="status">{busy ? '正在处理，请稍候…' : message}</p>}
     </section>
+    {updates}
     <section aria-labelledby="luma-help-heading"><h2 id="luma-help-heading">使用与更新</h2>
       <ul><li>办公室跟随真实当前时间与日历；角色任务状态来自 DSH 会话。</li>
         <li>角色消息可流式对话。模型、连接与执行权限由 DSH 管理。</li>
