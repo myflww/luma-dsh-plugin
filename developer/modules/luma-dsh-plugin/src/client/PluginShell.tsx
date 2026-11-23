@@ -70,7 +70,7 @@ export function PluginShell({ office, cards, collection, messages, preferences, 
     <main className="lumaPluginContent" hidden={page === 'native'}>
       <div className="lumaScenePage" hidden={!inRoom}>
         {officeNotice && <p className="lumaDshOfficeNotice" role="status">{officeNotice}</p>}
-        <OfficePage runtime={office} active={inRoom} unlockedEmployeeIds={unlockedEmployeeIds} unlockedThemeIds={unlockedThemeIds}
+        <OfficePage runtime={office} readEmployeeUsage={collection.readEmployeeUsage} active={inRoom} unlockedEmployeeIds={unlockedEmployeeIds} unlockedThemeIds={unlockedThemeIds}
           sceneMenu={inRoom ? launchers : null} onOpenRewards={openRewards} onOpenChat={openContact}/>
       </div>
       <div className="lumaPluginFillPage" hidden={page !== 'messages'}><MessagesPage runtime={messages} employeeVisit={employeeVisit} active={page === 'messages'} unlockedEmployeeIds={unlockedEmployeeIds} onOpenRewards={openRewards} onOpenNative={onOpenConversation ?? openNative}/></div>

@@ -1,66 +1,62 @@
 {
-  "version": "0.5.3",
+  "version": "0.5.4",
   "platform": "Windows x64",
-  "node": "v24.22.3",
+  "node": "v24.19.0",
   "installerPowerShell": "Windows PowerShell 5.1",
   "baseZipSha256": "e949d369a89da2bf6ce01c2eabef4b8a3a95ced38db5ab625ea90c2bb0549c81",
-  "updateBytes": 2913063,
-  "updateSha256": "8d7e2010c4828e39bfb79d183dadef0cba2ac500c921edde2e34d472dc6722fe",
+  "updateBytes": 2915332,
+  "updateSha256": "bf007474c4c72b8ccb95590f5177d3cfe199423751b925e40b701981db82b75b",
   "changedFiles": 7,
-  "installerBytes": 2911213,
-  "installerSha256": "10995ddf9dd1be38c69d91b5854ae7f9178cc3f095ef2468db67ccfa198a2b3d",
+  "installerBytes": 2913471,
+  "installerSha256": "d942f40809e682e289d5131717ec1648f31ca023a0ca6948de40346214bc4751",
   "matchingFiles": 1779,
   "matchingPublicAssets": 1755,
   "sha256": {
     "cordis.patch.yml": "5017a014506a399f5db4f08e523996c7c9ac68f2472c2809e022442db62a59cc",
-    "native-desktop/client.mjs": "db3e87ce71bcd9b4ffc27db38934fba64f09f3c6c318dd4a7f5f0eae7ae57d3c",
-    "native-desktop/server.mjs": "de0817a997b12e85b7383b835151ddbe6ff7e8ac7112827c3e0d96835b3cbeb7"
-  },
-  "embeddedBedroomAtlases": {
-    "phone-standard.webp": "6021e198138d6525fd6b187ec08d08a99cedc7a99e9f73daba748c4aebbb2e0f",
-    "phone-outfit.webp": "7ba849b8d5d99605a998bdb75d521edda17ca9d6b42beca317dac3f61d30c50c"
+    "native-desktop/client.mjs": "bfc82698669d1f2a6faf1b6f36d4083bb57a9974ca60e14c4f5901451b64e015",
+    "native-desktop/server.mjs": "438044304a66724702f25db9d00f1526f2212ff4b1c9fe1fe95b548c6ee3f1d2"
   },
   "recoveryInputs": [
-    "Published 0.4.3 Windows ZIP",
-    "Complete 0.5.2 desktop directory"
+    "Complete 0.5.3 desktop directory. Update generated against the published 0.4.3 Windows ZIP."
   ],
-  "verifiedLocalDate": "2026-11-23",
-  "nativeTestsPassed": 31,
-  "vitestTestsPassed": 175,
+  "nativeTestsPassed": 32,
+  "vitestTestsPassed": 177,
   "vitestFilesPassed": 26,
-  "method": "Built from the 0.5.2 desktop directory and verified every file and payload SHA-256. Reconstructed the 0.5.3 installation from the published 0.4.3 Windows ZIP in an empty directory, and from 0.5.2 in its final desktop directory. Verified the nested update and PowerShell installer inside the one-click ZIP and repeated the desktop preparation.",
-  "cleanSourceRebuild": {
-    "sourceFiles": 418,
-    "node": "v24.22.3",
-    "artifactSha256": {
-      "client.mjs": "db3e87ce71bcd9b4ffc27db38934fba64f09f3c6c318dd4a7f5f0eae7ae57d3c",
-      "server.mjs": "de0817a997b12e85b7383b835151ddbe6ff7e8ac7112827c3e0d96835b3cbeb7"
-    },
-    "method": "Rebuilt 418 source files from a canonical git checkout-index of the staged release in an empty directory using npm ci --offline. Both generated bundle SHA-256 digests and the other 22 packaged runtime files and guides matched. Ran the full test suite from that checkout against separately restored, verified public assets."
+  "method": "Rebuilt from source after the composer focus correction. Verified the nested installer and update ZIP, then restored into a fresh directory from a complete 0.5.3 desktop installation. Matched every file in the source build, restored installation and registered desktop copy against the update manifest. Confirmed that the personal DSH profile still resolves to the installed package.",
+  "desktopRegistration": {
+    "cli": "0.2.2-rc.1",
+    "profile": "desktop",
+    "resolvedPluginVersion": "0.5.4",
+    "preAndPostCollectionDigestMatched": true
   },
-  "publicAssetRestore": {
-    "verifiedAssets": 1755,
-    "method": "Restored the complete public asset manifest into an empty directory using the published 0.4.3 ZIP and the two checked-in ordinary bedroom backgrounds."
-  },
-  "installerChecks": {
-    "isolatedSmallPackage": [
-      "automatic base selection",
-      "idempotent reinstall",
-      "prepare only",
-      "default offline rollback",
-      "explicit old-directory rollback",
-      "reject equal-size modified payload",
-      "old-directory bytes preserved"
+  "nativeHostChecks": {
+    "versions": [
+      "0.2.2-rc.1",
+      "0.2.2-rc.5"
     ],
-    "officialOfflineRollback": {
-      "cli": "0.2.2-rc.1",
-      "isolatedProfile": true,
-      "before": "0.5.1",
-      "after": "0.5.2",
-      "beforeAndAfterBundleCount": 3,
-      "lumaBundles": 1,
-      "resolvedNodeModuleVersion": "0.5.2",
-      "usedPatch": false
-    }
+    "scenarios": [
+      "office",
+      "roster",
+      "roster-narrow",
+      "house",
+      "bedroom",
+      "menu",
+      "decor",
+      "empty-album",
+      "usage",
+      "shop",
+      "compact"
+    ],
+    "pageErrors": 0
+  },
+  "attachmentTransport": {
+    "host": "0.2.2-rc.1",
+    "inferenceService": "Local test endpoint",
+    "entry": "Selected both files from the composer plus menu in one message.",
+    "inputPngBytes": 4322578,
+    "inputUtf8FileBytes": 2097194,
+    "nativeSession": "Native uploaded text file matched its original bytes on disk. DSH supplied a 1200 x 1200 JPEG to the model.",
+    "configuredDshModel": "DSH supplied a 1200 x 1200 JPEG and the complete text.",
+    "customEndpoint": "The endpoint received the byte-identical original PNG and the complete text."
   }
 }

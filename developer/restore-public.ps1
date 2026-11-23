@@ -9,7 +9,7 @@ function Get-ExtendedPath([string]$Path) {
 $pluginPath = Join-Path $PSScriptRoot 'modules/luma-dsh-plugin'
 $assets = Get-Content -LiteralPath (Join-Path $pluginPath 'lib/asset-manifest.json') -Raw -Encoding utf8 | ConvertFrom-Json
 $version = (Get-Content -LiteralPath (Join-Path $pluginPath 'native-desktop/manifest.json') -Raw -Encoding utf8 | ConvertFrom-Json).version
-$assetSourceVersions = @($version, '0.5.2', '0.5.1', '0.5.0', '0.4.3')
+$assetSourceVersions = @($version, '0.5.3', '0.5.2', '0.5.1', '0.5.0', '0.4.3')
 $newArt = [IO.Path]::Combine($pluginPath, 'art', 'release-assets')
 $listed = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
 foreach ($row in $assets) { if (!$listed.Add([string]$row.path)) { throw "Duplicate asset: $($row.path)" } }

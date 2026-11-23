@@ -176,8 +176,8 @@ export function createDesktopSessions(ctx, fetcher = fetch) {
   }
   async function uploadSessionFile(id, item) {
     if (disposed || !retained.has(id)) throw Error('当前 DSH 会话已关闭，草稿已保留。')
-    const bytes = attachmentBytes(item)
-    const result = await ctx.fileUpload.upload(id, new Blob([bytes], {type:item.mediaType}), item.name, lifetime.signal)
+    const blob = item.file ?? new Blob([attachmentBytes(item)], {type:item.mediaType})
+    const result = await ctx.fileUpload.upload(id, blob, item.name, lifetime.signal)
     if (!result.ok) throw Error('DSH 文件上传失败：' + result.error.message)
     if (!result.value.receiptId) throw Error('DSH 未返回文件凭据，请重试。')
     return result.value.receiptId

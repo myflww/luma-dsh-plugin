@@ -1,5 +1,8 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
+import { createHash } from 'node:crypto'
+import { crc32 } from 'node:zlib'
+import { readSessionFiles } from '../src/client/chat-file-reader.ts'
 import { createServer } from 'node:http'
 import { once } from 'node:events'
 import { mkdtemp, rm } from 'node:fs/promises'
@@ -7,7 +10,7 @@ import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { setTimeout as delay } from 'node:timers/promises'
 import { createAgentWork } from '../src/host/agent-work.ts'
-import { inspectChatFile, validateChatAttachments, MAX_ATTACHMENT_BYTES } from '../src/shared/chat-attachments.ts'
+import { inspectChatFile, validateChatAttachments } from '../src/shared/chat-attachments.ts'
 
 const attachment = (name, mediaType, bytes) => ({name, mediaType, bytes:bytes.length, data:bytes.toString('base64')})
 const image = attachment('像素.png','image/png',Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGMQmbAbAAIbAWC6n0m1AAAAAElFTkSuQmCC','base64'))
@@ -26,11 +29,24 @@ test('validates names, format signatures, encoding, count and size at the host b
   assert.throws(() => validateChatAttachments([{...image, data:note.data, bytes:note.bytes}]), /格式不符/)
   assert.throws(() => validateChatAttachments([attachment('bad.txt','text/plain',Buffer.from([0xff]))]), /UTF-8/)
   assert.throws(() => validateChatAttachments(Array(5).fill(note)), /4 个/)
-  assert.throws(() => validateChatAttachments([{...note, bytes:1e5}]), /64 KiB/)
-  assert.throws(() => validateChatAttachments([{...image, bytes:MAX_ATTACHMENT_BYTES + 1}]), /4 MiB/)
+  assert.throws(() => validateChatAttachments([{...note, bytes:100000}]), /不完整/)
+  assert.throws(() => validateChatAttachments([{...note, bytes:1, data:'YQ=A'}]), /大小/)
+  assert.throws(() => validateChatAttachments([{...note, bytes:1, data:'YR=='}]), /编码/)
+  assert.throws(() => validateChatAttachments([{...image, bytes:0}]), /为空/)
   assert.throws(() => inspectChatFile({name:'notes.pdf',type:'application/pdf',size:40}, true), /DSH 会话/)
   assert.equal(inspectChatFile({name:'clipboard',type:'image/png',size:68}, true).mediaType,'image/png')
   assert.equal(validateChatAttachments([attachment('旧表.csv','text/plain',Buffer.from([0xff,0xfe]))], true)[0].mediaType,'application/octet-stream')
+})
+
+test('native sessions stage original files of any size without reading the whole file into the renderer', async () => {
+  const file = new File([Buffer.alloc(9 * 1024 * 1024, 65), '完整结尾'], '资料.txt', {type:'text/plain'})
+  file.arrayBuffer = () => { throw Error('unexpected inline copy') }
+  const [original] = await readSessionFiles([file])
+  assert.equal(original.file,file)
+  assert.equal(original.bytes,file.size)
+  assert.equal(original.inlineText,undefined)
+  const small = new File(['三行笔记'], '便签.txt', {type:'text/plain'})
+  assert.equal((await readSessionFiles([small]))[0].inlineText,'三行笔记')
 })
 
 test('group handoff sends the actual image, text and PDF to all three protocols; private attachment-only retries keep the original bytes', async t => {
@@ -41,6 +57,7 @@ test('group handoff sends the actual image, text and PDF to all three protocols;
     const chunks = []
     for await (const chunk of req) chunks.push(chunk)
     calls.push(JSON.parse(Buffer.concat(chunks)))
+    if (calls.at(-1).messages?.at(-1).content === '附件「拒绝.txt」\n拒绝') { res.writeHead(413); res.end(); return }
     res.end(JSON.stringify({choices:[{message:{content:'received'}}],content:[{type:'text',text:'received'}],candidates:[{content:{parts:[{text:'received'}]}}]}))
   }).listen(0,'127.0.0.1')
   await once(provider,'listening')
@@ -71,6 +88,7 @@ test('group handoff sends the actual image, text and PDF to all three protocols;
   const history = await done('review')
   assert.equal(history.attachments[1].name,'清单.csv')
   assert.ok(!JSON.stringify(history).includes(image.data))
+  assert.equal(history.attachmentDigest,createHash('sha256').update(JSON.stringify(request.attachments)).digest('hex'))
   const [openai,anthropic,gemini] = calls
   assert.deepEqual(openai.messages.at(-1).content.slice(1), [
     {type:'image_url',image_url:{url:'data:image/png;base64,'+image.data}},
@@ -91,10 +109,31 @@ test('group handoff sends the actual image, text and PDF to all three protocols;
   assert.equal(calls.length,4)
   assert.equal(calls.at(-1).messages.at(-1).content,'附件「清单.csv」\n颜色,数量\n紫色,七')
   await assert.rejects(desk.call('run',{...direct,attachments:[attachment(note.name,note.mediaType,Buffer.from('changed'))]}), /编号/)
-  const large = attachment('large.pdf','application/pdf',pdfBytes(pdfBody + '%'+ ' '.repeat(1024 * 1024) + '\n'))
-  const bigRequest = {...direct,requestId:'file-through-host',attachments:[large]}
+  // Insert a valid PNG text chunk before IEND; exercise both a single large image and a large overall POST.
+  const source = Buffer.from(image.data,'base64')
+  const chunkData = Buffer.concat([Buffer.from('Comment\0'), Buffer.alloc(5 * 1024 * 1024, 65)])
+  const chunk = Buffer.alloc(12 + chunkData.length)
+  chunk.writeUInt32BE(chunkData.length); chunk.write('tEXt',4); chunkData.copy(chunk,8)
+  chunk.writeUInt32BE(crc32(chunk.subarray(4,-4)),chunk.length-4)
+  const largeImage = attachment('large.png','image/png',Buffer.concat([source.subarray(0,-12),chunk,source.subarray(-12)]))
+  const largePdf = attachment('large.pdf','application/pdf',pdfBytes(pdfBody + '%' + ' '.repeat(5 * 1024 * 1024) + '\n'))
+  const fullText = '跨过旧文本配额。'.repeat(11000) + '\n完整结尾。'
+  const largeText = attachment('large.txt','text/plain',Buffer.from(fullText))
+  const bigRequest = {...direct,requestId:'file-through-host',attachments:[largeImage,largePdf,largeText]}
   assert.equal((await post('run',bigRequest)).status,200)
   await done('file-through-host')
-  assert.equal(calls.at(-1).messages.at(-1).content[0].file.file_data,'data:application/pdf;base64,'+large.data)
+  const blocks = calls.at(-1).messages.at(-1).content
+  assert.equal(blocks[0].image_url.url,'data:image/png;base64,'+largeImage.data)
+  assert.equal(blocks[1].file.file_data,'data:application/pdf;base64,'+largePdf.data)
+  assert.equal(blocks[2].text,'附件「large.txt」\n'+fullText)
   assert.equal((await post('memory',bigRequest)).status,400)
+
+  const reject = {...direct, requestId:'upstream-size', attachments:[attachment('拒绝.txt','text/plain',Buffer.from('拒绝'))]}
+  assert.equal((await post('run', reject)).status,200)
+  for (let i=0; i<250; i++) {
+    const job = (await desk.call('state',{})).jobs.find(j=>j.id===reject.requestId)
+    if (job?.status==='failed') { assert.match(job.error,/模型服务返回 HTTP 413/); break }
+    if (i===249) assert.fail('did not receive provider rejection')
+    await delay(15)
+  }
 })

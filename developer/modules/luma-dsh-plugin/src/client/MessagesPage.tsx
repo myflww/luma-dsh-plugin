@@ -1,10 +1,11 @@
+import { readChatFiles, readSessionFiles } from './chat-file-reader.ts'
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { MESSAGE_CHARACTERS, type MessagesRuntime } from './messages-runtime.ts'
 import type { RoleProfile } from '../messages-settings.ts'
 import { AgentMemoryPanel, AgentServicePanel, EmployeeFace, JobCard } from './AgentDeskPanels.tsx'
 import { agentRequest, inProgress, useAgentDesk, type AgentJob, type AgentMode, type WorkRoom } from './agent-desk-api.ts'
 import { RoomConversation, RoomCreator } from './WorkRooms.tsx'
-import { AttachmentNames, AttachmentPicker, readChatFiles, useAttachmentDrafts } from './ChatAttachments.tsx'
+import { AttachmentNames, ComposerActions, PendingAttachments, useAttachmentDrafts } from './ChatAttachments.tsx'
 import './MessagesPage.css'
 import './AgentDesk.css'
 import './Contacts.css'
@@ -37,14 +38,13 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
     const timer = window.setTimeout(() => setSlowLookup(true), 3000)
     return () => window.clearTimeout(timer)
   }, [active, desk.state, desk.problem])
-  const [actionsOpen, setActionsOpen] = useState(false)
   const [rosterOpen, setRosterOpen] = useState(false)
   const partners = MESSAGE_CHARACTERS.filter(role => unlockedEmployeeIds.includes(role.id))
   const visibleRoles = new Set(partners.map(role => role.id as string))
   const rooms = (desk.state?.rooms ?? []).filter(room => room.roleIds.every(id => visibleRoles.has(id)))
   const roomSupported = Array.isArray(desk.state?.rooms)
   function showRoom(room: WorkRoom | 'new' | null) {
-    setPanel(null); setRoomView(room); setActionsOpen(false); setRosterOpen(false)
+    setPanel(null); setRoomView(room); setRosterOpen(false)
   }
   useEffect(() => { setRoomView(null) }, [roleId, employeeVisit])
   const names = Object.fromEntries(MESSAGE_CHARACTERS.map(role => [role.id, state.preferences.profiles[role.id]?.name ?? role.name]))
@@ -81,6 +81,11 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
   const dshAttachments = sendViaNative || (mode==='team' ? handoff : [roleId]).some(id=>serviceConfigs?.[id]?.source==='dsh')
   const attachmentKey = JSON.stringify([roleId, nativeView ? 'native' : topic, nativeView ? state.sessionId : ''])
   const files = attachmentDrafts.filesFor(attachmentKey)
+  const fileSelectionDisabled = busy || !state.writable || !preferred
+  function changeFiles(next: File[]) {
+    attachmentDrafts.change(attachmentKey, next)
+    setActionError('')
+  }
   const deskReady = Boolean(desk.state) && !desk.problem
   const serviceReady = sendViaNative ? !state.running && !state.attention
     : deskReady && (mode === 'team' ? teamReady : configured)
@@ -126,10 +131,10 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
       return [id, { name: profile.name, personality: profile.personality, scenario: profile.scenario }]
     }))
     submitLock.current = true; setSending(true)
-    const timeout = AbortSignal.timeout(15_000)
+    const timeout = files.length ? undefined : AbortSignal.timeout(15_000)
     try {
-      const attachments = files.length ? await readChatFiles(files, dshAttachments, sendViaNative && state.nativeFileUpload) : []
       if (sendViaNative) {
+        const attachments = state.nativeFileUpload ? await readSessionFiles(files) : await readChatFiles(files, true)
         const current = runtime.getSnapshot()
         if (current.roleId !== roleId || current.sessionId !== state.sessionId || (current.preferences.drafts[roleId] ?? '') !== drafting) throw Error('会话或草稿已变化，请返回对应话题后重试。')
         const nativeMode = mode === 'task' ? 'task' : 'chat'
@@ -141,6 +146,7 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
         }
         return
       }
+      const attachments = files.length ? await readChatFiles(files, dshAttachments) : []
       retries.current.set(retryKey, { signature, id: requestId, files })
       await agentRequest<AgentJob>('run', { requestId, roleIds, mode, text: drafting.trim(), topic, profiles, ...(attachments.length ? {attachments} : {}) }, timeout)
       retries.current.delete(retryKey)
@@ -149,7 +155,7 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
       if (now.roleId === roleId && now.preferences.drafts[roleId] === drafting) runtime.setDraft('')
       selectLocal(topic); await desk.refresh(); setLocalRefresh(value => value + 1)
     } catch (error) {
-      setActionError(timeout.aborted || error instanceof TypeError ? '提交结果尚未确认，草稿已保留。连接恢复后可重试这条消息。'
+      setActionError(timeout?.aborted || error instanceof TypeError ? '提交结果尚未确认，草稿已保留。连接恢复后可重试这条消息。'
         : error instanceof Error ? error.message : '发送失败，草稿已保留。')
     }
     finally { submitLock.current = false; setSending(false) }
@@ -160,7 +166,7 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
   }
   const persistedProfile = JSON.stringify(state.profile)
   useEffect(() => { setProfile(JSON.parse(persistedProfile) as RoleProfile) }, [state.roleId, persistedProfile])
-  useEffect(() => { setNotice(''); setActionError(''); setTeam([]); setMode('chat'); setServiceTarget(null); setActionsOpen(false); setPanel(null); stick.current = true }, [state.roleId])
+  useEffect(() => { setNotice(''); setActionError(''); setTeam([]); setMode('chat'); setServiceTarget(null); setPanel(null); stick.current = true }, [state.roleId])
   useEffect(() => {
     if (employeeVisit) { setMode(employeeVisit.mode); setPanel(null); setActionError('') }
   }, [employeeVisit])
@@ -193,11 +199,11 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
   const matchingRooms = rooms.filter(room => room.name.toLocaleLowerCase().includes(search))
   const showRoomCreator = () => { if (partners.length < 2) onOpenRewards?.(); else showRoom('new') }
   useEffect(() => {
-    if (!active || (!panel && !actionsOpen && !rosterOpen)) return
-    function close(event: KeyboardEvent) { if (event.key === 'Escape') { setPanel(null); setActionsOpen(false); setRosterOpen(false) } }
+    if (!active || (!panel && !rosterOpen)) return
+    function close(event: KeyboardEvent) { if (event.key === 'Escape') { setPanel(null); setRosterOpen(false) } }
     window.addEventListener('keydown', close)
     return () => window.removeEventListener('keydown', close)
-  }, [active, panel, actionsOpen, rosterOpen])
+  }, [active, panel, rosterOpen])
   return <section className={'lumaMessages lumaContacts' + (rosterOpen ? ' show-roster' : '')} aria-label="联系">
     <aside className="lumaMessagesRoster">
       <header><h1>联系</h1><button type="button" className="lumaContactMobile" onClick={() => setRosterOpen(false)}>返回对话</button></header>
@@ -225,7 +231,7 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
       <header className="lumaMessageToolbar">
         <button type="button" className="lumaContactMobile" onClick={() => setRosterOpen(true)}>联系人</button>
         <div className="lumaEmployeeTitle"><EmployeeFace id={roleId} skin={skins[roleId]} /><div><h2>{state.profile.name}</h2><span>{state.running || runningJob ? '正在回复…' : '一对一聊天'}</span></div></div>
-        <button className="lumaContactSettingsButton" type="button" aria-label="聊天设置" aria-expanded={panel !== null} onClick={() => { setPanel('settings'); setActionsOpen(false) }}>•••</button>
+        <button className="lumaContactSettingsButton" type="button" aria-label="聊天设置" aria-expanded={panel !== null} onClick={() => setPanel('settings')}>•••</button>
       </header>
       {state.problem && <div className="lumaMessageNotice" role="alert">{state.problem}<button type="button" onClick={onOpenNative}>检查模型和连接</button></div>}
       {actionError && <p className="lumaMessageNotice" role="alert">{actionError}</p>}
@@ -258,10 +264,7 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
         {showNative && state.running && !state.messages.some(message => message.streaming) && <p className="lumaMessageThinking" role="status">{state.profile.name}正在组织回复…</p>}
       </div>
       <form className="lumaMessageComposer" onSubmit={event => { event.preventDefault(); void send() }}>
-        {actionsOpen && <nav className="lumaDeskModes" aria-label="发送模式">{(['chat','task','team'] as const).map((value,index) => <button type="button" key={value} aria-pressed={mode === value} disabled={busy} onClick={() => { setMode(value); setActionsOpen(false); setActionError('') }}>{['聊天','单人派工','协作交接'][index]}</button>)}
-          {roomSupported && <button type="button" disabled={busy || !state.writable} onClick={showRoomCreator}>{partners.length < 2 ? '邀请伙伴组群' : '拉群协作'}</button>}
-        </nav>}
-        {mode !== 'chat' && <div className="lumaContactMode"><span>{mode === 'task' ? '单人派工' : '协作交接'}</span><button type="button" onClick={() => { setMode('chat'); setActionsOpen(false) }}>返回聊天</button></div>}
+        {mode !== 'chat' && <div className="lumaContactMode"><span>{mode === 'task' ? '单人派工' : '协作交接'}</span><button type="button" onClick={() => setMode('chat')}>返回聊天</button></div>}
         {mode === 'team' && <fieldset className="lumaDeskTeam"><legend>交接顺序</legend><b>1 · {names[roleId]}</b>
           {partners.filter(role => role.id !== roleId).map(role => <label key={role.id}><input type="checkbox" checked={optedTeam.includes(role.id)} disabled={busy}
             onChange={e => setTeam(prev => e.target.checked ? [...prev, role.id] : prev.filter(id => id !== role.id))} />
@@ -276,8 +279,14 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
             if (preferred && !chosen[roleId]) selectLocal(preferred)
             runtime.setDraft(event.target.value)
           }} onKeyDown={event => { if (event.key === 'Enter' && (event.ctrlKey || event.metaKey) && !event.nativeEvent.isComposing) { event.preventDefault(); event.currentTarget.form?.requestSubmit() } }} />
-        <AttachmentPicker files={files} native={dshAttachments} nativeUploads={sendViaNative && state.nativeFileUpload} disabled={busy || !state.writable || !preferred} change={next => attachmentDrafts.change(attachmentKey, next)} error={setActionError}/>
-        <div className="lumaContactSendRow"><button type="button" className="lumaContactAdd" aria-label="更多聊天操作" aria-expanded={actionsOpen} onClick={() => setActionsOpen(v => !v)}>＋</button>
+        <PendingAttachments files={files} disabled={fileSelectionDisabled} change={changeFiles}/>
+        <div className="lumaContactSendRow">
+          <ComposerActions key={roleId} files={files} native={dshAttachments} nativeUploads={sendViaNative && state.nativeFileUpload}
+            disabled={fileSelectionDisabled} change={changeFiles} error={setActionError}>
+            {(['chat','task','team'] as const).map((value,index) => <button type="button" key={value} aria-pressed={mode === value} disabled={busy}
+              onClick={() => { setMode(value); setActionError('') }}>{['聊天','单人派工','协作交接'][index]}</button>)}
+            {roomSupported && <button type="button" disabled={busy || !state.writable} onClick={showRoomCreator}>{partners.length < 2 ? '邀请伙伴组群' : '拉群协作'}</button>}
+          </ComposerActions>
           <span>Ctrl / ⌘ + Enter 发送</span><div>
           {sendViaNative && state.running ? <button type="button" disabled={state.pending} onClick={() => { void runtime.stop() }}>停止生成</button>
             : runningJob ? <button type="button" disabled={!state.writable} onClick={() => void cancel(runningJob.id)}>停止任务</button>

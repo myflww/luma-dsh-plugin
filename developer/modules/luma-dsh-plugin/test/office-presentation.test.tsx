@@ -147,6 +147,52 @@ describe('DSH office presentation preferences', () => {
     expect(view.getByText('在办公室 · 正在处理任务')).toBeTruthy()
     store.dispose()
   })
+  it('reads a single report for the open roster and displays each employee’s own next-coin progress', async () => {
+    const store = new OfficePresentationStore(scope())
+    const employees = [
+      { employeeId: 'jingyuniang', displayName: '鲸鱼娘' }, { employeeId: 'shan', displayName: '端木嫣' },
+    ].map(employee => ({ ...employee, sceneActivity: 'idle', taskState: 'idle', canDrag: true }))
+    const runtime = {
+      getSnapshot: () => ({ presentation: store.getSnapshot(), projection: { employees, officeReportMarkers: [] }, commands: [], persistence: 'host' }),
+      subscribe: store.subscribe,
+    } as unknown as OfficePageRuntime
+    const read = vi.fn(async (_signal: AbortSignal) => ({ threshold: 1_000_000, nativeHistoryComplete: true, collectionRevision: 1, roles: {
+      jingyuniang: { totalTokens: 10_198, remainderTokens: 10_198, earnedCoins: 0 },
+      shan: { totalTokens: 1_000_000, remainderTokens: 0, earnedCoins: 1 },
+    }}))
+    const view = render(<OfficePage runtime={runtime} readEmployeeUsage={read} onOpenChat={() => {}} unlockedEmployeeIds={['jingyuniang','shan']}/>)
+    const toggle = view.getByRole('button', {name: '员工列表'})
+    expect(read).not.toHaveBeenCalled()
+    fireEvent.click(toggle)
+    const whale = await view.findByRole('progressbar', {name: '鲸鱼娘的下一枚星币'}) as HTMLProgressElement
+    expect(whale.value).toBe(10_198)
+    expect(whale.getAttribute('aria-valuetext')).toContain('989,802 token')
+    const shan = view.getByRole('progressbar', {name: '端木嫣的下一枚星币'}) as HTMLProgressElement
+    expect(shan.value).toBe(0)
+    expect(shan.getAttribute('aria-valuetext')).toContain('已获得 1 星币')
+    expect(read).toHaveBeenCalledTimes(1)
+    const signal = read.mock.calls[0]![0]
+    fireEvent.click(toggle)
+    expect(signal.aborted).toBe(true)
+    fireEvent(document, new Event('visibilitychange'))
+    expect(read).toHaveBeenCalledTimes(1)
+    read.mockResolvedValueOnce({threshold: 1_000_000, nativeHistoryComplete: false, collectionRevision: 2, roles: {
+      jingyuniang: {totalTokens: 1_000_001, remainderTokens: 1, earnedCoins: 1},
+      shan: {totalTokens: 1_999_999, remainderTokens: 999_999, earnedCoins: 1},
+    }})
+    fireEvent.click(toggle)
+    await view.findByText('仅显示已同步用量，部分历史会话待核对。')
+    expect(view.getByText('<0.1%')).toBeTruthy()
+    expect(view.getByText('99.9%')).toBeTruthy()
+    expect(read).toHaveBeenCalledTimes(2)
+    const failed = vi.fn(async () => { throw Error('暂时无法读取员工用量，请重试。') })
+    view.rerender(<OfficePage runtime={runtime} readEmployeeUsage={failed} onOpenChat={() => {}} unlockedEmployeeIds={['jingyuniang','shan']}/>)
+    await view.findByText('暂时无法读取员工用量，请重试。')
+    expect(view.queryByRole('progressbar')).toBeNull()
+    expect(view.getAllByText('用量待同步')).toHaveLength(2)
+    store.dispose()
+  })
+
   it('opens the same employee workspace from the roster, bedroom and office without creating native sessions', () => {
     const store = new OfficePresentationStore(scope()), openWorkspace = vi.fn(), openNative = vi.fn()
     const runtime = {

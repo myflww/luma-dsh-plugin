@@ -93,7 +93,8 @@ export async function requestEmployeeModel(service:Service, key:string, messages
   }
   const body = JSON.stringify({...payload,...customThinking(protocol,service.model,service.effort)})
   const response=await fetch(modelBaseUrl(new URL(service.baseUrl),protocol)+path,{method:'POST',redirect:'error',headers,body,signal})
-  if(!response.ok) throw Error('模型服务返回 HTTP '+response.status+(messages.some(m=>m.attachments?.length) && [400,413,415,422].includes(response.status)
+  if (response.status === 413) throw Error('模型服务返回 HTTP 413：服务商拒绝了本次请求的大小。可拆开发送或更换模型服务。')
+  if(!response.ok) throw Error('模型服务返回 HTTP '+response.status+(messages.some(m=>m.attachments?.length) && [400,415,422].includes(response.status)
     ? '，请确认模型支持所选附件的格式与大小。' : '，请检查这位员工的服务设置。'))
   const data=await response.json()
   const tokens = providerUsageTotal(protocol, data)

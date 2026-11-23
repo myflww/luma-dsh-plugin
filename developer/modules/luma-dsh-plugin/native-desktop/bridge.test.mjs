@@ -94,8 +94,9 @@ test('desktop session bridge projects employee identity, real Chat target, permi
   const chat = store({legacy:{nodes:[{kind:'assistant',seq:1}], partial:null},timeline:{turnOrder:[],turns:new Map()}})
   const session = Object.assign(store({openState:'open',running:false}), {prompt: async (content, mode)=>({ok:true,value:{content,mode}})})
   const retained = [], released = [], native = []
-  const staged = []
+  const staged = [], uploads = []
   const ctx = {fileUpload:{async upload(id, blob, name, signal) {
+    uploads.push(blob)
     staged.push({id, bytes:Buffer.from(await blob.arrayBuffer()), name, aborted:signal.aborted})
     return {ok:true,value:{receiptId:'receipt-fixture'}}
   }},sessions:{list,retain(id, {source}) {
@@ -114,6 +115,10 @@ test('desktop session bridge projects employee identity, real Chat target, permi
     const face = bridge.sessions.binding('role').session
     assert.equal(await bridge.uploadSessionFile('role',{name:'sample.bin', mediaType:'application/octet-stream',data:'AAEC/w=='}),'receipt-fixture')
     assert.deepEqual(staged,[{id:'role',bytes:Buffer.from([0,1,2,255]),name:'sample.bin',aborted:false}])
+    const original = new File([Buffer.alloc(5 * 1024 * 1024, 42)],'original.bin')
+    assert.equal(await bridge.uploadSessionFile('role',{name:original.name,file:original}),'receipt-fixture')
+    assert.equal(uploads.at(-1),original)
+    assert.equal(staged.at(-1).bytes.length,original.size)
     status.publish(new Map([['role',{pendingInteraction:{kind:'approval'}}]]))
     assert.deepEqual(face.getSnapshot().pending,[{kind:'approval'}])
     assert.equal(face.getSnapshot().nodes[0].seq,1)

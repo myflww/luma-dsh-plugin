@@ -1,7 +1,4 @@
 export const MAX_CHAT_ATTACHMENTS = 4
-export const MAX_ATTACHMENT_BYTES = 4 * 1024 * 1024
-export const MAX_CHAT_ATTACHMENT_BYTES = 6 * 1024 * 1024
-export const MAX_TEXT_ATTACHMENT_BYTES = 64 * 1024
 export const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'] as const
 export type ImageType = typeof IMAGE_TYPES[number]
 export type AttachmentType = ImageType | 'text/plain' | 'application/pdf' | 'application/octet-stream'
@@ -18,7 +15,7 @@ export function inspectChatFile(file: Pick<File, 'name' | 'type' | 'size'>, nati
   let mediaType: AttachmentType | undefined = Object.hasOwn(formats, extension) ? formats[extension] : undefined
   if (!mediaType) {
     if (IMAGE_TYPES.includes(file.type as ImageType) || file.type === 'application/pdf') mediaType = file.type as AttachmentType
-    else if (text && (!nativeUploads || file.size <= MAX_TEXT_ATTACHMENT_BYTES)) mediaType = 'text/plain'
+    else if (text) mediaType = 'text/plain'
     else if (native && nativeUploads) mediaType = 'application/octet-stream'
   }
   if (!mediaType) throw Error(file.name + '：不支持此格式。请选择图片、UTF-8 文本或独立 API 支持的 PDF。')
@@ -31,26 +28,36 @@ function checkInfo(info: AttachmentInfo) {
   if (typeof info.name !== 'string' || !info.name.trim() || info.name.length > 255 || /[\\/\u0000-\u001f\u007f]/.test(info.name)) throw Error('附件名称无效。')
   if (![...IMAGE_TYPES, 'text/plain', 'application/pdf', 'application/octet-stream'].includes(info.mediaType)) throw Error('附件格式不受支持。')
   if (!Number.isSafeInteger(info.bytes) || info.bytes <= 0) throw Error(info.name + '：文件为空或大小无效。')
-  if (info.bytes > MAX_ATTACHMENT_BYTES) throw Error(info.name + '：单个附件上限为 4 MiB。')
-  if (info.mediaType === 'text/plain' && info.bytes > MAX_TEXT_ATTACHMENT_BYTES) throw Error(info.name + '：文本附件上限为 64 KiB。')
 }
 export function checkAttachmentBatch(items: readonly AttachmentInfo[]) {
   if (items.length > MAX_CHAT_ATTACHMENTS) throw Error('每条消息最多可添加 4 个附件。')
-  if (items.reduce((total, item) => total + item.bytes, 0) > MAX_CHAT_ATTACHMENT_BYTES) throw Error('每条消息的附件合计上限为 6 MiB。')
 }
 export function attachmentBytes(item: ChatAttachment): Uint8Array<ArrayBuffer> {
-  const binary = atob(item.data)
-  const bytes = new Uint8Array(binary.length)
-  for (let i = 0; i < bytes.length; i++) bytes[i] = binary.charCodeAt(i)
+  const {data} = item
+  const padding = data.endsWith('==') ? 2 : data.endsWith('=') ? 1 : 0
+  const bytes = new Uint8Array(data.length / 4 * 3 - padding)
+  // Decode aligned blocks so a second full-size binary string is never needed.
+  for (let offset = 0; offset < data.length; offset += 65536) {
+    const block = atob(data.slice(offset, offset + 65536))
+    const firstByte = offset / 4 * 3
+    for (let i = 0; i < block.length; i++) bytes[firstByte + i] = block.charCodeAt(i)
+  }
   return bytes
 }
-export function attachmentText(item: ChatAttachment) {
-  const bytes = attachmentBytes(item)
+export function decodeAttachmentText(name: string, bytes: Uint8Array) {
   try {
     const text = new TextDecoder('utf-8', {fatal:true}).decode(bytes)
     if (/[\u0000-\u0008\u000b\u000e-\u001f]/.test(text)) throw Error()
     return text
-  } catch { throw Error(item.name + '：请使用 UTF-8 编码的文本文件。') }
+  } catch { throw Error(name + '：请使用 UTF-8 编码的文本文件。') }
+}
+const decodedText = new WeakMap<ChatAttachment,string>()
+export function attachmentText(item: ChatAttachment) {
+  const existing = decodedText.get(item)
+  if (existing !== undefined) return existing
+  const text = decodeAttachmentText(item.name, attachmentBytes(item))
+  decodedText.set(item,text)
+  return text
 }
 export function textFileBlock(item: ChatAttachment) { return '附件「' + item.name + '」\n' + attachmentText(item) }
 export function validateChatAttachments(input: unknown, nativeUploads = false): ChatAttachment[] {
@@ -67,10 +74,13 @@ export function validateChatAttachments(input: unknown, nativeUploads = false): 
   })
   checkAttachmentBatch(items)
   for (const item of items) {
-    let binary: string
-    try { binary = atob(item.data) } catch { throw Error(item.name + '：附件编码无效。') }
-    if (binary.length !== item.bytes) throw Error(item.name + '：附件大小不一致。')
-    if (btoa(binary) !== item.data) throw Error(item.name + '：附件编码无效。')
+    const {data, bytes} = item
+    const padding = (3 - bytes % 3) % 3
+    const paddingStart = padding ? data.length - padding : -1
+    if (data.indexOf('=') !== paddingStart || !data.endsWith('='.repeat(padding))) throw Error(item.name + '：附件大小不一致。')
+    // Only the final quartet can have non-canonical trailing bits.
+    const tail = data.slice(-4)
+    if (btoa(atob(tail)) !== tail) throw Error(item.name + '：附件编码无效。')
     if (item.mediaType === 'application/octet-stream') continue
     if (item.mediaType === 'text/plain') {
       try { attachmentText(item) }
@@ -80,6 +90,7 @@ export function validateChatAttachments(input: unknown, nativeUploads = false): 
       }
       continue
     }
+    const binary = atob(data.slice(0, 16))
     const valid = item.mediaType === 'image/png' ? binary.startsWith('\x89PNG\r\n\x1a\n')
       : item.mediaType === 'image/jpeg' ? binary.startsWith('\xff\xd8\xff')
       : item.mediaType === 'image/gif' ? /^GIF8[79]a/.test(binary)

@@ -15,6 +15,8 @@ import { projectPluginSceneEmployees } from './office-scene-employees.ts'
 import { useAgentWorkRoles } from './agent-work-activity.ts'
 import { getChibiAvatar } from './employee-avatar.ts'
 import { MessageAvatar } from './MessageAvatar.tsx'
+import { EmployeeUsageMeter, useEmployeeUsage } from './EmployeeUsagePanel.tsx'
+import type { LocalCollectionRuntime } from './local-collection-store.ts'
 import { BedDouble, Building2, ChevronDown, Clock3, Eye, EyeOff, Palette, Scan, Shirt, UsersRound, X } from 'lucide-react'
 import { SceneViewport } from './SceneViewport.tsx'
 import './ImmersiveOffice.css'
@@ -23,6 +25,7 @@ import './OfficePage.css'
 export interface OfficePageProps {
   readonly sceneMenu?: ReactNode
   readonly runtime: OfficePageRuntime
+  readonly readEmployeeUsage?: LocalCollectionRuntime['readEmployeeUsage']
   readonly onOpenChat: (employeeId: string, intent?: 'task') => void
   readonly unlockedEmployeeIds?: readonly string[]
   readonly unlockedThemeIds?: readonly string[]
@@ -35,12 +38,13 @@ export interface OfficePageProps {
 // separate IDs and source pins; the old records are never represented as recovered.
 const unavailableHistoricalRestArt: readonly OfficeAssetId[] = ['employee.lu-mi.rest.left.whole.v2', 'employee.lu-mi.rest.right.whole.v2']
 
-export function OfficePage({ runtime, onOpenChat, active = true, sceneMenu, unlockedEmployeeIds = [STARTER_EMPLOYEE_ID], unlockedThemeIds = [], onOpenRewards }: OfficePageProps) {
+export function OfficePage({ runtime, readEmployeeUsage, onOpenChat, active = true, sceneMenu, unlockedEmployeeIds = [STARTER_EMPLOYEE_ID], unlockedThemeIds = [], onOpenRewards }: OfficePageProps) {
   const [snapshot, setSnapshot] = useState(() => runtime.getSnapshot())
   const [scene,setScene] = useState<'office'|'bedroom'>('office')
   const [panel,setPanel] = useState<'roster'|'wardrobe'|'themes'|null>(null)
   const [fit, setFit] = useState(false)
   const [toolsHidden, setToolsHidden] = useState(false)
+  const usage = useEmployeeUsage(readEmployeeUsage, active && panel === 'roster' && !toolsHidden)
   const [actionsTarget, setActionsTarget] = useState<HTMLDivElement|null>(null)
   const panelRef=useRef<HTMLDivElement>(null)
   const opener=useRef<HTMLButtonElement|null>(null)
@@ -181,6 +185,7 @@ export function OfficePage({ runtime, onOpenChat, active = true, sceneMenu, unlo
         {onOpenRewards && <button type="button" onClick={onOpenRewards}>邀请伙伴</button>}</div>
       <ul className="lumaOfficeTeamGrid">{employees.map(employee=>{
         const id=employee.id as ResidentId
+        const usageRow = usage.data?.roles[id]
         return <li key={id}>
           <MessageAvatar {...getChibiAvatar(id,selection.employeeSkins[id])}/>
           <div><strong>{employee.name}</strong><small>{employee.location==='office'?'办公室 · '+employee.activity:employee.location==='bedroom'?'卧室 · '+(policy.bedtime && employee.taskState==='idle'?'已入睡':employee.taskState!=='idle'?employee.activity:'自由活动'):'位置待同步'}</small></div>
@@ -188,8 +193,13 @@ export function OfficePage({ runtime, onOpenChat, active = true, sceneMenu, unlo
             <button type="button" onClick={()=>visit(id)} aria-label={'进入'+employee.name+'的卧室'}>卧室</button>
             <button type="button" onClick={()=>dress(id)} aria-label={employee.name+'换装'}>换装</button>
             <button type="button" onClick={()=>onOpenChat(id)} aria-label={'联系'+employee.name}>联系</button>
+            {usageRow && usage.data
+              ? <EmployeeUsageMeter compact name={employee.name} row={usageRow} threshold={usage.data.threshold}/>
+              : <span className="lumaRosterMeterState">{usage.loading ? '读取用量…' : '用量待同步'}</span>}
           </div>
         </li>})}</ul>
+      {usage.error ? <p className="lumaRosterUsageNote" role="status">{usage.error}</p>
+        : usage.data && !usage.data.nativeHistoryComplete && <p className="lumaRosterUsageNote" role="status">仅显示已同步用量，部分历史会话待核对。</p>}
     </section>}
     {panel==='wardrobe' && <OfficeWardrobe id={resident} selected={selection.employeeSkins[resident]} unlockedEmployeeIds={unlockedEmployeeIds}
       disabled={presentationDisabled} onSelect={setResident} onEquip={skin=>void runtime.setOutfit(resident,skin)}/>}

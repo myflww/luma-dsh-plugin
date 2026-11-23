@@ -2,25 +2,25 @@
 
 Luma 在 DeepSeek Harness Desktop 内提供办公室、伙伴卧室和联系人。新档从鲸鱼娘开始。选中她可以聊天或交办工作，抽到对应的卡片后可以邀请更多伙伴。
 
-## 安装 0.5.3
+## 安装 0.5.4
 
-首次使用 DeepSeek Harness Desktop 时，请先打开一次桌面客户端，让 DSH 建立桌面档案。Windows 安装器会通过该客户端的插件命令加载 Luma。用有仓库权限的 GitHub 账号下载 `Luma-DSH-0.5.3-Installer.zip`，解压后双击 `Install-Luma-DSH.cmd`。安装包自带更新，已有完整的 0.5.2、0.5.1、0.5.0 或 0.4.3 插件目录即可离线升级。[下载 0.5.3 安装包](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.5.3)
+首次使用 DeepSeek Harness Desktop 时，请先打开一次桌面客户端，让 DSH 建立桌面档案。Windows 安装器会通过该客户端的插件命令加载 Luma。用有仓库权限的 GitHub 账号下载 `Luma-DSH-0.5.4-Installer.zip`，解压后双击 `Install-Luma-DSH.cmd`。安装包自带更新，已有完整的 0.5.3、0.5.2、0.5.1、0.5.0 或 0.4.3 插件目录即可离线升级。[下载 0.5.4 安装包](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.5.4)
 
 使用命令行安装时，先用有权限的账号登录 GitHub CLI，再运行以下命令。
 
 ```powershell
-gh release download v0.5.3 --repo myflww/luma-dsh-plugin --pattern Get-Luma-DSH.ps1 --dir .\LumaInstaller --clobber
+gh release download v0.5.4 --repo myflww/luma-dsh-plugin --pattern Get-Luma-DSH.ps1 --dir .\LumaInstaller --clobber
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\LumaInstaller\Get-Luma-DSH.ps1
 ```
 
 安装器在桌面 `Luma-DSH` 中创建新版本的独立目录，核对每个文件的 SHA-256，再通过 DSH 自身的 CLI 安装。重新打开 DSH，点侧栏的「Luma 办公室」。DSH 会引用该目录，请长期保留。
 
-- **从旧版升级**　安装器会在桌面 `Luma-DSH` 目录中依次查找 `DesktopPlugin-0.5.2`、`DesktopPlugin-0.5.1`、`DesktopPlugin-0.5.0`、`DesktopPlugin-0.4.3` 和 `Luma-DSH-0.4.3-Windows.zip`。旧版存放在别处时，可在命令末尾添加 `-Base "D:\Luma\DesktopPlugin-0.5.2"` 或 `-Base "D:\Downloads\Luma-DSH-0.4.3-Windows.zip"`。
-- **首次安装**　安装器从本仓库的 0.4.3 发布取得基础美术，再应用 0.5.3 更新。首次下载约 1.87 GB，包含分卷、合并 ZIP 与完整插件时，建议预留 6 GiB。
-- **离线安装**　将 0.5.3 发布中的 `Get-Luma-DSH.ps1` 和 `Luma-DSH-0.5.3-Update.zip` 放在一起，再使用上面的 `-Base` 指定本地基础包。
-- **手动添加**　运行安装器时追加 `-PrepareOnly`，然后从 DSH 的插件页添加生成的 `DesktopPlugin-0.5.3` 目录。使用 `-Directory "D:\Luma"` 可以更改输出位置。
+- **从旧版升级**　安装器会在桌面 `Luma-DSH` 目录中依次查找 `DesktopPlugin-0.5.3`、`DesktopPlugin-0.5.2`、`DesktopPlugin-0.5.1`、`DesktopPlugin-0.5.0`、`DesktopPlugin-0.4.3` 和 `Luma-DSH-0.4.3-Windows.zip`。旧版存放在别处时，可在命令末尾添加 `-Base "D:\Luma\DesktopPlugin-0.5.3"` 或 `-Base "D:\Downloads\Luma-DSH-0.4.3-Windows.zip"`。
+- **首次安装**　安装器从本仓库的 0.4.3 发布取得基础美术，再应用 0.5.4 更新。首次下载约 1.87 GB，包含分卷、合并 ZIP 与完整插件时，建议预留 6 GiB。
+- **离线安装**　将 0.5.4 发布中的 `Get-Luma-DSH.ps1` 和 `Luma-DSH-0.5.4-Update.zip` 放在一起，再使用上面的 `-Base` 指定本地基础包。
+- **手动添加**　运行安装器时追加 `-PrepareOnly`，然后从 DSH 的插件页添加生成的 `DesktopPlugin-0.5.4` 目录。使用 `-Directory "D:\Luma"` 可以更改输出位置。
 
-如需退回上一个版本，保留旧目录，关闭 DSH，运行以下命令再重新打开 DSH。安装器会重新注册桌面的 `DesktopPlugin-0.5.2`。旧目录位于其他位置时，追加 `-Base "D:\Luma\DesktopPlugin-0.5.2"`。回退只切换插件程序，收藏和会话继续使用当前 DSH 档案。
+如需退回上一个版本，保留旧目录，关闭 DSH，运行以下命令再重新打开 DSH。安装器会重新注册桌面的 `DesktopPlugin-0.5.3`。旧目录位于其他位置时，追加 `-Base "D:\Luma\DesktopPlugin-0.5.3"`。回退只切换插件程序，收藏和会话继续使用当前 DSH 档案。
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\LumaInstaller\Get-Luma-DSH.ps1 -Rollback
@@ -44,9 +44,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\LumaInstaller\Get-Luma
 
 「我的卡册」只展示当前档案实际持有的卡。想了解各卡包的收录范围，可以切到「卡池图鉴」。已兑换的卡仍保留获取记录。在同一 DSH 档案更新插件会延续进度。切换到全新档案时，收藏与解锁从头开始。
 
-私聊、派工和协作群的输入框下都有「添加图片或文件」。每条可附 4 个文件，单个最多 4 MiB，合计最多 6 MiB。DSH 默认会话可使用文件工具处理文档。指定 DSH 模型时可发送文本和受模型支持的图片。自定义端点也支持将 PDF 交给兼容模型。选择全员接力时，每位参与伙伴都会收到这条消息的附件。
+在私聊、派工或群聊的输入框点「＋ → 添加图片或文件」。每条可附 4 个文件。Luma 不限制单个文件或整条消息的附件体积。实际可发送的大小取决于 DSH、服务商和所选模型。DSH 默认会话可使用文件工具处理文档。指定 DSH 模型时可发送文本和受模型支持的图片。自定义端点也支持将 PDF 交给兼容模型。选择全员接力时，每位参与伙伴都会收到这条消息的附件。
 
-在「菜单 → 卡包商店 → 员工用量」查看每位伙伴的累计 token。用量按模型返回的记录计入对应伙伴。每人每满 100 万 token，钱包自动增加 1 星币，余量继续累计。旧档可回填能确认归属、且留有用量记录的 DSH 会话。独立 API 的用量从升级到本版后开始累计。旧版装帧商店已下架，升级后会按购买记录中的实付金额自动退还星币。
+打开办公室或卧室的「员工列表」，在每位伙伴的「联系」按钮旁可直接查看距下一枚星币的用量进度。在「菜单 → 卡包商店 → 员工用量」可查看详细账本。用量按模型返回的记录计入对应伙伴。每人每满 100 万 token，钱包自动增加 1 星币，余量继续累计。旧档可回填能确认归属、且留有用量记录的 DSH 会话。独立 API 的用量从 0.5.3 起按服务返回的记录累计。旧版装帧商店已下架，升级后会按购买记录中的实付金额自动退还星币。
 
 ## 伙伴来信、隐私与版本更新
 

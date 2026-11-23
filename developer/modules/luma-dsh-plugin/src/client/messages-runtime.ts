@@ -1,5 +1,6 @@
 import { dialogueStyle } from '../shared/companion-life.ts'
-import { attachmentInfo, textFileBlock, validateChatAttachments, type AttachmentInfo, type ChatAttachment, type ImageType } from '../shared/chat-attachments.ts'
+import type { SessionFile } from './chat-file-reader.ts'
+import { checkAttachmentBatch, attachmentInfo, textFileBlock, validateChatAttachments, type AttachmentInfo, type ChatAttachment, type ImageType } from '../shared/chat-attachments.ts'
 import type { ClientContext, SessionId } from '@deepseek-ai/dsh-client-runtime/client'
 import { OFFICE_EMPLOYEE_DEFINITIONS } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office-harness/OfficeRelationships.ts'
 import { OFFICE_CHARACTER_CARDS } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office-harness/OfficeCharacterCards.ts'
@@ -55,7 +56,7 @@ export function createMessagesRuntime(ctx: ClientContext, office: OfficePageRunt
 }) {
   const scope = ctx.settingsScope.bind<MessageSettings>({ namespace: MESSAGES_NAMESPACE, decode: decodeMessageSettings })
   const api = ctx.get('connection').api
-  const {uploadSessionFile} = ctx as ClientContext & { uploadSessionFile?(id: SessionId, item: ChatAttachment): Promise<string> }
+  const {uploadSessionFile} = ctx as ClientContext & { uploadSessionFile?(id: SessionId, item: ChatAttachment | SessionFile): Promise<string> }
   const listeners = new Set<() => void>()
   let disposed = false, busy = false, problem: string | undefined, optimistic: MessagePreferences | undefined
   let draftDirty = false
@@ -258,10 +259,18 @@ export function createMessagesRuntime(ctx: ClientContext, office: OfficePageRunt
       await save({ ...preferences(), activeTopics: { ...preferences().activeTopics, [roleId]: id } })
       return true
     }) },
-    send(mode: 'chat' | 'task' = 'chat', input?: readonly ChatAttachment[]) { return run(async () => {
+    send(mode: 'chat' | 'task' = 'chat', input?: readonly (ChatAttachment | SessionFile)[]) { return run(async () => {
       const submittedDraft = preferences().drafts[snapshot.roleId] ?? ''
       const body = submittedDraft.trim()
-      const attachments = validateChatAttachments(input, !!uploadSessionFile)
+      const items = input ?? []
+      checkAttachmentBatch(items)
+      const attachments = items.map(item => {
+        if ('file' in item) {
+          if (!uploadSessionFile) throw Error('当前 DSH 会话缺少文件上传服务。')
+          return item
+        }
+        return validateChatAttachments([item], !!uploadSessionFile)[0]!
+      })
       if (!uploadSessionFile && attachments.some(a => a.mediaType === 'application/pdf')) throw Error('当前 DSH 会话缺少文件上传服务。PDF 请使用支持 PDF 的独立模型。')
       if (!body && !attachments.length) return
       const roleId = snapshot.roleId, profile = snapshot.profile, userName = preferences().userName
@@ -283,7 +292,7 @@ export function createMessagesRuntime(ctx: ClientContext, office: OfficePageRunt
       const prompt = characterPrompt(roleId, profile, userName, body, { id: journalId, memory, work: mode === 'task', attachments:attachments.map(attachmentInfo) })
       const parts: Parameters<typeof session.prompt>[0] = [{ type: 'text', text: prompt }]
       for (const item of attachments) {
-        if (item.mediaType.startsWith('image/')) {
+        if ('data' in item && item.mediaType.startsWith('image/')) {
           parts.push({type:'image', name:item.name, mediaType:item.mediaType as ImageType, data:item.data})
           continue
         }
@@ -291,7 +300,9 @@ export function createMessagesRuntime(ctx: ClientContext, office: OfficePageRunt
           const receiptId = await uploadSessionFile(id, item)
           parts.push({type:'file', receiptId} as typeof parts[number])
         }
-        if (item.mediaType === 'text/plain') parts.push({type:'text', text:textFileBlock(item)})
+        if ('file' in item) {
+          if (item.inlineText !== undefined) parts.push({type:'text', text:'附件「' + item.name + '」\n' + item.inlineText})
+        } else if (item.mediaType === 'text/plain') parts.push({type:'text', text:textFileBlock(item)})
       }
       assertWritable()
       if (!isUnlocked(roleId) || ctx.sessions.list.getSnapshot().byId[id]?.agentPreset !== preset) throw Error('会话角色归属发生变化，草稿已保留。')

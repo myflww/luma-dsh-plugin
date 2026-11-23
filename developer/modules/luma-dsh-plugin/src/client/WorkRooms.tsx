@@ -1,9 +1,10 @@
+import { readChatFiles } from './chat-file-reader.ts'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { EmployeeFace, AgentServicePanel, exportResult } from './AgentDeskPanels.tsx'
 import { CloudOfficeLauncher } from './CloudOfficePanel.tsx'
 import { agentRequest, inProgress, type AgentState, type WorkRoom } from './agent-desk-api.ts'
 import { MESSAGE_CHARACTERS, type MessagesSnapshot } from './messages-runtime.ts'
-import { AttachmentNames, AttachmentPicker, readChatFiles } from './ChatAttachments.tsx'
+import { AttachmentNames, ComposerActions, PendingAttachments } from './ChatAttachments.tsx'
 import './WorkRooms.css'
 
 type Props = {
@@ -87,6 +88,11 @@ export function RoomConversation({ room, snapshot, state, names, refresh, close,
     try { localStorage.setItem('luma.room.draft.' + room.id, JSON.stringify(next)) } catch {}
     setDraft(next)
   }
+  function updateFiles(next: File[]) {
+    changeFiles(next)
+    saveDraft({ ...draft, requestId: '' })
+    setError('')
+  }
   useEffect(() => {
     if (stick.current) scroll.current?.scrollTo({ top: scroll.current.scrollHeight })
   }, [signature])
@@ -107,7 +113,7 @@ export function RoomConversation({ room, snapshot, state, names, refresh, close,
     }))
     try {
       const attachments = files.length ? await readChatFiles(files, dshAttachments) : []
-      await agentRequest('run', { requestId, topic:room.id, mode: target ? 'task' : 'team', roleIds:ids, profiles, text:draft.text.trim(), ...(attachments.length ? {attachments} : {}) }, AbortSignal.timeout(15000))
+      await agentRequest('run', { requestId, topic:room.id, mode: target ? 'task' : 'team', roleIds:ids, profiles, text:draft.text.trim(), ...(attachments.length ? {attachments} : {}) }, files.length ? undefined : AbortSignal.timeout(15000))
       saveDraft({ ...submitted, text:'', requestId:'' })
       changeFiles([])
       await refresh()
@@ -147,10 +153,12 @@ export function RoomConversation({ room, snapshot, state, names, refresh, close,
           if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && !e.nativeEvent.isComposing) { e.preventDefault(); e.currentTarget.form?.requestSubmit() }
         }} />
       {error && <p role="alert">{error}</p>}
-      <AttachmentPicker files={files} native={dshAttachments} disabled={sending || !snapshot.writable} change={next => { changeFiles(next); saveDraft({...draft, requestId:''}) }} error={setError}/>
-      <div><span>Ctrl / ⌘ + Enter 发送到群</span>{running
+      <PendingAttachments files={files} disabled={sending || !snapshot.writable} change={updateFiles}/>
+      <div className="lumaContactSendRow">
+        <ComposerActions files={files} native={dshAttachments} disabled={sending || !snapshot.writable} change={updateFiles} error={setError}/>
+        <span>Ctrl / ⌘ + Enter 发送到群</span><div>{running
         ? <button type="button" disabled={!snapshot.writable} onClick={() => void cancel(running.id)}>停止本轮</button>
-        : <button className="is-primary" disabled={!canSend} type="submit">发送到群</button>}</div>
+        : <button className="is-primary" disabled={!canSend} type="submit">发送到群</button>}</div></div>
     </form></section>
     {service && <AgentServicePanel key={service} forHandoff roleId={service} name={names[service]!} config={state.roles[service]} canWrite={snapshot.writable} refresh={refresh} close={() => setService('')} />}
   </>

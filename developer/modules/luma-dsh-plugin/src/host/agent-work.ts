@@ -1,7 +1,7 @@
 import { createContactStyles, statedStyles } from './contact-style.ts'
 import { createCompanionLife } from './companion-life.ts'
 import { dialogueStyle } from '../shared/companion-life.ts'
-import { attachmentInfo, MAX_CHAT_ATTACHMENT_BYTES, validateChatAttachments, type AttachmentInfo, type ChatAttachment } from '../shared/chat-attachments.ts'
+import { attachmentInfo, validateChatAttachments, type AttachmentInfo, type ChatAttachment } from '../shared/chat-attachments.ts'
 import { DatabaseSync } from 'node:sqlite'
 import { mkdirSync, lstatSync, writeFileSync, renameSync, unlinkSync } from 'node:fs'
 import { join } from 'node:path'
@@ -138,6 +138,16 @@ function openStore(root: string) {
 type PortableLibraries = {
   read: () => Promise<HouseBinding | undefined>
   verify: (binding: HouseBinding,runtimeFile?:string) => Promise<void>
+}
+// Keep the original JSON digest for retried jobs without building another copy of the base64 payload.
+function hashAttachments(items: ChatAttachment[]) {
+  const hash = createHash('sha256').update('[')
+  for (const [index, item] of items.entries()) {
+    if (index) hash.update(',')
+    hash.update(JSON.stringify(attachmentInfo(item)).slice(0, -1))
+    hash.update(',"data":"').update(item.data, 'ascii').update('"}')
+  }
+  return hash.update(']').digest('hex')
 }
 export function createAgentWork(root: string, admitDesktopOwner?: (req: IncomingMessage) => boolean, portable?: PortableLibraries,
   readUnlockedEmployees: () => readonly string[] = () => WORK_ROLE_IDS, autoHouse = false, native?:NativeModels,
@@ -676,7 +686,7 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
     const id = token(b.requestId),
       prior = jobs.get(id)
     const attachments = validateChatAttachments(b.attachments)
-    const attachmentDigest = attachments.length ? createHash('sha256').update(JSON.stringify(attachments)).digest('hex') : undefined
+    const attachmentDigest = attachments.length ? hashAttachments(attachments) : undefined
     const text = string(b.text, 32000, attachments.length > 0),
       mode = string(b.mode, 10),
       topic = b.topic === undefined ? 'main' : token(b.topic)
@@ -768,15 +778,15 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
       return send(403, { ok: false, error: '员工工作台仅支持本机同源连接。' })
     try {
       const action = /^\/luma-agents\/([a-z]+)$/.exec(req.url ?? '')?.[1] ?? ''
-      const limit = 1024 * 1024 + (action === 'run' ? Math.ceil(MAX_CHAT_ATTACHMENT_BYTES / 3) * 4 : 0)
-      const chunks: Buffer[] = []
-      let size = 0
-      for await (const chunk of req) {
-        size += chunk.length
-        if (size > limit) throw Error('请求过大。')
-        chunks.push(Buffer.from(chunk))
+      let body = '', size = 0
+      for await (const chunk of req.setEncoding('utf8')) {
+        if (action !== 'run') {
+          size += Buffer.byteLength(chunk)
+          if (size > 1024 * 1024) throw Error('请求过大。')
+        }
+        body += chunk
       }
-      const value = await call(action, object(JSON.parse(Buffer.concat(chunks).toString('utf8'))))
+      const value = await call(action, object(JSON.parse(body)))
       send(200, { ok: true, value })
     } catch (e) {
       const msg =

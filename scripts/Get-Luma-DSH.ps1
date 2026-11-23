@@ -10,13 +10,13 @@ param(
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $repo = 'myflww/luma-dsh-plugin'
-$patchName = 'Luma-DSH-0.5.3-Update.zip'
-$patchDigest = '8d7e2010c4828e39bfb79d183dadef0cba2ac500c921edde2e34d472dc6722fe'
-$compatibleBaseVersions = @('0.5.2','0.5.1','0.5.0','0.4.3')
+$patchName = 'Luma-DSH-0.5.4-Update.zip'
+$patchDigest = 'bf007474c4c72b8ccb95590f5177d3cfe199423751b925e40b701981db82b75b'
+$compatibleBaseVersions = @('0.5.3','0.5.2','0.5.1','0.5.0','0.4.3')
 $oldZip = 'Luma-DSH-0.4.3-Windows.zip'
 $oldDigest = 'e949d369a89da2bf6ce01c2eabef4b8a3a95ced38db5ab625ea90c2bb0549c81'
 $root = [IO.Directory]::CreateDirectory([IO.Path]::GetFullPath($Directory)).FullName
-$final = Join-Path $root 'DesktopPlugin-0.5.3'
+$final = Join-Path $root 'DesktopPlugin-0.5.4'
 $cache = Join-Path $root 'Downloads'
 function Extended([string]$absolute) {
     if ($absolute.StartsWith('\\')) { return '\\?\UNC\' + $absolute.Substring(2) }
@@ -138,7 +138,7 @@ function Register-Plugin([string]$packagePath) {
 }
 if ($Rollback) {
     if ($PrepareOnly -or $Patch) { throw '回退模式只重新注册指定的旧版本目录。请移除 -PrepareOnly 和 -Patch。' }
-    $previous = if ($Base) { (Get-Item -LiteralPath $Base).FullName } else { Join-Path $root 'DesktopPlugin-0.5.2' }
+    $previous = if ($Base) { (Get-Item -LiteralPath $Base).FullName } else { Join-Path $root 'DesktopPlugin-0.5.3' }
     $requiredFiles = @('cordis.patch.yml','native-desktop\server.mjs','native-desktop\client.mjs')
     $missing = @($requiredFiles | Where-Object { !(Test-Path -LiteralPath (Join-Path $previous $_) -PathType Leaf) })
     if (!(Test-BaseFolder $previous @()) -or $missing.Count -or !(Test-Path -LiteralPath (Join-Path $previous 'public') -PathType Container)) {
@@ -152,18 +152,18 @@ if (!$Patch) {
     $Patch = Join-Path $PSScriptRoot $patchName
     if (!(Test-Path -LiteralPath $Patch -PathType Leaf)) {
         $Patch = Join-Path $cache $patchName
-        if (!(Test-Path -LiteralPath $Patch -PathType Leaf) -or (Hash-File $Patch) -cne $patchDigest) { Get-PrivateAsset 'v0.5.3' $patchName $cache }
+        if (!(Test-Path -LiteralPath $Patch -PathType Leaf) -or (Hash-File $Patch) -cne $patchDigest) { Get-PrivateAsset 'v0.5.4' $patchName $cache }
     }
 }
 $Patch = (Get-Item -LiteralPath $Patch).FullName
-if ((Hash-File $Patch) -cne $patchDigest) { throw "0.5.3 更新包 SHA-256 校验失败：$Patch" }
+if ((Hash-File $Patch) -cne $patchDigest) { throw "0.5.4 更新包 SHA-256 校验失败：$Patch" }
 $delta = [IO.Compression.ZipFile]::OpenRead($Patch)
 $archive = $null
 $stage = $null
 try {
     $reader = [IO.StreamReader]::new($delta.GetEntry('update.json').Open(), [Text.Encoding]::UTF8)
     try { $manifest = $reader.ReadToEnd() | ConvertFrom-Json } finally { $reader.Dispose() }
-    if ($manifest.schema -ne 1 -or $manifest.version -cne '0.5.3' -or $manifest.baseVersion -cne '0.4.3' -or !$manifest.files.Count) { throw '更新清单版本不匹配。' }
+    if ($manifest.schema -ne 1 -or $manifest.version -cne '0.5.4' -or $manifest.baseVersion -cne '0.4.3' -or !$manifest.files.Count) { throw '更新清单版本不匹配。' }
     $existing = [IO.Directory]::Exists($final)
     if (!$existing) {
         $source = Get-BasePackage $manifest.files
