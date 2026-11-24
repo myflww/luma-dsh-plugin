@@ -55,6 +55,6 @@ export function withBrowserOfficeNavigation(space: IndependentOfficeSpace): Inde
   })
   const ambientNodes = Object.keys(plan.points).filter(id => id !== 'entry')
   const graph: BrowserIndependentFloorGraph = { schemaVersion:1, visualReviewed:true, sourceSize:[1672,941], entryNode:'entry', nodes, edges, targets,
-    ambientNodes, spawnNodes: ambientNodes.filter(id => !['gate','top'].includes(id)).slice(0,8) }
+    placementTheme:space.layout.theme, ambientNodes, spawnNodes: ambientNodes.filter(id => !['gate','top'].includes(id)).slice(0,8) }
   return { ...space, layout: { ...space.layout, stations, navigation: { ...space.layout.navigation, floorGraph:graph } } }
 }

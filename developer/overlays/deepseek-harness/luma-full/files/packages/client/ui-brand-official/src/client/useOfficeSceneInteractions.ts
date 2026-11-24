@@ -1,7 +1,8 @@
 import type { Dispatch, MutableRefObject, KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent, SetStateAction } from 'react'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { advanceOfficeActorPortraitTap, type OfficeActorPortraitTap, type OfficeEmployeeDestination } from './office2d/actorPortraitActivation.ts'
-import { OFFICE_NAV_HEIGHT, OFFICE_NAV_WIDTH } from './office2d/navigation.ts'
+import { desktopDropPoint, uncrowdedFloorPoint, type DesktopPetDrop } from './office2d/scenePlacement.ts'
+import { OFFICE_NAV_HEIGHT, OFFICE_NAV_WIDTH, isOfficeFootAnchorBlocked, projectToWalkable } from './office2d/navigation.ts'
 import type { OfficeWorkstationId } from './office2d/workstationSeating.ts'
 import { seatTargetForPosition, type OfficeActorBinding } from './officeSceneSeatTargets.ts'
 import type { ActorRuntime, OfficeSceneEmployee, Point } from './OfficeSceneSurface.types.ts'
@@ -27,6 +28,7 @@ interface ActorDragState {
   moved: boolean
   dragging: boolean
   cancelled: boolean
+  begin?: () => void
   canDrag: boolean
 }
 
@@ -47,11 +49,12 @@ interface OfficeSceneInteractionOptions {
   readonly closeActionMenu: () => void
   readonly onCharacterClick: ((employeeId: string) => void) | undefined
   readonly employeeDestination?: OfficeEmployeeDestination | undefined
+  readonly onDesktopPet?: DesktopPetDrop | undefined
   readonly onBindWorkstation: ((employeeId: string, workstationId: OfficeWorkstationId) => void | Promise<unknown>) | undefined
 }
 /** One owner for pointer capture, cancel/restore, keyboard activation and seat drops. */
 export function useOfficeSceneInteractions({ canvasRef, scrollerRef, actorRef, setActors,
-  officeBindingsRef, presentationActive, closeActionMenu, onCharacterClick, onBindWorkstation, employeeDestination,
+  officeBindingsRef, presentationActive, closeActionMenu, onCharacterClick, onBindWorkstation, onDesktopPet, employeeDestination,
 }: OfficeSceneInteractionOptions) {
   const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const clearHold = () => { if (holdTimerRef.current !== null) clearTimeout(holdTimerRef.current); holdTimerRef.current = null }
@@ -102,28 +105,32 @@ export function useOfficeSceneInteractions({ canvasRef, scrollerRef, actorRef, s
       startPosition: actor.position,
       startRuntime: actor,
       startWorkstationId: actor.targetWorkstationId,
-      moved: false, dragging: false, cancelled: false, canDrag: employee.canDrag && actor.mode !== 'working',
+      moved: false, dragging: false, cancelled: false, canDrag: employeeDestination === 'contact' || employee.canDrag && actor.mode !== 'working',
     }
     if (!actorDragRef.current.canDrag) return
     const pending = actorDragRef.current
-    holdTimerRef.current = setTimeout(() => {
-    holdTimerRef.current = null
-    if (actorDragRef.current !== pending || pending.cancelled || !presentationActiveRef.current) return
-    const liveActor = actorRef.current[employee.id]
-    if (!liveActor || liveActor.mode === 'working' || liveActor.targetWorkstationId !== pending.startWorkstationId) { pending.cancelled = true; return }
-    if (!captureTarget.isConnected) { pending.cancelled = true; return }
-    try { captureTarget.setPointerCapture(pending.pointerId) }
-    catch { pending.cancelled = true; return }
-    pending.dragging = true
-    pendingActorTapRef.current = null
-    const next = { ...actorRef.current, [employee.id]: { ...liveActor, mode: 'drag' as const, route: null, trafficYield: null, waitStreak: 0 } }
-    actorRef.current = next
-    setActors(next)
-    const seat: SeatDragState = { employeeId: employee.id, workstationId: null }
-    seatDragRef.current = seat
-    setSeatDrag(seat)
-    }, OFFICE_ACTOR_HOLD_MS)
-  }, [])
+    pending.begin = () => {
+      clearHold()
+      if (actorDragRef.current !== pending || pending.cancelled || !presentationActiveRef.current) return
+      const liveActor = actorRef.current[employee.id]
+      if (!liveActor || (employeeDestination !== 'contact' && liveActor.mode === 'working') || liveActor.targetWorkstationId !== pending.startWorkstationId) { pending.cancelled = true; return }
+      if (!captureTarget.isConnected) { pending.cancelled = true; return }
+      try { captureTarget.setPointerCapture(pending.pointerId) }
+      catch { pending.cancelled = true; return }
+      pending.dragging = true
+      pendingActorTapRef.current = null
+      const next = { ...actorRef.current, [employee.id]: { ...liveActor, mode: 'drag' as const, route: null, trafficYield: null, waitStreak: 0 } }
+      actorRef.current = next
+      setActors(next)
+      const seat: SeatDragState = { employeeId: employee.id, workstationId: null }
+      seatDragRef.current = seat
+      setSeatDrag(seat)
+    }
+    if (employeeDestination === 'contact') {
+      try { captureTarget.setPointerCapture(pending.pointerId) } catch { pending.cancelled = true; return }
+    }
+    holdTimerRef.current = setTimeout(pending.begin, OFFICE_ACTOR_HOLD_MS)
+  }, [employeeDestination])
 
   const moveActorDrag = useCallback((event: Pick<ReactPointerEvent<HTMLElement>, 'pointerId' | 'clientX' | 'clientY' | 'stopPropagation'>) => {
     const drag = actorDragRef.current
@@ -132,9 +139,10 @@ export function useOfficeSceneInteractions({ canvasRef, scrollerRef, actorRef, s
     event.stopPropagation()
     if (!drag.dragging) {
       if (Math.hypot(event.clientX - drag.startClientX, event.clientY - drag.startClientY) > OFFICE_ACTOR_HOLD_SLOP_PX) {
-        clearHold(); drag.cancelled = true; pendingActorTapRef.current = null
+        if (employeeDestination === 'contact') drag.begin?.()
+        else { clearHold(); drag.cancelled = true; pendingActorTapRef.current = null }
       }
-      return
+      if (!drag.dragging) return
     }
     const rect = canvas.getBoundingClientRect()
     if (rect.width <= 0 || rect.height <= 0) return
@@ -151,15 +159,18 @@ export function useOfficeSceneInteractions({ canvasRef, scrollerRef, actorRef, s
     actorRef.current = next
     setActors(next)
     // Highlight the seat this position would bind. Only a changed answer re-renders.
-    const workstationId = seatTargetForPosition(officeBindingsRef.current, drag.employeeId, position)
+    const cursor = employeeDestination === 'contact' ? {
+      x:(event.clientX-rect.left)/rect.width*OFFICE_NAV_WIDTH, y:(event.clientY-rect.top)/rect.height*OFFICE_NAV_HEIGHT,
+    } : position
+    const workstationId = seatTargetForPosition(officeBindingsRef.current, drag.employeeId, cursor, employeeDestination === 'contact')
     if (seatDragRef.current !== null && seatDragRef.current.workstationId !== workstationId) {
       const seat: SeatDragState = { employeeId: drag.employeeId, workstationId }
       seatDragRef.current = seat
       setSeatDrag(seat)
     }
-  }, [])
+  }, [employeeDestination])
 
-  const finishActorDrag = useCallback((event: Pick<ReactPointerEvent<HTMLElement>, 'pointerId' | 'clientX' | 'clientY' | 'stopPropagation' | 'type'>) => {
+  const finishActorDrag = useCallback((event: Pick<ReactPointerEvent<HTMLElement>, 'pointerId' | 'clientX' | 'clientY' | 'stopPropagation' | 'type'> & {screenX?:number; screenY?:number}) => {
     const drag = actorDragRef.current
     if (!drag || drag.pointerId !== event.pointerId) return
     event.stopPropagation()
@@ -179,13 +190,25 @@ export function useOfficeSceneInteractions({ canvasRef, scrollerRef, actorRef, s
       return
     }
     if (actor.mode === 'working') return
-    // Dropping inside a drawn border binds that seat. Seats another employee
-    // holds are not borders this drag may take.
-    const workstationId = !cancelled && drag.moved
-      ? seatTargetForPosition(officeBindingsRef.current, drag.employeeId, actor.position)
+    // Use the cursor for an explicit desk exchange and the foot anchor for legacy long presses.
+    const desktop = employeeDestination === 'contact' && !cancelled && drag.moved && onDesktopPet ? desktopDropPoint(event) : undefined
+    const bounds = canvasRef.current?.getBoundingClientRect()
+    const inside = bounds && event.clientX >= bounds.left && event.clientX <= bounds.right && event.clientY >= bounds.top && event.clientY <= bounds.bottom
+    const freePlacement = employeeDestination === 'contact' && inside && !cancelled && drag.moved && !desktop
+    const cursor = employeeDestination === 'contact' && bounds ? {
+      x:(event.clientX-bounds.left)/bounds.width*OFFICE_NAV_WIDTH, y:(event.clientY-bounds.top)/bounds.height*OFFICE_NAV_HEIGHT,
+    } : actor.position
+    const workstationId = !desktop && !cancelled && drag.moved && (inside || employeeDestination !== 'contact')
+      ? seatTargetForPosition(officeBindingsRef.current, drag.employeeId, cursor, employeeDestination === 'contact')
       : null
-    // Drag chooses a binding, not a navigation foot point inside furniture.
-    // Resume from the known-safe pre-drag floor anchor and let A* approach it.
+    const position = freePlacement && !workstationId && !drag.startRuntime.activeReportCommand
+      ? uncrowdedFloorPoint([actor.position.x,actor.position.y],Object.values(actorRef.current)
+          .filter(other=>other.employeeId!==drag.employeeId && other.mode!=='working' && other.mode!=='desk-break')
+          .map(other=>[other.position.x,other.position.y]), desired=>{
+            if(!isOfficeFootAnchorBlocked(desired)) return desired
+            const projected=projectToWalkable(desired)
+            return [projected.x,projected.y]
+          }) : undefined
     const next = {
       ...actorRef.current,
       [drag.employeeId]: workstationId ? {
@@ -196,6 +219,10 @@ export function useOfficeSceneInteractions({ canvasRef, scrollerRef, actorRef, s
         nextAmbientAt: Number.POSITIVE_INFINITY,
         trafficYield: null,
         waitStreak: 0,
+      } : position ? {
+        ...drag.startRuntime, position:{x:position[0],y:position[1]}, mode: 'idle' as const,
+        route:null, waypointIndex:0, targetWorkstationId:null, trafficYield:null, waitStreak:0,
+        placedUntil:performance.now()+9000,
       } : drag.startRuntime,
     }
     actorRef.current = next
@@ -204,8 +231,9 @@ export function useOfficeSceneInteractions({ canvasRef, scrollerRef, actorRef, s
     // trailing native click after the drag finishes.
     suppressedClickRef.current = drag.employeeId
     pendingActorTapRef.current = null
-    if (workstationId) void onBindWorkstation?.(drag.employeeId, workstationId)
-  }, [onBindWorkstation, registerActorTap])
+    if (desktop) onDesktopPet?.(drag.employeeId,desktop)
+    else if (workstationId) void onBindWorkstation?.(drag.employeeId, workstationId)
+  }, [onBindWorkstation, onDesktopPet, employeeDestination, registerActorTap])
 
   const startPan = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
     if (!presentationActiveRef.current || event.button !== 0 || (event.target instanceof Element && event.target.closest('button:not(.lumaOfficeEmployee)'))) return

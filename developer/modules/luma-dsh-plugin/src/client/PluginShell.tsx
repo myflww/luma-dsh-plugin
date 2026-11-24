@@ -11,6 +11,7 @@ import { PluginSettingsPage } from './PluginSettingsPage.tsx'
 import type { PluginPreferencesRuntime } from './plugin-backup-runtime.ts'
 import { SceneLaunchers, type HostSidebar } from './SceneLaunchers.tsx'
 import { LoveHouseQuickConnect } from './LoveHouseQuickConnect.tsx'
+import { useDesktopPets } from './useDesktopPets.ts'
 import { CompanionPresence } from './CompanionPresence.tsx'
 import { ReleaseNotice, ReleaseSettings, useReleaseCheck } from './ReleaseCenter.tsx'
 import './plugin.css'
@@ -28,9 +29,9 @@ export const LUMA_PAGES = Object.freeze([
   { id: 'settings', label: '插件设置' },
 ] as const)
 
-export function PluginShell({ office, cards, collection, messages, preferences, hostSidebar, onReturnToDSH, onOpenConversation }: {
+export function PluginShell({ office, cards, collection, messages, preferences, hostSidebar, desktopPetsEnabled = false, onReturnToDSH, onOpenConversation }: {
   office: OfficePageRuntime; cards: CardsPageRuntime; collection: LocalCollectionRuntime; messages: MessagesRuntime;
-  preferences: PluginPreferencesRuntime; hostSidebar?: HostSidebar; onReturnToDSH?: () => void; onOpenConversation?: () => void
+  preferences: PluginPreferencesRuntime; hostSidebar?: HostSidebar; desktopPetsEnabled?: boolean; onReturnToDSH?: () => void; onOpenConversation?: () => void
 }) {
   const releases = useReleaseCheck()
   const [page, setPage] = useState<LumaPage>('office')
@@ -38,6 +39,8 @@ export function PluginShell({ office, cards, collection, messages, preferences, 
   const [shopPackId, setShopPackId] = useState<string>()
   const { unlockedEmployeeIds, unlockedThemeIds } = useSyncExternalStore(collection.store.subscribe, collection.store.getSnapshot, collection.store.getSnapshot)
   const [officeNotice, setOfficeNotice] = useState('')
+  const prefersReducedMotion = useCallback(() => office.getSnapshot().motionPreference === 'reduce', [office])
+  const pets = useDesktopPets(desktopPetsEnabled, setOfficeNotice, prefersReducedMotion)
   const [houseOpen, setHouseOpen] = useState(false)
   const [employeeVisit, setEmployeeVisit] = useState<{ mode: 'chat' | 'task'; topic?:string; roleId?:string }>()
   const openNative = onReturnToDSH ?? (() => setPage('native'))
@@ -71,6 +74,7 @@ export function PluginShell({ office, cards, collection, messages, preferences, 
       <div className="lumaScenePage" hidden={!inRoom}>
         {officeNotice && <p className="lumaDshOfficeNotice" role="status">{officeNotice}</p>}
         <OfficePage runtime={office} readEmployeeUsage={collection.readEmployeeUsage} active={inRoom} unlockedEmployeeIds={unlockedEmployeeIds} unlockedThemeIds={unlockedThemeIds}
+          desktopPetRoleIds={pets.roleIds} onDesktopPet={pets.open} onRecallDesktopPet={pets.recall}
           sceneMenu={inRoom ? launchers : null} onOpenRewards={openRewards} onOpenChat={openContact}/>
       </div>
       <div className="lumaPluginFillPage" hidden={page !== 'messages'}><MessagesPage runtime={messages} employeeVisit={employeeVisit} active={page === 'messages'} unlockedEmployeeIds={unlockedEmployeeIds} onOpenRewards={openRewards} onOpenNative={onOpenConversation ?? openNative}/></div>

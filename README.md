@@ -2,29 +2,35 @@
 
 Luma 在 DeepSeek Harness Desktop 内提供办公室、伙伴卧室和联系人。新档从鲸鱼娘开始。选中她可以聊天或交办工作，抽到对应的卡片后可以邀请更多伙伴。
 
-## 安装 0.5.4
+## 安装 0.6.0
 
-首次使用 DeepSeek Harness Desktop 时，请先打开一次桌面客户端，让 DSH 建立桌面档案。Windows 安装器会通过该客户端的插件命令加载 Luma。用有仓库权限的 GitHub 账号下载 `Luma-DSH-0.5.4-Installer.zip`，解压后双击 `Install-Luma-DSH.cmd`。安装包自带更新，已有完整的 0.5.3、0.5.2、0.5.1、0.5.0 或 0.4.3 插件目录即可离线升级。[下载 0.5.4 安装包](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.5.4)
+首次使用 DeepSeek Harness Desktop 时，请先打开一次桌面客户端，让 DSH 建立桌面档案。Windows 安装器会通过该客户端的插件命令加载 Luma。用有仓库权限的 GitHub 账号下载 `Luma-DSH-0.6.0-Installer.zip`，解压后双击 `Install-Luma-DSH.cmd`。安装包自带更新，已有完整的 0.5.4、0.5.3、0.5.2、0.5.1、0.5.0 或 0.4.3 插件目录即可离线升级。[下载 0.6.0 安装包](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.6.0)
 
 使用命令行安装时，先用有权限的账号登录 GitHub CLI，再运行以下命令。
 
 ```powershell
-gh release download v0.5.4 --repo myflww/luma-dsh-plugin --pattern Get-Luma-DSH.ps1 --dir .\LumaInstaller --clobber
+gh release download v0.6.0 --repo myflww/luma-dsh-plugin --pattern Get-Luma-DSH.ps1 --dir .\LumaInstaller --clobber
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\LumaInstaller\Get-Luma-DSH.ps1
 ```
 
 安装器在桌面 `Luma-DSH` 中创建新版本的独立目录，核对每个文件的 SHA-256，再通过 DSH 自身的 CLI 安装。重新打开 DSH，点侧栏的「Luma 办公室」。DSH 会引用该目录，请长期保留。
 
-- **从旧版升级**　安装器会在桌面 `Luma-DSH` 目录中依次查找 `DesktopPlugin-0.5.3`、`DesktopPlugin-0.5.2`、`DesktopPlugin-0.5.1`、`DesktopPlugin-0.5.0`、`DesktopPlugin-0.4.3` 和 `Luma-DSH-0.4.3-Windows.zip`。旧版存放在别处时，可在命令末尾添加 `-Base "D:\Luma\DesktopPlugin-0.5.3"` 或 `-Base "D:\Downloads\Luma-DSH-0.4.3-Windows.zip"`。
-- **首次安装**　安装器从本仓库的 0.4.3 发布取得基础美术，再应用 0.5.4 更新。首次下载约 1.87 GB，包含分卷、合并 ZIP 与完整插件时，建议预留 6 GiB。
-- **离线安装**　将 0.5.4 发布中的 `Get-Luma-DSH.ps1` 和 `Luma-DSH-0.5.4-Update.zip` 放在一起，再使用上面的 `-Base` 指定本地基础包。
-- **手动添加**　运行安装器时追加 `-PrepareOnly`，然后从 DSH 的插件页添加生成的 `DesktopPlugin-0.5.4` 目录。使用 `-Directory "D:\Luma"` 可以更改输出位置。
+- **从旧版升级**　安装器会在桌面 `Luma-DSH` 目录中依次查找 `DesktopPlugin-0.5.4`、`DesktopPlugin-0.5.3`、`DesktopPlugin-0.5.2`、`DesktopPlugin-0.5.1`、`DesktopPlugin-0.5.0`、`DesktopPlugin-0.4.3` 和 `Luma-DSH-0.4.3-Windows.zip`。旧版存放在别处时，可在命令末尾添加 `-Base "D:\Luma\DesktopPlugin-0.5.4"` 或 `-Base "D:\Downloads\Luma-DSH-0.4.3-Windows.zip"`。
+- **首次安装**　安装器从本仓库的 0.4.3 发布取得基础美术，再应用 0.6.0 更新。首次下载约 1.87 GB，包含分卷、合并 ZIP 与完整插件时，建议预留 6 GiB。
+- **离线安装**　将 0.6.0 发布中的 `Get-Luma-DSH.ps1` 和 `Luma-DSH-0.6.0-Update.zip` 放在一起，再使用上面的 `-Base` 指定本地基础包。
+- **手动添加**　运行安装器时追加 `-PrepareOnly`，然后从 DSH 的插件页添加生成的 `DesktopPlugin-0.6.0` 目录。使用 `-Directory "D:\Luma"` 可以更改输出位置。
 
-如需退回上一个版本，保留旧目录，关闭 DSH，运行以下命令再重新打开 DSH。安装器会重新注册桌面的 `DesktopPlugin-0.5.3`。旧目录位于其他位置时，追加 `-Base "D:\Luma\DesktopPlugin-0.5.3"`。回退只切换插件程序，收藏和会话继续使用当前 DSH 档案。
+如需退回上一个版本，保留旧目录，关闭 DSH，运行以下命令再重新打开 DSH。安装器会重新注册桌面的 `DesktopPlugin-0.5.4`。旧目录位于其他位置时，追加 `-Base "D:\Luma\DesktopPlugin-0.5.4"`。回退只切换插件程序，收藏和会话继续使用当前 DSH 档案。
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\LumaInstaller\Get-Luma-DSH.ps1 -Rollback
 ```
+
+## 拖动伙伴与桌面探头
+
+按住伙伴直接拖动，松开后她会在可走的地面稍作停留，再接回自己的活动。办公室里，把伙伴放到亮起的椅子即可重新绑定工位；也可以在「员工列表」中选择工位。选到另一位伙伴的工位时，两人交换位置，正在处理的任务会继续。
+
+在窗口模式下，把伙伴拖过 DSH 的外边缘再松手，她会出现在鼠标所在的显示器。全屏或使用键盘时，在「员工列表」点「桌宠」也可以带她出来。把桌宠拖到屏幕左边或右边松手，可以看到她从边缘探头、停留，再缩回去。点击探出的部分可将她拉回桌面。右键选择「回到房间」或在员工列表点「回到场景」，她会按当前作息回办公室或卧室。到了睡眠时段，桌宠也会安睡。
 
 ## 场景和爱之屋快捷连接
 

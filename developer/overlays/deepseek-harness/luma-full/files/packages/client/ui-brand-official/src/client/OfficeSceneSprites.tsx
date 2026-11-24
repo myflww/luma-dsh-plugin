@@ -26,6 +26,7 @@ import {
   getOfficeWorkstation
 } from './office2d/workstations.ts'
 import { seatedFigureScale } from './office2d/officeFigureScale.ts'
+import { getWalkAtlas, sampleWalkAtlas, drawWalkAtlas } from './office2d/walkAtlas.ts'
 import { sampleDeskRhythm } from './office2d/deskRhythm.ts'
 import { compileOfficeEmployeeOcclusionPolygons, compileOfficeEmployeeVisibleClipPath, getWorkstationTypingFrameAnchor } from './officeSceneGeometry.ts'
 export function SpriteStripCanvas({
@@ -38,6 +39,7 @@ export function SpriteStripCanvas({
   deskRhythm,
   fixedFrameIndex,
   loopOverride,
+  walkElapsedMs,
   alphaMaskUrls,
 }: Readonly<{
   assetId: OfficeAssetId
@@ -48,12 +50,13 @@ export function SpriteStripCanvas({
   playbackRate?: number
   deskRhythm?: { employeeId: string; routine: boolean; restFrame: number }
   fixedFrameIndex?: number | null
+  walkElapsedMs?: number
   loopOverride?: boolean
   alphaMaskUrls?: readonly string[]
 }>) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
-  const controlsRef = useRef({ assetId, onFrame, resolveOcclusionPolygons, paused, playbackRate, fixedFrameIndex, deskRhythm })
-  controlsRef.current = { assetId, onFrame, resolveOcclusionPolygons, paused, playbackRate, fixedFrameIndex, deskRhythm }
+  const controlsRef = useRef({ assetId, onFrame, resolveOcclusionPolygons, paused, playbackRate, fixedFrameIndex, deskRhythm, walkElapsedMs })
+  controlsRef.current = { assetId, onFrame, resolveOcclusionPolygons, paused, playbackRate, fixedFrameIndex, deskRhythm, walkElapsedMs }
   const synchronizeRef = useRef<(() => void) | null>(null)
   const loopPhaseRef = useRef<number | null>(null)
   const asset = getOfficeAsset(assetId)
@@ -102,6 +105,9 @@ export function SpriteStripCanvas({
     // swaps so the feet do not jump back to frame zero at every turn.
     let elapsedMs = loopPhaseRef.current === null ? 0 : loopPhaseRef.current * cycleDurationMs
     let lastClock = performance.now()
+    const walkAtlas = getWalkAtlas(assetId)
+    const walkImage = walkAtlas ? new Image() : undefined
+    let paintedGait = -1
     let paintedFrame = -1
     let paintedPolygons = ''
     const clearPlaybackTimer = () => {
@@ -119,11 +125,17 @@ export function SpriteStripCanvas({
     const paint = (frameIndex: number) => {
       const occlusionPolygons = controlsRef.current.resolveOcclusionPolygons?.(frameIndex) ?? []
       const signature = JSON.stringify(occlusionPolygons)
-      if (paintedFrame === frameIndex && paintedPolygons === signature) return
+      const gaitTime = controlsRef.current.walkElapsedMs
+      const gait = walkAtlas && walkImage?.complete && walkImage.naturalWidth && gaitTime !== undefined && !media?.matches
+        ? sampleWalkAtlas(walkAtlas, strip, gaitTime) : undefined
+      if (paintedFrame === frameIndex && paintedPolygons === signature && paintedGait === (gait?.index ?? -1)) return
       // Compose the entire frame offscreen first. A failed preparation never
       // clears the previously visible complete character.
       bufferContext.clearRect(0, 0, strip.frameWidth, strip.frameHeight)
-      bufferContext.drawImage(image, ...officeFrameRect(strip, frameIndex), 0, 0, strip.frameWidth, strip.frameHeight)
+      if (gait && walkImage && walkAtlas) drawWalkAtlas(bufferContext, walkImage, walkAtlas, gait.rect, 0, 0, 1)
+      else bufferContext.drawImage(image, ...officeFrameRect(strip, frameIndex), 0, 0, strip.frameWidth, strip.frameHeight)
+      paintedGait = gait?.index ?? -1
+      canvas.dataset.gaitFrame = String(paintedGait)
       if (occlusionPolygons.length > 0) {
         bufferContext.save()
         bufferContext.globalCompositeOperation = 'destination-out'
@@ -230,10 +242,12 @@ export function SpriteStripCanvas({
     image.addEventListener('error', fail)
     media?.addEventListener?.('change', synchronize)
     document.addEventListener('visibilitychange', synchronize)
+    if (walkAtlas && walkImage) { walkImage.onload = synchronize; walkImage.src = walkAtlas.src }
     image.src = resolveOfficeAssetUrl(assetId)
     if (image.complete && image.naturalWidth > 0) loaded()
     return () => {
       disposed = true
+      if (walkImage) walkImage.onload = null
       if (playing && loop) {
         elapsedMs += Math.max(0, performance.now() - lastClock) * previousRate
         loopPhaseRef.current = (elapsedMs % cycleDurationMs) / cycleDurationMs

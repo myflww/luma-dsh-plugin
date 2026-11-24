@@ -8,16 +8,15 @@ type Stop = 'bed' | 'desk' | 'nook' | 'entry' | 'center'
 type Floor = Record<Stop, Point>
 // Foot contacts on the open floor in each shipped illustration. Every stop
 // connects to the center aisle, keeping straight-line walks off the furniture.
-const smallRoom: Floor = { bed:[549,616], center:[797,709], desk:[744,673], nook:[987,653], entry:[926,730] }
+const smallRoom: Floor = { bed:[549,621], center:[782,760], desk:[749,712], nook:[985,656], entry:[930,765] }
 export const BEDROOM_FLOORS: Record<ResidentId | 'classic', Floor> = {
   classic:smallRoom, shan:smallRoom, 'bai-shuangming':smallRoom, 'lu-mi':smallRoom,
-  jingyuniang:{bed:[590,582],center:[804,582],desk:[1166,489],nook:[904,477],entry:[790,756]},
-  longmama:{bed:[529,587],center:[800,605],desk:[1173,501],nook:[863,463],entry:[796,755]},
-  claude:{bed:[597,598],center:[827,648],desk:[1258,672],nook:[791,526],entry:[907,795]},
-  gemini:{bed:[590,552],center:[801,623],desk:[1180,581],nook:[879,481],entry:[797,774]},
-  grok:{bed:[589,559],center:[804,555],desk:[1138,547],nook:[814,494],entry:[798,768]},
+  jingyuniang:{bed:[636,587], center:[807,577], desk:[1171,521], nook:[903,478], entry:[790,751]},
+  longmama:{bed:[533,612], center:[800,544], desk:[1173,540], nook:[863,464], entry:[796,753]},
+  claude:{bed:[692,685], center:[857,671], desk:[1281,708], nook:[790,528], entry:[908,793]},
+  gemini:{bed:[608,572], center:[802,622], desk:[1201,617], nook:[880,481], entry:[796,758]},
+  grok:{bed:[620,629], center:[807,563], desk:[1166,573], nook:[814,493], entry:[800,765]},
 }
-
 export type BedroomPose = 'idle' | 'walk' | 'phone' | 'computer' | 'sit' | 'rise' | 'recline' | 'get-up'
 export interface BedroomStep {
   pose:BedroomPose
@@ -28,6 +27,12 @@ export interface BedroomStep {
   facing:OfficeWalkDirection
   moving:boolean
   activity:string
+  strideStart?:number
+  /** Adjacent floor segments share a tangent in the open aisle. */
+  throughFrom?:Point
+  throughTo?:Point
+  arrivalFacing?:OfficeWalkDirection
+  departureFacing?:OfficeWalkDirection
 }
 export interface BedroomRoutine { start:number; end:number; steps:BedroomStep[] }
 type Speeds = Record<OfficeWalkDirection, number>
@@ -105,6 +110,19 @@ export function createBedroomRoutine(id:ResidentId, room:ResidentId|'classic', d
   walk(finalStop,finalStop==='entry'?'正准备出门':'正准备入睡')
   if(finalStop==='bed') wait(1_400,'正在躺下','left','recline')
   wait(end-time,finalStop==='entry'?'正准备出门':'正准备入睡','left',finalStop==='bed'?'phone':'idle')
+  let distance = 0
+  for (const [i, step] of steps.entries()) {
+    const previous = steps[i-1], nextStep = steps[i+1]
+    step.strideStart = distance
+    if (step.moving) {
+      distance += Math.hypot(step.to[0]-step.from[0], step.to[1]-step.from[1])
+      if (previous?.moving) step.throughFrom = previous.from
+      if (nextStep?.moving) step.throughTo = nextStep.to
+    } else {
+      if (previous?.moving) step.arrivalFacing = previous.facing
+      if (nextStep?.moving) step.departureFacing = nextStep.facing
+    }
+  }
   return {start,end,steps}
 }
 
@@ -117,11 +135,45 @@ export function bedroomStepAt(routine:BedroomRoutine, now:number) {
   }
   return routine.steps[left]!
 }
-export function bedroomFootAt(step:BedroomStep, now:number):Point {
+const distance = (a:Point, b:Point) => Math.hypot(b[0]-a[0], b[1]-a[1])
+const mix = (a:Point, b:Point, t:number):Point => [a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t]
+const easeFromRest = (u:number) => u*u*(2-u)
+
+/** The central aisle is traversed at walking pace. Only a real stop gets a
+ * launch or braking interval. The middle retains the atlas' calibrated stride. */
+export function bedroomTravelAt(step:BedroomStep, now:number) {
   const t=Math.max(0,Math.min(1,(now-step.start)/(step.end-step.start)))
-  // Ease only the first and last fifth of a walk; keep the middle stride steady.
-  const ramp=.2
-  const distance=t<ramp?t*t/(2*ramp):t>1-ramp?1-ramp-(1-t)*(1-t)/(2*ramp):t-ramp/2
-  const fraction=distance/(1-ramp)
-  return [step.from[0]+(step.to[0]-step.from[0])*fraction,step.from[1]+(step.to[1]-step.from[1])*fraction]
+  const ramp=Math.min(.2,210/Math.max(1,step.end-step.start))
+  const fraction = !step.throughFrom && t<ramp ? ramp*easeFromRest(t/ramp)
+    : !step.throughTo && t>1-ramp ? 1-ramp*easeFromRest((1-t)/ramp) : t
+  return fraction*distance(step.from,step.to)
+}
+
+function radius(a:Point,b:Point,c:Point) {
+  return Math.min(18, distance(a,b)*.14, distance(b,c)*.14)
+}
+function bend(a:Point,b:Point,c:Point,r:number,t:number) {
+  const before=mix(b,a,r/distance(a,b)), after=mix(b,c,r/distance(b,c))
+  return mix(mix(before,b,t),mix(b,after,t),t)
+}
+export function bedroomFootAt(step:BedroomStep,now:number):Point {
+  const length=distance(step.from,step.to)
+  if(length===0) return step.from
+  const travelled=bedroomTravelAt(step,now)
+  if(step.throughFrom) {
+    const r=radius(step.throughFrom,step.from,step.to)
+    if(r>0 && travelled<r) return bend(step.throughFrom,step.from,step.to,r,.5+travelled/(2*r))
+  }
+  if(step.throughTo) {
+    const r=radius(step.from,step.to,step.throughTo)
+    if(r>0 && length-travelled<r) return bend(step.from,step.to,step.throughTo,r,.5-(length-travelled)/(2*r))
+  }
+  return mix(step.from,step.to,travelled/length)
+}
+
+export function bedroomRestFacing(step:BedroomStep,now:number) {
+  if(step.pose!=='idle') return step.facing
+  if(step.arrivalFacing && now-step.start<750) return step.arrivalFacing
+  if(step.departureFacing && step.end-now<720) return step.departureFacing
+  return step.facing
 }

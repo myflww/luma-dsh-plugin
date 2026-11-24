@@ -157,7 +157,8 @@ export class SettingsBackedOfficeRelationshipStore {
 
   /**
    * Bind an employee globally. An occupied workstation atomically evicts its
-   * previous employee unless either employee is executing work.
+   * previous employee unless either employee is executing work. Explicit scene
+   * swaps exchange only the physical seats and preserve both session records.
    * @param employeeId - employee being moved.
    * @param workstationId - calibrated workstation receiving the employee.
    * @returns mutation outcome after settings settlement.
@@ -165,12 +166,13 @@ export class SettingsBackedOfficeRelationshipStore {
   bindWorkstation(
     employeeId: string,
     workstationId: string,
+    placement?: {swap: true},
   ): Promise<OfficeRelationshipMutationResult> {
     return this.enqueue(async () => {
       if (!isOfficeEmployeeId(employeeId)) return this.reject('unknown-employee')
       if (!isOfficeWorkstationId(workstationId)) return this.reject('unknown-workstation')
       const lockFailure = this.bindingFailure(employeeId, workstationId)
-      if (lockFailure !== undefined) return this.reject(lockFailure)
+      if (lockFailure !== undefined && !placement?.swap) return this.reject(lockFailure)
 
       const current = this.snapshot.relationships
       const displacedEmployeeId = findEmployeeBoundToWorkstation(current, workstationId)
@@ -189,7 +191,11 @@ export class SettingsBackedOfficeRelationshipStore {
           workstationId: _displacedWorkstation,
           ...unboundRelationship
         } = current.employees[displacedEmployeeId]
-        replacements[displacedEmployeeId] = unboundRelationship
+        const previousSeat = placement?.swap
+          ? current.employees[employeeId].workstationId ?? findAutoAssignableWorkstation(current)
+          : undefined
+        replacements[displacedEmployeeId] = placement?.swap && previousSeat
+          ? {...unboundRelationship, workstationId:previousSeat} : unboundRelationship
       }
       const next = replaceEmployeeRelationships(current, replacements)
       return this.commit(next, {

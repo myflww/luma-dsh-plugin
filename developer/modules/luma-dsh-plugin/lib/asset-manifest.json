@@ -8773,5 +8773,285 @@
     "path": "luma-card-scene-frames/20261023-retained-ssr/1a4e216197498b560f35d870d68ed27f88e173f629088bcf33b71a2144849e4a.png",
     "bytes": 2096939,
     "sha256": "1a4e216197498b560f35d870d68ed27f88e173f629088bcf33b71a2144849e4a"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-0622a4645c7a.6f6da398601a.webp",
+    "sha256": "6f6da398601ac48d715d8af784074e6467ea434ab2f4fb0118002ccfd2d0dd63",
+    "bytes": 379616
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-080a617f59ea.c225bcb2835c.webp",
+    "sha256": "c225bcb2835c5b765e5739a00f3ae171dbeb3adbf74b352e2afaab1846ebb53e",
+    "bytes": 853428
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-0d45f5259e05.2ca8d2e9b592.webp",
+    "sha256": "2ca8d2e9b592d784d1590f462188ac03a06bfd99cc33547e96d59e59f72c5792",
+    "bytes": 893006
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-0e96bed177d8.fec6b1ce7767.webp",
+    "sha256": "fec6b1ce776713079a812b9735976851c232a165478cf1e9df22faa2f9b8513e",
+    "bytes": 336018
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-1aa5b67a8766.e63afb51f4db.webp",
+    "sha256": "e63afb51f4dbf2ec6ba0b3de7d8d44a009fb9ffe9bab03e3e517c00d5fd74e7f",
+    "bytes": 218186
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-20e0366651bb.3950ffbd99f4.webp",
+    "sha256": "3950ffbd99f440fe103d0ac9dcaa1b994a671a536f9a7344a7f39747c36fd2d2",
+    "bytes": 461786
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-2361df10513f.d925c42ecc68.webp",
+    "sha256": "d925c42ecc681feda64efe57d3f44917e9f02e0faf8e995a949662673f123f1b",
+    "bytes": 405502
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-236c7b79b610.0e79926211a2.webp",
+    "sha256": "0e79926211a205c5ef549592e8114dae80b5b595ff3f3f66a2d39e6bc41467f3",
+    "bytes": 673842
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-26042ba5b764.09cd5ac92027.webp",
+    "sha256": "09cd5ac92027ba813401b9c150881182309729d5e7ed6ad7f76f3f654b2c376f",
+    "bytes": 843438
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-271b9d6075e7.07a0cb674383.webp",
+    "sha256": "07a0cb67438329f9ff77aec50a0b2ac112898fafe89dfa6c8890987368c591a6",
+    "bytes": 859206
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-2e445d3ab2ad.0b2dbcd82535.webp",
+    "sha256": "0b2dbcd82535dfb16c956aaa3b408eedcd015b86c1c86c881dc39b793984dcec",
+    "bytes": 787928
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-326123eebaf9.b742dc2aa606.webp",
+    "sha256": "b742dc2aa606d03a48cdae9278f27b25c6ccd4d7605df4236305687dcb248791",
+    "bytes": 377160
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-39899911a285.6885c3080ab5.webp",
+    "sha256": "6885c3080ab5ba9bc9767a02ab224d45a6a2c27c25edbcdd86b60d3fb64069b4",
+    "bytes": 526982
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-3ebbf5642f8b.b7c827d3b9c2.webp",
+    "sha256": "b7c827d3b9c27f56d1b892fc6f3b471c01a3aa3f790e3f56a1363ff832e21512",
+    "bytes": 429966
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-3f337f7fcd89.c1b2067699d8.webp",
+    "sha256": "c1b2067699d8408cca6a083b3186e5da48607f59c3cba91488d01c356454785e",
+    "bytes": 425964
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-3fd810465e0f.341ced021e4c.webp",
+    "sha256": "341ced021e4c3ca32b5db6c601b117fccf2cabc5bac40248cf6a590333984b69",
+    "bytes": 694500
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-410e61a0e2aa.5cf92ffee4c3.webp",
+    "sha256": "5cf92ffee4c3c43809b6effe10f3b78545b34eeee8cdb3fe7adb1c981d7402fc",
+    "bytes": 736482
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-41ba42a20564.a417014cba0b.webp",
+    "sha256": "a417014cba0b67cc7b3015a0a59f8789398cd274f6bf8d4d38087bc53ed58c80",
+    "bytes": 426818
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-4c5a8bc8484f.efc2cc263c34.webp",
+    "sha256": "efc2cc263c342db333ca1cd0d8a78c345b880d38242fec1339e0972e8fc86759",
+    "bytes": 484838
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-4edcaa1248f6.a3785d9934b5.webp",
+    "sha256": "a3785d9934b5f1df8a4b1902f8120f066094f81596d481e8d95386c6d0a8cab6",
+    "bytes": 836850
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-4fe0b5ba060d.4e4d077af40f.webp",
+    "sha256": "4e4d077af40f4cd7180cb44e8854ed5ff1270de34d6cf4f4ae706503b7229049",
+    "bytes": 438902
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-518606e83407.f71de12a5bf5.webp",
+    "sha256": "f71de12a5bf52d3d8346b4f3acd5aaffde59cb813cc7093d9e457995c5a2c224",
+    "bytes": 359352
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-556dafa2234f.82f4b05135da.webp",
+    "sha256": "82f4b05135dac29454872cab5f41319867532c2ae7a416fbcf34bc291fb0dfd1",
+    "bytes": 382496
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-5cef2e4611ef.5df2ad764706.webp",
+    "sha256": "5df2ad764706f8711d9fdd4934fea865573b14995fef58d5679b117a3f55390d",
+    "bytes": 319390
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-6b5f382de318.3dc7181c650d.webp",
+    "sha256": "3dc7181c650d2d8e3af7b8af1b0690b25a32583371484e9258d8b9847d7b2bd3",
+    "bytes": 792564
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-70fe69338fae.c27247227f31.webp",
+    "sha256": "c27247227f314922d64a5034f403dec7c4844bbc25319fffc507f5f430c3b3eb",
+    "bytes": 330368
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-771a359acf06.8cfc4c271a67.webp",
+    "sha256": "8cfc4c271a67d5d13bdd293fdd9291c3476813b2ef424df787c1430c24507071",
+    "bytes": 309510
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-7b55652993cb.157645cb7a0b.webp",
+    "sha256": "157645cb7a0b84b08c3f67de9688454f2f2dfcadddb67db8088598a340eaec4e",
+    "bytes": 349486
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-7f6e9d6199c8.f77111563311.webp",
+    "sha256": "f7711156331121d2e88d7f366ed03ef1549a0fbcf2ab3760f72e10fd86323c5f",
+    "bytes": 743048
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-8ac9e268df69.e7d35059a8e6.webp",
+    "sha256": "e7d35059a8e6595a7fae3a54ac2eccaa9346f2b690b905c6591e9e7a67b40f47",
+    "bytes": 672678
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-91a28afb5d64.3611c0e7ec9f.webp",
+    "sha256": "3611c0e7ec9fc4e25fed1ed6786642ea44c2b9d6d551b4b345cca8a45e0a0c0e",
+    "bytes": 364734
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-94d6c43f633d.46a43bf69d59.webp",
+    "sha256": "46a43bf69d59a8626cfc3d105b82ecbb8d3a81f6d77ceb5cfc17cc81f33842ff",
+    "bytes": 451642
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-9e59c9d7878d.512307e86615.webp",
+    "sha256": "512307e866157248ff58f6c67daf271c297cd4b6c72e1536e3d6fb4eade31922",
+    "bytes": 331758
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-a30c6aeac5eb.9af153ffd67e.webp",
+    "sha256": "9af153ffd67ec5b1c232373f400301da0e0c65b4a2ef4496e7e0367116bfeb16",
+    "bytes": 394696
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-a3d8b48b0862.469a5e0e9462.webp",
+    "sha256": "469a5e0e9462ae1776f52bdd24a819e22bae5b9527674a1853efe1855e8f8bcd",
+    "bytes": 554508
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-a9d2e4d71d82.b7f738736561.webp",
+    "sha256": "b7f738736561b3133b9d58f4b74d3dced08b62ba469ab615edeb9a21fc12022b",
+    "bytes": 756274
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-ae4c567be0e7.6c9bdba1d859.webp",
+    "sha256": "6c9bdba1d859a09f3c9904c4e7bd09c615b37e7e6c914cdf984607bbcf351491",
+    "bytes": 870880
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-aef9f368f495.a8dfee15adc1.webp",
+    "sha256": "a8dfee15adc1e3d15564bfb166ceebebb6cf390c79d10208690f719b9974f8e2",
+    "bytes": 603580
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-b175000f5474.c154153b2166.webp",
+    "sha256": "c154153b2166ea8c611367a34c0781050cd6f3717cadc62df0b539e396223fd7",
+    "bytes": 314116
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-b2719c4c9d28.358fb33dc058.webp",
+    "sha256": "358fb33dc058a24e9366a49a1e74043dcbc45befafa608000d033dc76d6f5846",
+    "bytes": 707752
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-b2f73d8fbc7f.c9723483724d.webp",
+    "sha256": "c9723483724d124436553e0d66afd8e89925d59ba052efc27b7e93062b24c29a",
+    "bytes": 327794
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-befc44738fec.2d5a4b8cefcd.webp",
+    "sha256": "2d5a4b8cefcd0fb1face1782358b4c96889515753fd4d669bd6a35cfa8cff982",
+    "bytes": 683048
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-bf444f398981.81b46f942cf8.webp",
+    "sha256": "81b46f942cf8523f6100a991d1534f4770dfe54aed2af8a1d60ef4a7c75f74f2",
+    "bytes": 632416
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-c2208beb48a7.3bd0e6d590d0.webp",
+    "sha256": "3bd0e6d590d01cd47a15e11f7c7bae8b886bb9d3d12e712fe32a3ceda2533547",
+    "bytes": 299342
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-c4430ef8bca6.40f45df6bcee.webp",
+    "sha256": "40f45df6bcee7b2777538e666bf8ec5ca2e7b000c1c9c9f7d6d5117e691e08be",
+    "bytes": 440688
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-c5e2842f295d.045f3b543d00.webp",
+    "sha256": "045f3b543d00dcaddc379a7758600c55b42cf184c118aada196d65d7239a03bb",
+    "bytes": 570518
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-c626e4e953e1.357de6dcfea5.webp",
+    "sha256": "357de6dcfea56674a3e1452cda521397cd3c5e5af634da278fa95161c4ca6b18",
+    "bytes": 692890
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-da3e6f0e4169.72abe5422284.webp",
+    "sha256": "72abe54222847474dd29596a248f7fad24d53f0200bf130b462d5adcca2a9eb9",
+    "bytes": 809800
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-dd349936ef98.83b3f3f63417.webp",
+    "sha256": "83b3f3f63417e362905fd96a05e9cac124f39078ecb475a2fb842e9502126a0a",
+    "bytes": 410274
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-de9dd32a823b.80b15191e1e5.webp",
+    "sha256": "80b15191e1e5dc46c57279d3fb15be94b4beb50e1b99ad806da7ed6c1c7f9db2",
+    "bytes": 310278
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-dee8ac599679.65eac21c5115.webp",
+    "sha256": "65eac21c5115562d6caeaf954b39030b72f70f16865be4772c11320ee3453fa7",
+    "bytes": 201556
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-e394724fcf22.4634a0657d5c.webp",
+    "sha256": "4634a0657d5c5d095c82ff5949be4d520c21cc3ecfa33bfbf016f499334d70f4",
+    "bytes": 681242
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-e9053015f369.c485f5a85aad.webp",
+    "sha256": "c485f5a85aad86c594b80b03e551fac4dcb4f180f822df186bd606fcd25108a4",
+    "bytes": 683518
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-f2b70830c55a.7e0f709f59bf.webp",
+    "sha256": "7e0f709f59bf1fa95a4d387cc101d1a32e82cb52a4b13a049d7c9fc2066c9797",
+    "bytes": 845610
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-fc850ad64e14.d5d28289dc06.webp",
+    "sha256": "d5d28289dc06f6f24c99493743c428c77458be046bd94010c2e23ee4c34c9291",
+    "bytes": 910838
+  },
+  {
+    "path": "luma-office/luma-plugin-art/gait-fce91bb3a6f8.9f1bb6d1d083.webp",
+    "sha256": "9f1bb6d1d083412b2ee492ace5d80ed8ea740ebbfa84af66932981c6c17b0af1",
+    "bytes": 287730
   }
 ]

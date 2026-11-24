@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { OfficeSceneSurface } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/OfficeSceneSurface.tsx'
 import { createOfficeTimePolicy, formatOfficeClock } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/timePolicy.ts'
+import type { DesktopPetDrop } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/scenePlacement.ts'
+import { OFFICE_WORKSTATION_DIRECTORY } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/workstations.ts'
 import type { OfficeAssetId } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/assets.ts'
 import '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/OfficeExperience.css'
 import type { OfficePageRuntime } from './office-runtime.ts'
@@ -17,12 +19,15 @@ import { getChibiAvatar } from './employee-avatar.ts'
 import { MessageAvatar } from './MessageAvatar.tsx'
 import { EmployeeUsageMeter, useEmployeeUsage } from './EmployeeUsagePanel.tsx'
 import type { LocalCollectionRuntime } from './local-collection-store.ts'
-import { BedDouble, Building2, ChevronDown, Clock3, Eye, EyeOff, Palette, Scan, Shirt, UsersRound, X } from 'lucide-react'
+import { BedDouble, Building2, ChevronDown, Clock3, Eye, EyeOff, MessageCircle, Palette, Scan, Shirt, UsersRound, X } from 'lucide-react'
 import { SceneViewport } from './SceneViewport.tsx'
 import './ImmersiveOffice.css'
 import './OfficePage.css'
 
 export interface OfficePageProps {
+  readonly onDesktopPet?: DesktopPetDrop | undefined
+  readonly desktopPetRoleIds?: readonly string[] | undefined
+  readonly onRecallDesktopPet?: ((employeeId:string)=>void) | undefined
   readonly sceneMenu?: ReactNode
   readonly runtime: OfficePageRuntime
   readonly readEmployeeUsage?: LocalCollectionRuntime['readEmployeeUsage']
@@ -38,7 +43,7 @@ export interface OfficePageProps {
 // separate IDs and source pins; the old records are never represented as recovered.
 const unavailableHistoricalRestArt: readonly OfficeAssetId[] = ['employee.lu-mi.rest.left.whole.v2', 'employee.lu-mi.rest.right.whole.v2']
 
-export function OfficePage({ runtime, readEmployeeUsage, onOpenChat, active = true, sceneMenu, unlockedEmployeeIds = [STARTER_EMPLOYEE_ID], unlockedThemeIds = [], onOpenRewards }: OfficePageProps) {
+export function OfficePage({ runtime, readEmployeeUsage, onOpenChat, onDesktopPet, desktopPetRoleIds = [], onRecallDesktopPet, active = true, sceneMenu, unlockedEmployeeIds = [STARTER_EMPLOYEE_ID], unlockedThemeIds = [], onOpenRewards }: OfficePageProps) {
   const [snapshot, setSnapshot] = useState(() => runtime.getSnapshot())
   const [scene,setScene] = useState<'office'|'bedroom'>('office')
   const [panel,setPanel] = useState<'roster'|'wardrobe'|'themes'|null>(null)
@@ -67,6 +72,7 @@ export function OfficePage({ runtime, readEmployeeUsage, onOpenChat, active = tr
     return () => { window.removeEventListener('keydown',onKey); document.removeEventListener('pointerdown',onOutside) }
   },[active,panel,toolsHidden])
   const [chosenResident,setResident] = useState<ResidentId>(STARTER_EMPLOYEE_ID)
+  const [expandedMember,setExpandedMember] = useState<string|null|undefined>(undefined)
   const resident = unlockedEmployeeIds.includes(chosenResident) ? chosenResident : STARTER_EMPLOYEE_ID
   const workRoles = useAgentWorkRoles(active)
   const [now, setNow] = useState(() => new Date())
@@ -99,7 +105,7 @@ export function OfficePage({ runtime, readEmployeeUsage, onOpenChat, active = tr
   const presentationDisabled = !presentation.canEdit || presentation.saving
   const roster = snapshot.projection.employees.filter(employee => unlockedEmployeeIds.includes(employee.employeeId))
   const employees = projectPluginSceneEmployees(roster, workRoles, policy, now, snapshot.persistence === 'host' || snapshot.persistence === 'memory')
-  const inOffice = employees.filter(employee => employee.location === 'office')
+  const inOffice = employees.filter(employee => employee.location === 'office' && !desktopPetRoleIds.includes(employee.id))
   const scenePolicy = withActiveTaskMonitors(policy, inOffice.some(employee => employee.availability === 'working'))
   const selectedEmployee = employees.find(employee=>employee.id === resident)
   const owner = OFFICE_OUTFIT_CHOICES.find(choice=>choice.employeeId === resident)!
@@ -128,11 +134,12 @@ export function OfficePage({ runtime, readEmployeeUsage, onOpenChat, active = tr
             presentationActive={active} reduceMotion={reduceMotion || snapshot.motionPreference === 'reduce'}
             unavailableAssetIds={unavailableHistoricalRestArt} {...officeTheme ? {officeTheme} : {}}
             employeeSkins={selection.employeeSkins} employeeDestination="contact" onCharacterClick={onOpenChat}
-            onBindWorkstation={(employeeId, workstationId)=>runtime.bindWorkstation(employeeId,workstationId)}
+            onDesktopPet={onDesktopPet}
+            onBindWorkstation={(employeeId, workstationId)=>runtime.bindWorkstation(employeeId,workstationId,{swap:true})}
             onSceneEvent={event=>runtime.handleSceneEvent(event)}
             onReportClick={reportId=>{void runtime.openReport(reportId).then(employeeId=>{if(employeeId) onOpenChat(employeeId)})}}/>
         </div>
-      </SceneViewport> : <OfficeBedroom hasInspector fit={fit} actionsTarget={actionsTarget} key={resident} id={resident} name={owner.name}
+      </SceneViewport> : <OfficeBedroom hasInspector fit={fit} actionsTarget={actionsTarget} key={resident+':'+(roomArtOwner ?? 'classic')} onDesktopPet={onDesktopPet} onDesktop={desktopPetRoleIds.includes(resident)} id={resident} name={owner.name}
           skinId={selection.employeeSkins[resident]} themeOwner={roomArtOwner} phase={policy.phase}
           clock={now} workingDay={policy.isWorkingDate === true} active={active} reduceMotion={reduceMotion || snapshot.motionPreference==='reduce'}
           bedtime={policy.bedtime === true} taskIdle={selectedEmployee?.taskState==='idle'} location={selectedEmployee?.location ?? 'unknown'}
@@ -158,23 +165,27 @@ export function OfficePage({ runtime, readEmployeeUsage, onOpenChat, active = tr
     </div>
     <footer className="lumaStageFooter" hidden={toolsHidden}>
       <div className="lumaStageIdentity">
-        <div className="lumaStageMeta"><Clock3 size={14}/><span>{shift}</span><time dateTime={now.toISOString()}>{formatOfficeClock(now)}</time>{officeVisible && <span className="lumaStageCount">{inOffice.length} 人在办公室</span>}</div>
+        <div className="lumaRoomSignature">
+        <div className="lumaRoomEmblem" aria-hidden="true">{officeVisible?<Building2 size={24}/>:<MessageAvatar {...getChibiAvatar(resident,selection.employeeSkins[resident])}/>}</div>
+        <div>
         <div className="lumaStageRoomTitle"><h1>{officeVisible?themeTitle:owner.name+'的卧室'}</h1>
           {!officeVisible && <label className="lumaStageRoomPick" title="选择房间"><ChevronDown size={18}/><select aria-label="选择房间" value={resident} onChange={event=>visit(event.target.value as ResidentId)}>
             {OFFICE_OUTFIT_CHOICES.filter(choice=>unlockedEmployeeIds.includes(choice.employeeId)).map(choice=><option key={choice.employeeId} value={choice.employeeId}>{choice.name}的卧室</option>)}
           </select></label>}
         </div>
+        <div className="lumaStageMeta"><Clock3 size={13}/><time dateTime={now.toISOString()}>{formatOfficeClock(now)}</time><span>{shift}</span>{officeVisible && <span className="lumaStageCount">{inOffice.length} 人在办公室</span>}</div>
+        </div></div>
         <div className="lumaStageContext" ref={setActionsTarget}>
           {officeVisible && !inOffice.length && selectedEmployee?.location==='bedroom' && <button type="button" onClick={()=>visit(resident)}><BedDouble size={15}/>去卧室看看</button>}
         </div>
       </div>
-      <div className="lumaStageDock" aria-label="场景工具">
-        <button type="button" data-stage-panel-trigger aria-expanded={panel==='themes'} onClick={e=>toggle('themes',e.currentTarget)}><Palette size={18}/>换肤</button>
+      <div className="lumaStageDock" role="group" aria-label="场景工具">
         <button type="button" data-stage-panel-trigger aria-expanded={panel==='roster'} onClick={e=>toggle('roster',e.currentTarget)}><UsersRound size={18}/>员工列表</button>
+        <button type="button" data-stage-panel-trigger aria-expanded={panel==='themes'} onClick={e=>toggle('themes',e.currentTarget)}><Palette size={18}/>换肤</button>
         <button type="button" data-stage-panel-trigger aria-expanded={panel==='wardrobe'} onClick={e=>toggle('wardrobe',e.currentTarget)}><Shirt size={18}/>换装</button>
         <button className="lumaStageFit" type="button" title={fit?'铺满画面':'查看全景'} aria-label={fit?'铺满画面':'查看全景'} aria-pressed={fit} onClick={()=>setFit(!fit)}><Scan size={18}/></button>
       </div>
-      {panel && <div className="lumaStageFlyout" ref={panelRef} role="dialog" aria-label={{themes:'换肤',roster:'员工列表',wardrobe:'换装'}[panel]}>
+      {panel && <div className="lumaStageFlyout" data-panel={panel} ref={panelRef} role="dialog" aria-label={{themes:'换肤',roster:'员工列表',wardrobe:'换装'}[panel]}>
         <button className="lumaStageClose" type="button" aria-label="关闭场景面板" onClick={closePanel}><X size={16}/></button>
     {panel==='themes' && <RoomThemePicker space={scene} selected={officeVisible ? officeTheme : bedroomTheme}
       resident={resident} bedrooms={bedrooms} unlocked={unlockedThemeIds} disabled={presentationDisabled}
@@ -186,18 +197,34 @@ export function OfficePage({ runtime, readEmployeeUsage, onOpenChat, active = tr
       <ul className="lumaOfficeTeamGrid">{employees.map(employee=>{
         const id=employee.id as ResidentId
         const usageRow = usage.data?.roles[id]
-        return <li key={id}>
+        const expanded=(expandedMember===undefined ? employees[0]?.id : expandedMember)===id
+        return <li key={id} className="lumaCrewRow">
+          <button type="button" className="lumaCrewSummary" aria-expanded={expanded} aria-label={employee.name+'的场景操作'} onClick={()=>setExpandedMember(expanded?null:id)}>
           <MessageAvatar {...getChibiAvatar(id,selection.employeeSkins[id])}/>
-          <div><strong>{employee.name}</strong><small>{employee.location==='office'?'办公室 · '+employee.activity:employee.location==='bedroom'?'卧室 · '+(policy.bedtime && employee.taskState==='idle'?'已入睡':employee.taskState!=='idle'?employee.activity:'自由活动'):'位置待同步'}</small></div>
-          <div className="lumaOfficeMemberActions">
-            <button type="button" onClick={()=>visit(id)} aria-label={'进入'+employee.name+'的卧室'}>卧室</button>
-            <button type="button" onClick={()=>dress(id)} aria-label={employee.name+'换装'}>换装</button>
-            <button type="button" onClick={()=>onOpenChat(id)} aria-label={'联系'+employee.name}>联系</button>
-            {usageRow && usage.data
-              ? <EmployeeUsageMeter compact name={employee.name} row={usageRow} threshold={usage.data.threshold}/>
-              : <span className="lumaRosterMeterState">{usage.loading ? '读取用量…' : '用量待同步'}</span>}
+          <span><strong>{employee.name}</strong><small>{desktopPetRoleIds.includes(id)?'桌面陪伴中':employee.location==='office'?'办公室 · '+employee.activity:employee.location==='bedroom'?'卧室 · '+(policy.bedtime && employee.taskState==='idle'?'已入睡':employee.taskState!=='idle'?employee.activity:'自由活动'):'位置待同步'}</small></span>
+          <ChevronDown size={16} aria-hidden="true"/></button>
+          {usageRow && usage.data
+            ? <EmployeeUsageMeter compact name={employee.name} row={usageRow} threshold={usage.data.threshold}/>
+            : <span className="lumaRosterMeterState">{usage.loading ? '读取用量…' : '用量待同步'}</span>}
+          <div className="lumaOfficeMemberActions" hidden={!expanded}>
+            <button type="button" onClick={()=>onOpenChat(id)} aria-label={'联系'+employee.name}><MessageCircle size={14}/>联系</button>
+            <button type="button" onClick={()=>visit(id)} aria-label={'进入'+employee.name+'的卧室'}><BedDouble size={14}/>卧室</button>
+            <button type="button" onClick={()=>dress(id)} aria-label={employee.name+'换装'}><Shirt size={14}/>换装</button>
+            <label className="lumaRosterDeskSelect">工位<select aria-label={employee.name+'的工位'}
+              disabled={snapshot.persistence!=='host' && snapshot.persistence!=='memory'}
+              value={roster.find(row=>row.employeeId===id)?.workstationId ?? ''}
+              onChange={event=>{if(event.target.value) void runtime.bindWorkstation(id,event.target.value,{swap:true})}}>
+              <option value="" disabled>自动安排</option>
+              {OFFICE_WORKSTATION_DIRECTORY.map((seat,index)=>{
+                const occupant=employees.find(person=>person.id!==id && person.workstationId===seat.id)
+                return <option key={seat.id} value={seat.id}>{officeTheme?'工位 '+(index+1):seat.label}{occupant?' · '+occupant.name:''}</option>
+              })}
+            </select></label>
+            {desktopPetRoleIds.includes(id) ? onRecallDesktopPet && <button type="button" onClick={()=>onRecallDesktopPet(id)}>回到场景</button>
+              : onDesktopPet && <button type="button" aria-label={'让'+employee.name+'到桌面陪伴'} onClick={()=>onDesktopPet(id)}>桌宠</button>}
           </div>
         </li>})}</ul>
+      <p className="lumaRosterPlacementHint">拖动伙伴到工位可以换座。{onDesktopPet && '拖出窗口可开启桌面陪伴。'}</p>
       {usage.error ? <p className="lumaRosterUsageNote" role="status">{usage.error}</p>
         : usage.data && !usage.data.nativeHistoryComplete && <p className="lumaRosterUsageNote" role="status">仅显示已同步用量，部分历史会话待核对。</p>}
     </section>}

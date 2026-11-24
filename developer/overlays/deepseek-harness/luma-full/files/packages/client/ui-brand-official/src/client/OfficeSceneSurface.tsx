@@ -93,7 +93,7 @@ function ClassicOfficeSceneSurface({
   onCharacterClick,
   employeeDestination,
   onReportClick,
-  onBindWorkstation,
+  onBindWorkstation, onDesktopPet,
   timePolicy: timePolicyOverride,
   officeTheme,
   employeeSkins = {},
@@ -310,7 +310,7 @@ function ClassicOfficeSceneSurface({
           boundWorkstationId,
           workstationApproachPoint: approach ? { x: approach[0], y: approach[1] } : null,
           presencePaused: presencePausedRef.current || !presentationActiveRef.current
-            || manualActionsRef.current[employee.id] !== undefined,
+            || now < (actor.placedUntil ?? 0) || manualActionsRef.current[employee.id] !== undefined,
           reducedMotion: reducedMotionRef.current,
           ambientDesk: employee.ambientDesk === true,
           canStartRoam: true,
@@ -352,7 +352,7 @@ function ClassicOfficeSceneSurface({
   const { seatDrag, actorDragRef, clearPendingActorTap, handleActorClick, startActorDrag,
     moveActorDrag, finishActorDrag, startPan, movePan, finishPan, onKeyDown } = useOfficeSceneInteractions({
       canvasRef, scrollerRef, actorRef, setActors, officeBindingsRef, presentationActive,
-      closeActionMenu, onCharacterClick, onBindWorkstation, employeeDestination,
+      closeActionMenu, onCharacterClick, onBindWorkstation, onDesktopPet, employeeDestination,
     })
 
   const visibleMonitorIds = seatReview
@@ -402,7 +402,7 @@ function ClassicOfficeSceneSurface({
     .map(employee => ({ employeeId: employee.id,
       workstationId: actors[employee.id]?.targetWorkstationId ?? employee.workstationId ?? null }))
   officeBindingsRef.current = officeBindings
-  const occupiedSeatIds = seatDrag === null
+  const occupiedSeatIds = seatDrag === null || employeeDestination === 'contact'
     ? null
     : officeSeatOccupiedIds(officeBindings, seatDrag.employeeId)
   const ambientCandidateKey = JSON.stringify(drawingPaused || lighting.current === null ? [] : visibleEmployees.filter(employee => {
@@ -429,7 +429,7 @@ function ClassicOfficeSceneSurface({
         const button = canvas && hitOfficeActorAtPoint(canvas, event.clientX, event.clientY)
         const employee = employees.find(item => item.id === button?.dataset.employeeId)
         if (!employee) return
-        startActorDrag(event, { ...employee, canDrag: employee.canDrag && !manualActions[employee.id] })
+        startActorDrag(event, { ...employee, canDrag: employeeDestination === 'contact' || employee.canDrag && !manualActions[employee.id] })
       }}
       onClickCapture={event => {
         if (event.detail > 0 && event.target instanceof Element && event.target.closest('.lumaOfficeEmployee')) {
@@ -494,9 +494,7 @@ function ClassicOfficeSceneSurface({
                 )} />
             ))}
           </svg>
-          {/* Seat borders exist only while dragging: the dragged actor gets a
-              visible target, and the candidate border is the border a drop
-              actually binds. Seats another employee holds stay unbindable. */}
+          {/* Drag targets use the same bounds for painting and for the seat exchange. */}
           {seatDrag !== null && (
             <svg className="lumaOfficeSeatLayer" viewBox={`0 0 ${OFFICE_NAV_WIDTH} ${OFFICE_NAV_HEIGHT}`}
               data-seat-drag-employee={seatDrag.employeeId} aria-hidden="true">
@@ -594,6 +592,7 @@ function ClassicOfficeSceneSurface({
                       : automaticFrame !== undefined ? { fixedFrameIndex: automaticFrame }
                       : walkRest === undefined ? {} : { fixedFrameIndex: walkRest.frameIndex }}
                     {...manual ? { loopOverride: manual.mode === 'loop' } : {}}
+                    {...automaticFrame !== undefined && automaticTimeline ? { walkElapsedMs: (actor.walkPhase ?? 0) * automaticTimeline.cycleMs } : {}}
                     playbackRate={manual ? 1 : automaticCadence?.playbackRate ?? 1}
                     paused={!moving || drawingPaused || reducedMotion}
                   />

@@ -173,7 +173,7 @@ function eventFingerprint(event: SceneEvent): string {
  */
 export class SceneProtocolGuard {
   private readonly commands = new Map<SceneCommandId, SceneCommand>()
-  private readonly taskIdentities = new Map<OfficeTaskId, SceneIdentity>()
+  private readonly taskIdentities = new Map<OfficeTaskId, SceneCommand>()
   private readonly activeCommandByEmployee = new Map<OfficeEmployeeId, SceneCommandId>()
   private readonly seenEvents = new Set<string>()
 
@@ -181,7 +181,7 @@ export class SceneProtocolGuard {
    * @param value - candidate command from the projection adapter.
    * @returns admission result; repeated identical commands are idempotent.
    */
-  admitCommand(value: unknown): SceneCommandAdmission {
+  admitCommand(value: unknown, previousPlacement?: SceneCommand): SceneCommandAdmission {
     if (!isSceneCommand(value)) return Object.freeze({ status: 'invalid' as const })
     const command = value
     const existing = this.commands.get(command.commandId)
@@ -193,7 +193,13 @@ export class SceneProtocolGuard {
 
     const taskIdentity = this.taskIdentities.get(command.taskId)
     if (taskIdentity !== undefined && !sameTaskIdentity(taskIdentity, command)) {
-      return Object.freeze({ status: 'conflict' as const, reason: 'task-identity-reused' as const })
+      // The plugin may move the seat of this same active employee/task. Only the
+      // exact preceding identity can authorize the transition. Superseded
+      // callbacks still fail the ordinary active-command check below.
+      const relocated = previousPlacement && sameCommand(taskIdentity, previousPlacement)
+        && previousPlacement.taskId === command.taskId && previousPlacement.employeeId === command.employeeId
+        && previousPlacement.workstationId !== command.workstationId
+      if (!relocated) return Object.freeze({ status: 'conflict' as const, reason: 'task-identity-reused' as const })
     }
     this.commands.set(command.commandId, command)
     this.taskIdentities.set(command.taskId, command)

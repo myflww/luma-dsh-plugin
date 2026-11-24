@@ -1,3 +1,4 @@
+import { desktopPets } from './desktop-pet.ts'
 import { releaseChecker } from './release-check.ts'
 import { DatabaseSync } from 'node:sqlite'
 import { join } from 'node:path'
@@ -175,6 +176,12 @@ export async function apply(ctx: Context) {
         return unlocked
       }
       const presets = createEmployeePresetRoster(ctx.agentPresets,readUnlockedEmployees)
+      const pets = desktopPets(fileURLToPath(new URL('.',import.meta.url)), readUnlockedEmployees, role => {
+        const row = readCollection.get(OFFICE_PRESENTATION_NAMESPACE)
+        return row && JSON.parse(String(row.value)).selection?.employeeSkins?.[role]
+      })
+      clean.push(() => pets.dispose())
+      clean.push(ctx.webServer.register({kind:'exact',path:'/luma-native/desktop-pet',handler:protect(pets.handler)}))
       clean.push(()=>presets.dispose())
       startup = Promise.all([presets.sync(false), settings.refreshWallet()]).then(() => {})
       const desk = createAgentWork(join(root, 'agent-workbench'), req => ownerAdmission(ctx, req) === 0,

@@ -1,33 +1,32 @@
 {
-  "version": "0.5.4",
+  "version": "0.6.0",
   "platform": "Windows x64",
   "node": "v24.19.0",
   "installerPowerShell": "Windows PowerShell 5.1",
   "baseZipSha256": "e949d369a89da2bf6ce01c2eabef4b8a3a95ced38db5ab625ea90c2bb0549c81",
-  "updateBytes": 2915332,
-  "updateSha256": "bf007474c4c72b8ccb95590f5177d3cfe199423751b925e40b701981db82b75b",
-  "changedFiles": 7,
-  "installerBytes": 2913471,
-  "installerSha256": "d942f40809e682e289d5131717ec1648f31ca023a0ca6948de40346214bc4751",
-  "matchingFiles": 1779,
-  "matchingPublicAssets": 1755,
+  "installerSha256": "63c186569b0a983f3e2cc5248bc3275c6c3895f6676294ce5c37729392ef88ea",
+  "installerBytes": 36195419,
+  "updateSha256": "19d295f8f1d9ee8a3548e5fc08687b48e81dda98caff49fb23f4815eab934075",
+  "updateBytes": 36192879,
+  "updaterSha256": "aab6f37482cba7c796795bf01153b57b55549938255a0be365c68ff8ea163f62",
+  "matchingFiles": 1850,
+  "matchingPublicAssets": 1811,
+  "changedFiles": 78,
   "sha256": {
     "cordis.patch.yml": "5017a014506a399f5db4f08e523996c7c9ac68f2472c2809e022442db62a59cc",
-    "native-desktop/client.mjs": "bfc82698669d1f2a6faf1b6f36d4083bb57a9974ca60e14c4f5901451b64e015",
-    "native-desktop/server.mjs": "438044304a66724702f25db9d00f1526f2212ff4b1c9fe1fe95b548c6ee3f1d2"
+    "native-desktop/client.mjs": "6bb7084acefe050042476bd96fd842835ce56985a70425a723c8162f4180ab04",
+    "native-desktop/server.mjs": "6f6936d7a1a8136539bcc38fa433da973c4564c66a70121bc977ab83384d25db",
+    "native-desktop/DesktopPet.exe": "20d96267e085617a526451949a3ba2475c1bf2c8c223ac4a099ce549b6fe5f27"
   },
-  "recoveryInputs": [
-    "Complete 0.5.3 desktop directory. Update generated against the published 0.4.3 Windows ZIP."
-  ],
   "nativeTestsPassed": 32,
-  "vitestTestsPassed": 177,
-  "vitestFilesPassed": 26,
-  "method": "Rebuilt from source after the composer focus correction. Verified the nested installer and update ZIP, then restored into a fresh directory from a complete 0.5.3 desktop installation. Matched every file in the source build, restored installation and registered desktop copy against the update manifest. Confirmed that the personal DSH profile still resolves to the installed package.",
+  "vitestTestsPassed": 197,
+  "vitestFilesPassed": 29,
+  "recoveryInputs": [
+    "Verified desktop 0.5.4 directory and original 0.4.3 Windows base archive."
+  ],
   "desktopRegistration": {
-    "cli": "0.2.2-rc.1",
-    "profile": "desktop",
-    "resolvedPluginVersion": "0.5.4",
-    "preAndPostCollectionDigestMatched": true
+    "standard": "Registered with official DSH CLI under a separate desktop profile.",
+    "preAndPostPersonalProgressMatched": true
   },
   "nativeHostChecks": {
     "versions": [
@@ -37,8 +36,15 @@
     "scenarios": [
       "office",
       "roster",
+      "native-pet-open",
+      "workstation-binding",
+      "native-recall",
+      "locked-employee-denied",
       "roster-narrow",
       "house",
+      "bedroom-placement",
+      "pointer-bedroom-drop-outside",
+      "single-resident-after-recall",
       "bedroom",
       "menu",
       "decor",
@@ -49,14 +55,24 @@
     ],
     "pageErrors": 0
   },
-  "attachmentTransport": {
-    "host": "0.2.2-rc.1",
-    "inferenceService": "Local test endpoint",
-    "entry": "Selected both files from the composer plus menu in one message.",
-    "inputPngBytes": 4322578,
-    "inputUtf8FileBytes": 2097194,
-    "nativeSession": "Native uploaded text file matched its original bytes on disk. DSH supplied a 1200 x 1200 JPEG to the model.",
-    "configuredDshModel": "DSH supplied a 1200 x 1200 JPEG and the complete text.",
-    "customEndpoint": "The endpoint received the byte-identical original PNG and the complete text."
+  "petVerification": {
+    "residents": 8,
+    "distinctOutfits": 14,
+    "uniqueWalkAtlases": 56,
+    "visibleCellCount": 1479,
+    "bedroomLayoutsTested": 9,
+    "desktopArtFormat": "Transparent PNG",
+    "edgeModes": [
+      "left",
+      "right",
+      "hidden-edge"
+    ],
+    "additionalChecks": [
+      "Native transparent-window hit testing",
+      "Windows pointer capture across the browser window boundary at 150% DPI",
+      "Two independent companion windows and shutdown",
+      "Sleep and recall"
+    ],
+    "physicalDisplaysTested": 1
   }
 }

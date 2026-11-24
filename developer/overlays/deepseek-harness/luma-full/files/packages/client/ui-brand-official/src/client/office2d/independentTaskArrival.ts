@@ -1,3 +1,4 @@
+import { independentDropFloor } from './independentDropFloor.ts'
 import type { SceneCommand, SceneEventType } from '../office-harness/SceneProtocol.ts'
 import type { OfficeWalkDirection } from './employeeCatalog.ts'
 import type { OfficeFrameStrip } from './assets.ts'
@@ -8,6 +9,7 @@ export type IndependentFloorNode = { readonly point: Point; readonly bodyCoreHei
 export type IndependentFloorGraph = {
   readonly schemaVersion: 1; readonly visualReviewed: true; readonly sourceSize: Point; readonly entryNode: string
   readonly nodes: Readonly<Record<string, IndependentFloorNode>>
+  readonly placementTheme?: string
   readonly edges: readonly (readonly [string, string])[]
   readonly targets: Readonly<Record<string, { readonly approachNode: string; readonly exitNode: string }>>
 }
@@ -18,7 +20,7 @@ export type IndependentArrivalState = {
   mode: 'floor' | 'approaching' | 'seat-pending' | 'seated' | 'leaving' | 'report' | 'roaming' | 'returning'
   ambientStationId?: string | undefined
   seatedStationId?: string | undefined; command?: SceneCommand | undefined; lastCommandId?: string | undefined
-  route: readonly Waypoint[]; waypointIndex: number; walkElapsedMs: number; reportElapsedMs: number
+  route: readonly Waypoint[]; waypointIndex: number; walkPhase?: number; walkElapsedMs: number; reportElapsedMs: number
   owned: boolean; failure?: string | undefined; emitted: ReadonlySet<string>; seen: ReadonlySet<string>
 }
 const close = (a: Point, b: Point) => Math.hypot(a[0] - b[0], a[1] - b[1]) < .01
@@ -46,7 +48,7 @@ export function validateIndependentFloorGraph(raw: unknown, size: Point, station
   return g
 }
 
-/** Start only on a reviewed node/edge. An arbitrary dragged position is not teleported to a nearby path. */
+/** A placed companion walks across its measured floor patch before joining the route to a desk. */
 export function independentFloorRoute(g: IndependentFloorGraph, from: Point, goal: string): readonly Waypoint[] {
   if (!g.nodes[goal]) fail('floor-target-unavailable')
   const dist = new Map<string, number>(), previous = new Map<string, string>(), pending = new Set(Object.keys(g.nodes))
@@ -57,7 +59,11 @@ export function independentFloorRoute(g: IndependentFloorGraph, from: Point, goa
     if (t < 0 || t > 1 || Math.hypot(from[0] - p[0] - t * dx, from[1] - p[1] - t * dy) > .01) continue
     for (const id of [a, b]) dist.set(id, Math.min(dist.get(id) ?? Infinity, Math.hypot(from[0] - g.nodes[id]!.point[0], from[1] - g.nodes[id]!.point[1])))
   }
-  if (!dist.size) fail('actor-off-reviewed-floor-path')
+  if (!dist.size) {
+    const landing=independentDropFloor(g,from)
+    if(!landing || !close(from,landing.point) || close(from,landing.anchor)) fail('actor-off-reviewed-floor-path')
+    return [{id:'placement-approach',point:landing.anchor,bodyCoreHeightPx:landing.height},...independentFloorRoute(g,landing.anchor,goal)]
+  }
   while (pending.size) {
     let at: string | undefined, best = Infinity
     for (const id of pending) if ((dist.get(id) ?? Infinity) < best) { at = id; best = dist.get(id)! }
@@ -156,6 +162,9 @@ export function advanceIndependentTaskArrival(previous: IndependentArrivalState,
       const possible = Math.abs(k) < 1e-9 ? h * speedFactor * seconds : h * Math.expm1(speedFactor * k * seconds) / k
       const amount = input.reduceMotion ? distance : Math.min(distance, possible), ratio = amount / distance
       s.position = [s.position[0] + dx * ratio, s.position[1] + dy * ratio]; s.bodyCoreHeightPx = h + (to.bodyCoreHeightPx - h) * ratio
+      // Advance by actual travelled strides. Turning onto a strip with a different
+      // cycle length and accelerating for a task must preserve the supporting foot.
+      if (!input.reduceMotion) s.walkPhase = ((s.walkPhase ?? 0) + time.travelMs * speedFactor / 750) % 1
       s.walkElapsedMs += input.reduceMotion ? 0 : time.travelMs; remaining -= time.usedMs
       if (amount >= distance - .01) { s.position = to.point; s.bodyCoreHeightPx = to.bodyCoreHeightPx; s.waypointIndex++ } else break
     }

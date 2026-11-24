@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { expect, it } from 'vitest'
+import { independentDropFloor } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/independentDropFloor.ts'
 import { BROWSER_OFFICE_FLOOR_PLANS, withBrowserOfficeNavigation, type BrowserIndependentFloorGraph } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/browserOfficeNavigation.ts'
 import { createIndependentArrivalState, advanceIndependentTaskArrival, independentFloorRoute, markIndependentArrivalPainted, validateIndependentFloorGraph } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/independentTaskArrival.ts'
 import { advanceIndependentAmbient, independentFloorLanePosition, independentTrafficMayAdvance, initialIndependentAmbient } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/independentAmbient.ts'
@@ -156,4 +157,24 @@ it('does not let a hidden stale classic actor reserve an active task junction',(
   const hidden={...active,employeeId:'hidden',position:active.route?{x:active.route.points[0]![0],y:active.route.points[0]![1]}:active.position}
   const output=advanceOfficeActorTrafficFrame({actors:{shan:active,hidden},now:50,deltaMs:50,presentEmployeeIds:new Set(['shan']),commandsByEmployee:new Map([['shan',command]])})
   expect(output.actors.shan!.position).not.toEqual(active.position)
+})
+
+it('keeps off-center interior placements in all five theme rooms and walks from them to every desk',()=>{
+  for(const room of [whale,claude,dragon,gemini,grok]){
+    const graph=withBrowserOfficeNavigation(room).layout.navigation.floorGraph as BrowserIndependentFloorGraph
+    const point=[859,744] as const
+    const placed=independentDropFloor(graph,point)!
+    expect(placed.point).toEqual(point)
+    expect(Math.hypot(point[0]-placed.anchor[0],point[1]-placed.anchor[1])).toBeGreaterThan(20)
+    const outside=independentDropFloor(graph,[-3200,-3900])!
+    expect(outside.point[0]).toBeGreaterThan(0)
+    expect(outside.point[1]).toBeGreaterThan(0)
+    for(const target of Object.values(graph.targets)){
+      const route=independentFloorRoute(graph,point,target.approachNode)
+      expect(route[0]?.point).toEqual(placed.anchor)
+      expect(route.at(-1)?.id).toBe(target.approachNode)
+      expect(()=>independentFloorRoute(graph,outside.point,target.approachNode)).not.toThrow()
+    }
+    expect(()=>independentFloorRoute(graph,[-19000,200],graph.entryNode)).toThrow()
+  }
 })

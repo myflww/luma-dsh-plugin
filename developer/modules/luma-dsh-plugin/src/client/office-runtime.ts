@@ -90,7 +90,7 @@ export function createOfficePageRuntime(ctx: ClientContext, roomAccess: () => Ro
       if (prior?.signature === signature) { next.set(employee.employeeId, prior); continue }
       const command = createSceneCommand({ type, taskId, employeeId: employee.employeeId, workstationId: employee.workstationId,
         commandId: `luma-dsh:${employee.employeeId}:${++ordinal}:${type}` })
-      const admitted = guard.admitCommand(command)
+      const admitted = guard.admitCommand(command,prior?.command)
       if (admitted.status === 'accepted' || admitted.status === 'duplicate') next.set(employee.employeeId, { signature, command: admitted.command })
     }
     records = next
@@ -151,9 +151,9 @@ export function createOfficePageRuntime(ctx: ClientContext, roomAccess: () => Ro
       adapter.acknowledgeReport(reportId)
       return report.employeeId
     },
-    async bindWorkstation(employeeId: string, workstationId: string): Promise<void> {
-      const result = await relationships.store.bindWorkstation(employeeId, workstationId)
-      publishProblem(result.status === 'rejected' ? '工位未保存：请等待当前任务结束，并确认 Host 设置连接可用。' : undefined)
+    async bindWorkstation(employeeId: string, workstationId: string, placement?: {swap:true}): Promise<void> {
+      const result = await relationships.store.bindWorkstation(employeeId, workstationId, placement)
+      publishProblem(result.status === 'rejected' ? '工位未保存，请检查 DSH 设置连接后重试。' : undefined)
     },
     handleSceneEvent(event: SceneEvent): void {
       if (disposed) return

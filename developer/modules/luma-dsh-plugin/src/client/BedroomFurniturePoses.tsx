@@ -71,7 +71,19 @@ const screens:Record<ResidentId|'classic',Screen>={
   claude:[[1282,429],[1377,455],[1281,484]],gemini:[[1232,372],[1318,394],[1225,423]],
   grok:[[1194,329],[1266,347],[1189,379]],
 }
-function DeskScreen({surface,tint,elapsed}: {surface:Screen;tint:string;elapsed:number}) {
+// Tiny illustrated applications live on the actual monitor plane. Keep only a few
+// strokes legible at office scale, and let the cursor follow the employee's pastime.
+const deskSketch: Record<ResidentId, string> = {
+  jingyuniang: 'M24 35Q32 28 40 35T56 35T72 35T91 33M28 26l9-8 9 4 11-10 8 5',
+  'lu-mi': 'M27 20h62m-62 4h62m-62 4h62m-62 4h62m-62 4h62M38 31v-13l12-3v12m12 8v-14l13-2v12',
+  'bai-shuangming': 'M27 15h21m-21 5h16m-16 7h58m-58 5h53m-53 5h32M63 22l6-7 6 3 10-7',
+  shan: 'M34 36q4-8 9-11l2-8 6 6q6-2 12 1l7-6 1 10q5 4 9 11M48 31q3 2 5 0m6 0q3 2 5 0',
+  longmama: 'M27 16h27m-27 8h59m-59 5h49m-49 5h55m-55 5h31',
+  claude: 'M26 15h24v21H26zM28 33l7-9 6 6 6-8m9-4h27m-27 6h30m-30 6h22m-22 6h28',
+  gemini: 'M28 35l12-15 14 5 13-12 17 8M39 20l4 15 11-10m14-12 2 12',
+  grok: 'M28 15h53v25H28zM39 15v14h11v11m0-25v7h12v11h9m0-18v8h10m-53 11h11',
+}
+function DeskScreen({id,surface,tint,elapsed}: {id:ResidentId;surface:Screen;tint:string;elapsed:number}) {
   const [[x,y],right,bottom]=surface
   const matrix=[(right[0]-x)/100,(right[1]-y)/100,(bottom[0]-x)/56,(bottom[1]-y)/56,x,y]
   const line=15+Math.floor(elapsed/670)%16
@@ -81,8 +93,8 @@ function DeskScreen({surface,tint,elapsed}: {surface:Screen;tint:string;elapsed:
     <circle cx="4" cy="3" r="1.2" fill={tint}/><circle cx="8" cy="3" r="1.2" fill="#cfd2d5"/>
     <path d="M0 7H21V56H0Z" fill="#223746"/>
     <path d="M4 14h12m-12 5h9m-9 5h11m-11 5h6" stroke="#73919f" strokeWidth="1.6"/>
-    <path d="M26 14h28m-28 8h51m-51 5h45m-45 5h32" stroke="#c6d8e3" strokeWidth="1.8"/>
-    <path d={`M26 40h${line}`} stroke={tint} strokeWidth="2.2"/>
+    <path d={deskSketch[id]} stroke="#d2e0ec" strokeWidth="1.45" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d={`M26 45h${line}`} stroke={tint} strokeWidth="2.2"/>
   </g>
 }
 // Hip and right fingertips, measured on the role's complete back-right typing frame.
@@ -125,9 +137,12 @@ export function BedroomDeskPose({id,skinId,roomId,room,background,approach,seate
   const x=blend(approach[0]-hip[0]*scale,keyboard[0]-hand[0]*scale,seated)+shift[0]*scale
   const y=blend(approach[1]-41-hip[1]*scale,keyboard[1]-hand[1]*scale,seated)+shift[1]*scale
   const width=strip.frameWidth*scale,height=strip.frameHeight*scale
-  return <g data-bedroom-pose="computer" data-bedroom-frame={frame}>
-    {seated>.6 && <DeskScreen surface={screens[roomId]} tint={['#88c9da','#ccbae3','#efb888','#9fc1ff','#d9b77d','#f2c4ce','#a8dbea','#aeace6'][phoneRoles.indexOf(id)]!} elapsed={animate?elapsed:0}/>}
-    <svg x={x} y={y} width={width} height={height} viewBox={rect.join(' ')} overflow="hidden">
+  const reading=animate && beat>=2750
+  const readingFraction=reading?(beat-2750)/(4200+phoneRoles.indexOf(id)*137-2750):0
+  const lean=reading?Math.sin(Math.PI*readingFraction)**2*1.6:0
+  return <g data-bedroom-pose="computer" data-bedroom-frame={frame} data-desk-action={reading?'reading':'typing'}>
+    {seated>.6 && <DeskScreen id={id} surface={screens[roomId]} tint={['#88c9da','#ccbae3','#efb888','#9fc1ff','#d9b77d','#f2c4ce','#a8dbea','#aeace6'][phoneRoles.indexOf(id)]!} elapsed={animate?elapsed:0}/>}
+    <svg transform={lean?'rotate('+lean+' '+chair.seat[0]+' '+chair.seat[1]+')':undefined} x={x} y={y} width={width} height={height} viewBox={rect.join(' ')} overflow="hidden">
       <image href={resolveOfficeAssetUrl(asset.id)} width={asset.dimensions.width} height={asset.dimensions.height}/>
     </svg>
     <defs><clipPath id={clipId}><path d={chair.back}/></clipPath></defs>

@@ -20,12 +20,12 @@ npm test
 npm run release -- "$env:USERPROFILE\Desktop\Luma-DSH\Luma-DSH-0.4.3-Windows.zip"
 ```
 
-静态资源的相对路径、大小和 SHA-256 存在 `modules/luma-dsh-plugin/lib/asset-manifest.json`。程序校验每项并生成 `dist/DesktopPlugin-0.5.4/`。要另存一份，在美术来源后追加一个新输出目录。
+静态资源的相对路径、大小和 SHA-256 存在 `modules/luma-dsh-plugin/lib/asset-manifest.json`。程序校验每项并生成 `dist/DesktopPlugin-0.6.0/`。要另存一份，在美术来源后追加一个新输出目录。
 
 如需比对独立重建目录和官方更新包中的全部文件，可运行以下命令。
 
 ```powershell
-.\verify-release.ps1 -Package .\dist\DesktopPlugin-0.5.4 -Update "D:\Downloads\Luma-DSH-0.5.4-Update.zip"
+.\verify-release.ps1 -Package .\dist\DesktopPlugin-0.6.0 -Update "D:\Downloads\Luma-DSH-0.6.0-Update.zip"
 ```
 
 ## 生成差分发行包
@@ -33,12 +33,12 @@ npm run release -- "$env:USERPROFILE\Desktop\Luma-DSH\Luma-DSH-0.4.3-Windows.zip
 使用 Python 3.10+。第一个参数必须是已发布、SHA-256 符合记录的 0.4.3 原始 ZIP，第二个参数是通过验证的新版本完整目录。
 
 ```powershell
-py -3 .\build-update.py "D:\Downloads\Luma-DSH-0.4.3-Windows.zip" ".\dist\DesktopPlugin-0.5.4" ".\dist\v0.5.4"
+py -3 .\build-update.py "D:\Downloads\Luma-DSH-0.4.3-Windows.zip" ".\dist\DesktopPlugin-0.6.0" ".\dist\v0.6.0"
 ```
 
-产物包含可双击的安装包、单独的更新 ZIP、SHA-256 文件和已绑定该 ZIP 摘要的 PowerShell 安装器。更新清单列出全部目标文件，每项带有来源、长度和 SHA-256。只有新增或变更的文件进入更新载荷。用户可以复用完整的 0.5.3、0.5.2、0.5.1、0.5.0、0.4.3 插件目录或已发布的 0.4.3 Windows ZIP。安装器将所需文件复制到临时目录并逐项校验，校验成功后才建立最终的 `DesktopPlugin-0.5.4` 目录。
+产物包含可双击的安装包、单独的更新 ZIP、SHA-256 文件和已绑定该 ZIP 摘要的 PowerShell 安装器。更新清单列出全部目标文件，每项带有来源、长度和 SHA-256。只有新增或变更的文件进入更新载荷。用户可以复用完整的 0.5.4、0.5.3、0.5.2、0.5.1、0.5.0、0.4.3 插件目录或已发布的 0.4.3 Windows ZIP。安装器将所需文件复制到临时目录并逐项校验，校验成功后才建立最终的 `DesktopPlugin-0.6.0` 目录。
 
-保留旧版完整目录即可回退。在安装器所在目录运行 `.\Get-Luma-DSH.ps1 -Rollback` 会重新注册桌面 `Luma-DSH/DesktopPlugin-0.5.3/`，也可用 `-Base` 指定兼容版本的完整目录。重启 DSH 后生效。
+保留旧版完整目录即可回退。在安装器所在目录运行 `.\Get-Luma-DSH.ps1 -Rollback` 会重新注册桌面 `Luma-DSH/DesktopPlugin-0.5.4/`，也可用 `-Base` 指定兼容版本的完整目录。重启 DSH 后生效。
 
 ## 目录
 

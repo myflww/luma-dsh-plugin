@@ -46,6 +46,7 @@ export interface OfficeSceneSurfaceProps {
   readonly onCharacterClick?: (employeeId: string) => void
   readonly employeeDestination?: import('./office2d/actorPortraitActivation.ts').OfficeEmployeeDestination
   readonly onReportClick?: (reportId: string) => void
+  readonly onDesktopPet?: import('./office2d/scenePlacement.ts').DesktopPetDrop | undefined
   readonly onBindWorkstation?: (employeeId: string, workstationId: OfficeWorkstationId) => void | Promise<unknown>
   /** Deterministic clock seam for tests and host-controlled previews. */
   readonly timePolicy?: OfficeTimePolicy
@@ -82,6 +83,7 @@ export interface ActorRuntime {
   readonly route: OfficeRoute | null
   readonly waypointIndex: number
   readonly targetWorkstationId: OfficeWorkstationId | null
+  readonly placedUntil?: number
   readonly nextAmbientAt: number
   readonly roamOrdinal: number
   readonly waitStreak: number

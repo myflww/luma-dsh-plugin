@@ -39,6 +39,8 @@ for (const row of art) {
   await copyFile(file, target)
 }
 for (const entry of ['client.mjs', 'server.mjs']) await copyFile(resolve(built, entry), resolve(destination, 'native-desktop', entry))
+await copyFile(resolve(built, 'DesktopPet.exe'), resolve(destination, 'native-desktop', 'DesktopPet.exe'))
+await cp(resolve(source, 'pet-art'), resolve(destination, 'native-desktop', 'pet-art'), {recursive:true})
 await cp(resolve(root, 'presets'), resolve(destination, 'presets'), { recursive: true })
 await cp(resolve(root, 'cloud-office'), resolve(destination, 'cloud-office'), { recursive: true })
 await copyFile(resolve(root, 'THIRD_PARTY_NOTICES.md'), resolve(destination, 'THIRD_PARTY_NOTICES.md'))

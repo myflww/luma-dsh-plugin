@@ -1,5 +1,6 @@
 import { act, cleanup, fireEvent, render } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
+import { bedroomDropJourney, bedroomDropFrame } from '../src/client/bedroom-placement.ts'
 import { BEDROOM_FLOORS, bedroomFootAt, bedroomStepAt, createBedroomRoutine } from '../src/client/bedroom-routine.ts'
 import { OfficeBedroom, type ResidentId } from '../src/client/OfficeBedroom.tsx'
 import { BEDROOM_ART } from '../src/client/bedroom-art.generated.ts'
@@ -119,4 +120,47 @@ it('opens contact from a live employee without exposing the manual animation con
   expect(contact).toHaveBeenCalledOnce()
   expect(close).toHaveBeenCalledOnce()
   expect(action).not.toHaveBeenCalled()
+})
+
+it('returns dropped companions to their routines through each bedroom floor plan',()=>{
+  const date=new Date(2026,10,22,16,5), now=date.getTime()
+  for(const id of Object.keys(BEDROOM_ART) as ResidentId[]) {
+    for(const room of [id,'classic'] as const) {
+      const routine=createBedroomRoutine(id,room,date,false,speeds)
+      const trip=bedroomDropJourney(room,[-1e6,-1e6],routine,now)
+      expect(bedroomDropFrame(trip,now).point).toEqual(trip.origin)
+      expect(bedroomDropFrame(trip,now).moving).toBe(false)
+      expect(bedroomDropFrame(trip,trip.centerAt).point).toEqual(trip.center)
+      const actual=bedroomFootAt(bedroomStepAt(routine,trip.end),trip.end)
+      expect(Math.hypot(trip.target[0]-actual[0],trip.target[1]-actual[1])).toBeLessThan(3)
+      expect(trip.end-now).toBeGreaterThanOrEqual(8500)
+    }
+  }
+})
+
+it('drags the bedroom resident onto the floor, cancels a second gesture, then carries a sleeping companion outside without waking her',()=>{
+  vi.useFakeTimers();vi.setSystemTime(new Date(2026,10,22,16,5))
+  const onDesktopPet=vi.fn(), onChat=vi.fn(), config={...props,clock:new Date(),onDesktopPet,onChat}
+  const view=render(<OfficeBedroom {...config}/>)
+  const target=view.container.querySelector('[data-bedroom-drag]') as SVGEllipseElement
+  Object.assign(target,{setPointerCapture(){},hasPointerCapture(){return false}})
+  Object.assign(target.ownerSVGElement!,{getBoundingClientRect:()=>({left:0,top:0,width:1672,height:941,right:1672,bottom:941})})
+  const pointer=(type:string,x:number,y:number)=>{
+    const e=new MouseEvent(type,{bubbles:true,button:0,clientX:x,clientY:y,screenX:x,screenY:y})
+    Object.defineProperties(e,{pointerId:{value:1},isPrimary:{value:true}})
+    fireEvent(target,e)
+  }
+  pointer('pointerdown',600,500);pointer('pointermove',750,600);pointer('pointerup',750,600)
+  expect(view.getByText('在这里歇一会儿')).toBeTruthy()
+  const pose=target.ownerSVGElement!.querySelector('[data-bedroom-pose]')?.getAttribute('transform')
+  pointer('pointerdown',750,600);pointer('pointermove',700,550);pointer('pointercancel',700,550)
+  expect(target.ownerSVGElement!.querySelector('[data-bedroom-pose]')?.getAttribute('transform')).toBe(pose)
+  view.rerender(<OfficeBedroom {...config} bedtime/>)
+  pointer('pointerdown',300,350);pointer('pointermove',-120,100);pointer('pointerup',-120,100)
+  expect(onDesktopPet).toHaveBeenCalledExactlyOnceWith('jingyuniang',{screenX:-120,screenY:100})
+  expect(onChat).not.toHaveBeenCalled()
+  expect(target.ownerSVGElement!.querySelector('[data-bedroom-pose="sleep"]')).toBeTruthy()
+  view.rerender(<OfficeBedroom {...config} onDesktop/>)
+  expect(view.container.querySelector('[data-bedroom-drag]')).toBeNull()
+  expect(view.getByText('在桌面陪伴')).toBeTruthy()
 })

@@ -117,3 +117,7 @@
   .lumaStageHeader,.lumaStageFooter { --stage-edge:8px; }
   .lumaStageFlyout { position:fixed; inset:10px 10px 62px auto; max-height:none; width:min(380px,calc(100% - 20px)); }
 }
+
+.lumaRosterDeskSelect{display:inline-flex;align-items:center;gap:.4em;font-size:.86em;color:#365b7a}
+.lumaRosterDeskSelect select{min-width:0;max-width:10em;border:1px solid #bed5e9;border-radius:.55em;padding:.38em .3em;background:white;color:#214a70;font:inherit}
+.lumaRosterPlacementHint{margin:.45em 0 .75em;color:#47667e;font-size:.84em;line-height:1.5}

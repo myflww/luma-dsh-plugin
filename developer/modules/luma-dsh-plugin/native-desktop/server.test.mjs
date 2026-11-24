@@ -105,12 +105,16 @@ test('desktop proxy owner, role memories, revision conflicts, assets and reactiv
   })
   const settings = body => post('/luma-native/settings',body)
   const describe = async () => (await (await settings({action:'describe'})).json()).value.namespaces
-  for (const path of ['/luma-native/settings', '/luma-agents/memory','/luma-native/employee-workspace','/luma-native/token-usage']) {
+  for (const path of ['/luma-native/settings', '/luma-agents/memory','/luma-native/employee-workspace','/luma-native/token-usage','/luma-native/desktop-pet']) {
     const args = path.endsWith('settings') ? {action:'describe'} : {roleId:'shan'}
     assert.ok(!(await post(path,args,{cookie:''})).ok)
     assert.equal((await post(path,args,{cookie:'fixture=limited'})).status,403)
     assert.equal((await post(path,args,{origin:'https://example.test'})).status,403)
   }
+  const petRoute='/luma-native/desktop-pet'
+  assert.deepEqual((await (await post(petRoute,{action:'status'})).json()).value,{supported:process.platform==='win32',pets:[]})
+  assert.equal((await post(petRoute,{action:'open',roleId:'shan'})).status,400)
+  assert.equal((await post(petRoute,{action:'unknown'})).status,400)
   assert.equal((await fetch(origin+'/luma-office/fixture.txt')).status,401)
   assert.equal(await (await fetch(origin+'/luma-office/fixture.txt',{headers:{cookie:'fixture=owner'}})).text(),'office')
   const initial = await describe()

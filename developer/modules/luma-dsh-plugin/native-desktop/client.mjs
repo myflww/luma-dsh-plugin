@@ -48,7 +48,7 @@ function NativePanel({ load, onReturnToDSH, hostSidebar }) {
       catch (error) { setNavigationError(error instanceof Error ? error.message : String(error)) }
     }
     content = h(PanelBoundary, { onReturnToDSH }, h(PluginShell, {
-      ...state.runtimes, onReturnToDSH, onOpenConversation: openConversation, hostSidebar,
+      ...state.runtimes, desktopPetsEnabled: true, onReturnToDSH, onOpenConversation: openConversation, hostSidebar,
     }))
   }
   else content = h('p', { role: 'status', className: 'lumaDesktopNotice' }, '正在打开办公室…')

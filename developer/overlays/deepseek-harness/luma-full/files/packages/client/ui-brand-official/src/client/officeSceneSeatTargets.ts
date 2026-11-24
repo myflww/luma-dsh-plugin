@@ -38,7 +38,8 @@ export function seatTargetForPosition(
   bindings: readonly OfficeActorBinding[],
   draggingEmployeeId: string,
   position: Point,
+  allowReassign = false,
 ): OfficeWorkstationId | null {
-  return findOfficeSeatDropTarget(officeSeatDropBoxes(bindings, draggingEmployeeId), position)
+  return findOfficeSeatDropTarget(allowReassign ? OFFICE_SEAT_BOXES : officeSeatDropBoxes(bindings, draggingEmployeeId), position)
 }
 

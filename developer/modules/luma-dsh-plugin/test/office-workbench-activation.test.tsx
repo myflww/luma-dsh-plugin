@@ -4,25 +4,26 @@ import { afterEach, expect, it, vi } from 'vitest'
 import { initialRuntime } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/officeSceneActorRuntime.ts'
 import { OFFICE_SEAT_BOXES } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/officeSceneSeatTargets.ts'
 import { useOfficeSceneInteractions } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/useOfficeSceneInteractions.ts'
+import { uncrowdedFloorPoint } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/scenePlacement.ts'
 import { officeEmployeeAction } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/actorPortraitActivation.ts'
 
 afterEach(() => { cleanup(); vi.useRealTimers() })
 
-function fixture(working = false) {
+function fixture(working = false, destination:'workbench'|'contact'='workbench') {
   const canvas = document.createElement('div')
   document.body.append(canvas)
-  Object.assign(canvas, { getBoundingClientRect: () => ({ width: 1672, height: 941 }),
+  Object.assign(canvas, { getBoundingClientRect: () => ({ left:0, top:0, right:1672, bottom:941, width: 1672, height: 941 }),
     hasPointerCapture: () => false, setPointerCapture() {} })
   const actor = initialRuntime('shan', 0, 0)
   const actorRef = { current: { shan: { ...actor, mode: working ? 'working' as const : 'idle' as const } } }
-  const open = vi.fn(), bind = vi.fn()
+  const open = vi.fn(), bind = vi.fn(), pet = vi.fn()
   const view = renderHook(() => useOfficeSceneInteractions({ canvasRef: { current: canvas }, scrollerRef: { current: null },
     actorRef, setActors: vi.fn(), officeBindingsRef: { current: [] }, presentationActive: true,
-    closeActionMenu: vi.fn(), employeeDestination: 'workbench', onCharacterClick: open, onBindWorkstation: bind }))
+    closeActionMenu: vi.fn(), employeeDestination: destination, onDesktopPet: pet, onCharacterClick: open, onBindWorkstation: bind }))
   function pointer(x: number, y: number, type: string) {
     return { pointerId: 4, button: 0, isPrimary: true, currentTarget: canvas, clientX: x, clientY: y, stopPropagation() {}, type } as unknown as PointerEvent<HTMLButtonElement>
   }
-  return { open, bind, actor, view, canvas, pointer, employee: { id: 'shan', name: '端木嫣', activity: '',
+  return { open, bind, pet, actorRef, actor, view, canvas, pointer, employee: { id: 'shan', name: '端木嫣', activity: '',
     availability: working ? 'working' as const : 'available' as const, sceneActivity: working ? 'working' as const : 'idle' as const, canDrag: !working } }
 }
 
@@ -59,4 +60,33 @@ it('keeps the long-press drop and suppresses navigation after a drop or a cancel
   expect(bind.mock.calls).toEqual([['shan', box.id]])
   expect(open).not.toHaveBeenCalled()
   canvas.remove()
+})
+
+it('picks up a working companion immediately, binds the desk under the pointer and detaches only on an outside release',()=>{
+  const {open,bind,pet,view,canvas,pointer,employee}=fixture(true,'contact')
+  const seat=OFFICE_SEAT_BOXES[0]!
+  const x=seat.x+seat.width/2,y=seat.y+seat.height/2
+  act(()=>{
+    view.result.current.startActorDrag(pointer(200,300,'pointerdown'),employee)
+    view.result.current.moveActorDrag(pointer(x,y,'pointermove'))
+    view.result.current.finishActorDrag(pointer(x,y,'pointerup'))
+    view.result.current.startActorDrag(pointer(200,300,'pointerdown'),employee)
+    view.result.current.moveActorDrag(pointer(-120,100,'pointermove'))
+    view.result.current.finishActorDrag(pointer(-120,100,'pointercancel'))
+    view.result.current.startActorDrag(pointer(200,300,'pointerdown'),employee)
+    view.result.current.moveActorDrag(pointer(-120,100,'pointermove'))
+    view.result.current.finishActorDrag(pointer(-120,100,'pointerup'))
+  })
+  expect(bind.mock.calls).toEqual([['shan',seat.id]])
+  expect(pet.mock.calls).toEqual([['shan',{screenX:-120,screenY:100}]])
+  expect(open).not.toHaveBeenCalled()
+  canvas.remove()
+})
+
+it('places another companion beside an occupied spot and never settles on a blocked lane',()=>{
+  const valid=(p:readonly [number,number])=>p[0]>=0?[p[0],200] as const:undefined
+  const point=uncrowdedFloorPoint([200,200],[[200,200],[245,200]],valid)!
+  expect(point[1]).toBe(200)
+  expect(Math.min(Math.abs(point[0]-200),Math.abs(point[0]-245))).toBeGreaterThanOrEqual(36)
+  expect(uncrowdedFloorPoint([200,200],[[200,200]],()=>[200,200])).toBeUndefined()
 })

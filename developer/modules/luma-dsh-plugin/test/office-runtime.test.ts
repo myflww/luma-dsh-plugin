@@ -113,6 +113,25 @@ describe('DSH plugin office runtime', () => {
     expect([f.list.subscriptions, f.workspaces.subscriptions, f.settings.subscriptions, f.conversation.subscriptions]).toEqual([0, 0, 0, 0])
   })
 
+  it('exchanges two explicitly chosen desks in a single durable write while preserving an active session',async()=>{
+    const f=fixture(), runtime=createOfficePageRuntime(f.ctx)
+    await runtime.bindWorkstation('jingyuniang','south-right',{swap:true})
+    const initial=f.list.getSnapshot()
+    f.list.set({...initial,byId:{...initial.byId,'shan-session':{...initial.byId['shan-session'],running:true}}})
+    f.set.mockClear()
+    await runtime.bindWorkstation('shan','south-right',{swap:true})
+    expect(f.set).toHaveBeenCalledTimes(1)
+    const saved=f.settings.getSnapshot().value.relationships.employees
+    expect(saved.shan).toMatchObject({activeSessionId:'shan-session',workstationId:'south-right'})
+    expect(saved.jingyuniang?.workstationId).toBe('north-center')
+    expect(runtime.getSnapshot().commands.find(c=>c.employeeId==='shan')?.workstationId).toBe('south-right')
+    expect(f.cancel).not.toHaveBeenCalled()
+    runtime.dispose()
+    const reopened=createOfficePageRuntime(f.ctx)
+    expect(reopened.getSnapshot().projection.employees.find(row=>row.employeeId==='shan')?.workstationId).toBe('south-right')
+    reopened.dispose()
+  })
+
   it('opens the saved employee conversation without replacing its composition', async () => {
     const f = fixture()
     const runtime = createOfficePageRuntime(f.ctx)
