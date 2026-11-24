@@ -1,0 +1,173 @@
+/* Shared chrome leaves the original room illustration and its interaction coordinates intact. */
+.lumaPluginRoot.lumaWorkspace {
+  --luma-ink: #193348;
+  --luma-muted: #526979;
+  --luma-paper: #f6f8f7;
+  --luma-line: #d7e0e1;
+  --luma-sea: #236477;
+  --luma-mist: #e5eff0;
+  font-family: "Segoe UI Variable Text","Microsoft YaHei UI","Microsoft YaHei",sans-serif;
+}
+.lumaWorkspace .lumaSceneLaunchers {
+  gap: 3px;
+  padding: 4px;
+  color: var(--luma-ink);
+  background: #fffffff5;
+  border: 1px solid #dae3e3;
+  border-radius: 13px;
+  box-shadow: 0 3px 14px #10273323;
+}
+.lumaSceneLaunchers .lumaStudioBrand {
+  gap: 7px;
+  padding-inline: 10px;
+  font-weight: 700;
+  letter-spacing: -.02em;
+}
+.lumaSceneLaunchers .lumaStudioBrand .lumaStudioIllustration { display:block; width:37px; height:26px; object-fit:contain; }
+.lumaSceneLaunchers .lumaStudioShortcuts [data-page=messages] svg { color:#236c79; fill:#d1ecea; }
+.lumaSceneLaunchers .lumaStudioShortcuts [data-page=cards] svg { color:#72568a; fill:#eee2f3; }
+.lumaSceneLaunchers .lumaStudioShortcuts [data-page=settings] svg { color:#7b6244; fill:#f4e4c8; }
+.lumaSceneLaunchers .lumaHouseShortcut svg { color:#925849; fill:#f8ded1; }
+.lumaStudioShortcuts { display: flex; align-items: center; gap: 1px; padding-inline-start: 4px; border-left: 1px solid var(--luma-line); }
+.lumaStudioShortcuts button { padding-inline: 9px; color: #4d6371; }
+.lumaStudioShortcuts [aria-current=page] { color: #155568; background: #e5eff0; }
+.lumaWorkspace .lumaSceneLaunchers .lumaSceneNavigation { width: 204px; padding: 6px; border-color: var(--luma-line); background: #fff; }
+.lumaWorkspace .lumaSceneNavigation button { padding: 10px 12px; }
+.lumaWorkspace .lumaSheetHeader, .lumaWorkspace.is-messages > .lumaSheetHeader {
+  min-height: 48px;
+  gap: 14px;
+  padding: 4px clamp(9px,1.6vw,24px);
+  background: #fafbf9;
+  border-bottom: 1px solid var(--luma-line);
+}
+.lumaWorkspace .lumaSheetHeader .lumaSceneLaunchers { background: transparent; box-shadow: none; border: 0; }
+.lumaWorkspace .lumaSheetHeader > strong { padding-left: 12px; border-left: 1px solid var(--luma-line); color: #536775; font-size: 12px; }
+.lumaWorkspace .lumaSheetHeader .lumaBackToScene { border: 0; background: transparent; font-weight: 550; color: #435e6a; }
+@container (min-width: 1051px) {
+  .lumaSheetHeader:has(.lumaStudioShortcuts [aria-current=page]) > strong { display: none; }
+}
+.lumaWorkspace .lumaImmersiveOffice { --stage-edge: clamp(12px,1.7cqw,26px); --stage-stroke: #d9e3e2; }
+.lumaWorkspace :is(.lumaStageSwitch,.lumaStageDock) { background: #fffffff5; border-color: var(--luma-line); box-shadow: 0 3px 14px #10273328; }
+.lumaWorkspace .lumaStageSwitch button[aria-pressed=true], .lumaWorkspace .lumaStageDock button[aria-expanded=true] {
+  background: #20495a;
+  color: white;
+  box-shadow: none;
+}
+.lumaWorkspace .lumaStageFooter::before { display: none; }
+.lumaWorkspace .lumaStageIdentity {
+  width: fit-content;
+  max-width: 100%;
+  padding: 11px 14px;
+  border-radius: 15px;
+  color: white;
+  text-shadow: none;
+  background: #142e3eee;
+  box-shadow: 0 4px 22px #0c223032;
+}
+.lumaRoomSignature { display: flex; align-items: center; gap: 11px; }
+.lumaRoomEmblem {
+  display: grid;
+  place-items: center;
+  width: 39px;
+  height: 39px;
+  flex: none;
+  overflow: hidden;
+  border-radius: 10px;
+  color: #deeff2;
+  background: #305262;
+}
+.lumaRoomEmblem .lumaMessageAvatar { width: 100%; height: 100%; border-radius: 0; }
+.lumaWorkspace .lumaStageRoomTitle { margin: 0 0 4px; gap: 10px; }
+.lumaWorkspace .lumaStageRoomTitle h1 { font-size: clamp(16px,1.35cqw,23px); font-weight: 650; line-height: 1.24; }
+.lumaWorkspace .lumaStageMeta { gap: 6px; color: #d9e6e9; font-size: 11px; }
+.lumaWorkspace .lumaStageContext:not(:empty) { margin-top: 8px; }
+.lumaWorkspace .lumaStageContext .lumaRoomActions > span { font-size: 11px; }
+.lumaWorkspace .lumaStageContext button { min-height: 29px; border: 0; border-radius: 7px; background: #e6f2f3; color: #1b4652; }
+.lumaWorkspace .lumaStageDock { gap: 1px; }
+.lumaWorkspace .lumaStageDock button:not(.lumaStageFit) { flex-direction: column; min-width: 52px; padding: 7px 9px; gap: 3px; font-size: 11px; line-height: 1.25; }
+.lumaWorkspace .lumaStageDock button.lumaStageFit { min-height: 40px; }
+.lumaWorkspace .lumaStageFlyout {
+  width: min(422px,100%);
+  border-radius: 16px;
+  background: #fcfdfb;
+  border: 1px solid var(--luma-line);
+  box-shadow: 0 11px 44px #10283438;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+.lumaWorkspace .lumaStageClose { z-index: 1; border-radius: 50%; background: #edf2f1; }
+.lumaWorkspace .lumaStageFlyout .lumaOfficePanel { padding: 19px; }
+.lumaWorkspace .lumaStageFlyout .lumaOfficePanelTitle { align-items: center; gap: 7px; margin: 0 0 14px; }
+.lumaWorkspace .lumaStageFlyout .lumaOfficePanelTitle h2,.lumaWorkspace .lumaRoomGallery h2 { color: var(--luma-ink); font-size: 19px; }
+.lumaWorkspace .lumaOfficePanelTitle > button:last-child { min-height: 27px; border: 0; background: #e7f0f0; color: #205665; padding: 3px 8px; font-size: 12px; }
+.lumaWorkspace .lumaStageFlyout .lumaOfficeTeamGrid { gap: 0; }
+.lumaWorkspace .lumaStageFlyout .lumaCrewRow {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) 82px;
+  align-items: center;
+  gap: 7px 10px;
+  padding: 9px 0;
+  border: 0;
+  border-top: 1px solid var(--luma-line);
+  border-radius: 0;
+  background: transparent;
+}
+.lumaWorkspace .lumaStageFlyout .lumaCrewSummary {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  border: 0;
+  padding: 3px;
+  border-radius: 7px;
+  background: transparent;
+  text-align: left;
+}
+.lumaCrewSummary .lumaMessageAvatar { width: 36px; height: 36px; border-radius: 10px; }
+.lumaCrewSummary > svg { margin-left: auto; flex: none; color: #67828a; }
+.lumaCrewSummary[aria-expanded=true] > svg { transform: rotate(180deg); }
+.lumaCrewSummary small { margin-top: 2px; color: var(--luma-muted); }
+.lumaWorkspace .lumaOfficeMemberActions { gap: 6px; padding: 5px 7px 8px; border-radius: 9px; background: #edf3f2; }
+.lumaWorkspace .lumaOfficeMemberActions > button { display: inline-flex; align-items: center; gap: 4px; border: 0; background: transparent; font-size: 12px; }
+.lumaWorkspace .lumaOfficeMemberActions > button:first-child { background: #21566b; color: white; }
+.lumaWorkspace .lumaRosterPlacementHint { margin: 11px 0 0; color: #536b76; font-size: 12px; }
+.lumaWorkspace .lumaRoomGallery { padding: 20px; }
+.lumaWorkspace .lumaRoomGallery ul:has(li:only-child) { grid-template-columns: 1fr; }
+.lumaWorkspace .lumaRoomGallery li button { border-radius: 9px; }
+.lumaWorkspace .lumaRoomGalleryCaption { padding: 8px 10px; }
+.lumaWorkspace .lumaRoomGalleryProgress { margin-top: 12px; }
+.lumaFittingRoom { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); align-items: center; gap: 14px; }
+.lumaFittingRoom figure { min-width: 0; margin: 0; padding: 16px 8px 12px; border-radius: 12px; background: #e4eeea; text-align: center; color: #2c4d55; }
+.lumaFittingRoom figure > svg { display: block; width: 100%; height: 135px; margin-bottom: 8px; }
+.lumaFittingRoom figcaption { font-size: 13px; font-weight: 650; }
+.lumaFittingChoices { display: grid; gap: 8px; }
+.lumaWorkspace .lumaFittingChoices button { display: flex; align-items: center; gap: 8px; padding: 10px; text-align: left; }
+.lumaWorkspace .lumaFittingChoices [aria-pressed=true] { background: #e4efed; border-color: #aac7c3; }
+.lumaFittingChoices button > svg { flex: none; }
+.lumaFittingChoices strong,.lumaFittingChoices small { display: block; }
+.lumaFittingChoices small { color: var(--luma-muted); font-size: 11px; }
+@container (max-width: 1050px) {
+  .lumaStudioShortcuts button > span, .lumaHouseShortcut > span { display: none; }
+}
+@container (max-width: 730px) {
+  .lumaStudioShortcuts { display: none; }
+  .lumaWorkspace .lumaSheetHeader { min-height: 42px; }
+  .lumaWorkspace .lumaStageIdentity { padding: 9px 11px; }
+  .lumaWorkspace .lumaRoomEmblem { width: 30px; height: 30px; }
+}
+@container (max-width: 550px) {
+  .lumaWorkspace .lumaSheetHeader > strong { display: none; }
+  .lumaWorkspace .lumaSheetHeader { flex-wrap: nowrap; }
+}
+@container luma-scene (max-width: 520px) {
+  .lumaWorkspace .lumaStageHeader { gap: 4px; }
+  .lumaStageEntry .lumaStudioBrand > span { display: none; }
+  .lumaWorkspace .lumaStageFooter { align-items: flex-start; }
+  .lumaWorkspace .lumaStageFlyout { bottom: 56px; }
+  .lumaWorkspace .lumaStageRoomTitle h1 { font-size: 16px; }
+  .lumaWorkspace .lumaStageDock button:not(.lumaStageFit) { min-width: 45px; }
+  .lumaWorkspace .lumaStageFlyout .lumaOfficePanel { padding: 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lumaWorkspace .lumaSceneLaunchers button,.lumaWorkspace .lumaBackToScene { transition: none; }
+}

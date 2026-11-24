@@ -11,14 +11,15 @@ import { PluginSettingsPage } from './PluginSettingsPage.tsx'
 import type { PluginPreferencesRuntime } from './plugin-backup-runtime.ts'
 import { SceneLaunchers, type HostSidebar } from './SceneLaunchers.tsx'
 import { LoveHouseQuickConnect } from './LoveHouseQuickConnect.tsx'
-import { useDesktopPets } from './useDesktopPets.ts'
 import { CompanionPresence } from './CompanionPresence.tsx'
+import { useDesktopPets } from './useDesktopPets.ts'
 import { ReleaseNotice, ReleaseSettings, useReleaseCheck } from './ReleaseCenter.tsx'
 import './plugin.css'
 import './StudioLayout.css'
 import './Interface.css'
 import './SceneNavigation.css'
 import './WorkspaceSurface.css'
+import './StudioChrome.css'
 
 export type LumaPage = 'office' | 'messages' | 'cards' | 'shop' | 'settings' | 'native'
 export const LUMA_PAGES = Object.freeze([
@@ -29,9 +30,9 @@ export const LUMA_PAGES = Object.freeze([
   { id: 'settings', label: '插件设置' },
 ] as const)
 
-export function PluginShell({ office, cards, collection, messages, preferences, hostSidebar, desktopPetsEnabled = false, onReturnToDSH, onOpenConversation }: {
+export function PluginShell({ office, cards, collection, messages, preferences, hostSidebar, desktopPetsEnabled = false, onReturnToDSH, onOpenNativeSettings, onOpenConversation }: {
   office: OfficePageRuntime; cards: CardsPageRuntime; collection: LocalCollectionRuntime; messages: MessagesRuntime;
-  preferences: PluginPreferencesRuntime; hostSidebar?: HostSidebar; desktopPetsEnabled?: boolean; onReturnToDSH?: () => void; onOpenConversation?: () => void
+  preferences: PluginPreferencesRuntime; hostSidebar?: HostSidebar; desktopPetsEnabled?: boolean; onReturnToDSH?: () => void; onOpenNativeSettings?: () => void; onOpenConversation?: () => void
 }) {
   const releases = useReleaseCheck()
   const [page, setPage] = useState<LumaPage>('office')
@@ -42,7 +43,7 @@ export function PluginShell({ office, cards, collection, messages, preferences, 
   const prefersReducedMotion = useCallback(() => office.getSnapshot().motionPreference === 'reduce', [office])
   const pets = useDesktopPets(desktopPetsEnabled, setOfficeNotice, prefersReducedMotion)
   const [houseOpen, setHouseOpen] = useState(false)
-  const [employeeVisit, setEmployeeVisit] = useState<{ mode: 'chat' | 'task'; topic?:string; roleId?:string }>()
+  const [employeeVisit, setEmployeeVisit] = useState<{ mode: 'chat' | 'task'; topic?:string; roleId?:string; panel?:'persona' }>()
   const openNative = onReturnToDSH ?? (() => setPage('native'))
   const openRewards = () => { setCardView('rewards'); setPage('cards') }
   const openShop = (id?: string) => { setShopPackId(id); setPage('shop') }
@@ -51,10 +52,10 @@ export function PluginShell({ office, cards, collection, messages, preferences, 
     if (id === 'cards') setCardView('owned')
     setPage(id)
   }
-  const openContact = useCallback((id: string, intent: 'task' | 'chat' = 'chat', topic?:string) => {
+  const openContact = useCallback((id: string, intent: 'task' | 'chat' = 'chat', topic?:string, panel?:'persona') => {
     if (!unlockedEmployeeIds.includes(id)) { setCardView('rewards'); setPage('cards'); return }
     if (messages.selectRole(id, true)) {
-      setOfficeNotice(''); setEmployeeVisit({ mode: intent,roleId:id,...(topic?{topic}:{}) }); setPage('messages')
+      setOfficeNotice(''); setEmployeeVisit({ mode: intent,roleId:id,...(topic?{topic}:{}),...(panel?{panel}:{}) }); setPage('messages')
     } else setOfficeNotice('当前操作处理中，请稍后重试。')
   }, [unlockedEmployeeIds, messages])
   const inRoom = page === 'office'
@@ -80,7 +81,8 @@ export function PluginShell({ office, cards, collection, messages, preferences, 
       <div className="lumaPluginFillPage" hidden={page !== 'messages'}><MessagesPage runtime={messages} employeeVisit={employeeVisit} active={page === 'messages'} unlockedEmployeeIds={unlockedEmployeeIds} onOpenRewards={openRewards} onOpenNative={onOpenConversation ?? openNative}/></div>
       {page === 'cards' && <CardsPage runtime={cards} collection={collection} initialView={cardView} onOpenShop={openShop}/>}
       {page === 'shop' && <CollectionHub runtime={collection} {...(shopPackId ? { initialPackId: shopPackId } : {})} onOpenOwned={() => navigate('cards')}/>}
-      {page === 'settings' && <PluginSettingsPage updates={<ReleaseSettings state={releases}/>} runtime={preferences} onOpenNativeSettings={openNative}/>}
+      {page === 'settings' && <PluginSettingsPage updates={<ReleaseSettings state={releases}/>} runtime={preferences}
+        roster={{ messages, unlocked: unlockedEmployeeIds, openContact, editPersona:id=>openContact(id,'chat',undefined,'persona') }} {...(onOpenNativeSettings ? {onOpenNativeSettings} : {})}/>}
     </main>
     <CompanionPresence messages={messages} office={office} sceneVisible={inRoom} onContact={openContact} onLetter={letter=>openContact(letter.role,'chat',letter.topic)}/>
     <ReleaseNotice state={releases}/>

@@ -1,5 +1,9 @@
+import { ReplyTools, ReplyToolsProvider, replyKey } from './ReplyTools.tsx'
+import { TranscriptFrame } from './TurnNavigator.tsx'
 import { readChatFiles, readSessionFiles } from './chat-file-reader.ts'
+import { acceptsImagesAndTextOnly } from '../shared/chat-attachments.ts'
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { ArrowLeft, ArrowUp, BriefcaseBusiness, Check, CheckCheck, List, Mail, MessageCircle, MessagesSquare, Plus, Search, Settings2, Square, UserRoundPlus, UsersRound } from 'lucide-react'
 import { MESSAGE_CHARACTERS, type MessagesRuntime } from './messages-runtime.ts'
 import type { RoleProfile } from '../messages-settings.ts'
 import { AgentMemoryPanel, AgentServicePanel, EmployeeFace, JobCard } from './AgentDeskPanels.tsx'
@@ -9,16 +13,30 @@ import { AttachmentNames, ComposerActions, PendingAttachments, useAttachmentDraf
 import './MessagesPage.css'
 import './AgentDesk.css'
 import './Contacts.css'
-import { CloudOfficeLauncher } from './CloudOfficePanel.tsx'
+import { ContactChatSettings } from './ContactChatSettings.tsx'
+import { ContactRecords, ManageRecordButton, RecordsButton, type RecordFocus } from './ContactRecords.tsx'
+import { RoleWorkspacePanel, WorkspaceButton } from './RoleWorkspacePanel.tsx'
+import { ProviderMark } from './ProviderMark.tsx'
+import { EmployeeFigure, type ResidentId } from './OfficeBedroom.tsx'
+
+function SentMark() {
+  return <small className="lumaSentMark" title="已发送"><CheckCheck size={14} aria-hidden="true"/><span>已发送</span></small>
+}
 
 export function downloadJson(name: string, value: unknown) {
   const url = URL.createObjectURL(new Blob([JSON.stringify(value, null, 2)], { type: 'application/json;charset=utf-8' }))
   const anchor = document.createElement('a'); anchor.href = url; anchor.download = name; anchor.click()
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
-export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNative, unlockedEmployeeIds = MESSAGE_CHARACTERS.map(role => role.id), onOpenRewards }: { unlockedEmployeeIds?: readonly string[] | undefined; onOpenRewards?(): void; runtime: MessagesRuntime; active?: boolean; employeeVisit?: { mode: 'chat' | 'task'; topic?: string; roleId?: string } | undefined; onOpenNative(): void }) {
+export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNative, unlockedEmployeeIds = MESSAGE_CHARACTERS.map(role => role.id), onOpenRewards }: { unlockedEmployeeIds?: readonly string[] | undefined; onOpenRewards?(): void; runtime: MessagesRuntime; active?: boolean; employeeVisit?: { mode: 'chat' | 'task'; topic?: string; roleId?: string; panel?: 'persona' } | undefined; onOpenNative(): void }) {
   const state = useSyncExternalStore(runtime.subscribe, runtime.getSnapshot, runtime.getSnapshot)
-  const [query, setQuery] = useState(''), [panel, setPanel] = useState<'settings' | 'persona' | 'api' | 'memory' | null>(null)
+  const [query, setQuery] = useState(''), [panel, setPanel] = useState<'settings' | 'persona' | 'api' | 'memory' | 'workspace' | 'records' | null>(null)
+  const [windowAssignment,setWindowAssignment]=useState<{role:string;topic:string;id:string;label:string}>()
+  const [recordFocus,setRecordFocus]=useState<RecordFocus>()
+  function openRecords(target?:RecordFocus){setRecordFocus(target);setPanel('records')}
+  async function forgetReplyMarks(removed:{jobs:string[];letters:string[]}) {
+    if(await runtime.forgetReplyMarks(removed)!==true)throw Error('回复标记暂未清理。')
+  }
   const [mode, setMode] = useState<AgentMode>('chat'), [team, setTeam] = useState<string[]>([])
   const [serviceTarget, setServiceTarget] = useState<{ owner: string; id: string } | null>(null)
   const [chosen, setChosen] = useState<Record<string,string>>({}), [sending, setSending] = useState(false)
@@ -44,7 +62,7 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
   const rooms = (desk.state?.rooms ?? []).filter(room => room.roleIds.every(id => visibleRoles.has(id)))
   const roomSupported = Array.isArray(desk.state?.rooms)
   function showRoom(room: WorkRoom | 'new' | null) {
-    setPanel(null); setRoomView(room); setRosterOpen(false)
+    setPanel(null); setRoomView(room); setRosterOpen(false);setWindowAssignment(undefined)
   }
   useEffect(() => { setRoomView(null) }, [roleId, employeeVisit])
   const names = Object.fromEntries(MESSAGE_CHARACTERS.map(role => [role.id, state.preferences.profiles[role.id]?.name ?? role.name]))
@@ -53,16 +71,21 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
   const roomIds = new Set(desk.state?.rooms?.map(room => room.id))
   const roleJobs = (desk.state?.jobs ?? []).filter(job => !roomIds.has(job.topic ?? '') && job.roleIds.includes(roleId))
   const topicFor = (job: AgentJob) => job.topic ?? ('desk-' + job.roleIds[0])
+  const freshTopics=useRef(new Map<string,string>())
+  if(!freshTopics.current.has(roleId))freshTopics.current.set(roleId,'desk-'+crypto.randomUUID())
+  const freshTopic=freshTopics.current.get(roleId)!
   const workTopics = new Map<string,string>()
   for (const job of [...roleJobs].sort((a,b) => a.createdAt - b.createdAt)) {
     const key = topicFor(job)
     if (!workTopics.has(key)) workTopics.set(key, (job.text || job.attachments?.[0]?.name || '工作记录').slice(0, 30))
   }
   const newestJob = roleJobs.reduce<AgentJob | undefined>((latest, job) => !latest || latest.createdAt < job.createdAt ? job : latest, undefined)
-  const defaultTopic = configured ? (newestJob ? topicFor(newestJob) : 'desk-' + roleId) : 'native'
+  const latestLetter=(desk.state?.letters??[]).filter(l=>l.role===roleId && l.topic.startsWith('desk:')).sort((a,b)=>b.time-a.time)[0]
+  const defaultTopic = configured ? (newestJob ? topicFor(newestJob) : latestLetter?.topic.slice(5) || freshTopic) : 'native'
   const preferred = chosen[roleId] ?? (desk.state ? defaultTopic : undefined)
   const nativeView = preferred === 'native'
-  const topic = preferred && !nativeView ? preferred : 'desk-' + roleId
+  const topic = preferred && !nativeView ? preferred : freshTopic
+  const selectedWindow=mode==='task' && !nativeView && windowAssignment?.role===roleId && windowAssignment.topic===topic ? windowAssignment:undefined
   const jobs = nativeView ? [] : roleJobs.filter(job => topicFor(job) === topic).sort((a,b) => a.createdAt - b.createdAt)
   const letters = (desk.state?.letters ?? []).filter(letter=>letter.role===roleId && (nativeView
     ? letter.topic==='native:'+state.sessionId || letter.topic==='native-inbox' && (!state.sessionId || state.sessionId===(state.preferences.activeTopics[roleId] ?? state.topics[0]?.id))
@@ -78,7 +101,7 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
     ? handoff.filter(id => !serviceConfigs[id]?.model) : []
   const teamReady = mode !== 'team' || (optedTeam.length > 0 && missingServices.length === 0)
   const sendViaNative = mode !== 'team' && nativeView
-  const dshAttachments = sendViaNative || (mode==='team' ? handoff : [roleId]).some(id=>serviceConfigs?.[id]?.source==='dsh')
+  const dshAttachments = sendViaNative || (mode==='team' ? handoff : [roleId]).some(id=>acceptsImagesAndTextOnly(serviceConfigs?.[id]?.source))
   const attachmentKey = JSON.stringify([roleId, nativeView ? 'native' : topic, nativeView ? state.sessionId : ''])
   const files = attachmentDrafts.filesFor(attachmentKey)
   const fileSelectionDisabled = busy || !state.writable || !preferred
@@ -93,7 +116,21 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
   const serviceRole = serviceTarget?.owner === roleId ? serviceTarget.id : roleId
   const [localRefresh, setLocalRefresh] = useState(0)
   const scrollFingerprint = (letters.at(-1)?.id ?? '') + jobs.map(job => [job.id, job.status, job.steps.map(step => step.output.length).join(',')].join(':')).join('|')
-  const selectLocal = (key: string) => setChosen(old => ({ ...old, [roleId]: key }))
+  function selectLocal(key:string) {
+    if (key!==topic || nativeView) setWindowAssignment(undefined)
+    setChosen(old => ({ ...old, [roleId]: key }))
+  }
+  function chooseMode(value:AgentMode) {
+    if(value!=='task') setWindowAssignment(undefined)
+    setMode(value)
+  }
+  function assignWindow(id:string,label:string) {
+    if(!id){setWindowAssignment(undefined);return}
+    if(!configured || !state.writable || busy || runningJob) return
+    const targetTopic=nativeView?'desk-'+crypto.randomUUID():topic
+    selectLocal(targetTopic);setMode('task');setActionError('')
+    setWindowAssignment({id,label,role:roleId,topic:targetTopic})
+  }
   async function selectHistory(value: string) {
     if (value.startsWith('native:')) {
       const id = value.slice('native:'.length)
@@ -122,7 +159,7 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
     }
     const roleIds = mode === 'team' ? handoff : [roleId]
     const retryKey = JSON.stringify([roleId, topic])
-    const signature = JSON.stringify([roleIds, mode, drafting, topic])
+    const signature = JSON.stringify([roleIds, mode, drafting, topic,selectedWindow?.id ?? ''])
     const previous = retries.current.get(retryKey)
     const sameFiles = previous && previous.files.length === files.length && files.every((f, i) => previous.files[i] === f)
     const requestId = previous?.signature === signature && sameFiles ? previous.id : crypto.randomUUID()
@@ -148,8 +185,10 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
       }
       const attachments = files.length ? await readChatFiles(files, dshAttachments) : []
       retries.current.set(retryKey, { signature, id: requestId, files })
-      await agentRequest<AgentJob>('run', { requestId, roleIds, mode, text: drafting.trim(), topic, profiles, ...(attachments.length ? {attachments} : {}) }, timeout)
+      await agentRequest<AgentJob>('run', { requestId, roleIds, mode, text: drafting.trim(), topic, profiles,
+        ...(selectedWindow ? {desktopTargets:{[roleId]:selectedWindow.id}}:{}), ...(attachments.length ? {attachments} : {}) }, timeout)
       retries.current.delete(retryKey)
+      if(selectedWindow) setWindowAssignment(current=>current===selectedWindow?undefined:current)
       attachmentDrafts.change(attachmentKey, [])
       const now = runtime.getSnapshot()
       if (now.roleId === roleId && now.preferences.drafts[roleId] === drafting) runtime.setDraft('')
@@ -166,10 +205,13 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
   }
   const persistedProfile = JSON.stringify(state.profile)
   useEffect(() => { setProfile(JSON.parse(persistedProfile) as RoleProfile) }, [state.roleId, persistedProfile])
-  useEffect(() => { setNotice(''); setActionError(''); setTeam([]); setMode('chat'); setServiceTarget(null); setPanel(null); stick.current = true }, [state.roleId])
+  useEffect(() => { setNotice(''); setActionError(''); setTeam([]); setMode('chat'); setWindowAssignment(undefined);setServiceTarget(null); setPanel(null); stick.current = true }, [state.roleId])
+  const displayedVisit = useRef<typeof employeeVisit>(undefined)
   useEffect(() => {
-    if (employeeVisit) { setMode(employeeVisit.mode); setPanel(null); setActionError('') }
-  }, [employeeVisit])
+    if (!employeeVisit || displayedVisit.current === employeeVisit || (employeeVisit.roleId && employeeVisit.roleId !== roleId)) return
+    displayedVisit.current = employeeVisit
+    setMode(employeeVisit.mode); setWindowAssignment(undefined); setPanel(employeeVisit.panel ?? null); setActionError('')
+  }, [employeeVisit,roleId])
   useEffect(() => { if (stick.current) scroll.current?.scrollTo({ top: scroll.current.scrollHeight }) }, [state.messages, scrollFingerprint, localRefresh])
   async function importCard(file?: File) {
     if (!file) return
@@ -200,120 +242,149 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
   const showRoomCreator = () => { if (partners.length < 2) onOpenRewards?.(); else showRoom('new') }
   useEffect(() => {
     if (!active || (!panel && !rosterOpen)) return
-    function close(event: KeyboardEvent) { if (event.key === 'Escape') { setPanel(null); setRosterOpen(false) } }
+    function close(event: KeyboardEvent) { if (event.key === 'Escape' && !document.querySelector('dialog[open]')) { setPanel(null); setRosterOpen(false) } }
     window.addEventListener('keydown', close)
     return () => window.removeEventListener('keydown', close)
   }, [active, panel, rosterOpen])
-  return <section className={'lumaMessages lumaContacts' + (rosterOpen ? ' show-roster' : '')} aria-label="联系">
+  return <ReplyToolsProvider scope={JSON.stringify([active,roleId,preferred,roomView && typeof roomView==='object' ? roomView.id : roomView])} reactions={state.preferences.reactions} rate={state.writable ? runtime.setReaction : undefined}><section className={'lumaMessages lumaContacts' + (rosterOpen ? ' show-roster' : '')} aria-label="联系">
     <aside className="lumaMessagesRoster">
-      <header><h1>联系</h1><button type="button" className="lumaContactMobile" onClick={() => setRosterOpen(false)}>返回对话</button></header>
-      <input type="search" aria-label="搜索联系人或群聊" placeholder="搜索联系人或群聊" value={query} onChange={event => setQuery(event.target.value)} />
+      <header><h1><MessagesSquare size={21} aria-hidden="true"/>联系</h1><button type="button" className="lumaContactMobile" onClick={() => setRosterOpen(false)}><ArrowLeft size={15} aria-hidden="true"/>返回对话</button></header>
+      <label className="lumaRosterSearch"><Search size={15} aria-hidden="true"/><input type="search" aria-label="搜索联系人或群聊" placeholder="搜索联系人或群聊" value={query} onChange={event => setQuery(event.target.value)} /></label>
       <div className="lumaMessagesCharacters" role="list" aria-label="联系人与群聊">
+        {roomSupported && <div className="lumaStudioDirectory">
+          <h2>协作工作室</h2><button type="button" title={partners.length < 2 ? '邀请伙伴组队' : '新建工作室'} aria-label={partners.length < 2 ? '邀请伙伴组队' : '新建工作室'} disabled={busy || !state.writable || (partners.length < 2 && !onOpenRewards)}
+            onClick={showRoomCreator}><Plus size={16} aria-hidden="true"/></button>
+        </div>}
+        {matchingRooms.map(room => <button type="button" key={room.id} aria-pressed={typeof roomView === 'object' && roomView?.id === room.id}
+          className={typeof roomView === 'object' && roomView?.id === room.id ? 'is-selected' : ''} onClick={() => showRoom(room)}>
+          <span className="lumaContactGroupFaces">{room.roleIds.slice(0,2).map(id => <EmployeeFace key={id} id={id} skin={skins[id]} />)}</span>
+          <span className="lumaContactPreview"><strong>{room.name}</strong><small>{desk.state?.jobs.filter(job => job.topic === room.id).at(-1)?.text || room.roleIds.map(id => names[id]).join('、')}</small></span></button>)}
+        {matching.length > 0 && <h2 className="lumaRosterSection">角色联系人</h2>}
         {matching.map(({role,text,time}) => <button type="button" key={role.id}
           className={!roomView && state.roleId === role.id ? 'is-selected' : ''} aria-pressed={!roomView && state.roleId === role.id} disabled={busy}
           onClick={() => { showRoom(null); runtime.selectRole(role.id) }}>
           <EmployeeFace id={role.id} skin={skins[role.id]} /><span className="lumaContactPreview"><strong>{names[role.id]}</strong><small>{text}</small></span>
           {time > 0 && <time dateTime={new Date(time).toISOString()}>{new Date(time).toDateString() === new Date().toDateString() ? clockText(time) : new Date(time).toLocaleDateString('zh-CN',{month:'numeric',day:'numeric'})}</time>}
         </button>)}
-        {matchingRooms.map(room => <button type="button" key={room.id} aria-pressed={typeof roomView === 'object' && roomView?.id === room.id}
-          className={typeof roomView === 'object' && roomView?.id === room.id ? 'is-selected' : ''} onClick={() => showRoom(room)}>
-          <span className="lumaContactGroupFaces">{room.roleIds.slice(0,2).map(id => <EmployeeFace key={id} id={id} skin={skins[id]} />)}</span>
-          <span className="lumaContactPreview"><strong>{room.name}</strong><small>{desk.state?.jobs.filter(job => job.topic === room.id).at(-1)?.text ?? room.roleIds.map(id => names[id]).join('、')}</small></span></button>)}
         {!matching.length && !matchingRooms.length && <p>没有找到这个联系人或群聊</p>}
       </div>
-      {onOpenRewards && partners.length < MESSAGE_CHARACTERS.length && <footer><button type="button" onClick={onOpenRewards}>邀请新伙伴 <span aria-hidden="true">↗</span></button></footer>}
+      {onOpenRewards && partners.length < MESSAGE_CHARACTERS.length && <footer><button type="button" onClick={onOpenRewards}><UserRoundPlus size={15} aria-hidden="true"/>邀请新伙伴</button></footer>}
     </aside>
     {roomView && desk.state && (roomView === 'new' || rooms.some(room => room.id === roomView.id)) ? (roomView === 'new'
       ? <RoomCreator availableRoleIds={unlockedEmployeeIds} snapshot={state} state={desk.state} names={names} refresh={desk.refresh} close={() => showRoom(null)} onCreated={showRoom} />
-      : <RoomConversation key={roomView.id} room={roomView} snapshot={state} state={desk.state} names={names} refresh={desk.refresh} close={() => showRoom(null)}
+      : <RoomConversation key={roomView.id} active={active} room={roomView} snapshot={state} state={desk.state} names={names} refresh={desk.refresh} close={() => showRoom(null)} openContacts={() => setRosterOpen(true)} forgetReplyMarks={forgetReplyMarks}
           files={attachmentDrafts.filesFor(roomView.id)} changeFiles={next => attachmentDrafts.change(roomView.id, next)} />)
       : <div className="lumaMessagesConversation">
       <header className="lumaMessageToolbar">
-        <button type="button" className="lumaContactMobile" onClick={() => setRosterOpen(true)}>联系人</button>
-        <div className="lumaEmployeeTitle"><EmployeeFace id={roleId} skin={skins[roleId]} /><div><h2>{state.profile.name}</h2><span>{state.running || runningJob ? '正在回复…' : '一对一聊天'}</span></div></div>
-        <button className="lumaContactSettingsButton" type="button" aria-label="聊天设置" aria-expanded={panel !== null} onClick={() => setPanel('settings')}>•••</button>
+        <button type="button" className="lumaContactMobile" aria-label="联系人" title="联系人" onClick={() => setRosterOpen(true)}><List size={17} aria-hidden="true"/></button>
+        <div className="lumaEmployeeTitle lumaPrivateIdentity"><EmployeeFace id={roleId} skin={skins[roleId]} /><div><h2>{state.profile.name}</h2><span data-working={Boolean(runningJob || state.running)}>{runningJob && runningJob.mode !== 'chat' ? '正在工作…' : state.running || runningJob ? '正在回复…' : '一对一聊天'}</span></div></div>
+        <div className="lumaContactTools" role="group" aria-label="角色工具">
+          <RecordsButton open={panel==='records'} onClick={()=>panel==='records'?setPanel(null):openRecords()}/>
+          <button type="button" className="lumaModelShortcut" disabled={!desk.state || busy} aria-expanded={panel==='api'} onClick={()=>{setServiceTarget(null);setPanel(panel==='api'?null:'api')}} aria-label={desk.state?.roles[roleId]?.model || '绑定模型'} title={'模型服务 · '+(desk.state?.roles[roleId]?.model || '绑定模型')}>
+            <ProviderMark config={desk.state?.roles[roleId]} size={30}/></button>
+          <WorkspaceButton open={panel==='workspace'} onClick={()=>setPanel(panel==='workspace'?null:'workspace')}/>
+          <button className="lumaContactSettingsButton" type="button" aria-label="聊天设置" title="聊天设置" aria-expanded={panel==='settings'} onClick={() => setPanel(panel === 'settings' ? null : 'settings')}><Settings2 size={18} aria-hidden="true"/></button>
+        </div>
       </header>
       {state.problem && <div className="lumaMessageNotice" role="alert">{state.problem}<button type="button" onClick={onOpenNative}>检查模型和连接</button></div>}
       {actionError && <p className="lumaMessageNotice" role="alert">{actionError}</p>}
       {desk.problem && <div className="lumaMessageNotice" role="alert"><span>{desk.problem}</span>
         <button type="button" onClick={() => void desk.refresh()}>重试员工服务</button></div>}
+      {runningJob && runningJob.mode !== 'chat' && configured && <div className="lumaMessageNotice" role="status">这项工作会继续在后台进行。
+        <button type="button" disabled={!state.writable || busy} onClick={()=>{
+          selectLocal('desk-'+crypto.randomUUID());setMode('chat');setActionError('')
+        }}>另开私聊</button></div>}
       {!preferred && (slowLookup || desk.problem) && <div className="lumaMessageNotice" role="status"><span>{desk.problem ? '可在 DSH 会话中继续聊天或单人派工。' : '连接员工服务耗时较长，可先使用 DSH 会话。'}</span>
         <button type="button" onClick={() => selectLocal('native')}>使用 DSH 会话</button></div>}
-      {preferred && !nativeView && deskReady && !configured && mode !== 'team' && <p className="lumaMessageNotice">这段工作记录使用独立服务。可在「API 服务」中配置模型，或从「历史对话」选择 DSH 会话。</p>}
+      {preferred && !nativeView && deskReady && !configured && mode !== 'team' && <p className="lumaMessageNotice">这段工作记录使用独立服务。可在「模型服务」中配置模型，或从「历史对话」选择 DSH 会话。</p>}
       {!state.writable && !state.loading && <p className="lumaMessageNotice">当前连接为只读，仍可阅读已有对话。请在本机 DSH 中保存设定或发送消息。</p>}
       {nativeView && state.attention && <div className="lumaMessageNotice" role="status">此对话有待确认事项。<button type="button" onClick={onOpenNative}>前往原生会话处理</button></div>}
-      <div className={`lumaMessageHistory is-${state.preferences.display}`} ref={scroll} role="log" aria-label="角色对话记录" aria-live="polite"
+      <TranscriptFrame scroll={scroll} scope={JSON.stringify([roleId,preferred,state.sessionId])}><div className={`lumaMessageHistory is-${state.preferences.display}`} ref={scroll} role="log" aria-label="角色对话记录" aria-live="polite"
         onScroll={event => { const el = event.currentTarget; stick.current = el.scrollHeight - el.scrollTop - el.clientHeight < 90 }}>
         {showNative && state.hasMore && <button type="button" className="lumaLoadOlder" disabled={state.pending} onClick={() => { void runtime.loadOlder() }}>读取更早的消息</button>}
         {showNative && state.loading && <p role="status">正在读取对话…</p>}
-        {!letters.length && !(showNative ? state.messages.length : jobs.length) && !state.loading && <article className="lumaMessageBubble is-assistant lumaGreeting"><EmployeeFace id={roleId} skin={skins[roleId]} /><div><header><strong>{state.profile.name}</strong></header><p>{state.profile.greeting}</p></div></article>}
-        {[...jobs.map(job => ({time:job.createdAt, node:job.mode === 'chat' ? <div key={job.id}>
-          <article className="lumaMessageBubble is-user"><div><header><strong>{state.preferences.userName}</strong><time>{clockText(job.createdAt)}</time></header><p>{job.text}</p><AttachmentNames items={job.attachments}/><small>已发送</small></div></article>
-          {job.steps[0]?.output ? <article className="lumaMessageBubble is-assistant"><EmployeeFace id={roleId} skin={skins[roleId]}/><div><header><strong>{names[roleId]}</strong></header><p>{job.steps[0].output}</p></div></article>
-            : <p className="lumaMessageThinking" role="status">{inProgress(job.status) ? state.profile.name + '正在输入…' : job.error || (job.status === 'cancelled' ? '已停止回复' : '回复未完成')}</p>}
-        </div> : <JobCard key={job.id} job={job} names={names} skins={skins} canWrite={state.writable} cancel={() => void cancel(job.id)} />})),
-          ...letters.map(letter=>({time:letter.time,node:<article key={'life:'+letter.id} className="lumaMessageBubble is-assistant lumaLifeLetter">
+        {!letters.length && !(showNative ? state.messages.length : jobs.length) && !state.loading && <article className="lumaRoleIntroduction">
+          <div className="lumaIntroPortrait"><EmployeeFigure id={roleId as ResidentId} skinId={skins[roleId]}/></div>
+          <div><h3>{state.profile.name}</h3><p>{state.profile.greeting}</p></div>
+        </article>}
+        {[...jobs.map(job => ({time:job.createdAt, node:job.mode === 'chat' ? <div key={job.id} data-turn-key={job.id} data-turn-title={job.text.slice(0,64)}>
+          <article className="lumaMessageBubble is-user"><div><header><strong>{state.preferences.userName}</strong><time>{clockText(job.createdAt)}</time></header><p>{job.text}</p><AttachmentNames items={job.attachments}/><SentMark/></div></article>
+          {job.steps[0]?.output ? <article className="lumaMessageBubble is-assistant"><EmployeeFace id={roleId} skin={skins[roleId]}/><div><header><strong>{names[roleId]}</strong></header><p>{job.steps[0].output}</p><ReplyTools id={replyKey("job",job.id,roleId)} text={job.steps[0].output} author={names[roleId] ?? roleId} extras={<ManageRecordButton label="管理这条记录" onClick={()=>openRecords({kind:'job',id:job.id})}/>}/></div></article>
+            : <><p className="lumaMessageThinking" role="status">{inProgress(job.status) ? state.profile.name + '正在输入…' : job.error || (job.status === 'cancelled' ? '已停止回复' : '回复未完成')}</p>{!inProgress(job.status) && <ManageRecordButton label="管理这条记录" onClick={()=>openRecords({kind:'job',id:job.id})}/>}</>}
+        </div> : <JobCard key={job.id} job={job} names={names} skins={skins} canWrite={state.writable} onManage={()=>openRecords({kind:'job',id:job.id})} cancel={() => void cancel(job.id)} />})),
+          ...letters.map(letter=>({time:letter.time,node:<article key={'life:'+letter.id} data-turn-key={'life:'+letter.id} data-turn-title={letter.text.slice(0,64)} className="lumaMessageBubble is-assistant lumaLifeLetter">
             <EmployeeFace id={letter.role} skin={skins[letter.role]}/><div><header><strong>{names[letter.role]}</strong><time>{clockText(letter.time)}</time></header>
-              <p>{letter.text}</p><small>{letter.source==='model'?'主动来信 · 独立模型':'主动来信 · 日常对白'}</small></div></article>})),
-          ...(showNative ? state.messages : []).map(message => ({time:message.time ?? Infinity,node:<article key={message.id} className={`lumaMessageBubble is-${message.role}`}>
+              <p>{letter.text}</p><small className="lumaLetterStamp" title={letter.source==='model'?'主动来信 · 独立模型':'主动来信 · 日常对白'}><Mail size={13} aria-hidden="true"/>主动来信</small><ReplyTools id={replyKey("letter",letter.id)} text={letter.text} author={names[letter.role] ?? letter.role}
+                extras={letter.topic.startsWith('desk:')?<ManageRecordButton label="管理所属话题" onClick={()=>openRecords({kind:'topic',id:letter.topic.slice(5)})}/>:undefined}/></div></article>})),
+          ...(showNative ? state.messages : []).map(message => ({time:message.time ?? Infinity,node:<article key={message.id} data-turn-key={message.role==="user"?message.id:undefined} data-turn-title={message.role==="user"?message.text.slice(0,64):undefined} className={`lumaMessageBubble is-${message.role}`}>
           {message.role === 'assistant' && <EmployeeFace id={roleId} skin={skins[roleId]} />}
           <div><header><strong>{message.role === 'user' ? state.preferences.userName : message.role === 'assistant' ? state.profile.name : '对话提示'}</strong>
             {message.time !== undefined && <time dateTime={new Date(message.time).toISOString()}>{new Intl.DateTimeFormat('zh-CN', { hour: '2-digit', minute: '2-digit' }).format(message.time)}</time>}</header>
-            <p>{message.text || (message.streaming ? '…' : message.attachments?.length ? '' : '此条消息没有文本内容，可在原生会话查看附件。')}</p><AttachmentNames items={message.attachments}/>{message.role === 'user' && <small>已发送</small>}{message.streaming && <small>正在输入…</small>}</div>
+            <p>{message.text || (message.streaming ? '…' : message.attachments?.length ? '' : '此条消息没有文本内容，可在原生会话查看附件。')}</p><AttachmentNames items={message.attachments}/>{message.role === 'user' && <SentMark/>}{message.streaming && <small>正在输入…</small>}{message.role==="assistant" && !message.streaming && message.text && <ReplyTools id={replyKey("native",state.sessionId ?? roleId,message.id)} text={message.text} author={state.profile.name}
+              extras={state.sessionId && <ManageRecordButton label="管理所属原生对话" onClick={()=>openRecords({kind:'native',id:state.sessionId!})}/>}/>}</div>
         </article>}))].sort((a,b)=>a.time-b.time).map(row=>row.node)}
         {showNative && state.running && !state.messages.some(message => message.streaming) && <p className="lumaMessageThinking" role="status">{state.profile.name}正在组织回复…</p>}
-      </div>
+      </div></TranscriptFrame>
       <form className="lumaMessageComposer" onSubmit={event => { event.preventDefault(); void send() }}>
-        {mode !== 'chat' && <div className="lumaContactMode"><span>{mode === 'task' ? '单人派工' : '协作交接'}</span><button type="button" onClick={() => setMode('chat')}>返回聊天</button></div>}
-        {mode === 'team' && <fieldset className="lumaDeskTeam"><legend>交接顺序</legend><b>1 · {names[roleId]}</b>
-          {partners.filter(role => role.id !== roleId).map(role => <label key={role.id}><input type="checkbox" checked={optedTeam.includes(role.id)} disabled={busy}
+        {mode !== 'chat' && <div className="lumaContactMode"><span>{mode === 'task' ? '单人派工' : '协作交接'}</span><button type="button" disabled={busy} onClick={() => chooseMode('chat')}>返回聊天</button></div>}
+        {selectedWindow && <div className="lumaWorkspaceAssignment"><span>本次操作 · {selectedWindow.label}</span><button type="button" disabled={busy} onClick={()=>setWindowAssignment(undefined)}>移除本次窗口</button></div>}
+        {mode === 'team' && <fieldset className="lumaDeskTeam lumaHandoffPicker"><legend>交接顺序</legend>
+          <b className="lumaHandoffMember is-lead"><EmployeeFace id={roleId} skin={skins[roleId]}/><span>{names[roleId]}</span><small aria-label="第 1 位">1</small></b>
+          {partners.filter(role => role.id !== roleId).map(role => <label key={role.id} className="lumaHandoffMember"><input type="checkbox" aria-label={names[role.id]} checked={optedTeam.includes(role.id)} disabled={busy}
             onChange={e => setTeam(prev => e.target.checked ? [...prev, role.id] : prev.filter(id => id !== role.id))} />
-            {optedTeam.includes(role.id) ? (optedTeam.indexOf(role.id) + 2) + ' · ' : ''}{names[role.id]}</label>)}
+            <EmployeeFace id={role.id} skin={skins[role.id]}/><span>{names[role.id]}</span>
+            {optedTeam.includes(role.id) && <small>{optedTeam.indexOf(role.id) + 2}</small>}</label>)}
           {missingServices.length > 0 && <div className="lumaTeamServices" role="group" aria-label="待配置的协作服务">
-            <span>开始前，请为以下员工配置 API 服务</span>
+            <span>待绑定模型</span>
             {missingServices.map(id => <button key={id} type="button" aria-label={`配置${names[id]}的 API 服务`}
-              onClick={() => { setServiceTarget({ owner: roleId, id }); setPanel('api') }}>{names[id]} · 配置</button>)}
+              onClick={() => { setServiceTarget({ owner: roleId, id }); setPanel('api') }}><EmployeeFace id={id} skin={skins[id]}/>{names[id]}</button>)}
           </div>}</fieldset>}
-        <textarea aria-label="发送给角色的消息" placeholder={`对${state.profile.name}说点什么…`} value={state.preferences.drafts[state.roleId] ?? ''} maxLength={32000}
-          onChange={event => {
-            if (preferred && !chosen[roleId]) selectLocal(preferred)
-            runtime.setDraft(event.target.value)
-          }} onKeyDown={event => { if (event.key === 'Enter' && (event.ctrlKey || event.metaKey) && !event.nativeEvent.isComposing) { event.preventDefault(); event.currentTarget.form?.requestSubmit() } }} />
         <PendingAttachments files={files} disabled={fileSelectionDisabled} change={changeFiles}/>
-        <div className="lumaContactSendRow">
+        <div className="lumaContactSendRow lumaComposerDock">
           <ComposerActions key={roleId} files={files} native={dshAttachments} nativeUploads={sendViaNative && state.nativeFileUpload}
             disabled={fileSelectionDisabled} change={changeFiles} error={setActionError}>
             {(['chat','task','team'] as const).map((value,index) => <button type="button" key={value} aria-pressed={mode === value} disabled={busy}
-              onClick={() => { setMode(value); setActionError('') }}>{['聊天','单人派工','协作交接'][index]}</button>)}
-            {roomSupported && <button type="button" disabled={busy || !state.writable} onClick={showRoomCreator}>{partners.length < 2 ? '邀请伙伴组群' : '拉群协作'}</button>}
+              onClick={() => { chooseMode(value); setActionError('') }}>{value==='chat'?<MessageCircle size={16} aria-hidden="true"/>:value==='task'?<BriefcaseBusiness size={16} aria-hidden="true"/>:<UsersRound size={16} aria-hidden="true"/>}{['聊天','单人派工','协作交接'][index]}{mode===value && <Check size={14} aria-hidden="true"/>}</button>)}
+            {roomSupported && <button type="button" disabled={busy || !state.writable} onClick={showRoomCreator}><UserRoundPlus size={16} aria-hidden="true"/>{partners.length < 2 ? '邀请伙伴组群' : '拉群协作'}</button>}
           </ComposerActions>
-          <span>Ctrl / ⌘ + Enter 发送</span><div>
-          {sendViaNative && state.running ? <button type="button" disabled={state.pending} onClick={() => { void runtime.stop() }}>停止生成</button>
-            : runningJob ? <button type="button" disabled={!state.writable} onClick={() => void cancel(runningJob.id)}>停止任务</button>
-            : <button className="is-primary" type="submit" disabled={!canSend}>{mode === 'chat' ? '发送' : mode === 'team' ? '开始协作' : '分配任务'}</button>}</div></div>
+          <textarea aria-label="发送给角色的消息" placeholder={mode === 'chat' ? `对${state.profile.name}说点什么…` : '描述任务和交付要求…'} value={state.preferences.drafts[state.roleId] ?? ''} maxLength={32000} rows={1}
+            onChange={event => {
+              if (preferred && !chosen[roleId]) selectLocal(preferred)
+              runtime.setDraft(event.target.value)
+            }} onKeyDown={event => { if (event.key === 'Enter' && (event.ctrlKey || event.metaKey) && !event.nativeEvent.isComposing) { event.preventDefault(); event.currentTarget.form?.requestSubmit() } }} />
+          <button type="button" className="lumaRoleWorkShortcut" aria-label={mode === 'task' ? '切换到聊天' : '派发任务'} title={mode === 'task' ? '切换到聊天' : '派发任务'} aria-pressed={mode === 'task'} disabled={busy || !state.writable} onClick={() => {
+            chooseMode(mode === 'task' ? 'chat' : 'task'); setPanel(null); setActionError('')
+          }}>{mode === 'task' ? <MessageCircle size={18} aria-hidden="true"/> : <BriefcaseBusiness size={18} aria-hidden="true"/>}</button>
+          {sendViaNative && state.running ? <button className="lumaComposerStop" type="button" aria-label="停止生成" title="停止生成" disabled={state.pending} onClick={() => { void runtime.stop() }}><Square size={15} fill="currentColor" aria-hidden="true"/></button>
+            : runningJob ? <button className="lumaComposerStop" type="button" aria-label="停止任务" title="停止任务" disabled={!state.writable} onClick={() => void cancel(runningJob.id)}><Square size={15} fill="currentColor" aria-hidden="true"/></button>
+            : <button className="is-primary lumaComposerSubmit" type="submit" title={mode==='chat'?'发送（Ctrl / ⌘ + Enter）':mode==='team'?'开始协作':'分配任务'} aria-label={mode==='chat'?'发送':mode==='team'?'开始协作':'分配任务'} aria-keyshortcuts="Control+Enter Meta+Enter" disabled={!canSend}><ArrowUp size={20} strokeWidth={2.6} aria-hidden="true"/></button>}</div>
       </form>
     </div>}
-    {panel === 'settings' && <aside className="lumaRoleEditor lumaContactSettings" aria-label="聊天设置"><header><h2>聊天设置</h2><button type="button" aria-label="关闭聊天设置" onClick={() => setPanel(null)}>×</button></header>
-      <h3>{state.profile.name}</h3>
-      <button type="button" onClick={() => setPanel('persona')}>人格设定</button>
-      <button type="button" disabled={!desk.state} onClick={() => {setServiceTarget(null); setPanel('api')}}>API 服务</button>
-      <button type="button" onClick={() => setPanel('memory')}>记忆库</button>
-      <CloudOfficeLauncher key={roleId} roleId={roleId} name={state.profile.name} disabled={!state.writable}/>
-      <h3>会话管理</h3>
-          <button type="button" disabled={!state.writable || busy || !preferred || (nativeView && state.running)} onClick={() => {
-            if (!nativeView || mode === 'team') selectLocal('desk-' + crypto.randomUUID())
-            else { selectLocal('native'); void runtime.newTopic() }
-          }}>新对话</button>
-          <select aria-label="历史对话" value={!preferred ? '' : nativeView ? 'native:' + (state.sessionId ?? '') : 'desk:' + topic} disabled={busy}
-            onChange={event => void selectHistory(event.target.value)}>
+    {panel==='workspace' && !roomView && active && <RoleWorkspacePanel key={roleId} active={active} dataReady={deskReady} title={state.profile.name}
+      members={[{id:roleId,name:state.profile.name,skin:skins[roleId],config:desk.state?.roles[roleId]}]} eligibleIds={[roleId]} jobs={jobs} roleJobs={roleJobs} names={names}
+      assignments={selectedWindow?{[roleId]:selectedWindow.id}:{}} canAssign={deskReady && state.writable && !busy && !runningJob && !state.running} canWrite={state.writable}
+      onConfigure={()=>{setServiceTarget(null);setPanel('api')}} onAssign={(_,id,label)=>assignWindow(id,label)} onClose={()=>setPanel(null)}/>}
+    {panel==='records' && !roomView && active && <ContactRecords key={JSON.stringify([roleId,recordFocus])} initial={recordFocus} scope={{roleId}} name={state.profile.name} names={names}
+      jobs={roleJobs.filter(job=>job.roleIds.every(id=>visibleRoles.has(id)))} letters={desk.state?.letters??[]} write={state.writable && !busy} available={deskReady} refresh={desk.refresh} close={()=>setPanel(null)}
+      onTopicRemoved={removed=>{if(!nativeView && removed===topic){const next='desk-'+crypto.randomUUID();freshTopics.current.set(roleId,next);selectLocal(next)}}}
+      forgetReplyMarks={forgetReplyMarks}
+      native={{state,runtime,open:async id=>{const session=state.topics.find(t=>t.id===id);if(!session || !(await runtime.selectTopic(session.id)))throw Error(runtime.getSnapshot().problem||'无法打开原生会话。');selectLocal('native');setPanel(null)}}}/>}
+    {panel === 'settings' && <ContactChatSettings key={roleId} state={state} deskReady={deskReady} onRecords={()=>openRecords()}
+      config={desk.state?.roles[roleId]} model={desk.state?.roles[roleId]?.model} memoryCount={deskReady ? desk.state?.memories[roleId] ?? 0 : undefined}
+      onSection={section=>{if(section==='api')setServiceTarget(null);setPanel(section)}} onClose={()=>setPanel(null)}
+      onDisplay={display=>void runtime.setDisplay(display)} onNative={onOpenNative}
+      canCreate={state.writable && !busy && Boolean(preferred) && !(nativeView && state.running)} onCreate={()=>{
+        if (!nativeView || mode === 'team') selectLocal('desk-' + crypto.randomUUID())
+        else { selectLocal('native'); void runtime.newTopic() }
+      }}
+      canExport={Boolean(letters.length || (nativeView ? state.messages.length : jobs.length))}
+      onExport={()=>downloadJson(`Luma-${state.profile.name}-对话.json`, { ...(nativeView ? runtime.exportTranscript() : { roleId, topic, jobs }), letters })}
+      history={!preferred ? '' : nativeView ? 'native:' + (state.sessionId ?? '') : 'desk:' + topic}
+      historyBusy={busy} onHistory={value=>void selectHistory(value)} historyOptions={<>
             {!preferred && <option value="" disabled>选择对话服务</option>}
             <optgroup label="DSH 历史">{!state.sessionId && <option value="native:">DSH 对话</option>}{state.topics.map(t => <option value={'native:' + t.id} key={t.id}>{t.title}</option>)}</optgroup>
-            <optgroup label="员工工作记录">{(configured || (preferred && !nativeView)) && !workTopics.has(topic) && <option value={'desk:' + topic}>独立服务对话</option>}{[...workTopics].map(([id,title]) => <option key={id} value={'desk:' + id}>{title}</option>)}</optgroup></select>
-      <button type="button" onClick={() => { void runtime.setDisplay(state.preferences.display === 'bubbles' ? 'novel' : 'bubbles') }}>{state.preferences.display === 'bubbles' ? '阅读模式' : '气泡模式'}</button>
-          <button type="button" disabled={!letters.length && !(nativeView ? state.messages.length : jobs.length)} onClick={() => downloadJson(`Luma-${state.profile.name}-对话.json`, { ...(nativeView ? runtime.exportTranscript() : { roleId, topic, jobs }), letters })}>导出对话</button>
-
-      <button type="button" onClick={onOpenNative}>原生会话与模型设置 ↗</button>
-    </aside>}
+            <optgroup label="员工工作记录">{(configured || (preferred && !nativeView)) && !workTopics.has(topic) && <option value={'desk:' + topic}>独立服务对话</option>}{[...workTopics].map(([id,title]) => <option key={id} value={'desk:' + id}>{title}</option>)}</optgroup>
+      </>}/>}
     {panel === 'api' && desk.state && visibleRoles.has(serviceRole) && <AgentServicePanel key={'api-' + serviceRole} roleId={serviceRole} name={names[serviceRole] ?? state.profile.name}
       forHandoff={serviceTarget?.owner === roleId && mode === 'team'} config={desk.state.roles[serviceRole]} onSaved={() => setChosen(old => { const next = {...old}; delete next[serviceRole]; return next })}
       canWrite={state.writable} refresh={desk.refresh} close={() => setPanel(null)} />}
@@ -339,5 +410,5 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
         <button type="button" disabled={!state.writable || state.pending} onClick={() => { void runtime.setUserName(userName) }}>保存称呼</button>
         <button type="button" disabled={!nativeView || !state.sessionId || state.running || state.pending} onClick={() => { if (window.confirm('将当前对话归档？DSH 中的历史记录会保留。')) void runtime.archiveTopic() }}>归档当前 DSH 对话</button></details>
     </aside>}
-  </section>
+  </section></ReplyToolsProvider>
 }

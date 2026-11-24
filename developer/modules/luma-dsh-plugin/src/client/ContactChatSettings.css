@@ -1,0 +1,68 @@
+.lumaChatSettings {
+  flex:0 1 clamp(310px,27vw,410px);
+  min-width:290px;
+  max-width:100%;
+  height:100%;
+  box-sizing:border-box;
+  display:flex;
+  flex-direction:column;
+  color:var(--contact-ink,#203a50);
+  background:#fff;
+  border-inline-start:1px solid var(--contact-border,#d8e3ec);
+}
+.lumaChatSettings :is(h2,h3,p),.lumaChatDisplay {margin:0}
+.lumaChatSettingsHeader,.lumaChatSectionTitle,.lumaChatIdentity,.lumaChatSettingsHeader>span,.lumaChatField,.lumaChatMore summary,.lumaChatSettings button:not(dialog button) {display:flex;align-items:center}
+.lumaChatSettingsHeader,.lumaChatSectionTitle,.lumaChatMore summary {justify-content:space-between}
+.lumaChatSettingsHeader {min-height:56px;flex:none;box-sizing:border-box;padding:10px 17px;border-bottom:1px solid var(--contact-border,#d8e3ec)}
+.lumaChatSettingsHeader>span {gap:9px}
+.lumaChatSettingsHeader svg,.lumaChatToolIcon {color:var(--contact-accent,#28669e)}
+.lumaChatSettingsHeader h2 {font-size:16px;font-weight:650}
+.lumaContacts .lumaChatSettingsHeader button {justify-content:center;width:32px;height:32px;padding:0;border:0;background:transparent;border-radius:8px}
+.lumaChatSettingsBody {flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:17px 16px 24px}
+.lumaChatIdentity {gap:12px;padding:15px 14px 17px;background:linear-gradient(110deg,#edf5fc,#f6f9fc);border-radius:13px}
+.lumaChatIdentity .lumaMessageAvatar {flex:none;width:43px;height:43px}
+.lumaChatIdentity>div {min-width:0}
+.lumaChatIdentity h3 {font-size:17px;line-height:1.4;overflow-wrap:anywhere}
+.lumaChatIdentity p,.lumaChatToolText small {font-size:11px;color:var(--contact-faint,#586e81);line-height:1.5}
+.lumaChatIdentity p {margin-top:2px}
+.lumaChatRoleTools {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:8px}
+.lumaContacts .lumaChatRoleTools>button {min-width:0;flex-direction:column;gap:6px;padding:9px 3px;text-align:center;border:0;background:transparent;border-radius:10px}
+.lumaContacts .lumaChatRoleTools>.lumaChatBinding {grid-column:1/-1;flex-direction:row;text-align:left;gap:10px;padding:9px 8px;border-bottom:1px solid #dce7ec;border-radius:0}
+.lumaChatBinding .lumaChatToolText {flex:1}
+.lumaChatBinding>svg {color:#567487}
+.lumaChatToolIcon {display:grid;place-content:center;flex:none;width:33px;height:33px;border-radius:50%;color:white;background:#4e7087}
+.lumaChatRoleTools [data-tool=persona] .lumaChatToolIcon {background:#99607b}
+.lumaChatRoleTools [data-tool=memory] .lumaChatToolIcon {background:#417c70}
+.lumaChatRoleTools .lumaCloudShortcut .lumaChatToolIcon {background:#4a76a4}
+.lumaChatToolText {min-width:0;display:grid;gap:2px}
+.lumaChatToolText strong {font-size:13px;font-weight:620;line-height:1.4;color:var(--contact-ink,#203a50)}
+.lumaChatToolText small {display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lumaChatSession {border-block:1px solid var(--contact-border,#d8e3ec);padding:18px 0 19px;margin-top:19px}
+.lumaChatSectionTitle {gap:6px;margin-bottom:12px}
+.lumaChatSectionTitle h3 {font-size:14px;line-height:1.4}
+.lumaContacts .lumaChatSectionTitle button {gap:4px;font-weight:550;border:0;padding:5px 8px;color:var(--contact-accent,#28669e);background:var(--contact-wash,#eaf3fb);font-size:12px;min-height:30px;border-radius:8px}
+.lumaChatField,.lumaChatDisplay legend {color:var(--contact-faint,#586e81);font-size:12px;font-weight:550}
+.lumaChatField {gap:6px;margin-bottom:6px}
+.lumaChatSettings .lumaChatSession select {width:100%;font-size:13px;padding:8px 10px;min-height:35px;color:var(--contact-ink,#203a50);background:#fff;border:1px solid var(--contact-border,#d8e3ec);border-radius:9px}
+.lumaChatDisplay {margin-top:15px;padding:0;border:0;min-width:0}
+.lumaContacts .lumaChatRecordLink {width:100%;gap:7px;padding:9px 3px;border:0;background:transparent;color:var(--contact-accent,#28669e);font-size:12px;min-height:34px}
+.lumaChatRecordLink svg:last-child {margin-inline-start:auto}
+.lumaChatDisplay legend {padding:0 0 6px}
+.lumaChatDisplay>div {display:flex;gap:3px;padding:3px;background:#eff4f8;border:1px solid #e5edf3;border-radius:9px}
+.lumaChatDisplay label {position:relative;display:block;flex:1;min-width:0;cursor:pointer}
+.lumaChatDisplay input {position:absolute;width:1px;height:1px;clip-path:inset(50%)}
+.lumaChatDisplay label>span {display:flex;min-height:30px;align-items:center;justify-content:center;gap:6px;border-radius:6px;font-size:12px;color:var(--contact-faint,#586e81)}
+.lumaChatDisplay input:checked+span {color:var(--contact-accent,#28669e);background:#fff;box-shadow:0 1px 4px #2d52661c;font-weight:600}
+.lumaChatDisplay:disabled label {cursor:default;opacity:.6}
+.lumaChatMore {margin-top:10px}
+.lumaChatMore summary {gap:8px;min-height:36px;cursor:pointer;font-size:12px;font-weight:600;color:var(--contact-faint,#586e81);list-style:none}
+.lumaChatMore summary::-webkit-details-marker {display:none}
+.lumaChatMore[open] summary svg {transform:rotate(180deg)}
+.lumaChatMore>div {display:grid;gap:3px}
+.lumaContacts .lumaChatMore button {justify-content:flex-start;gap:9px;border:0;padding:7px 8px;min-height:32px;text-align:start;background:transparent;font-size:12px}
+.lumaContacts .lumaChatMore button svg:last-child:not(:first-child) {margin-inline-start:auto}
+.lumaContacts .lumaChatSettings :is(button,summary):hover:not(:disabled) {background:var(--contact-wash,#eaf3fb)}
+.lumaContacts .lumaChatSettings :is(button,select,summary):focus-visible,.lumaChatDisplay input:focus-visible+span {outline:2px solid var(--contact-accent,#28669e);outline-offset:2px}
+@container luma-contacts (max-width:1050px) {
+  .lumaChatSettings {position:absolute;inset:0 0 0 auto;z-index:5;min-width:0;width:min(380px,100%);box-shadow:-5px 0 22px #24445a20}
+}

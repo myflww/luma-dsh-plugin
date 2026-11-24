@@ -1,6 +1,6 @@
 import { afterEach, expect, it, vi } from 'vitest'
 import type { ReactNode } from 'react'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { PluginShell, LUMA_PAGES } from '../src/client/PluginShell.tsx'
 
 vi.mock('../src/client/CompanionPresence.tsx', () => ({ CompanionPresence: () => null }))
@@ -58,6 +58,11 @@ it('opens destinations, memory and native sidebar controls from the scene withou
   render(<PluginShell office={{} as never} cards={{} as never} collection={collection} messages={{} as never}
     preferences={{} as never} hostSidebar={sidebar} onReturnToDSH={exit}/>)
   expect(screen.queryByRole('navigation',{name:'Luma 页面'})).toBeNull()
+  const shortcuts=screen.getByRole('navigation',{name:'常用页面'})
+  fireEvent.click(within(shortcuts).getByRole('button',{name:'卡牌收藏'}))
+  expect(screen.getByTestId('cards').textContent).toBe('我的卡牌')
+  expect(within(screen.getByRole('navigation',{name:'常用页面'})).getByRole('button',{name:'卡牌收藏'}).getAttribute('aria-current')).toBe('page')
+  fireEvent.click(screen.getByRole('button',{name:'返回场景'}))
   fireEvent.click(screen.getByRole('button',{name:'展开 DSH 侧栏'}))
   expect(sidebar.toggle).toHaveBeenCalledOnce()
   fireEvent.click(screen.getByRole('button',{name:'爱之屋'}))

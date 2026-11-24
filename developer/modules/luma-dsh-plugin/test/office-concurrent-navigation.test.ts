@@ -7,7 +7,8 @@ import { advanceIndependentAmbient, independentFloorLanePosition, independentTra
 import { initialRuntime, officeLaneRoute, advanceOfficeActorTrafficFrame, prepareActorRuntime } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/officeSceneActorRuntime.ts'
 import { sampleDeskRhythm } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/deskRhythm.ts'
 import { workstationArrivalStep } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/frameTimeline.ts'
-import { isOfficeFootSegmentWalkable, findWorkstationRouteFromPoint } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/navigation.ts'
+import { isOfficeFootSegmentWalkable, findWorkstationRouteFromPoint, OFFICE_WORKSTATION_APPROACHES } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/navigation.ts'
+import { officeDailyRoutine } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/officeDailyRoutine.ts'
 import { createOfficeAutonomyState, advanceOfficeAutonomyController } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/autonomyController.ts'
 import { createOfficeTimePolicy } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/timePolicy.ts'
 import { SPACE as whale } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/independent-spaces/office-jingyuniang-v1.ts'
@@ -18,17 +19,59 @@ import { SPACE as grok } from '../../../overlays/deepseek-harness/luma-full/file
 const roles=['shan','bai-shuangming','lu-mi','jingyuniang','longmama','claude','gemini','grok']
 const all=createOfficeTimePolicy({date:new Date(2026,10,18,10)})
 
+it('staggers the eight desk routines and takes a complete break and return through every office floor plan',()=>{
+  const seats=['north-private','north-center','west-studio','south-left','south-focus','south-right','private-upper','private-lower'] as const
+  const deadlines=new Set<number>(), routines=new Set<string>()
+  for(const [i,id] of roles.entries()){
+    const seat=seats[i]!, [x,y]=OFFICE_WORKSTATION_APPROACHES[seat].point
+    const classic=createOfficeAutonomyState({employeeId:id,now:0,timePolicy:all,boundWorkstationId:seat,initiallyAtDesk:true})
+    deadlines.add(classic.nextTransitionAt);routines.add(officeDailyRoutine(id)!.desk)
+    const base={state:classic,now:classic.nextTransitionAt,actorMode:'desk-break' as const,actorPosition:{x,y},timePolicy:all,boundWorkstationId:seat,ambientDesk:true}
+    const roam=advanceOfficeAutonomyController(base)
+    expect(roam.decision.type).toBe('start-roam')
+    if(roam.decision.type!=='start-roam')throw Error('No outing')
+    const pause=advanceOfficeAutonomyController({...base,state:roam.state,actorMode:'idle',actorPosition:roam.decision.target,now:base.now+600})
+    expect(pause.state.phase).toBe('activity')
+    expect(advanceOfficeAutonomyController({...base,state:pause.state,actorMode:'idle',actorPosition:roam.decision.target,now:pause.state.nextTransitionAt}).decision).toEqual({type:'start-desk-break',workstationId:seat})
+    expect(advanceOfficeAutonomyController({...base,actorMode:'working'}).state.phase).toBe('suspended')
+    for(const room of [whale,dragon,claude,gemini,grok]){
+      const graph=withBrowserOfficeNavigation(room).layout.navigation.floorGraph as BrowserIndependentFloorGraph
+      const origin=graph.nodes[graph.targets[seat]!.approachNode]!
+      const input={employeeId:id,graph,policy:all,boundStationId:seat,ambientDesk:true,active:true,manual:false,reduceMotion:false}
+      let actor=createIndependentArrivalState(origin.point,origin.bodyCoreHeightPx,seat)
+      let ambient=initialIndependentAmbient(id,0,true,all)
+      expect(ambient.nextAt).toBe(classic.nextTransitionAt)
+      let now=ambient.nextAt
+      const step=()=>{const r=advanceIndependentAmbient(ambient,actor,{...input,now});ambient=r.ambient;actor=r.actor}
+      const travel=()=>{
+        for(let n=0;n<500 && actor.route.length;n++){
+          now+=100
+          step()
+          actor=advanceIndependentTaskArrival(actor,{graph,bindingAvailable:true,active:true,deltaMs:100,reduceMotion:false}).state
+        }
+      }
+      step(); expect(actor.mode).toBe('roaming')
+      travel();expect(actor.mode).toBe('floor')
+      step();expect(ambient.nextAt).toBeGreaterThan(now);now=ambient.nextAt
+      step();expect(actor.mode).toBe('returning')
+      travel();expect(actor.seatedStationId).toBe(seat)
+    }
+  }
+  expect(deadlines.size).toBe(8);expect(routines.size).toBe(8)
+})
+
 it('gives an on-duty seated employee a full desk stay and a short pause before returning from a walk', () => {
   const policy = createOfficeTimePolicy({hour:10})
   const graph = withBrowserOfficeNavigation(whale).layout.navigation.floorGraph as BrowserIndependentFloorGraph
   const station = 'north-private', node = graph.nodes[graph.entryNode]!
   const floor = createIndependentArrivalState(node.point, node.bodyCoreHeightPx)
   const start = initialIndependentAmbient('shan', 0, true, policy)
-  expect(start.nextAt).toBeGreaterThanOrEqual(240_000)
+  expect(start.nextAt).toBeGreaterThan(20_000)
+  expect(start.nextAt).toBeLessThan(120_000)
   const returning = advanceIndependentAmbient({...start, travelling:true}, floor, {employeeId:'shan', graph, now:8000, policy,
     boundStationId:station, active:true, manual:false, reduceMotion:false})
-  expect(returning.ambient.nextAt).toBeLessThan(12_000)
-  const move = advanceIndependentAmbient(returning.ambient, returning.actor, {employeeId:'shan', graph, now:12_000,
+  expect(returning.ambient.nextAt).toBeLessThan(15_000)
+  const move = advanceIndependentAmbient(returning.ambient, returning.actor, {employeeId:'shan', graph, now:returning.ambient.nextAt,
     policy, boundStationId:station, active:true, manual:false, reduceMotion:false})
   expect(move.actor).toMatchObject({mode:'returning',ambientStationId:station})
 })

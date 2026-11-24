@@ -167,6 +167,7 @@ export class SettingsBackedOfficeRelationshipStore {
     employeeId: string,
     workstationId: string,
     placement?: {swap: true},
+    displayed?: readonly {id:string; workstationId?:string}[],
   ): Promise<OfficeRelationshipMutationResult> {
     return this.enqueue(async () => {
       if (!isOfficeEmployeeId(employeeId)) return this.reject('unknown-employee')
@@ -175,7 +176,18 @@ export class SettingsBackedOfficeRelationshipStore {
       if (lockFailure !== undefined && !placement?.swap) return this.reject(lockFailure)
 
       const current = this.snapshot.relationships
-      const displacedEmployeeId = findEmployeeBoundToWorkstation(current, workstationId)
+      const source = current.employees[employeeId].workstationId
+      const displayedSource = displayed?.find(row => row.id === employeeId)?.workstationId
+      const shownOccupant = displayed?.find(row => row.id !== employeeId && row.workstationId === workstationId)?.id
+      const boundOccupant = findEmployeeBoundToWorkstation(current, workstationId)
+      const shownSourceOwner = displayedSource && isOfficeWorkstationId(displayedSource) ? findEmployeeBoundToWorkstation(current,displayedSource) : undefined
+      if (placement?.swap && displayed && (
+        source && displayedSource !== source ||
+        shownSourceOwner && shownSourceOwner !== employeeId ||
+        boundOccupant && boundOccupant !== employeeId && shownOccupant !== boundOccupant ||
+        shownOccupant && isOfficeEmployeeId(shownOccupant) && current.employees[shownOccupant].workstationId && current.employees[shownOccupant].workstationId !== workstationId
+      )) return this.reject('persistence-conflict')
+      const displacedEmployeeId = boundOccupant ?? (placement?.swap && isOfficeEmployeeId(shownOccupant) ? shownOccupant : undefined)
       if (current.employees[employeeId].workstationId === workstationId) {
         return this.accepted('unchanged', employeeId, current, workstationId)
       }
@@ -191,8 +203,9 @@ export class SettingsBackedOfficeRelationshipStore {
           workstationId: _displacedWorkstation,
           ...unboundRelationship
         } = current.employees[displacedEmployeeId]
+        const shownSeatFree = displayedSource !== undefined && isOfficeWorkstationId(displayedSource) && !findEmployeeBoundToWorkstation(current, displayedSource)
         const previousSeat = placement?.swap
-          ? current.employees[employeeId].workstationId ?? findAutoAssignableWorkstation(current)
+          ? source ?? (shownSeatFree ? displayedSource : findAutoAssignableWorkstation(current))
           : undefined
         replacements[displacedEmployeeId] = placement?.swap && previousSeat
           ? {...unboundRelationship, workstationId:previousSeat} : unboundRelationship

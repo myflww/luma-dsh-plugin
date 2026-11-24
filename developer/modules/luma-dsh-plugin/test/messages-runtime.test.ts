@@ -63,7 +63,11 @@ async function fixture(options: { writable?: boolean; seed?: boolean; preference
         displayTitle: `${roleId} display title`, running: false, blank: !events.length, updatedAt: 1 } } })
     return session
   }
-  const open = vi.fn(), noteAgentPreset = vi.fn(), archiveSession = vi.fn(async () => {})
+  const archives=feed({archivedSessionIds:[] as SessionId[]})
+  const open = vi.fn(), noteAgentPreset = vi.fn(), archiveSession = vi.fn(async (id:SessionId) => {
+    archives.set({archivedSessionIds:[...archives.getSnapshot().archivedSessionIds,id]})
+  })
+  const unarchiveSession=vi.fn(async(id:SessionId)=>{archives.set({archivedSessionIds:archives.getSnapshot().archivedSessionIds.filter(item=>item!==id)})})
   const linkSession = vi.fn(async (roleId: string, sessionId: SessionId) => {
     const state = officeState.getSnapshot(); officeState.set({ ...state, projection: { employees: state.projection.employees.map(employee =>
       employee.employeeId === roleId ? { ...employee, sessionId } : employee) } })
@@ -71,15 +75,34 @@ async function fixture(options: { writable?: boolean; seed?: boolean; preference
   const ctx = { get: () => ({ api }), uploadSessionFile:options.uploadSessionFile, settingsScope: { bind: vi.fn(({ namespace }: { namespace: string }) => {
     expect(namespace).toBe(MESSAGES_NAMESPACE); return { ...settings, set }
   }) }, sessions: { list, binding: (id: SessionId) => sessions.has(id) ? { session: sessions.get(id) } : undefined,
-    open, noteAgentPreset }, workspaces: { archiveSession } } as unknown as ClientContext
+    open, noteAgentPreset }, workspaces: { list:archives, archiveSession, unarchiveSession } } as unknown as ClientContext
   if (options.seed !== false) await add('shan-own', 'shan')
   const runtime = createMessagesRuntime(ctx, { ...officeState, linkSession } as unknown as OfficePageRuntime)
   cleanups.push(() => runtime.dispose())
-  return { runtime, add, sessions, sessionHistories, settings, set, list, officeState, prompt, cancel, create, history, open, noteAgentPreset, linkSession, archiveSession }
+  return { runtime, add, sessions, sessionHistories, settings, set, list, officeState, prompt, cancel, create, history, open, noteAgentPreset, linkSession, archiveSession, unarchiveSession }
 }
 async function flush() { for (let i = 0; i < 8; i++) await Promise.resolve() }
 
 describe('role messages use actual DSH sessions', () => {
+  it('archives and restores the chosen native topic only, rejects another role and refuses active sessions',async()=>{
+    const f=await fixture(), pinned='shan-sibling' as SessionId, other='other-role' as SessionId
+    await f.add(pinned,'shan');await f.add(other,'lu-mi')
+    expect(await f.runtime.archiveTopic(other,'shan')).toBeUndefined()
+    expect(f.archiveSession).not.toHaveBeenCalled()
+    const before=f.list.getSnapshot()
+    f.list.set({...before,byId:{...before.byId,[pinned]:{...before.byId[pinned]!,running:true}}})
+    expect(await f.runtime.archiveTopic(pinned,'shan')).toBeUndefined()
+    f.list.set(before)
+    expect(await f.runtime.archiveTopic(pinned,'shan')).toBe(true)
+    expect(f.archiveSession).toHaveBeenCalledWith(pinned)
+    expect(f.runtime.getSnapshot().sessionId).toBe('shan-own')
+    expect(f.runtime.getSnapshot().archivedTopics?.map(t=>t.id)).toEqual([pinned])
+    expect(await f.runtime.restoreTopic(pinned,'lu-mi')).toBeUndefined()
+    expect(f.unarchiveSession).not.toHaveBeenCalled()
+    expect(await f.runtime.restoreTopic(pinned,'shan')).toBe(true)
+    expect(f.runtime.getSnapshot().archivedTopics).toEqual([])
+    expect(f.runtime.getSnapshot().topics.map(t=>t.id)).toContain(pinned)
+  })
   it('stages arbitrary files against the sending DSH session and only prompts once all receipts exist', async () => {
     const uploadSessionFile = vi.fn().mockRejectedValueOnce(Error('文件上传失败')).mockResolvedValue('session-receipt-1')
     const f = await fixture({preferences:{drafts:{shan:'检查电子表格'}}, uploadSessionFile})
@@ -314,6 +337,23 @@ describe('role messages use actual DSH sessions', () => {
     gate.resolve(ok({ accepted: true })); await sending
     await vi.advanceTimersByTimeAsync(1000)
     expect(f.settings.getSnapshot().value.preferences!.drafts.shan).toBe('下一条草稿')
+  })
+
+  it('attaches sourced work preferences to a native DSH private turn as structured memory without altering the visible user text',async()=>{
+    const question='那份清样页脚怎么写？'
+    const memory={userPortrait:[{text:'我的偏好是先写校对日期',source:'work',kind:'stated',count:1}],previous:[],related:[]}
+    const f=await fixture({preferences:{drafts:{shan:question}}})
+    vi.stubGlobal('window',{})
+    cleanups.push(()=>vi.unstubAllGlobals())
+    const fetch=vi.spyOn(globalThis,'fetch').mockResolvedValue(Response.json({ok:true,value:{context:JSON.stringify(memory)}}))
+    await f.runtime.send('chat')
+    expect(fetch).toHaveBeenCalledWith('/luma-agents/recall',expect.objectContaining({body:expect.stringContaining('"privateChat":true')}))
+    const text=(f.prompt.mock.calls[0]![0] as {content:{text:string}[]}).content[0]!.text
+    const metadata=JSON.parse(text.split('\n')[1]!)
+    expect(JSON.parse(String(fetch.mock.calls[0]![1]!.body)).journalId).toBe(metadata.journalId)
+    expect(metadata.referenceMemory).toEqual(memory)
+    expect(metadata.memoryGuidance).toContain('work 来自你亲自参与的工作')
+    expect(visibleUserMessage(text)).toBe(question)
   })
 
   it('projects durable history, current chunks and terminal failures from production ConversationSnapshots', async () => {

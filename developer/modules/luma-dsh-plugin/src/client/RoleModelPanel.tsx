@@ -1,6 +1,16 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
+import { Check, X } from 'lucide-react'
+import { ProviderMark } from './ProviderMark.tsx'
 import { agentRequest, type AgentConfig } from './agent-desk-api.ts'
+import { LocalHarnessPanel } from './LocalHarnessPanel.tsx'
 import { customEfforts, type ModelOption, type ModelProtocol } from '../shared/role-models.ts'
+import './RoleModelPanel.css'
+
+const sources = [
+  {id:'dsh', label:'DSH 服务'},
+  {id:'local', label:'本机订阅'},
+  {id:'custom', label:'自定义 API'},
+] as const
 
 const endpoints = {openai:'',anthropic:'https://api.anthropic.com/v1',gemini:'https://generativelanguage.googleapis.com/v1beta'}
 const levels: Record<string,string> = {none:'关闭',minimal:'最低',low:'低',medium:'中',high:'高',xhigh:'很高',max:'最高'}
@@ -13,17 +23,18 @@ interface Props {
   close():void; onSaved?():void; forHandoff?:boolean
 }
 export function AgentServicePanel({roleId,name,config,canWrite,refresh,close,onSaved,forHandoff=false}:Props) {
-  const [source,setSource] = useState<'dsh'|'custom'>(config?.model && config.source!=='dsh' ? 'custom' : 'dsh')
-  const [providers,setProviders]=useState<ModelOption[]>([]), [provider,setProvider]=useState(config?.provider ?? '')
+  const [source,setSource] = useState<'dsh'|'custom'|'local'>(config?.source ?? (config?.model ? 'custom' : 'dsh'))
+  const [providers,setProviders]=useState<ModelOption[]>([]), [provider,setProvider]=useState(config?.source==='dsh' ? config.provider ?? '' : '')
   const [models,setModels]=useState<ModelOption[]>([]), [nativeId,setNativeId]=useState(config?.source==='dsh' ? config.model : '')
   const [nativeEfforts,setNativeEfforts]=useState<ModelOption[]>([]), [defaultEffort,setDefaultEffort]=useState('')
   const [protocol,setProtocol]=useState<ModelProtocol>(config?.protocol ?? 'openai')
-  const [url,setUrl]=useState(config?.baseUrl ?? ''), [customId,setCustomId]=useState(config?.source==='dsh' ? '' : config?.model ?? '')
+  const [url,setUrl]=useState(config?.baseUrl ?? ''), [customId,setCustomId]=useState(config?.source==='dsh' || config?.source==='local' ? '' : config?.model ?? '')
   const [secret,setSecret]=useState(''), [discovered,setDiscovered]=useState<ModelOption[]>([])
   const [effort,setEffort]=useState(config?.effort ?? ''), [note,setNote]=useState(''), [catalogNote,setCatalogNote]=useState('')
   const [busy,setBusy]=useState(false), [lookup,setLookup]=useState(false)
   const discovering=useRef<AbortController|null>(null)
   const lock=useRef(false)
+  const groupId=useId()
   const isDsh=source==='dsh'
   const model=isDsh ? nativeId : customId
   const choices=isDsh ? models : discovered
@@ -34,7 +45,7 @@ export function AgentServicePanel({roleId,name,config,canWrite,refresh,close,onS
     void agentRequest<{providers:ModelOption[]}>('providers',{roleId},draftSignal(abort)).then(data=>{
       if (abort.signal.aborted) return
       setProviders(data.providers)
-      if (!data.providers.length) setCatalogNote('DSH 暂无已启用的模型服务，可在 DSH 设置中添加服务或选择自定义端点。')
+      if (!data.providers.length) setCatalogNote('DSH 暂无已启用的模型服务。已登录 Codex 或 Claude Code 的用户可选择「本机订阅」。')
       else setProvider(prev=>prev || data.providers[0]!.id)
     }).catch(error=>{if (!abort.signal.aborted) setCatalogNote(problem(error))})
     return ()=>{abort.abort();discovering.current?.abort()}
@@ -85,12 +96,12 @@ export function AgentServicePanel({roleId,name,config,canWrite,refresh,close,onS
     finally {if (discovering.current===abort) setLookup(false)}
   }
   useEffect(()=>{
-    if (!isDsh && !secret && config?.baseUrl && url===config.baseUrl && protocol===(config.protocol ?? 'openai')) {
+    if (source==='custom' && !secret && config?.baseUrl && url===config.baseUrl && protocol===(config.protocol ?? 'openai')) {
       void discover(true)
       const request=discovering.current
       return ()=>request?.abort()
     }
-  },[roleId,isDsh,config?.baseUrl])
+  },[roleId,source,config?.baseUrl])
   async function save(remove=false) {
     if (!canWrite || lock.current) return
     setNote('');lock.current=true;setBusy(true)
@@ -99,17 +110,21 @@ export function AgentServicePanel({roleId,name,config,canWrite,refresh,close,onS
         ? {source,provider,model:model.trim(),effort} : {source,protocol,baseUrl:url.trim(),model:model.trim(),effort,...(secret?{apiKey:secret}:{})}
       await agentRequest('configure',{roleId,...route})
       setSecret('')
-      if (remove) {setUrl('');setCustomId('');setEffort('')}
+      if (remove) {setUrl('');setCustomId('');setEffort('');setSource('dsh')}
       await refresh();onSaved?.();setNote(remove ? '已恢复 DSH 默认会话。' : '已保存'+name+'的模型设置。')
     } catch(error) {setNote(problem(error))}
     finally {lock.current=false;setBusy(false)}
   }
-  return <aside className="lumaRoleEditor" aria-label="员工 API 服务"><header><h2>{forHandoff ? name+'的 API 服务' : 'API 服务'}</h2><button type="button" onClick={close} aria-label="关闭 API 服务">×</button></header>
-    <p>{name}会在私聊、单人任务和协作群中使用所选模型。</p>
+  return <aside className="lumaRoleEditor lumaRoleModelEditor" aria-label="员工 API 服务"><header><div><small>{name}</small><h2>角色模型</h2></div><button type="button" onClick={close} aria-label="关闭 API 服务" title="关闭模型设置"><X size={17} aria-hidden="true"/></button></header>
+    <fieldset className="lumaModelSources" disabled={busy}><legend>模型来源</legend><div>{sources.map(({id,label})=><label key={id}>
+      <input type="radio" name={groupId} value={id} checked={source===id} autoFocus={forHandoff && source===id} onChange={()=>{
+        resetDiscovery();setSecret('');setEffort('');setSource(id)
+      }}/><span className="lumaModelSourceChoice"><span className="lumaModelSourceIcon"><ProviderMark kind={id} size={36}/>{source===id && <i><Check size={10} strokeWidth={3} aria-hidden="true"/></i>}</span>
+        <span className="lumaModelSourceLabel">{label}</span></span>
+    </label>)}</div></fieldset>
+    {source==='local' ? <><LocalHarnessPanel roleId={roleId} name={name} canWrite={canWrite && !busy} config={config} refresh={refresh} onSaved={onSaved} onSaving={setBusy}/>
+      {config?.model && <button type="button" disabled={!canWrite || busy} onClick={()=>void save(true)}>恢复 DSH 默认会话</button>}</> :
     <form onSubmit={e=>{e.preventDefault();void save()}}>
-      <label>模型来源<select autoFocus={forHandoff} value={source} onChange={e=>{
-        resetDiscovery();setSecret('');setEffort('');setSource(e.target.value as typeof source)
-      }}><option value="dsh">DSH 已配置服务</option><option value="custom">自定义 API 端点</option></select></label>
       {isDsh ? <><label>DSH 服务<select value={provider} onChange={e=>{setProvider(e.target.value);chooseModel('')}}>
         {!providers.some(p=>p.id===provider) && <option value={provider}>{provider || '请选择服务'}</option>}
         {providers.map(p=><option key={p.id} value={p.id}>{label(p)}</option>)}</select></label>
@@ -133,5 +148,5 @@ export function AgentServicePanel({roleId,name,config,canWrite,refresh,close,onS
       {!isDsh && <small>自定义端点的可用档位由模型决定，未指定时使用服务默认值。</small>}
       <button type="submit" className="is-primary" disabled={!canWrite || busy || !model.trim() || (isDsh ? !provider : !url.trim())}>保存服务</button>
       {config?.model && <button type="button" disabled={!canWrite || busy} onClick={()=>void save(true)}>恢复 DSH 默认会话</button>}
-    </form>{note && <p role="status">{note}</p>}</aside>
+    </form>}{note && <p role="status">{note}</p>}</aside>
 }

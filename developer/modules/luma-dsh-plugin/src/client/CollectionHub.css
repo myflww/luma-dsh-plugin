@@ -1,101 +1,96 @@
-.lumaCollectionHub, .lumaCollectionHub * { box-sizing: border-box; }
-.lumaCollectionHub { color: var(--dsw-alias-label-primary,#343640); font: 14px/1.6 system-ui,"Microsoft YaHei",sans-serif; max-width: 1260px; margin: 0 auto; padding: clamp(16px,3vw,36px); }
-.lumaCollectionHub button { cursor: pointer; font: inherit; border: 1px solid #d4d5dc; background: var(--dsw-alias-bg-layer-1,#fff); color: inherit; border-radius: 8px; padding: 8px 14px; }
-.lumaCollectionHub button:hover:not(:disabled) { border-color: #8f7a9b; background: #88739b12; }
-.lumaCollectionHub button:disabled { cursor: default; opacity: .5; }
-.lumaCollectionHub button:focus-visible, .lumaCollectionHub summary:focus-visible { outline: 3px solid #a89acb; outline-offset: 3px; }
-.lumaCollectionHub h2 { margin: 6px 0 10px; font-size: clamp(23px,3vw,33px); font-weight: 550; letter-spacing: .04em; }
-.lumaCollectionHub h3 { margin: 12px 0 7px; font-size: 17px; }
-.lumaCollectionHub p { margin: 6px 0; color: var(--dsw-alias-label-secondary,#777781); }
-.lumaCollectionHub small { font-size: 12px; color: var(--dsw-alias-label-secondary,#777781); }
-.lumaCollectionHubEyebrow { font-size: 10px; letter-spacing: .18em; color: #8c7c9a; }
-.lumaCollectionHubHeader { display: flex; align-items: center; gap: 28px; justify-content: space-between; border-bottom: 1px solid #85829826; padding-bottom: 24px; }
-.lumaCollectionHubHeader>div:first-child { max-width: 590px; }
-.lumaCollectionHubMaterials { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin: 18px 0; }
-.lumaCollectionHubMaterials button { color: #897199; background: #f7f1f8; border-color: #daccdf; }
-.lumaCollectionHubMaterials small { font-size: 11px; }
-.lumaCollectionHubWallet { border: 1px solid #85829826; border-radius: 14px; padding: 15px 20px; min-width: 270px; background: linear-gradient(120deg,#aa94bb10,#f2d7ad10); }
-.lumaCollectionHubWallet>span { font-size: 12px; letter-spacing: .08em; }
-.lumaCollectionHubWallet>strong { display: block; font: 32px/1.4 Georgia,serif; color: #9d7841; }
-.lumaCollectionHubWallet>div { display: flex; gap: 7px; flex-wrap: wrap; margin: 9px 0; }
-.lumaCollectionHubWallet button { padding: 6px 9px; font-size: 12px; }
-.lumaCollectionHubTabs { display: flex; gap: 20px; margin: 24px 0 18px; border-bottom: 1px solid #85829826; overflow-x: auto; }
-.lumaCollectionHubTabs button { border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; white-space: nowrap; padding: 11px 2px; }
-.lumaCollectionHubTabs button[aria-current] { border-bottom-color: #897199; color: #897199; font-weight: 650; }
-.lumaCollectionHubMessage { padding: 10px 14px; border: 1px solid #a29cbe45; border-radius: 7px; background: #a29cbe10; }
-.lumaCollectionHubMessage.is-error { color: #ad4f4f; border-color: #ad4f4f40; }
-.lumaCollectionHubRule { font-size: 12px; padding: 0 0 18px; max-width: 950px; }
-.lumaCollectionHubGrid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 18px; }
-.lumaCollectionHubProduct { min-width: 0; border: 1px solid #85829826; border-radius: 13px; padding: 15px; background: var(--dsw-alias-bg-layer-1,#fff); }
-.lumaCollectionHubProduct>p { min-height: 62px; font-size: 13px; }
-.lumaCollectionHubPackArt { height: 230px; background: #faf7ef; border-radius: 10px; display: grid; place-items: center; position: relative; overflow: hidden; }
-.lumaCollectionHubPackArt img { height: 208px; max-width: 90%; object-fit: contain; filter: drop-shadow(5px 10px 10px #29243815); transform: rotate(-4deg); transition: transform .4s; }
-.lumaCollectionHubProduct:hover .lumaCollectionHubPackArt img { transform: rotate(0deg) translateY(-3px); }
-.lumaCollectionHubPackArt>span { position: absolute; bottom: 3px; right: 3px; font-size: 10px; color: #8f839d; letter-spacing: .1em; }
-.lumaCollectionHubPrice { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 13px 0 7px; }
-.lumaCollectionHubPrice strong { font-size: 16px; }
-.lumaCollectionHubPrice button { padding: 7px 10px; font-size: 12px; }
-.lumaCollectionHub details { border-top: 1px solid #85829826; margin-top: 15px; padding-top: 11px; font-size: 11px; }
-.lumaCollectionHub summary { cursor: pointer; font-size: 12px; }
-.lumaCollectionHub table { width: 100%; border-collapse: collapse; margin: 10px 0; text-align: left; font-size: 10px; }
-.lumaCollectionHub th, .lumaCollectionHub td { padding: 4px 2px; border-bottom: 1px solid #85829822; }
-.lumaCollectionHubPool { list-style: none; padding: 0; max-height: 200px; overflow: auto; }
-.lumaCollectionHubPool li { padding: 4px 0; display: flex; flex-direction: column; }
-.lumaCollectionHubSectionHeading { margin: 24px 0 20px; }
-@media (max-width: 500px) { .lumaCollectionHubSealedHeading { align-items: flex-start; flex-direction: column; gap: 8px; } }
-.lumaCollectionHubEmpty { text-align: center; padding: 50px 15px; border: 1px dashed #85829835; border-radius: 12px; }
-.lumaCollectionHubEmpty>span { font-size: 35px; color: #b2a0be; }
-.lumaCollectionHubEmpty button { margin-top: 14px; }
-.lumaLocalAlbumSkin .lumaCardLibrary, body[data-ds-dark-theme] .lumaLocalAlbumSkin .lumaCardLibrary { --cl-bg: var(--local-album-paper); --cl-panel: var(--local-album-panel); --cl-text: var(--local-album-ink); --cl-muted: var(--local-album-muted); --cl-accent: var(--local-album-accent); --cl-line: var(--local-album-line); }
-.lumaCollectionHubHistory ol { list-style: none; padding: 0; }
-.lumaCollectionHubHistory li { display: grid; grid-template-columns: 1fr 70px 100px; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid #85829826; }
-.lumaCollectionHubHistory li>div { display: flex; flex-direction: column; }
-.lumaCollectionHubHistory .lumaCollectionHubReplay { align-self: flex-start; margin-top: 5px; padding: 4px 10px; font-size: 12px; }
-.lumaCollectionHubHistory li>span { text-align: right; }
-.lumaCollectionHubHistory .is-credit { color: #67917b; }
-.lumaCollectionHubHistory li>small { text-align: right; }
-@media (max-width: 1050px) { .lumaCollectionHubGrid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
-@media (max-width: 700px) { .lumaCollectionHubHeader { flex-direction: column; align-items: stretch; gap: 15px; } .lumaCollectionHubWallet { min-width: 0; } .lumaCollectionHubTabs { gap: 13px; } }
-@media (max-width: 420px) { .lumaCollectionHubGrid { grid-template-columns: 1fr; } .lumaCollectionHubHistory li { grid-template-columns: 1fr 45px; } .lumaCollectionHubHistory li>small { grid-column: 1/-1; } }
-@media (prefers-reduced-motion: reduce) { .lumaCollectionHubPackArt img { transition: none; } }
-.lumaCollectionHubProduct .lumaPackTry { align-self:flex-start; margin:0 0 8px; border:1px solid #c4cfc4; border-radius:6px; padding:6px 12px; color:#31554b; background:#f2f6ef; font:inherit; font-size:12px; cursor:pointer; }
-
-.lumaCollectionHub .lumaCollectionHubMaterials { display:block; margin:8px 0; border:0; padding:0; }
-.lumaCollectionHub .lumaCollectionHubMaterials summary { width:fit-content; color:#536f85; padding:6px 0; font-size:12px; }
-.lumaCollectionHubMaterials p { font-size:12px; }
-.lumaCollectionHubMaterials button { margin:3px 6px 0 0; }
-.lumaCollectionHubHeader { color:#213a56; }
-.lumaCollectionHubHeader h2 { font-weight:650; letter-spacing:.015em; }
-.lumaCollectionHubWallet { border-color:#c9dcea; background:linear-gradient(125deg,#e8f2fc,#ffffff); }
-.lumaCollectionHubWallet>strong { color:#305e89; }
-.lumaCollectionHubWallet button,.lumaCollectionHubMaterials button { border-color:#c5d9e9; color:#2a5a81; background:#fff; }
-.lumaCollectionHubTabs button[aria-current] { border-bottom-color:#376d9c; color:#285a88; }
-.lumaCollectionHubProduct { border-color:#d2dfeb; box-shadow:0 8px 25px #26476608; }
-.lumaCollectionHubPackArt { background:radial-gradient(ellipse at 50% 44%,#fff,#eef3f8 74%); }
-.lumaCollectionHubPrice button:not(:disabled) { color:white; border-color:#245782; background:#2c6494; }
-.lumaCollectionHubTabs button:focus-visible,.lumaCollectionHub details summary:focus-visible { outline:2px solid #3d79ac; }
-
-.lumaPluginRoot .lumaCollectionHub .lumaCollectionHubHeader { padding-bottom:12px; border:0; gap:14px; align-items:center; }
-.lumaCollectionHubHeader h2 { margin:0; font-size:clamp(23px,2.3vw,32px); }
-.lumaCollectionHubHeader p { margin:3px 0 0; }
-.lumaPluginRoot .lumaCollectionHub .lumaCollectionHubWallet { min-width:0; display:flex; align-items:center; flex-wrap:wrap; gap:7px; padding:8px 10px; border:1px solid #cddce8; border-radius:12px; background:#ffffffd9; }
-.lumaCollectionHubWallet>span { display:inline-flex; align-items:center; gap:4px; font-size:12px; color:#4a6781; }
-.lumaCollectionHubWallet>span svg { color:#956e32; }
-.lumaPluginRoot .lumaCollectionHubWallet>strong { font:650 17px/1.2 system-ui; color:#244363; font-variant-numeric:tabular-nums; }
-.lumaCollectionHubWallet>div { margin:0 0 0 4px; gap:4px; }
-.lumaPluginRoot .lumaCollectionHub .lumaCollectionHubWallet button { padding:4px 7px; min-height:29px; font-size:11px; }
-.lumaPluginRoot .lumaCollectionHubTabs { margin:5px 0 15px; padding-bottom:6px; border-bottom-color:#cbdbe8; }
-.lumaCollectionHub>.lumaCollectionHubMessage:not(.is-error) { margin:0 0 8px; padding:0; border:0; background:none; color:#416580; font-size:12px; }
-@container (max-width:715px) {
-  .lumaPluginRoot .lumaCollectionHub .lumaCollectionHubHeader { align-items:flex-start; flex-direction:column; }
-  .lumaPluginRoot .lumaCollectionHubTabs { gap:3px; }
-  .lumaPluginRoot .lumaCollectionHubTabs button { padding-inline:8px; }
+.lumaCollectionHub, .lumaCollectionHub * { box-sizing:border-box; }
+.lumaCollectionHub {
+  --shop-ink:var(--luma-ink,#19394e); --shop-muted:var(--luma-muted,#506978);
+  --shop-line:var(--luma-line,#d6e1e6); --shop-accent:var(--luma-blue,#24688e);
+  color:var(--shop-ink); max-width:1320px; margin:0 auto; padding:clamp(12px,2.4vw,32px); font:14px/1.55 system-ui,"Microsoft YaHei UI",sans-serif;
 }
-
-@container (max-width:680px) {
-  .lumaPluginRoot .lumaCollectionHub[data-shop-tab=sealed] .lumaCollectionHubHeader { align-items:center; flex-direction:row; flex-wrap:wrap; gap:7px; padding-bottom:6px; }
-  .lumaCollectionHub[data-shop-tab=sealed] .lumaCollectionHubHeader h2 { font-size:18px; }
-  .lumaCollectionHub[data-shop-tab=sealed] .lumaCollectionHubHeader p { display:none; }
-  .lumaCollectionHub[data-shop-tab=sealed] .lumaCollectionHubMessage:not(.is-error) { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
-  .lumaPluginRoot .lumaCollectionHub[data-shop-tab=sealed] .lumaCollectionHubWallet { padding:4px 6px; }
+.lumaCollectionHub button { font:inherit; cursor:pointer; color:inherit; background:#fffefa; border:1px solid var(--shop-line); border-radius:8px; padding:6px 10px; }
+.lumaCollectionHub button:hover:enabled { background:#edf6f9; border-color:#96b8cb; }
+.lumaCollectionHub button:disabled { cursor:default; opacity:.52; }
+.lumaCollectionHub :is(button,summary,input,select):focus-visible { outline:2px solid #457e9c; outline-offset:2px; }
+.lumaCollectionHub h2,.lumaCollectionHub h3,.lumaCollectionHub p { margin:0; }
+.lumaCollectionHub h2 { font-size:clamp(22px,2.3vw,31px); font-weight:660; line-height:1.28; }
+.lumaCollectionHub h3 { font-size:17px; }
+.lumaCollectionHub p,.lumaCollectionHub small { color:var(--shop-muted); }
+.lumaCollectionHub small { font-size:12px; }
+.lumaCollectionHubHeader,.lumaShopShelfHeading,.lumaCollectionHubWallet,.lumaCollectionHubWallet>div,.lumaCollectionHubWallet>span,.lumaCollectionHubPrice,.lumaShopProductActions {
+  display:flex; align-items:center; gap:8px;
 }
+.lumaCollectionHubHeader,.lumaShopShelfHeading,.lumaCollectionHubPrice { justify-content:space-between; flex-wrap:wrap; }
+.lumaCollectionHubHeader { gap:12px; }
+.lumaPluginRoot .lumaCollectionHub .lumaCollectionHubWallet,.lumaCollectionHub .lumaCollectionHubWallet { flex-wrap:wrap; padding:6px 9px; border:1px solid var(--shop-line); background:#fffffc; border-radius:10px; }
+.lumaCollectionHubWallet>span { gap:4px; color:var(--shop-muted); font-size:12px; }
+.lumaCollectionHubWallet>span svg { color:#89672d; }
+.lumaPluginRoot .lumaCollectionHubWallet>strong,.lumaCollectionHubWallet>strong { font-size:17px; line-height:1.3; font-variant-numeric:tabular-nums; color:var(--shop-ink); }
+.lumaCollectionHubWallet>div { flex-wrap:wrap; gap:4px; }
+.lumaCollectionHub .lumaCollectionHubWallet button { padding:4px 7px; font-size:11px; }
+.lumaCollectionHub .lumaCollectionHubTabs { display:flex; align-items:center; gap:3px; padding:10px 0; margin:5px 0 14px; overflow-x:auto; scrollbar-width:thin; border-bottom:1px solid var(--shop-line); }
+.lumaPluginRoot .lumaCollectionHubTabs button,.lumaCollectionHubTabs button { display:inline-flex; align-items:center; gap:6px; padding:7px 10px; font-size:13px; background:transparent; border:1px solid transparent; white-space:nowrap; }
+.lumaPluginRoot .lumaCollectionHub .lumaCollectionHubTabs button[aria-current],.lumaCollectionHubTabs button[aria-current] { background:#e2eff5; border-color:#bfd5e1; color:#1a5478; font-weight:650; }
+.lumaCollectionHub .lumaCollectionHubMessage { margin:8px 0 0; padding:5px 8px; border-left:2px solid #73a5bc; background:#eef6f8; font-size:12px; }
+.lumaCollectionHub .lumaCollectionHubMessage.is-error { color:#90463c; background:#f9eeea; border-color:#c17461; }
+.lumaShopShelfHeading { margin:0 0 10px; }
+.lumaShopShelfHeading p,.lumaCollectionHubHistory .lumaCollectionHubSectionHeading p { margin-top:2px; font-size:12px; }
+.lumaShopShelfHeading button,.lumaShopProductActions button { display:inline-flex; align-items:center; justify-content:center; gap:5px; font-size:12px; }
+.lumaShopShelfHeading h3 small { font-weight:normal; margin-inline-start:5px; }
+.lumaCollectionHubGrid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; align-items:start; }
+.lumaCollectionHub .lumaCollectionHubProduct {
+  display:grid; grid-template-columns:minmax(105px,.7fr) minmax(0,1fr); overflow:hidden; min-width:0; border:1px solid var(--shop-line);
+  border-radius:14px; background:#fffefa; box-shadow:0 2px 6px #233f4908;
+}
+.lumaCollectionHubPackArt {
+  display:grid; place-items:center; min-height:166px; position:relative; overflow:hidden;
+  background:radial-gradient(ellipse at 52% 37%,#fffdf6,#e8eeee 75%);
+}
+.lumaCollectionHubProduct[data-pack-id=dawn-prelude] .lumaCollectionHubPackArt { background:radial-gradient(ellipse at 52% 37%,#fffbf4,#efe6dc); }
+.lumaCollectionHubProduct[data-pack-id=blue-rose-echo] .lumaCollectionHubPackArt { background:radial-gradient(ellipse at 52% 37%,#f5fbff,#dce8ed); }
+.lumaCollectionHubProduct[data-pack-id=moon-collection] .lumaCollectionHubPackArt { background:radial-gradient(ellipse at 52% 37%,#faf9ff,#e2e2eb); }
+.lumaCollectionHubPackArt img { width:75%; height:clamp(135px,18vh,192px); object-fit:contain; filter:drop-shadow(4px 8px 6px #183b4c32); transform:rotate(-4deg); transition:transform .25s; }
+.lumaCollectionHubProduct:hover .lumaCollectionHubPackArt img { transform:rotate(-1deg) translateY(-2px); }
+.lumaShopProductCopy { display:flex; flex-direction:column; align-items:stretch; justify-content:space-between; gap:9px; min-width:0; padding:clamp(10px,1.5vw,19px); }
+.lumaShopProductCopy>div>small { color:var(--shop-muted); font-size:11px; }
+.lumaCollectionHub .lumaShopProductCopy h3 { margin:2px 0 4px; font-size:18px; line-height:1.35; }
+.lumaCollectionHub .lumaShopProductCopy p { font-size:12px; line-height:1.65; }
+.lumaCollectionHubPrice { margin-top:auto; gap:3px 7px; font-variant-numeric:tabular-nums; }
+.lumaCollectionHubPrice strong { font-size:18px; line-height:1.3; }
+.lumaCollectionHubPrice strong small { font-size:11px; font-weight:500; }
+.lumaShopProductActions { gap:5px; flex-wrap:wrap; }
+.lumaCollectionHub .lumaShopProductActions button { min-height:32px; padding:5px 8px; font-size:12px; }
+.lumaPluginRoot .lumaCollectionHub .lumaShopProductActions .lumaShopPurchase,.lumaCollectionHub .lumaShopProductActions .lumaShopPurchase { color:white; background:var(--shop-accent); border-color:var(--shop-accent); font-weight:600; }
+.lumaCollectionHubProduct details { grid-column:1/-1; padding:0 11px; border-top:1px solid var(--shop-line); }
+.lumaCollectionHubProduct summary { width:fit-content; padding:7px 0; cursor:pointer; color:var(--shop-muted); font-size:12px; }
+.lumaCollectionHubProduct details p { margin:3px 0; font-size:12px; }
+.lumaShopOdds { display:grid; grid-template-columns:repeat(auto-fit,minmax(68px,1fr)); gap:8px; margin:4px 0 9px; }
+.lumaShopOdds>div { display:grid; gap:1px; font-size:12px; font-variant-numeric:tabular-nums; }
+.lumaShopOdds span { color:var(--shop-muted); }
+.lumaShopOdds i { display:block; height:4px; border-radius:3px; background:#e3e9ed; }
+.lumaShopOdds i i { background:#537e90; }
+.lumaShopOdds [data-rarity=R] i i { background:#418783; }
+.lumaShopOdds [data-rarity=SR] i i { background:#897099; }
+.lumaShopOdds [data-rarity=SSR] i i { background:#ac8441; }
+.lumaCollectionHubPool { list-style:none; max-height:230px; overflow:auto; padding:0; margin:8px 0; font-variant-numeric:tabular-nums; }
+.lumaCollectionHubPool li { display:grid; grid-template-columns:2.3em 1fr auto; align-items:center; gap:7px; border-top:1px solid var(--shop-line); padding:5px 2px; font-size:12px; }
+.lumaCollectionHubPool li>b { font-weight:600; color:var(--shop-muted); }
+.lumaCollectionHubPool li>span:last-child { text-align:right; }
+.lumaCollectionHubPool small { display:block; font-size:11px; }
+.lumaCollectionHubHistory { border:1px solid var(--shop-line); border-radius:13px; background:#fffefa; overflow:hidden; }
+.lumaCollectionHubHistory .lumaCollectionHubSectionHeading { padding:14px 17px; border-bottom:1px solid var(--shop-line); }
+.lumaCollectionHubHistory ol { padding:0; margin:0; list-style:none; }
+.lumaCollectionHubHistory li { display:grid; grid-template-columns:1fr auto minmax(65px,90px); align-items:center; gap:10px; padding:10px 17px; border-bottom:1px solid var(--shop-line); font-variant-numeric:tabular-nums; }
+.lumaCollectionHubHistory li>div { display:grid; gap:2px; }
+.lumaCollectionHubHistory li>span,.lumaCollectionHubHistory li>small { text-align:right; }
+.lumaCollectionHubHistory .is-credit { color:#24695e; }
+.lumaCollectionHubHistory .lumaCollectionHubReplay { width:fit-content; font-size:11px; padding:3px 7px; }
+.lumaCollectionHubHistory>button,.lumaCollectionHubHistory .lumaCollectionHubEmpty { margin:12px; }
+.lumaLocalAlbumSkin .lumaCardLibrary,body[data-ds-dark-theme] .lumaLocalAlbumSkin .lumaCardLibrary { --cl-bg:var(--local-album-paper); --cl-panel:var(--local-album-panel); --cl-text:var(--local-album-ink); --cl-muted:var(--local-album-muted); --cl-accent:var(--local-album-accent); --cl-line:var(--local-album-line); }
+@container luma-panel (max-width:860px) { .lumaCollectionHubGrid { grid-template-columns:1fr; } .lumaCollectionHubPackArt { min-height:145px; } }
+@container luma-panel (max-width:470px) {
+  .lumaCollectionHub { padding:10px; }
+  .lumaPluginRoot .lumaCollectionHubTabs button { padding:5px 7px; gap:4px; font-size:12px; }
+  .lumaCollectionHub .lumaCollectionHubTabs { margin:3px 0 9px; padding:6px 0; }
+  .lumaCollectionHubProduct { grid-template-columns:minmax(87px,.57fr) minmax(0,1fr); }
+  .lumaCollectionHubHeader { gap:6px; }
+  .lumaCollectionHub .lumaCollectionHubWallet { padding:4px 6px; }
+  .lumaShopShelfHeading p { font-size:11px; }
+}
+@media (prefers-reduced-motion:reduce) { .lumaCollectionHubPackArt img { transition:none; } }

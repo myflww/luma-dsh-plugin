@@ -1,5 +1,6 @@
 import { OFFICE_OUTFIT_CHOICES } from './office-theme-catalog.ts'
 import { EmployeeFigure, type ResidentId } from './OfficeBedroom.tsx'
+import { Check, Shirt } from 'lucide-react'
 
 export function OfficeWardrobe({ id, selected, disabled, unlockedEmployeeIds, onSelect, onEquip, onClose }: {
   id: ResidentId; selected: string | undefined; disabled: boolean
@@ -19,10 +20,13 @@ export function OfficeWardrobe({ id, selected, disabled, unlockedEmployeeIds, on
       </select></label>
       {onClose && <button type="button" onClick={onClose}>收起衣橱</button>}
     </div>
-    <div className="lumaOfficeWardrobeChoices">{choices.map(item=><button type="button" key={item.skin ?? 'original'}
+    <div className="lumaFittingRoom">
+      <figure><EmployeeFigure id={id} skinId={current}/><figcaption>{owner.name}</figcaption></figure>
+      <div className="lumaFittingChoices">{choices.map(item=><button type="button" key={item.skin ?? 'original'}
       aria-label={owner.name+' · '+item.title} aria-pressed={current===item.skin}
       disabled={disabled || current===item.skin || Boolean(item.skin && !owner.available)} onClick={()=>onEquip(item.skin ?? null)}>
-      <EmployeeFigure id={id} skinId={item.skin}/><strong>{item.title}</strong><small>{current===item.skin?'使用中':'换上'}</small>
-    </button>)}</div>
+      {current===item.skin?<Check size={16} aria-hidden="true"/>:<Shirt size={16} aria-hidden="true"/>}
+      <span><strong>{item.title}</strong><small>{current===item.skin?'已穿戴':item.skin && !owner.available?'暂不可用':'换上'}</small></span>
+    </button>)}</div></div>
   </section>
 }

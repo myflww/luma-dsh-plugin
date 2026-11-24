@@ -2,6 +2,7 @@ import { fireEvent, render, screen, cleanup, waitFor } from '@testing-library/re
 import { afterEach, it, expect, vi } from 'vitest'
 import { CompanionPresence, CompanionSettingsPanel } from '../src/client/CompanionPresence.tsx'
 import { AgentMemoryPanel } from '../src/client/AgentDeskPanels.tsx'
+import { RolePortraitPanel } from '../src/client/RolePortraitPanel.tsx'
 import { agentRequest } from '../src/client/agent-desk-api.ts'
 import { defaultCompanionSettings } from '../src/shared/companion-life.ts'
 vi.mock('../src/client/agent-desk-api.ts',()=>({agentRequest:vi.fn()}))
@@ -46,8 +47,36 @@ it('shows which employee learned a preference and withdraws only the matching cu
   vi.mocked(agentRequest).mockImplementation(async(action)=>action==='memory' ? {entries:[],styles:[item]} : {styles:[]})
   render(<AgentMemoryPanel roleId="jingyuniang" name="鲸鱼娘" canWrite count={1} refresh={async()=>{}} close={()=>{}} house={undefined}/>)
   expect(await screen.findByText(item.value)).toBeTruthy()
+  expect(await screen.findByText(/当前员工服务未提供有效的角色画像/)).toBeTruthy()
   fireEvent.click(screen.getByRole('button',{name:'撤回称呼'}))
   await screen.findByText('已撤回这条相处习惯，原对话可继续查看。')
   expect(screen.queryByText(item.value)).toBeNull()
   expect(agentRequest).toHaveBeenCalledWith('forgetstyle',{roleId:'jingyuniang',key:'address',value:item.value},expect.anything())
+})
+
+it('edits a dated portrait, confirms removal and sends the matching role and current revision',async()=>{
+  const roleId='jingyuniang'
+  const item={id:'row1',scope:'private',text:'我的默认格式是蓝纸。',evidence:'我的默认格式是蓝纸。',kind:'stated',source:'work',revision:1,updatedAt:Date.now(),count:1}
+  let data={automatic:true,modelReview:false,modelAvailable:false,scopeNames:{},items:[item]}
+  vi.mocked(agentRequest).mockImplementation(async(action,body)=>{
+    if(action==='portraitedit') {
+      expect(body).toEqual({roleId,id:'row1',text:'我的默认格式是白纸。',revision:1})
+      data={...data,items:[{...item,text:'我的默认格式是白纸。',kind:'corrected',evidence:'',revision:2}]}
+    } else if(action==='portraitforget') {
+      expect(body).toEqual({roleId,id:'row1',revision:2})
+      data={...data,items:[]}
+    }
+    return data
+  })
+  render(<RolePortraitPanel roleId={roleId} name="鲸鱼娘" canWrite/>)
+  await screen.findByText(item.text)
+  fireEvent.click(screen.getByRole('button',{name:'更正'}))
+  fireEvent.change(screen.getByRole('textbox',{name:'更正内容'}),{target:{value:'我的默认格式是白纸。'}})
+  fireEvent.click(screen.getByRole('button',{name:'保存更正'}))
+  await screen.findByText('我的默认格式是白纸。')
+  fireEvent.click(screen.getByRole('button',{name:'移除'}))
+  expect(screen.getByText('我的默认格式是白纸。')).toBeTruthy()
+  fireEvent.click(screen.getByRole('button',{name:'确认移除'}))
+  await screen.findByText('已从画像移除。')
+  expect(screen.queryByText('我的默认格式是白纸。')).toBeNull()
 })

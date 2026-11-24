@@ -2,6 +2,8 @@ import { useId, useMemo } from 'react'
 import type { Point, ResidentId } from './bedroom-routine.ts'
 import { getEmployeeCatalogWithSkin, getEmployeeTypingProfileWithSkin, getEmployeeSkinPack, getBrowserOfficeDefaultSkinId } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/employeeSkins.ts'
 import { getOfficeAsset, officeFrameRect, resolveOfficeAssetUrl } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/assets.ts'
+import { deskFrameRegistration } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/deskFrameRegistration.ts'
+import { seatedFigureScale } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/officeFigureScale.ts'
 import standardPhone from '../../art/bedroom-poses/phone-standard.webp'
 import outfitPhone from '../../art/bedroom-poses/phone-outfit.webp'
 
@@ -21,17 +23,19 @@ const outfit: readonly PhoneFrame[] = [
 const blend = (a:number,b:number,t:number) => a+(b-a)*t
 
 export function BedroomPhonePose({id,skinId,room,approach,reclined,animate}: {
-  id:ResidentId; skinId?:string|undefined; room:Geometry; approach:Point; reclined:number; animate:boolean
+  id:ResidentId; skinId?:string|undefined; room:Pick<Geometry,'head'|'feet'>; approach:Point; reclined:number; animate:boolean
 }) {
-  const filterId=useId(), cell=phoneRoles.indexOf(id), alt=!!skinId
-  const [head,feet,handset]=(alt?outfit:standard)[cell]!
+  const filterId=useId(), cell=phoneRoles.indexOf(id)
+  const outfitPack=getEmployeeSkinPack(id,skinId ?? getBrowserOfficeDefaultSkinId(id))
+  const [head,feet,handset]=(outfitPack?outfit:standard)[cell]!
   const tx=room.feet[0]-room.head[0], ty=room.feet[1]-room.head[1]
   const dx=feet[0]-head[0],dy=feet[1]-head[1],mirror=Math.sign(dx)===Math.sign(tx)?1:-1
-  const footX=blend(approach[0],room.feet[0],reclined),footY=blend(approach[1]-6,room.feet[1],reclined)
   const headX=blend(approach[0]-Math.sign(tx)*20,room.head[0],reclined)
   const headY=blend(approach[1]-129,room.head[1],reclined)
-  const scale=Math.hypot(footX-headX,footY-headY)/Math.hypot(dx,dy)
-  const angle=(Math.atan2(footY-headY,footX-headX)-Math.atan2(dy,dx*mirror))*180/Math.PI
+  const length=blend(Math.hypot(20,123),Math.hypot(tx,ty),reclined)
+  const tilt=blend(Math.atan2(123,Math.sign(tx)*20),Math.atan2(ty,tx),reclined)
+  const scale=length/Math.hypot(dx,dy)
+  const angle=(tilt-Math.atan2(dy,dx*mirror))*180/Math.PI
   // A local displacement follows the painted hands and phone; the pillow and shoes stay still.
   const motionMap=useMemo(()=> 'data:image/svg+xml,'+encodeURIComponent(
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240"><defs><radialGradient id="w"><stop offset="0" stop-color="#f53980"/><stop offset=".5" stop-color="#dc5580"/><stop offset="1" stop-color="#808080"/></radialGradient></defs><rect width="240" height="240" fill="#808080"/><ellipse cx="${handset[0]}" cy="${handset[1]}" rx="30" ry="35" fill="url(#w)"/></svg>`),[handset])
@@ -44,7 +48,7 @@ export function BedroomPhonePose({id,skinId,room,approach,reclined,animate}: {
         </feDisplacementMap>
       </filter></defs>}
       <g filter={animate?`url(#${filterId})`:undefined}>
-        <image href={alt?outfitPhone:standardPhone} x={-240*(cell%4)} y={-240*Math.floor(cell/4)} width="960" height="480"/>
+        <image href={outfitPack?outfitPhone:standardPhone} x={-240*(cell%4)} y={-240*Math.floor(cell/4)} width="960" height="480"/>
       </g>
     </svg>
   </g>
@@ -83,6 +87,11 @@ const deskSketch: Record<ResidentId, string> = {
   gemini: 'M28 35l12-15 14 5 13-12 17 8M39 20l4 15 11-10m14-12 2 12',
   grok: 'M28 15h53v25H28zM39 15v14h11v11m0-25v7h12v11h9m0-18v8h10m-53 11h11',
 }
+export function bedroomMonitorCenter(room: ResidentId | 'classic'): Point {
+  const [,right,bottom] = screens[room]
+  return [(right[0]+bottom[0])/2,(right[1]+bottom[1])/2]
+}
+
 function DeskScreen({id,surface,tint,elapsed}: {id:ResidentId;surface:Screen;tint:string;elapsed:number}) {
   const [[x,y],right,bottom]=surface
   const matrix=[(right[0]-x)/100,(right[1]-y)/100,(bottom[0]-x)/56,(bottom[1]-y)/56,x,y]
@@ -125,15 +134,16 @@ export function BedroomDeskPose({id,skinId,roomId,room,background,approach,seate
   const sourcePoint=(p:{x:number;y:number}):Point=>[p.x*strip.frameWidth,p.y*strip.frameHeight]
   const [hip,hand]=anatomy?[sourcePoint(anatomy.hip),sourcePoint(anatomy.hand)]:baseContacts[id]!
   const keyboard=keys[roomId]
-  const armX=hand[0]-hip[0], armY=hand[1]-hip[1]
-  const contactScale=((keyboard[0]-chair.seat[0])*armX+(keyboard[1]-chair.seat[1])*armY)/(armX*armX+armY*armY)
   const sourceHeight=variant?variant.typingProfiles[facing].visibleRect.height*strip.frameHeight:basePixels[id]!
-  const scale=blend(158,Math.max(170,Math.min(235,contactScale*sourceHeight)),seated)/sourceHeight
+  // Use the approaching figure's scale. Different arm lengths should move a
+  // resident's chair contact, never enlarge her entire body at the keyboard.
+  const seatedScale=seatedFigureScale(asset.sha256,approach[1],145/sourceHeight)
+  const scale=blend(seatedScale/.91,seatedScale,seated)
   // Typing comes in short bursts, with a held pose while the employee reads the monitor.
   const beat=elapsed%(4200+phoneRoles.indexOf(id)*137)
   const frame=animate && beat<2750 ? Math.floor(beat/(191+phoneRoles.indexOf(id)*6))%strip.frameCount : rig.reducedMotionFrame
   const rect=officeFrameRect(strip,frame)
-  const shift=variant?outfitRegistration[id][frame]!:[rig.frameX[frame]??0,0] as const
+  const shift=deskFrameRegistration(asset.sha256,frame) ?? (variant?outfitRegistration[id][frame]!:[rig.frameX[frame]??0,0] as const)
   const x=blend(approach[0]-hip[0]*scale,keyboard[0]-hand[0]*scale,seated)+shift[0]*scale
   const y=blend(approach[1]-41-hip[1]*scale,keyboard[1]-hand[1]*scale,seated)+shift[1]*scale
   const width=strip.frameWidth*scale,height=strip.frameHeight*scale

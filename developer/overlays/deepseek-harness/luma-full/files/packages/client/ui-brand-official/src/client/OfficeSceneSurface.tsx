@@ -61,6 +61,7 @@ import { OFFICE_SEAT_BOXES, type OfficeActorBinding } from './officeSceneSeatTar
 import { useOfficeAmbientViewportEligibility } from './useOfficeAmbientViewportEligibility.ts'
 import { hitOfficeActorAtPoint } from './officeActorHitTest.ts'
 import { useOfficeSceneInteractions } from './useOfficeSceneInteractions.ts'
+import { OfficeSeatFeedback, useOfficeSeatFeedback } from './OfficeSeatFeedback.tsx'
 export type { ActorMode, ActorRuntime, OfficeSceneEmployee, OfficeSceneReport, OfficeSceneSurfaceProps, Point } from './OfficeSceneSurface.types.ts'
 export { advanceOfficeActorTrafficFrame, applyOfficeAutonomyDecision, canRenderOfficeActorOverlay, prepareActorRuntime, resolvePresentOfficeEmployeeIds, resolveVisibleOfficeMonitorIds } from './officeSceneActorRuntime.ts'
 export type { OfficeActorTrafficFrameInput, OfficeActorTrafficFrameResult } from './officeSceneActorRuntime.ts'
@@ -90,7 +91,7 @@ function ClassicOfficeSceneSurface({
   reports,
   commands = [],
   onSceneEvent,
-  onCharacterClick,
+  onCharacterClick, paperPlanePick,
   employeeDestination,
   onReportClick,
   onBindWorkstation, onDesktopPet,
@@ -349,10 +350,11 @@ function ClassicOfficeSceneSurface({
     return () => { if (frameId !== null) cancelSceneFrame(frameId) }
   }, [emitSceneEvent, seatReview])
 
+  const seatFeedback=useOfficeSeatFeedback(employees,onBindWorkstation,officeTheme,presentationActive)
   const { seatDrag, actorDragRef, clearPendingActorTap, handleActorClick, startActorDrag,
     moveActorDrag, finishActorDrag, startPan, movePan, finishPan, onKeyDown } = useOfficeSceneInteractions({
       canvasRef, scrollerRef, actorRef, setActors, officeBindingsRef, presentationActive,
-      closeActionMenu, onCharacterClick, onBindWorkstation, onDesktopPet, employeeDestination,
+      closeActionMenu, onCharacterClick, paperPlanePick, onBindWorkstation:seatFeedback.bind, onFloorDrop:seatFeedback.floor, onDesktopPet, employeeDestination,
     })
 
   const visibleMonitorIds = seatReview
@@ -562,7 +564,7 @@ function ClassicOfficeSceneSurface({
                 data-manual-action={manual?.id}
                 data-scene-activity={autonomyActivity}
                 {...actor.activeCommandId === null ? {} : { 'data-scene-command-id': actor.activeCommandId }}
-                {...officeEmployeeAction(employee.name, employeeDestination, employee.canDrag && !manual)}
+                {...officeEmployeeAction(employee.name, employeeDestination, employee.canDrag && !manual, !!paperPlanePick)}
                 style={{
                   left: `${actor.position.x / OFFICE_NAV_WIDTH * 100}%`,
                   top: `${actor.position.y / OFFICE_NAV_HEIGHT * 100}%`,
@@ -612,6 +614,7 @@ function ClassicOfficeSceneSurface({
               key={`seated:${employee.id}:${actor.targetWorkstationId}`}
               employee={employee}
               employeeDestination={employeeDestination}
+              paperPlane={!!paperPlanePick}
               skinId={employeeSkins[employee.id]}
               workstationId={actor.targetWorkstationId}
               {...executing ? { command: executing } : {}}
@@ -673,6 +676,7 @@ function ClassicOfficeSceneSurface({
           })}
         </div>
       </div>
+      {employeeDestination==='contact' && <OfficeSeatFeedback roster={employees} preview={seatDrag} receipt={seatFeedback.receipt}/>}
       {actionTarget && <OfficeActionMenu target={actionTarget} skinId={employeeSkins[actionTarget.employeeId]} onClose={closeActionMenu}
         contact={employeeDestination==='contact'?{activity:employees.find(e=>e.id===actionTarget.employeeId)?.activity,open:()=>onCharacterClick?.(actionTarget.employeeId)}:undefined}
         onRestore={() => restoreAutomatic(actionTarget.employeeId)} onAction={(id, mode) => {

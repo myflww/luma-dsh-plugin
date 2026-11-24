@@ -2,14 +2,21 @@ import { OFFICE_SILHOUETTES } from './officeSilhouettes.generated.ts'
 
 type Point = readonly [number, number]
 
+export function officeFigureCenter(size:Point, sourceSha:string|undefined):Point {
+  const measured=sourceSha && OFFICE_SILHOUETTES[sourceSha]
+  const height=measured?measured[0]:size[1]*.8
+  const foot=measured?measured[1]:size[1]*.91
+  return [size[0]/2,foot-height*.57]
+}
+
 /** An upper-body target anchored to the measured silhouette inside its padded frame. */
 export function officeBodyHit(local: Point, size: Point, sourceSha: string | undefined, margin: number) {
   const measured = sourceSha && OFFICE_SILHOUETTES[sourceSha]
   const height = measured ? measured[0] : size[1] * .8
-  const foot = measured ? measured[1] : size[1] * .91
+  const center = officeFigureCenter(size, sourceSha)
   const rx = Math.min(size[0] * .36, height * .23) + margin
   const ry = height * .43 + margin
-  return ((local[0] - size[0] / 2) / rx) ** 2 + ((local[1] - (foot - height * .57)) / ry) ** 2 <= 1
+  return ((local[0] - center[0]) / rx) ** 2 + ((local[1] - center[1]) / ry) ** 2 <= 1
 }
 
 /** Both office renderers use the same silhouette size at a given floor depth. */

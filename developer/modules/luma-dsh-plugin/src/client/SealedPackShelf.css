@@ -1,5 +1,12 @@
 .lumaPouchStudio { --pouch-glow:#c5dcf4; --pouch-deep:#87a7cc; --pouch-tint:#f0f7fd; width:100%; position:relative; isolation:isolate; overflow:hidden; display:grid; grid-template-columns:1.1fr minmax(265px,.9fr); align-items:center; min-height:clamp(390px,58vh,690px); border:1px solid #cbddea; border-radius:24px; background:linear-gradient(116deg,var(--pouch-tint),#fafcfe 71%,#f0f5fa); box-shadow:0 16px 44px #274c7c0b; }
 .lumaPouchStudio[data-pack="dawn-prelude"] { --pouch-glow:#e4d2e7; --pouch-deep:#b99fba; --pouch-tint:#fbf3f9; }
+.lumaCollectionHub .lumaPouchStudio { min-height:clamp(265px,42vh,465px); border-radius:15px; }
+.lumaPouchShelfIndex { grid-column:1/-1; display:flex; gap:6px; overflow-x:auto; min-width:0; padding:8px 10px; border-bottom:1px solid #cfdee6; background:#fffffbe8; scrollbar-width:thin; }
+.lumaCollectionHub .lumaPouchShelfIndex button { display:flex; align-items:center; gap:6px; flex:none; padding:4px 8px; border-radius:7px; text-align:left; white-space:nowrap; font-size:12px; }
+.lumaPouchShelfIndex button span { display:grid; }
+.lumaCollectionHub .lumaPouchShelfIndex button small { font-size:10px; }
+.lumaPouchShelfIndex button img { width:23px; height:32px; object-fit:contain; }
+.lumaPluginRoot .lumaPouchShelfIndex button[aria-pressed=true],.lumaCollectionHub .lumaPouchShelfIndex button[aria-pressed=true] { background:#e5f1f6; color:#225777; border-color:#9fbfce; }
 .lumaPouchStudio[data-pack="blue-rose-echo"] { --pouch-glow:#b7cede; --pouch-deep:#7093b2; --pouch-tint:#eaf1f8; }
 .lumaPouchStudio[data-pack="moon-collection"] { --pouch-glow:#d6cee9; --pouch-deep:#9e92bf; --pouch-tint:#f2effa; }
 .lumaPouchExhibit { position:relative; isolation:isolate; display:grid; place-items:center; align-self:stretch; min-width:0; min-height:300px; overflow:hidden; background:radial-gradient(ellipse at 50% 52%,var(--pouch-glow),transparent 62%); }

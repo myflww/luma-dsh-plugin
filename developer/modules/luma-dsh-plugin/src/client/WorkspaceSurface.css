@@ -21,6 +21,11 @@
 .lumaSheetHeader > strong { font-size:15px; font-weight:650; letter-spacing:.04em; }
 .lumaSheetHeader .lumaSceneLaunchers { box-shadow:none; border-color:#cfdeeb; background:white; }
 .lumaSheetHeader .lumaSceneNavigation { z-index:20; }
+.lumaWorkspace.is-messages > .lumaSheetHeader { gap: 12px; padding: 5px clamp(10px, 1.3vw, 20px); background: #f7fafc; border-color: #e2e8ed; }
+.lumaWorkspace.is-messages .lumaSheetHeader .lumaSceneLaunchers { gap: 2px; padding: 0; border-color: transparent; background: transparent; box-shadow: none; }
+.lumaWorkspace.is-messages .lumaSheetHeader > strong { padding-left: 12px; border-left: 1px solid #d5dfe8; color: #50677c; font-size: 13px; }
+.lumaWorkspace.is-messages .lumaBackToScene { padding: 6px 10px; border-color: transparent; background: transparent; color: #395d7c; }
+.lumaWorkspace.is-messages .lumaBackToScene:hover { background: #e7eff6; }
 .lumaSceneNavigation [aria-current=page] { color:#164b8f; background:#e6f1fc; }
 .lumaBackToScene { display:inline-flex; align-items:center; gap:7px; margin-left:auto; padding:8px 12px; border:1px solid #c5d7e9;
   border-radius:20px; color:#254a72; background:white; font:inherit; font-size:13px; cursor:pointer; white-space:nowrap; }

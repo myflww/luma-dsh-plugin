@@ -6,6 +6,8 @@ import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
 import { LocalCollectionStore } from '../src/client/local-collection-store.ts'
 import { LOCAL_PACKS, validateLocalCollectionSettings, type LocalCollectionSettings } from '../src/shared/local-collection-domain.ts'
 import { OPENABLE_PACK_SKINS } from '../src/shared/pack-skin-catalog.ts'
+import { LEGACY_PREVIEW_CARDS, PREVIEW_CARD_CATALOG } from '../src/shared/preview-card-catalog.ts'
+import { getPackCard, getPackOdds, getPackPool } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/economy/domain/cardPacks.ts'
 
 afterEach(cleanup)
 function fixture(initialValue: LocalCollectionSettings = {}, writable = true) {
@@ -28,6 +30,26 @@ function fixture(initialValue: LocalCollectionSettings = {}, writable = true) {
 }
 
 describe('local collection product flow', () => {
+  it('persists notes and album membership for granted historical editions after reopening the store', async () => {
+    const card = LEGACY_PREVIEW_CARDS[0]!
+    const saved:Record<string,unknown> = {}
+    let revision = 0
+    const scope = {
+      getSnapshot: () => ({status:'ready', mode:'host', writable:true, revision, value:saved}),
+      subscribe: () => () => {},
+      set:async (field:string,entry:unknown) => { saved[field]=entry;revision++ },
+    }
+    const open = () => createCardsPageRuntime({settingsScope:{bind:()=>scope}} as unknown as ClientContext)
+    const initial = open()
+    expect((await initial.store.setNote(card.key,'保留原作构图')).status).toBe('saved')
+    expect((await initial.store.saveAlbum({id:'history',name:'历史原作',versionKeys:[card.key]})).status).toBe('saved')
+    initial.dispose()
+    const restored = open().store
+    expect(restored.getSnapshot().preferences[card.key]?.note).toBe('保留原作构图')
+    expect(restored.getSnapshot().albums[0]?.versionKeys).toEqual([card.key])
+    restored.dispose()
+  })
+
   it('starts on an empty personal album, reveals no unearned fronts, and reopens only saved acquisitions', async () => {
     const collection = fixture()
     const annotations = createCardsPageRuntime({settingsScope:{bind: () => ({
@@ -40,7 +62,8 @@ describe('local collection product flow', () => {
     expect(screen.getByRole('heading',{name:'翻开你的第一张卡'})).toBeTruthy()
     fireEvent.click(screen.getByRole('button',{name:'卡池图鉴'}))
     expect(view.container.querySelectorAll('[data-discovered=true]')).toHaveLength(0)
-    expect(view.container.querySelector('.lumaGuideSlots img')).toBeNull()
+    const fronts = new Set(PREVIEW_CARD_CATALOG.map(card => card.frontUrl))
+    expect([...view.container.querySelectorAll('.lumaGuideSlots img')].some(img => fronts.has(img.getAttribute('src')!))).toBe(false)
     expect(collection.writes()).toBe(0)
     view.unmount()
     await collection.store.claimWelcome()
@@ -55,6 +78,34 @@ describe('local collection product flow', () => {
     expect(fresh.store.getSnapshot().unlockedEmployeeIds).toEqual(['jingyuniang'])
     reopened.unmount(); fresh.dispose(); restored.dispose(); collection.dispose(); annotations.dispose()
   })
+  it('filters across pools and returns from a discovered card to the same query', async () => {
+    const collection = fixture()
+    await collection.store.claimWelcome()
+    await collection.store.buyPack('dawn-prelude')
+    await collection.store.openPack(collection.store.getSnapshot().packs[0]!.id)
+    const acquired = collection.store.getSnapshot().cards[0]!
+    const initialWrites = collection.writes()
+    const annotations = createCardsPageRuntime({settingsScope:{bind: () => ({
+      getSnapshot: () => ({status:'ready', mode:'host', writable:true, revision:0, value:{}}),
+      subscribe: () => () => {}, set:async () => {},
+    })}} as unknown as ClientContext)
+    const view = render(<CardsPage runtime={annotations} collection={collection} initialView="catalog" onOpenShop={()=>{}}/>)
+    fireEvent.change(screen.getByRole('searchbox',{name:'搜索卡池版本'}),{target:{value:acquired.versionKey}})
+    fireEvent.change(screen.getByLabelText('筛选点亮状态'),{target:{value:'held'}})
+    fireEvent.change(screen.getByLabelText('筛选卡池稀有度'),{target:{value:acquired.rarity}})
+    expect(view.container.querySelectorAll('.lumaGuideSlots li')).toHaveLength(1)
+    expect(screen.getByText('持有 1 张')).toBeTruthy()
+    const art = getPackCard(acquired.versionKey)!
+    fireEvent.click(screen.getByRole('button',{name:'查看'+art.name+' · '+art.versionLabel}))
+    const detail=screen.getByRole('dialog',{name:art.name+'详情'})
+    fireEvent.click(within(detail).getByRole('button',{name:'关闭卡片详情'}))
+    expect((screen.getByRole('searchbox',{name:'搜索卡池版本'}) as HTMLInputElement).value).toBe(acquired.versionKey)
+    fireEvent.change(screen.getByLabelText('筛选点亮状态'),{target:{value:'unseen'}})
+    expect(view.container.querySelectorAll('.lumaGuideSlots li')).toHaveLength(0)
+    expect(collection.writes()).toBe(initialWrites)
+    view.unmount(); annotations.dispose(); collection.dispose()
+  })
+
   it('replays a specific saved opening after reload, including with a read-only connection', async () => {
     const original = fixture()
     await original.store.claimWelcome()
@@ -144,11 +195,31 @@ describe('local collection product flow', () => {
       const skin = OPENABLE_PACK_SKINS.find(row => row.packId === pack.id)!
       expect(screen.getByAltText(`${pack.name}卡包`).getAttribute('src')).toBe(skin.openingArtworkUrl ?? skin.artworkUrl)
     }
-    const previews = screen.getByText('试拆与美术预览').closest('details')!
-    expect(previews.open).toBe(false)
-    fireEvent.click(within(previews).getByText('试拆与美术预览'))
-    expect(within(previews).getByText(/样卡不会计入卡册/)).toBeTruthy()
+    const lists = document.querySelectorAll('.lumaCollectionHubPool')
+    const keys = [...lists].flatMap(list => [...list.children].map(li => li.getAttribute('data-edition-key')))
+    const available = LOCAL_PACKS.flatMap(pack => getPackPool(pack.id))
+    expect(keys.sort()).toEqual(available.filter(card => card.edition === 'standard').map(card => card.key).sort())
+    fireEvent.click(screen.getAllByRole('button',{name:/免费试拆/})[0]!)
+    expect(screen.getByRole('dialog')).toBeTruthy()
     expect(runtime.store.getSnapshot().cards).toEqual([])
+    expect(runtime.writes()).toBe(0)
+    runtime.dispose()
+  })
+
+  it('reveals the acquired exact errata in its own sale pool at its real per-card odds', () => {
+    const packId = 'blue-rose-echo'
+    const pool = getPackPool(packId)
+    const found = pool.find(card => card.edition === 'errata')!
+    const runtime = fixture({state:{schemaVersion:1, events:[
+      {type:'local-profile-grant',id:'grant-errata',at:1,versionKeys:[found.key],employeeIds:[]},
+    ]}})
+    const view = render(<CollectionHub runtime={runtime}/>)
+    const listed = [...view.container.querySelectorAll<HTMLElement>('.lumaCollectionHubPool li')]
+    const row = listed.find(node => node.dataset.editionKey === found.key)!
+    expect(row.closest('article')?.dataset.packId).toBe(packId)
+    const chance = getPackOdds(packId)[0]!.editionChannels!.find(c => c.edition === 'errata')!.rarities.find(t => t.rarity === found.rarity)!.perCardProbability
+    expect(row.textContent).toContain((chance*100).toLocaleString('zh-CN',{maximumFractionDigits:3})+'%')
+    expect(listed.some(node => pool.some(c => c.edition === 'errata' && c.key !== found.key && c.key === node.dataset.editionKey))).toBe(false)
     runtime.dispose()
   })
 

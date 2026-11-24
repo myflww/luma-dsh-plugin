@@ -4,6 +4,7 @@ import type { DatabaseSync } from 'node:sqlite'
 import { LOCAL_COLLECTION_SETTINGS_NAMESPACE as namespace } from '../src/local-collection-settings.ts'
 import { CHARACTER_NAMES, projectLocalCollectionSettings, type CharacterId, type LocalCollectionEvent, type LocalCollectionSettings } from '../src/shared/local-collection-domain.ts'
 import type { EmployeeUsage } from '../src/host/employee-usage.ts'
+import { verifyLocalGrantReceipts } from './local-profile-grant.ts'
 
 /** All reads, authority checks, receipts and the versioned wallet write share one SQLite transaction. */
 export function createCollectionWallet(db: DatabaseSync, usage: Pick<EmployeeUsage, 'snapshot'>) {
@@ -42,12 +43,13 @@ export function createCollectionWallet(db: DatabaseSync, usage: Pick<EmployeeUsa
       }
       const section: LocalCollectionSettings = replacement?.section ?? JSON.parse(String(row.value))
       const projected = projectLocalCollectionSettings(section)
+      verifyLocalGrantReceipts(db, section)
       if (replacement && !replacement.restore) {
         const previous: LocalCollectionSettings = JSON.parse(String(row.value))
         const prefix = previous.state?.events ?? [], incoming = section.state?.events ?? []
         if (incoming.length < prefix.length || !prefix.every((event, i) => isDeepStrictEqual(event, incoming[i])))
           throw Error('现有钱包流水只能通过备份还原。')
-        if (incoming.slice(prefix.length).some(event => ['token-reward','album-skin-refund','buy-album-skin'].includes(event.type)))
+        if (incoming.slice(prefix.length).some(event => ['token-reward','album-skin-refund','buy-album-skin','local-profile-grant'].includes(event.type)))
           throw Error('自动结算和历史装帧交易不能由客户端追加。')
       }
       const historical = new Map(previousAwards.all().map(r => [String(r.source), Number(r.coins)]))

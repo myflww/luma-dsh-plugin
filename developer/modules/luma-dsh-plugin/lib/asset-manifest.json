@@ -9053,5 +9053,10 @@
     "path": "luma-office/luma-plugin-art/gait-fce91bb3a6f8.9f1bb6d1d083.webp",
     "sha256": "9f1bb6d1d083412b2ee492ace5d80ed8ea740ebbfa84af66932981c6c17b0af1",
     "bytes": 287730
+  },
+  {
+    "path": "luma-office/luma-plugin-art/studio/whale-post.webp",
+    "bytes": 26806,
+    "sha256": "25044a60f440e87659055d08c20ec375a99fab04e10e7f58ab1d5a1e86a18a49"
   }
 ]

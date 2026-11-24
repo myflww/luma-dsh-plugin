@@ -2,12 +2,13 @@ import { independentFloorRoute, type IndependentArrivalState, type IndependentFl
 import type { BrowserIndependentFloorGraph } from './browserOfficeNavigation.ts'
 import { floorPauseRange, type OfficeTimePolicy } from './timePolicy.ts'
 import type { SceneCommand } from '../office-harness/SceneProtocol.ts'
+import { dailyWalkTarget, faceNextStop, officeDailyRoutine } from './officeDailyRoutine.ts'
 
 export type IndependentAmbientState = { ordinal: number; nextAt: number; travelling: boolean; wasTask: boolean; policyMode?: OfficeTimePolicy['autonomy']['mode'] }
 const seed = (value: string) => { let h=2166136261; for (const c of value) h=Math.imul(h^c.charCodeAt(0),16777619); return h>>>0 }
 const delay = (id:string, ordinal:number, p:OfficeTimePolicy) => { const range=p.autonomy.roamIntervalMs??[12000,32000]; return range[0]+seed(id+':'+ordinal)%(range[1]-range[0]+1) }
 export function initialIndependentAmbient(employeeId:string, now=0, initiallyAtDesk=false, policy?:OfficeTimePolicy): IndependentAmbientState {
-  const firstInterval = initiallyAtDesk && policy ? delay(employeeId, 0, policy) : 1200 + seed(employeeId) % 6000
+  const firstInterval = initiallyAtDesk && policy ? officeDailyRoutine(employeeId)?.firstBreak ?? delay(employeeId, 0, policy) : 1200 + seed(employeeId) % 6000
   return { ordinal:0, nextAt:now+firstInterval, travelling:false, wasTask:false }
 }
 
@@ -46,17 +47,26 @@ export function advanceIndependentAmbient(previous:IndependentAmbientState, acto
     const returningToDesk = actor.mode === 'floor' && input.boundStationId && input.policy.autonomy.preferBoundWorkstation
     const [min,max]=floorPauseRange(input.policy)
     const pause = actor.mode==='seated' ? delay(input.employeeId,ambient.ordinal,input.policy)
-      : returningToDesk ? 1600 + seed(input.employeeId) % 1900 : min+seed(input.employeeId+':pause:'+ambient.ordinal)%(max-min+1)
+      : returningToDesk ? officeDailyRoutine(input.employeeId)?.pause ?? 2500 : min+seed(input.employeeId+':pause:'+ambient.ordinal)%(max-min+1)
     return { ambient:{...ambient,travelling:false,nextAt:input.now+pause}, actor:{...actor,direction} }
   }
-  if(input.now<ambient.nextAt) return {ambient,actor}
+  if(input.now<ambient.nextAt) {
+    const target=actor.mode==='floor' && ambient.ordinal>0 && input.boundStationId && (input.ambientDesk || input.policy.autonomy.preferBoundWorkstation)
+      ? input.graph.targets[input.boundStationId] : undefined
+    const point=target && input.graph.nodes[target.approachNode]?.point
+    if(point && ambient.nextAt-input.now<1100){
+      const direction=faceNextStop(actor.position[0],actor.position[1],point[0],point[1])
+      if(direction!==actor.direction) return {ambient,actor:{...actor,direction}}
+    }
+    return {ambient,actor}
+  }
   const g=input.graph as BrowserIndependentFloorGraph
   const targetSeat=(input.ambientDesk||input.policy.autonomy.preferBoundWorkstation)&&input.boundStationId&&actor.seatedStationId!==input.boundStationId?input.boundStationId:undefined
   const candidates=(g.ambientNodes??Object.keys(g.nodes).filter(id=>!id.startsWith('seat-'))).filter(id=>Math.hypot(g.nodes[id]!.point[0]-actor.position[0],g.nodes[id]!.point[1]-actor.position[1])>80
     && !input.occupiedTargets?.some(point=>Math.hypot(point[0]-g.nodes[id]!.point[0],point[1]-g.nodes[id]!.point[1])<55))
   const nearby=candidates.filter(id=>Math.hypot(g.nodes[id]!.point[0]-actor.position[0],g.nodes[id]!.point[1]-actor.position[1])<380)
   const choices=nearby.length && ambient.ordinal%4!==3 ? nearby : candidates
-  const goal=targetSeat?g.targets[targetSeat]?.approachNode:choices[seed(input.employeeId+':roam:'+ambient.ordinal)%Math.max(1,choices.length)]
+  const goal=targetSeat?g.targets[targetSeat]?.approachNode:dailyWalkTarget(input.employeeId,ambient.ordinal,choices,id=>g.nodes[id]!.point,seed(input.employeeId+':roam:'+ambient.ordinal))
   if(!goal) return {ambient:{...ambient,nextAt:input.now+3000},actor}
   let next={...actor}
   if(next.seatedStationId) { const exit=g.nodes[g.targets[next.seatedStationId]!.exitNode]!; next={...next,position:exit.point,bodyCoreHeightPx:exit.bodyCoreHeightPx,seatedStationId:undefined} }

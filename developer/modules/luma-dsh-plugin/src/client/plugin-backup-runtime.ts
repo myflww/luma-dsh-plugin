@@ -14,6 +14,7 @@ import { OFFICE_THEME_CHOICES } from './office-theme-catalog.ts'
 
 export const PLUGIN_VERSION = manifest.version
 export const PLUGIN_COMPATIBILITY_LINE = PLUGIN_VERSION.split('.').slice(0, 2).join('.')
+export const SUPPORTED_BACKUP_LINES = [...new Set(['0.2', '0.3', '0.4', '0.5', PLUGIN_COMPATIBILITY_LINE])]
 export const MAX_PLUGIN_BACKUP_BYTES = 8 * 1024 * 1024
 type Section = Record<string, unknown>
 interface NamespaceSpec { readonly name: string; readonly label: string; readonly validate: (value: unknown) => void; readonly fields?: readonly string[] }
@@ -125,7 +126,7 @@ function parseBackup(text: string): PluginBackupDocument {
   if (!record(value) || Object.keys(value).sort().join(',') !== 'createdAt,format,namespaces,pluginVersion,version'
     || value.format !== 'LumaDshPluginBackup' || value.version !== 1 || typeof value.pluginVersion !== 'string'
     || !/^\d+\.\d+\.\d+(?:-[a-zA-Z0-9.-]+)?$/u.test(value.pluginVersion)
-    || ![PLUGIN_COMPATIBILITY_LINE,'0.4','0.3','0.2'].includes(value.pluginVersion.split('.').slice(0, 2).join('.')) || typeof value.createdAt !== 'string'
+    || !SUPPORTED_BACKUP_LINES.includes(value.pluginVersion.split('.').slice(0, 2).join('.')) || typeof value.createdAt !== 'string'
     || !Number.isFinite(Date.parse(value.createdAt)) || !record(value.namespaces) || !Object.keys(value.namespaces).length) throw new Error('备份版本或格式不受当前插件支持。')
   for (const [name, section] of Object.entries(value.namespaces)) {
     const spec = PLUGIN_BACKUP_NAMESPACES.find(candidate => candidate.name === name)

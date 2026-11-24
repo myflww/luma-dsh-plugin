@@ -61,6 +61,27 @@ test('outreach uses a real unlocked idle person and one durable conversation acr
   assert.equal((await f.pulse()).letter,undefined)
   assert.equal(f.get().history().length,2)
 })
+test('an outreach completion after its topic is removed cannot recreate a letter or reuse a deleted feedback ID',async t=>{
+  const f=fixture(t),recorded=[]
+  f.options.record=letter=>recorded.push(letter)
+  await f.pulse()
+  f.clock.at+=3*min
+  f.get().configure({model:true})
+  let resolve
+  f.options.makeReply=()=>new Promise(done=>{resolve=done})
+  const writing=f.pulse()
+  while(!resolve)await pause(1)
+  const reserved=f.db.prepare('SELECT id FROM companion_letters').get().id
+  f.db.prepare('DELETE FROM companion_letters WHERE id=?').run(reserved)
+  resolve('这条旧话题的来信已被删除。')
+  assert.equal((await writing).letter,undefined)
+  assert.deepEqual(recorded,[])
+  f.restart()
+  f.get().configure({model:false})
+  f.clock.at+=91*min
+  const next=(await f.pulse()).letter
+  assert.ok(Number(next.id)>Number(reserved))
+})
 test('schedule, recent chat, explicit request for space and muted or revoked preferences suppress delivery',async t=>{
   const f=fixture(t)
   await f.pulse()

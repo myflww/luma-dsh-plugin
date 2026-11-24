@@ -7,7 +7,8 @@ export interface OfficeActorPortraitTap {
 
 export type OfficeEmployeeDestination = 'portrait' | 'workbench' | 'contact'
 
-export function officeEmployeeAction(name: string, destination: OfficeEmployeeDestination = 'portrait', canDrag = true) {
+export function officeEmployeeAction(name: string, destination: OfficeEmployeeDestination = 'portrait', canDrag = true, paperPlane = false) {
+  if (paperPlane) return { 'aria-label': `把纸飞机递给${name}`, title: `把纸飞机递给${name}` }
   const workbench = destination === 'workbench'
   const contact = destination === 'contact'
   const hint = contact ? '单击或按 Enter 发消息' : workbench ? '单击或按 Enter 打开工作台' : '双击查看立绘'

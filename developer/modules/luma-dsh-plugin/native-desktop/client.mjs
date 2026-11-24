@@ -31,7 +31,7 @@ class PanelBoundary extends Component {
   }
 }
 
-function NativePanel({ load, onReturnToDSH, hostSidebar }) {
+function NativePanel({ load, onReturnToDSH, onOpenNativeSettings, hostSidebar }) {
   const [state, setState] = useState({})
   const [navigationError, setNavigationError] = useState('')
   useLayoutEffect(mountDesktopStyles, [])
@@ -48,7 +48,7 @@ function NativePanel({ load, onReturnToDSH, hostSidebar }) {
       catch (error) { setNavigationError(error instanceof Error ? error.message : String(error)) }
     }
     content = h(PanelBoundary, { onReturnToDSH }, h(PluginShell, {
-      ...state.runtimes, desktopPetsEnabled: true, onReturnToDSH, onOpenConversation: openConversation, hostSidebar,
+      ...state.runtimes, desktopPetsEnabled: true, onReturnToDSH, onOpenNativeSettings, onOpenConversation: openConversation, hostSidebar,
     }))
   }
   else content = h('p', { role: 'status', className: 'lumaDesktopNotice' }, '正在打开办公室…')
@@ -90,7 +90,11 @@ export function apply(ctx) {
     } finally { dispose() }
   }, 'Luma desktop panel lifecycle')
   ctx.slots.inject('main', () => ctx.slots.register({
-    name: 'main', key: PANEL_ID, inject: () => ({ load, onReturnToDSH, hostSidebar: hostSidebar ??= getHostSidebar(ctx) }),
+    name: 'main', key: PANEL_ID, inject: () => {
+      const settings = ctx.slots.entries?.('sidebar.settings')?.find(entry => entry.children?.['settings.section'])?.store?.create?.()
+      return { load, onReturnToDSH, hostSidebar: hostSidebar ??= getHostSidebar(ctx),
+        onOpenNativeSettings: settings?.actions?.open ? () => settings.actions.open() : undefined }
+    },
   }, NativePanel))
   ctx.slots.inject('sidebar.panellist', () => ctx.slots.register({
     name: 'sidebar.panellist', id: PANEL_ID, order: 5, label: () => 'Luma 办公室',

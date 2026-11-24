@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { Check, Circle } from 'lucide-react'
 import { getCardCollectionKey, getPackCard } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/economy/domain/cardPacks.ts'
-import { canRedeemCard, characterIdForCard, COMPANION_REWARDS, LOCAL_PACKS, STARTER_EMPLOYEE_ID, type CharacterId } from '../shared/local-collection-domain.ts'
+import { canRedeemCard, characterIdForCard, COMPANION_REWARDS, getVisibleGuideCards, LOCAL_PACKS, STARTER_EMPLOYEE_ID, type CharacterId } from '../shared/local-collection-domain.ts'
 import type { LocalCollectionRuntime } from './local-collection-store.ts'
 import { getChibiAvatar } from './employee-avatar.ts'
 import { MessageAvatar } from './MessageAvatar.tsx'
@@ -13,6 +14,7 @@ export function CompanionRewards({ runtime, onFindPack, invitation }: { runtime:
   useEffect(() => { if (invitation) invitationForm.current?.focus() }, [invitation])
   const [notice, setNotice] = useState('')
   const held = new Set(state.cards.map(card => getCardCollectionKey(card.versionKey)))
+  const visibleKeys = new Set(getVisibleGuideCards(state).map(card => card.key))
   const disabled = !state.writable || state.pending
   const confirm = async () => {
     if (!selected || disabled) return
@@ -23,7 +25,7 @@ export function CompanionRewards({ runtime, onFindPack, invitation }: { runtime:
     } else if (result.status === 'rejected') setNotice(result.message)
   }
   return <section className="lumaRewards" aria-label="伙伴与空间">
-    <header><div><h2>伙伴与空间</h2><p>每位入职伙伴都有普通卧室。用兑换卡邀请伙伴，集齐一位伙伴的全部正版卡面可永久解锁她的专属办公室和卧室。</p></div><strong>{state.unlockedEmployeeIds.length} / {COMPANION_REWARDS.length} 位已入职</strong></header>
+    <header><div><h2>伙伴与空间</h2><p>集齐伙伴的正版卡面，解锁专属办公室和卧室。</p></div><strong>{state.unlockedEmployeeIds.length} / {COMPANION_REWARDS.length} 位已入职</strong></header>
     {notice && <p role="status">{notice}</p>}
     <div className="lumaRewardsGrid">{[...COMPANION_REWARDS].sort((a, b) => Number(b.id === STARTER_EMPLOYEE_ID) - Number(a.id === STARTER_EMPLOYEE_ID)).map(reward => {
       const joined = state.unlockedEmployeeIds.includes(reward.id), themed = state.unlockedThemeIds.includes(reward.office)
@@ -37,9 +39,11 @@ export function CompanionRewards({ runtime, onFindPack, invitation }: { runtime:
         <div className="lumaRewardTheme"><strong>专属办公室与卧室</strong><span>{themed ? '已解锁' : `${obtained} / ${reward.targets.length} 款`}</span></div>
         <progress aria-label={reward.name + '空间收集进度'} value={themed ? reward.targets.length : obtained} max={reward.targets.length || 1} />
         <details><summary>查看卡片条件</summary>
-          {reward.id !== STARTER_EMPLOYEE_ID && <p>以下任一版本可邀请入职</p>}
-          {reward.id !== STARTER_EMPLOYEE_ID && <ul>{reward.invitations.map(card => <li key={card.key}>{card.name} · {card.versionLabel}</li>)}</ul>}
-          <p>空间所需正版 {obtained} / {reward.targets.length}</p><ul>{reward.targets.map(card => <li key={card.key}>{held.has(card.key) ? '已持有' : '未持有'} · {card.name} · {card.versionLabel}</li>)}</ul>
+          {reward.id !== STARTER_EMPLOYEE_ID && <><p>入职卡 · 任一张</p><ul>{reward.invitations.filter(card => visibleKeys.has(card.key)).map(card =>
+            <li key={card.key} data-edition-key={card.key}>{card.name} · {card.edition === 'errata' && '错版 · '}{card.versionLabel}</li>)}</ul></>}
+          <p>空间收集</p><ul className="lumaRewardChecklist">{reward.targets.map(card => <li key={card.key}>
+            {held.has(card.key) ? <Check size={14} aria-label="已持有" role="img"/> : <Circle size={12} aria-label="未持有" role="img"/>}
+            <span>{card.name} · {card.versionLabel}</span></li>)}</ul>
         </details>
         {chosen && <div className="lumaRewardConfirm">
           <label>选择消耗的卡片<select ref={invitationForm} value={chosen.id} onChange={event => setSelected({ employeeId: reward.id, instanceId: event.target.value })}>{cards.map(card => {

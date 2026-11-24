@@ -5,6 +5,7 @@ export const MESSAGES_NAMESPACE = 'luma-dsh-messages'
 export interface RoleProfile { name: string; personality: string; scenario: string; greeting: string }
 export interface MessagePreferences {
   schemaVersion: 1; selectedRole: string; userName: string; display: 'bubbles' | 'novel'
+  reactions?: Record<string, 'up' | 'down'>
   profiles: Record<string, RoleProfile>; drafts: Record<string, string>; activeTopics: Record<string, string>
 }
 export interface MessageSettings { homes?: Record<string, string>; preferences?: MessagePreferences }
@@ -18,7 +19,9 @@ export function decodeMessageSettings(value: unknown): MessageSettings | undefin
   if (value.homes !== undefined && (!object(value.homes) || Object.entries(value.homes).some(([id, path]) => !isOfficeEmployeeKey(id) || !text(path, 4000)))) return
   const p = value.preferences
   if (p !== undefined && (!object(p) || p.schemaVersion !== 1 || !isOfficeEmployeeKey(p.selectedRole) || !text(p.userName, 80)
-    || !['bubbles', 'novel'].includes(p.display as string) || Object.keys(p).sort().join(',') !== 'activeTopics,display,drafts,profiles,schemaVersion,selectedRole,userName'
+    || !['bubbles', 'novel'].includes(p.display as string) || Object.keys(p).filter(key => key !== 'reactions').sort().join(',') !== 'activeTopics,display,drafts,profiles,schemaVersion,selectedRole,userName'
+    || (p.reactions !== undefined && (!object(p.reactions) || Object.entries(p.reactions).some(([key, value]) =>
+      !/^reply\/[\w.%:~/-]{1,700}$/.test(key) || (value !== 'up' && value !== 'down'))))
     || !object(p.profiles) || !object(p.drafts) || !object(p.activeTopics)
     || Object.entries(p.drafts).some(([id, draft]) => !isOfficeEmployeeKey(id) || !text(draft, 32000))
     || Object.entries(p.activeTopics).some(([id, topic]) => !isOfficeEmployeeKey(id) || !text(topic, 200) || !topic)

@@ -1,5 +1,5 @@
 import { LumaHelpTip } from '../LumaHelpTip.tsx'
-import { useEffect, useId, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react'
 import type { CardEditionDefinition } from './cardLibraryTypes.ts'
 import { PRODUCTION_CARD_CATALOG } from './productionCardCatalog.ts'
 import { resolveCardPresentation } from './cardPresentation.ts'
@@ -33,7 +33,6 @@ export function LumaCardViewer({ card: sourceCard, onClose }: { card: CardEditio
   const [size, setSize] = useState({ width: 280, height: 420 })
   const [lighting, setLighting] = useState<PackLighting>(() => normalizePackLighting(DEFAULT_PACK_LIGHTING))
   const [materialAvailable, setMaterialAvailable] = useState<boolean | null>(null)
-  const lightingHintId = useId()
   const close = useRef(onClose)
   close.current = onClose
   const frame = useRef<HTMLIFrameElement>(null)
@@ -183,14 +182,6 @@ export function LumaCardViewer({ card: sourceCard, onClose }: { card: CardEditio
             </div>
           </div>}
     </div>
-    <fieldset className="lumaCardViewerLighting" disabled={lightingDisabled} aria-describedby={lightingHintId}>
-      <legend>展台灯光</legend>
-      <label><span>灯光方向 <span className="lumaCardViewerLightValue" aria-hidden="true">{lighting.azimuth}°</span></span><input aria-label="灯光方向" aria-valuetext={`${lighting.azimuth}度`} type="range" min={-180} max={180} step={1} value={lighting.azimuth} onKeyDown={event => lightingKey(event, 'azimuth')} onChange={event => setLighting(current => normalizePackLighting({ ...current, azimuth: Number(event.target.value) }))} /></label>
-      <label><span>灯光高度 <span className="lumaCardViewerLightValue" aria-hidden="true">{lighting.elevation}°</span></span><input aria-label="灯光高度" aria-valuetext={`${lighting.elevation}度`} type="range" min={10} max={80} step={1} value={lighting.elevation} onKeyDown={event => lightingKey(event, 'elevation')} onChange={event => setLighting(current => normalizePackLighting({ ...current, elevation: Number(event.target.value) }))} /></label>
-      <label><span>灯光强度 <span className="lumaCardViewerLightValue" aria-hidden="true">{Math.round(lighting.intensity * 100)}%</span></span><input aria-label="灯光强度" aria-valuetext={`${Math.round(lighting.intensity * 100)}%`} type="range" min={35} max={200} step={5} value={Math.round(lighting.intensity * 100)} onKeyDown={event => lightingKey(event, 'intensity')} onChange={event => setLighting(current => normalizePackLighting({ ...current, intensity: Number(event.target.value) / 100 }))} /></label>
-      <button className="lumaCardLibraryButton" type="button" onClick={() => setLighting(normalizePackLighting(DEFAULT_PACK_LIGHTING))}>重置灯光</button>
-    </fieldset>
-    <p id={lightingHintId} className="lumaCardViewerLightingHint">{mode === 'static' ? '静态模式展示完整原图；切换动态可调节卡背灯光。' : !materialBack ? '此卡背保留完整原图，暂无可调节的材质灯光。' : materialAvailable === false ? '材质光效暂不可用，正在显示原始卡背。' : '调节卡背的水晶反光与雕纹质感；减少动态时，转动不会改变反光。'}</p>
     {Object.values(failedImages).some(Boolean) && <div className="lumaCardViewerImageIssue" role="status">图片暂时无法加载。<button className="lumaCardLibraryButton" onClick={() => { setFailedImages({}); setLoadedLayers({}); setImageAttempt(value => value + 1) }}>重试图片</button></div>}
     <div className="lumaCardViewerToolbar">
       <div className="lumaCardViewerMode" role="group" aria-label="观看方式">
@@ -206,6 +197,13 @@ export function LumaCardViewer({ card: sourceCard, onClose }: { card: CardEditio
       <div className="lumaCardViewerPreferences"><label className="lumaCardViewerReduced"><input type="checkbox" checked={reduced} onChange={event => setReduced(event.target.checked)} />减少动态</label>
         <LumaHelpTip label="卡牌操作说明" content="拖动或方向键旋转，F 翻面，R 回正。切换静态可查看完整原图。" /></div>
     </div>
+    {back && !lightingDisabled && <fieldset className="lumaCardViewerLighting">
+      <legend>卡背灯光</legend>
+      <label><span>灯光方向 <span className="lumaCardViewerLightValue" aria-hidden="true">{lighting.azimuth}°</span></span><input aria-label="灯光方向" aria-valuetext={`${lighting.azimuth}度`} type="range" min={-180} max={180} step={1} value={lighting.azimuth} onKeyDown={event => lightingKey(event, 'azimuth')} onChange={event => setLighting(current => normalizePackLighting({ ...current, azimuth: Number(event.target.value) }))} /></label>
+      <label><span>灯光高度 <span className="lumaCardViewerLightValue" aria-hidden="true">{lighting.elevation}°</span></span><input aria-label="灯光高度" aria-valuetext={`${lighting.elevation}度`} type="range" min={10} max={80} step={1} value={lighting.elevation} onKeyDown={event => lightingKey(event, 'elevation')} onChange={event => setLighting(current => normalizePackLighting({ ...current, elevation: Number(event.target.value) }))} /></label>
+      <label><span>灯光强度 <span className="lumaCardViewerLightValue" aria-hidden="true">{Math.round(lighting.intensity * 100)}%</span></span><input aria-label="灯光强度" aria-valuetext={`${Math.round(lighting.intensity * 100)}%`} type="range" min={35} max={200} step={5} value={Math.round(lighting.intensity * 100)} onKeyDown={event => lightingKey(event, 'intensity')} onChange={event => setLighting(current => normalizePackLighting({ ...current, intensity: Number(event.target.value) / 100 }))} /></label>
+      <button className="lumaCardLibraryButton" type="button" onClick={() => setLighting(normalizePackLighting(DEFAULT_PACK_LIGHTING))}>重置灯光</button>
+    </fieldset>}
     {(failed || !card.backUrl) && <p className="lumaCardLibraryArtHint" role="status">{failed ? '动态暂不可用，仍可查看完整卡牌。' : '此版本尚未收录背面'}</p>}
   </div>
 }

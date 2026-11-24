@@ -1,0 +1,32 @@
+.lumaTranscriptFrame{position:relative;isolation:isolate;display:flex;flex:1;min-height:0;min-width:0;container-type:inline-size}
+.lumaTranscriptFrame>.lumaMessageHistory{width:100%;box-sizing:border-box}
+.lumaTurnNav{position:absolute;z-index:3;inset-inline-start:2px;top:50%;transform:translateY(-50%);display:grid;justify-items:center;color:var(--luma-ink,#294e57)}
+.lumaContacts .lumaTurnNav button,.lumaContacts .lumaReplyTools>button{font:inherit;min-width:0;border:0;box-shadow:none;background:transparent;padding:0;color:inherit;cursor:pointer}
+.lumaContacts .lumaTurnIndex{display:grid;place-items:center;border-radius:50%;width:26px;height:28px}
+.lumaTurnIndex svg,.lumaReplyTools>button svg{width:15px;height:15px;stroke-width:1.7}
+.lumaTurnTicks{display:grid;justify-items:center}
+.lumaContacts .lumaTurnTicks button{width:26px;height:14px;display:grid;place-items:center}
+.lumaTurnTicks i{height:3px;width:7px;background:#a4b3b8;border-radius:4px;transition:width .14s,background .14s}
+.lumaTurnTicks button[aria-current] i,.lumaTurnTicks button:hover i{width:16px;background:#276875}
+.lumaContacts .lumaTurnIndex:hover,.lumaContacts .lumaTurnIndex[aria-expanded=true]{background:#d9eded;color:#245d66}
+.lumaTurnList,.lumaReplyMenu{position:absolute;z-index:5;border:1px solid #c6d7d9;background:#fffffc;border-radius:14px;box-shadow:0 8px 24px #1c444420;color:#284954}
+.lumaTurnList{left:calc(100% + 4px);top:50%;transform:translateY(-50%);width:min(225px,55cqw);padding:10px}
+.lumaTurnList>strong{font-size:12px;display:block;padding:3px 7px 8px}
+.lumaTurnList ol{max-height:min(280px,38vh);overflow:auto;padding:0;margin:0;list-style:none}
+.lumaContacts .lumaTurnList li button{display:block;border-radius:7px;padding:6px;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;font-size:12px}
+.lumaTurnList li button>span{display:inline-block;min-width:20px;color:#657f82;font-size:10px;font-variant-numeric:tabular-nums}
+.lumaContacts .lumaTurnList button:hover,.lumaContacts .lumaTurnList button[aria-current]{background:#e5f2f0}
+.lumaTranscriptFrame:has(.lumaTurnNav)>.lumaMessageHistory{padding-inline-start:max(34px,4vw)}
+.lumaContacts .lumaReplyTools{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:2px;width:fit-content;max-width:100%;margin-top:5px;color:#586e78}
+.lumaContacts .lumaReplyTools>button{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;opacity:.76}
+.lumaContacts .lumaReplyTools>button:hover,.lumaContacts .lumaReplyTools>button[aria-pressed=true],.lumaContacts .lumaReplyTools>button[aria-expanded=true]{background:#dcefeb;color:#1b6364;opacity:1}
+.lumaContacts .lumaReplyTools>button[aria-label="没帮助"][aria-pressed=true]{background:#fae6de;color:#904a37}
+.lumaContacts .lumaReplyTools>button:disabled{opacity:.35;cursor:default}
+.lumaContacts .lumaReplyMenu{left:min(52px,15cqw);bottom:calc(100% + 2px);min-width:112px;padding:4px}
+.lumaContacts .lumaReplyMenu button{display:flex;align-items:center;justify-content:flex-start;gap:7px;width:100%;white-space:nowrap;border:0;border-radius:9px;padding:7px 9px;background:transparent;color:inherit;font-size:12px}
+.lumaContacts .lumaReplyMenu button:hover{background:#eaf3f0}
+.lumaContacts .lumaReplyTools small,.lumaToolStatus{font-size:12px;color:#924d28}
+@container (max-width:480px){.lumaTurnTicks{display:none}.lumaTurnNav{top:10px;transform:none}.lumaTurnList{top:0;transform:none}.lumaContacts .lumaTurnIndex{background:#f1f7f6}}
+@media (pointer:coarse){.lumaContacts .lumaReplyTools>button{width:36px;height:36px}}
+@media (prefers-reduced-motion:reduce){.lumaTurnTicks i{transition:none}}
+

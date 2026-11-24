@@ -123,7 +123,9 @@ export function createDesktopSessions(ctx, fetcher = fetch) {
     async rename(input) { return { result: await ctx.remote.session.rename(input) } },
     async selectModel(input) { return { result: await ctx.remote.session.selectModel(input) } },
   }
-  const workspaces = { list: ctx.workspaces.list, archiveSession: (...args) => ctx.workspaces.archiveSession(...args),
+  const workspaces = { list: ctx.workspaces.list,
+    ...(typeof ctx.workspaces.archiveSession==='function' ? {archiveSession:id=>ctx.workspaces.archiveSession(id)} : {}),
+    ...(typeof ctx.workspaces.unarchiveSession==='function' ? {unarchiveSession:id=>ctx.workspaces.unarchiveSession(id)} : {}),
     connectWorkspace: (...args) => ctx.uiWorkspace.connectWorkspace(...args), startSession: (...args) => ctx.uiWorkspace.startSession(...args) }
 
   function membership(id) {

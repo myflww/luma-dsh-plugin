@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from 'react'
-import { ArrowLeft, BookOpen, Gift, House, LayoutGrid, MessagesSquare, PanelLeftClose, PanelLeftOpen, Settings2 } from 'lucide-react'
+import { ArrowLeft, BookOpen, ChevronDown, Gift, House, MessagesSquare, PanelLeftClose, PanelLeftOpen, Settings2 } from 'lucide-react'
+import { StudioIllustration } from './StudioIllustration.tsx'
 
 export interface HostSidebar {
   getSnapshot(): boolean
@@ -53,8 +54,14 @@ export function SceneLaunchers({ hostSidebar, onPage, onHouse, onExit, current }
       trigger.current?.focus()
     }
   }}>
-    <button ref={trigger} type="button" aria-expanded={open} aria-controls={open ? menuId : undefined}
-      onClick={() => setOpen(value => !value)}><LayoutGrid size={17} aria-hidden="true" /><span>菜单</span></button>
+    <button ref={trigger} type="button" className="lumaStudioBrand" aria-label="菜单" title="打开页面菜单" aria-expanded={open} aria-controls={open ? menuId : undefined}
+      onClick={() => setOpen(value => !value)}><StudioIllustration/><span>Luma 星伴</span><ChevronDown size={13} aria-hidden="true"/></button>
+    <nav className="lumaStudioShortcuts" aria-label="常用页面" inert={open} aria-hidden={open || undefined}>
+      {destinations.filter(item => item.page !== 'shop').map(({page,label,Icon}) =>
+        <button key={page} data-page={page} type="button" title={label} aria-label={label} aria-current={current===page?'page':undefined} onClick={()=>onPage(page)}>
+          <Icon size={16} aria-hidden="true"/><span>{page==='cards'?'收藏':page==='settings'?'设置':label}</span>
+        </button>)}
+    </nav>
     {open && <nav id={menuId} className="lumaSceneNavigation" aria-label="Luma 页面">
       {destinations.map(({ page, label, Icon }) => <button key={page} aria-current={current === page ? 'page' : undefined} type="button" onClick={() => {
         setOpen(false)
@@ -62,7 +69,7 @@ export function SceneLaunchers({ hostSidebar, onPage, onHouse, onExit, current }
       }}><Icon size={17} aria-hidden="true" />{label}</button>)}
       <button type="button" onClick={() => { setOpen(false); onExit() }}><ArrowLeft size={17} aria-hidden="true" />返回 DSH</button>
     </nav>}
-    <button type="button" aria-haspopup="dialog" onClick={() => { setOpen(false); onHouse() }}>
+    <button type="button" className="lumaHouseShortcut" aria-label="爱之屋" title="爱之屋" aria-haspopup="dialog" onClick={() => { setOpen(false); onHouse() }}>
       <House size={17} aria-hidden="true" /><span>爱之屋</span>
     </button>
     {hostSidebar && <SidebarSwitch sidebar={hostSidebar}/>}

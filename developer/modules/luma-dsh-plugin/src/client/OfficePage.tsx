@@ -13,6 +13,7 @@ import { withActiveTaskMonitors } from './office-presence.ts'
 import { OfficeBedroom, type ResidentId } from './OfficeBedroom.tsx'
 import { RoomThemePicker } from './RoomThemePicker.tsx'
 import { OfficeWardrobe } from './OfficeWardrobe.tsx'
+import { OfficePaperPlane } from './OfficePaperPlane.tsx'
 import { projectPluginSceneEmployees } from './office-scene-employees.ts'
 import { useAgentWorkRoles } from './agent-work-activity.ts'
 import { getChibiAvatar } from './employee-avatar.ts'
@@ -127,19 +128,20 @@ export function OfficePage({ runtime, readEmployeeUsage, onOpenChat, onDesktopPe
   const refreshTools = () => { setPanel(null); setToolsHidden(hidden=>!hidden) }
   return <section className="lumaImmersiveOffice" aria-label="Luma 办公室" data-hud={toolsHidden?'hidden':'visible'}>
     <div className="lumaStageArtwork lumaStudioCanvas">
-      {officeVisible ? <SceneViewport fit={fit} ratio={1672/941}>
+      {officeVisible ? <OfficePaperPlane active={active && panel===null && !toolsHidden} actors={inOffice} room={officeTheme}
+        toolbar={actionsTarget} reduceMotion={reduceMotion || snapshot.motionPreference==='reduce'}>{pick=><SceneViewport fit={fit} ratio={1672/941}>
         <div className="lumaDshOfficeRoom">
           <OfficeSceneSurface employees={inOffice} reports={snapshot.projection.officeReportMarkers.filter(report=>unlockedEmployeeIds.includes(report.employeeId))}
             commands={snapshot.commands.filter(command=>inOffice.some(employee=>employee.id===command.employeeId))} timePolicy={scenePolicy}
             presentationActive={active} reduceMotion={reduceMotion || snapshot.motionPreference === 'reduce'}
             unavailableAssetIds={unavailableHistoricalRestArt} {...officeTheme ? {officeTheme} : {}}
             employeeSkins={selection.employeeSkins} employeeDestination="contact" onCharacterClick={onOpenChat}
-            onDesktopPet={onDesktopPet}
-            onBindWorkstation={(employeeId, workstationId)=>runtime.bindWorkstation(employeeId,workstationId,{swap:true})}
+            onDesktopPet={onDesktopPet} paperPlanePick={pick}
+            onBindWorkstation={(employeeId, workstationId)=>runtime.bindWorkstation(employeeId,workstationId,{swap:true},employees)}
             onSceneEvent={event=>runtime.handleSceneEvent(event)}
             onReportClick={reportId=>{void runtime.openReport(reportId).then(employeeId=>{if(employeeId) onOpenChat(employeeId)})}}/>
         </div>
-      </SceneViewport> : <OfficeBedroom hasInspector fit={fit} actionsTarget={actionsTarget} key={resident+':'+(roomArtOwner ?? 'classic')} onDesktopPet={onDesktopPet} onDesktop={desktopPetRoleIds.includes(resident)} id={resident} name={owner.name}
+      </SceneViewport>}</OfficePaperPlane> : <OfficeBedroom hasInspector fit={fit} actionsTarget={actionsTarget} key={resident+':'+(roomArtOwner ?? 'classic')} onDesktopPet={onDesktopPet} onDesktop={desktopPetRoleIds.includes(resident)} id={resident} name={owner.name}
           skinId={selection.employeeSkins[resident]} themeOwner={roomArtOwner} phase={policy.phase}
           clock={now} workingDay={policy.isWorkingDate === true} active={active} reduceMotion={reduceMotion || snapshot.motionPreference==='reduce'}
           bedtime={policy.bedtime === true} taskIdle={selectedEmployee?.taskState==='idle'} location={selectedEmployee?.location ?? 'unknown'}
@@ -213,7 +215,7 @@ export function OfficePage({ runtime, readEmployeeUsage, onOpenChat, onDesktopPe
             <label className="lumaRosterDeskSelect">工位<select aria-label={employee.name+'的工位'}
               disabled={snapshot.persistence!=='host' && snapshot.persistence!=='memory'}
               value={roster.find(row=>row.employeeId===id)?.workstationId ?? ''}
-              onChange={event=>{if(event.target.value) void runtime.bindWorkstation(id,event.target.value,{swap:true})}}>
+              onChange={event=>{if(event.target.value) void runtime.bindWorkstation(id,event.target.value,{swap:true},employees)}}>
               <option value="" disabled>自动安排</option>
               {OFFICE_WORKSTATION_DIRECTORY.map((seat,index)=>{
                 const occupant=employees.find(person=>person.id!==id && person.workstationId===seat.id)

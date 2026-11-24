@@ -1,11 +1,13 @@
 import type { Dispatch, MutableRefObject, KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent, SetStateAction } from 'react'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { advanceOfficeActorPortraitTap, type OfficeActorPortraitTap, type OfficeEmployeeDestination } from './office2d/actorPortraitActivation.ts'
-import { desktopDropPoint, uncrowdedFloorPoint, type DesktopPetDrop } from './office2d/scenePlacement.ts'
-import { OFFICE_NAV_HEIGHT, OFFICE_NAV_WIDTH, isOfficeFootAnchorBlocked, projectToWalkable } from './office2d/navigation.ts'
+import { desktopDropPoint, type DesktopPetDrop } from './office2d/scenePlacement.ts'
+import { OFFICE_NAV_HEIGHT, OFFICE_NAV_WIDTH, OFFICE_WORKSTATION_APPROACHES, findOfficeDropFloor } from './office2d/navigation.ts'
 import type { OfficeWorkstationId } from './office2d/workstationSeating.ts'
 import { seatTargetForPosition, type OfficeActorBinding } from './officeSceneSeatTargets.ts'
 import type { ActorRuntime, OfficeSceneEmployee, Point } from './OfficeSceneSurface.types.ts'
+import { getOfficeAsset, type OfficeAssetId } from './office2d/assets.ts'
+import { officeFigureCenter } from './office2d/officeFigureScale.ts'
 interface PointerPanState {
   readonly pointerId: number
   readonly startX: number
@@ -48,18 +50,21 @@ interface OfficeSceneInteractionOptions {
   readonly presentationActive: boolean
   readonly closeActionMenu: () => void
   readonly onCharacterClick: ((employeeId: string) => void) | undefined
+  readonly paperPlanePick?: ((id: string, point: Point) => void) | undefined
+  readonly onFloorDrop?: (id:string, placed:boolean) => void
   readonly employeeDestination?: OfficeEmployeeDestination | undefined
   readonly onDesktopPet?: DesktopPetDrop | undefined
   readonly onBindWorkstation: ((employeeId: string, workstationId: OfficeWorkstationId) => void | Promise<unknown>) | undefined
 }
 /** One owner for pointer capture, cancel/restore, keyboard activation and seat drops. */
 export function useOfficeSceneInteractions({ canvasRef, scrollerRef, actorRef, setActors,
-  officeBindingsRef, presentationActive, closeActionMenu, onCharacterClick, onBindWorkstation, onDesktopPet, employeeDestination,
+  officeBindingsRef, presentationActive, closeActionMenu, onCharacterClick, paperPlanePick, onFloorDrop, onBindWorkstation, onDesktopPet, employeeDestination,
 }: OfficeSceneInteractionOptions) {
   const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const clearHold = () => { if (holdTimerRef.current !== null) clearTimeout(holdTimerRef.current); holdTimerRef.current = null }
   const panRef = useRef<PointerPanState | null>(null)
   const actorDragRef = useRef<ActorDragState | null>(null)
+  const activeGesture = useRef(0)
   const [seatDrag, setSeatDrag] = useState<SeatDragState | null>(null)
   const seatDragRef = useRef<SeatDragState | null>(null)
   const suppressedClickRef = useRef<string | null>(null)
@@ -68,12 +73,13 @@ export function useOfficeSceneInteractions({ canvasRef, scrollerRef, actorRef, s
   presentationActiveRef.current = presentationActive
   const registerActorTap = useCallback((event: { clientX: number; clientY: number }, employeeId: string) => {
     if (!presentationActiveRef.current) return
+    if (paperPlanePick) { pendingActorTapRef.current=null; paperPlanePick(employeeId,{x:event.clientX,y:event.clientY}); return }
     const activation = advanceOfficeActorPortraitTap(pendingActorTapRef.current, {
       employeeId, at: performance.now(), clientX: event.clientX, clientY: event.clientY,
     }, employeeDestination)
     pendingActorTapRef.current = activation.pendingTap
     if (activation.activate) onCharacterClick?.(employeeId)
-  }, [onCharacterClick, employeeDestination])
+  }, [onCharacterClick, paperPlanePick, employeeDestination])
 
   const handleActorClick = useCallback((event: ReactMouseEvent<HTMLButtonElement>, employeeId: string) => {
     if (!presentationActiveRef.current) return
@@ -82,14 +88,22 @@ export function useOfficeSceneInteractions({ canvasRef, scrollerRef, actorRef, s
     if (event.detail === 0) {
       // Enter/Space and assistive activation retain the native button action.
       pendingActorTapRef.current = null
-      onCharacterClick?.(employeeId)
+      if (paperPlanePick) {
+        const canvas=event.currentTarget.querySelector('canvas')
+        const box=(canvas??event.currentTarget).getBoundingClientRect()
+        const asset=canvas?.dataset.displayedAssetId as OfficeAssetId|undefined
+        const size=canvas && canvas.width && canvas.height ? [canvas.width,canvas.height] as const : [1,1] as const
+        const center=officeFigureCenter(size,asset && getOfficeAsset(asset).sha256)
+        paperPlanePick(employeeId,{x:box.left+box.width*center[0]/size[0],y:box.top+box.height*center[1]/size[1]})
+      } else onCharacterClick?.(employeeId)
     } else if (!suppressPointerClick) registerActorTap(event, employeeId)
-  }, [onCharacterClick, registerActorTap])
+  }, [onCharacterClick, paperPlanePick, registerActorTap])
 
   const startActorDrag = useCallback((event: ReactPointerEvent<HTMLElement>, employee: OfficeSceneEmployee) => {
     if (event.button !== 0 || event.isPrimary === false || !presentationActiveRef.current) return
     const actor = actorRef.current[employee.id]
     if (!actor || actorDragRef.current) return
+    activeGesture.current++
     event.stopPropagation()
     clearHold()
     suppressedClickRef.current = null
@@ -201,19 +215,20 @@ export function useOfficeSceneInteractions({ canvasRef, scrollerRef, actorRef, s
     const workstationId = !desktop && !cancelled && drag.moved && (inside || employeeDestination !== 'contact')
       ? seatTargetForPosition(officeBindingsRef.current, drag.employeeId, cursor, employeeDestination === 'contact')
       : null
-    const position = freePlacement && !workstationId && !drag.startRuntime.activeReportCommand
-      ? uncrowdedFloorPoint([actor.position.x,actor.position.y],Object.values(actorRef.current)
+    const releasedFoot = freePlacement && bounds ? [
+      drag.startPosition.x+(event.clientX-drag.startClientX)/bounds.width*OFFICE_NAV_WIDTH,
+      drag.startPosition.y+(event.clientY-drag.startClientY)/bounds.height*OFFICE_NAV_HEIGHT,
+    ] as const : undefined
+    const position = releasedFoot && !workstationId && !drag.startRuntime.activeReportCommand
+      ? findOfficeDropFloor(releasedFoot,Object.values(actorRef.current)
           .filter(other=>other.employeeId!==drag.employeeId && other.mode!=='working' && other.mode!=='desk-break')
-          .map(other=>[other.position.x,other.position.y]), desired=>{
-            if(!isOfficeFootAnchorBlocked(desired)) return desired
-            const projected=projectToWalkable(desired)
-            return [projected.x,projected.y]
-          }) : undefined
+          .map(other=>[other.position.x,other.position.y])) : undefined
+    const approach = workstationId && OFFICE_WORKSTATION_APPROACHES[workstationId].point
     const next = {
       ...actorRef.current,
-      [drag.employeeId]: workstationId ? {
+      [drag.employeeId]: approach ? {
         ...actor,
-        position: drag.startPosition,
+        position: {x:approach[0],y:approach[1]},
         mode: 'idle' as const,
         targetWorkstationId: null,
         nextAmbientAt: Number.POSITIVE_INFINITY,
@@ -232,8 +247,19 @@ export function useOfficeSceneInteractions({ canvasRef, scrollerRef, actorRef, s
     suppressedClickRef.current = drag.employeeId
     pendingActorTapRef.current = null
     if (desktop) onDesktopPet?.(drag.employeeId,desktop)
-    else if (workstationId) void onBindWorkstation?.(drag.employeeId, workstationId)
-  }, [onBindWorkstation, onDesktopPet, employeeDestination, registerActorTap])
+    else if (workstationId && onBindWorkstation) {
+      const id=activeGesture.current
+      const restore=()=>{
+        const live=actorRef.current[drag.employeeId]
+        if(activeGesture.current!==id || !live || live.mode==='drag' || live.activeCommandId!==drag.startRuntime.activeCommandId) return
+        const corrected={...actorRef.current,[drag.employeeId]:drag.startRuntime}
+        actorRef.current=corrected;setActors(corrected)
+      }
+      void Promise.resolve(onBindWorkstation(drag.employeeId,workstationId)).then(result=>{
+        if(result===false) restore()
+      },restore)
+    } else if(freePlacement) onFloorDrop?.(drag.employeeId,!!position)
+  }, [onBindWorkstation, onDesktopPet, onFloorDrop, employeeDestination, registerActorTap])
 
   const startPan = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
     if (!presentationActiveRef.current || event.button !== 0 || (event.target instanceof Element && event.target.closest('button:not(.lumaOfficeEmployee)'))) return

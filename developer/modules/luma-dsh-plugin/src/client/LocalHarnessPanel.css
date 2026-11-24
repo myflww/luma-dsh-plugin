@@ -1,0 +1,28 @@
+.lumaHarnessPanel {min-width:0;color:#203b50}
+.lumaHarnessPanel header {display:flex;align-items:center;justify-content:space-between;gap:9px}
+.lumaHarnessPanel header h2 {margin:0}
+.lumaPluginRoot .lumaHarnessPanel header button {display:grid;place-content:center;width:32px;height:32px;padding:0;border:0;border-radius:50%;background:#e9f2f6;color:#31657c}
+.lumaHarnessPanel>p {margin:7px 0;color:#526a7b;font-size:12px}
+.lumaHarnessPanel ul {display:grid;gap:6px;padding:0;margin:12px 0 16px;list-style:none}
+.lumaHarnessPanel li {min-width:0}
+.lumaPluginRoot .lumaHarnessPanel .lumaHarnessProvider {display:flex;width:100%;align-items:center;gap:11px;padding:8px 10px;text-align:left;border:1px solid transparent;border-radius:11px;background:#f4f7f8;color:#243e52}
+.lumaPluginRoot .lumaHarnessPanel .lumaHarnessProvider[aria-pressed=true] {background:#e8f4f0;border-color:#a6d1c0}
+.lumaPluginRoot .lumaHarnessPanel .lumaHarnessProvider:enabled:hover {border-color:#78a797}
+.lumaPluginRoot .lumaHarnessPanel .lumaHarnessProvider:disabled {opacity:1;cursor:default}
+.lumaHarnessProviderText {flex:1;min-width:0}
+.lumaHarnessProviderText strong,.lumaHarnessProviderText small {display:block;overflow-wrap:anywhere;line-height:1.45}
+.lumaHarnessProviderText strong {font-size:13px;font-weight:650}
+.lumaHarnessProviderText small {margin-top:2px;font-size:11px;color:#536b7c}
+.lumaHarnessPanel [data-status=available] .lumaHarnessProviderText small {color:#376a56}
+.lumaHarnessPanel [data-status=unverified] .lumaHarnessProviderText small {color:#86501f}
+.lumaHarnessPanel [data-status=missing] .lumaProviderMark {opacity:.66}
+.lumaHarnessChoice {display:grid;place-items:center;flex:none;width:22px;height:22px;border-radius:50%;color:#52756a}
+.lumaHarnessProvider[aria-pressed=true] .lumaHarnessChoice {color:white;background:#377a67}
+.lumaHarnessLogin {display:block;margin:4px 10px;font-size:11px;color:#536b7e}
+.lumaHarnessLogin code {margin-left:4px;overflow-wrap:anywhere}
+.lumaHarnessBinding {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,195px),1fr));gap:9px 12px;align-items:end}
+.lumaHarnessBinding label {display:grid;gap:4px;font-size:12px;min-width:0;margin:0}
+.lumaHarnessBinding select {width:100%;max-width:100%}
+.lumaHarnessBinding small {font-size:12px;color:#536b7e}
+.lumaHarnessBinding>button {grid-column:1/-1;justify-self:start}
+.lumaHarnessPanel button:focus-visible {outline:2px solid #28669e;outline-offset:2px}

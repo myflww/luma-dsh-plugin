@@ -1,9 +1,10 @@
 import { act, cleanup, fireEvent, render } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import { bedroomDropJourney, bedroomDropFrame } from '../src/client/bedroom-placement.ts'
+import { bedroomBedContacts } from '../src/client/bedroom-bed-pose.ts'
 import { BEDROOM_FLOORS, bedroomFootAt, bedroomStepAt, createBedroomRoutine } from '../src/client/bedroom-routine.ts'
 import { OfficeBedroom, type ResidentId } from '../src/client/OfficeBedroom.tsx'
-import { BEDROOM_ART } from '../src/client/bedroom-art.generated.ts'
+import { BEDROOM_ART, CLASSIC_BEDROOM_ART } from '../src/client/bedroom-art.generated.ts'
 import { OfficeActionMenu } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/OfficeActionMenu.tsx'
 import { getEmployeeCatalogWithSkin } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/employeeSkins.ts'
 import { getOfficeAsset } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/assets.ts'
@@ -11,6 +12,23 @@ import { officeAutomaticWalkCadence } from '../../../overlays/deepseek-harness/l
 
 const speeds={left:65,right:65,up:72,down:72}
 afterEach(()=>{ cleanup(); vi.useRealTimers() })
+
+it('keeps reclining figures on the pillow at a consistent size across different beds',()=>{
+  const lengths:number[]=[]
+  for(const theme of Object.keys(BEDROOM_FLOORS) as (ResidentId|'classic')[]){
+    const room=theme==='classic'?CLASSIC_BEDROOM_ART:BEDROOM_ART[theme]
+    const pose=bedroomBedContacts(room,BEDROOM_FLOORS[theme].bed)
+    expect(pose.head).toEqual(room.head)
+    const dx=pose.feet[0]-pose.head[0],dy=pose.feet[1]-pose.head[1]
+    const bedX=room.feet[0]-room.head[0],bedY=room.feet[1]-room.head[1]
+    expect(dx*bedY-dy*bedX).toBeCloseTo(0,8)
+    expect(dx*bedX+dy*bedY).toBeGreaterThan(0)
+    expect(Math.hypot(dx,dy)).toBeLessThanOrEqual(Math.hypot(bedX,bedY))
+    lengths.push(Math.hypot(dx,dy))
+  }
+  expect(Math.min(...lengths)).toBeGreaterThan(110)
+  expect(Math.max(...lengths)/Math.min(...lengths)).toBeLessThan(1.08)
+})
 
 it('uses continuous floor routes in every room, with sleep and attendance transitions at the correct landmarks',()=>{
   const roles=Object.keys(BEDROOM_ART) as ResidentId[]
@@ -90,7 +108,8 @@ it('renders each resident in the matching phone outfit and animated chair pose a
     const opts={...props,id,skinId,themeOwner:room==='classic'?undefined:id}
     const view=render(<OfficeBedroom {...opts} clock={new Date()}/>)
     const image=view.container.querySelector('[data-bedroom-pose="phone"] svg g image')
-    expect(image?.getAttribute('href')).toContain(skinId?'phone-outfit.webp':'phone-standard.webp')
+    const usesOutfit=Boolean(skinId) || id==='gemini' || id==='grok'
+    expect(image?.getAttribute('href')).toContain(usesOutfit?'phone-outfit.webp':'phone-standard.webp')
     expect(view.getByText('躺在床上看手机')).toBeTruthy()
     view.unmount()
     const desk=routine.steps.find(s=>s.pose==='computer')!

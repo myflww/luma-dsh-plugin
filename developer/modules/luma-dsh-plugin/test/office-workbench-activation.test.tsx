@@ -5,11 +5,61 @@ import { initialRuntime } from '../../../overlays/deepseek-harness/luma-full/fil
 import { OFFICE_SEAT_BOXES } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/officeSceneSeatTargets.ts'
 import { useOfficeSceneInteractions } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/useOfficeSceneInteractions.ts'
 import { uncrowdedFloorPoint } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/scenePlacement.ts'
+import { findOfficeDropFloor, findWorkstationRouteFromPoint, isOfficeFootAnchorBlocked, OFFICE_NAV_ACTION_POINTS, OFFICE_WORKSTATION_APPROACHES } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/navigation.ts'
 import { officeEmployeeAction } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/actorPortraitActivation.ts'
 
 afterEach(() => { cleanup(); vi.useRealTimers() })
 
-function fixture(working = false, destination:'workbench'|'contact'='workbench') {
+it('delivers an equipped paper plane at the tap or keyboard focus while preserving dragging',()=>{
+  const give=vi.fn(),{open,bind,employee,view,canvas,pointer}=fixture(false,'contact',give)
+  act(()=>{
+    view.result.current.startActorDrag(pointer(30,22,'pointerdown'),employee)
+    view.result.current.finishActorDrag(pointer(31,23,'pointerup'))
+  })
+  expect(give).toHaveBeenCalledWith('shan',{x:31,y:23})
+  act(()=>view.result.current.handleActorClick({detail:0,currentTarget:canvas} as unknown as MouseEvent<HTMLButtonElement>,'shan'))
+  expect(give).toHaveBeenCalledTimes(2)
+  expect(give.mock.calls[1]![1].x).toBe(836)
+  act(()=>{
+    view.result.current.startActorDrag(pointer(20,30,'pointerdown'),employee)
+    view.result.current.moveActorDrag(pointer(856,723,'pointermove'))
+    view.result.current.finishActorDrag(pointer(856,723,'pointerup'))
+  })
+  expect(bind).toHaveBeenCalledWith('shan','reception')
+  expect(give).toHaveBeenCalledTimes(2)
+  expect(open).not.toHaveBeenCalled()
+  canvas.remove()
+})
+
+it('restores the pre-drag character when an asynchronous seat write fails',async()=>{
+  const {bind,employee,view,canvas,pointer,actorRef}=fixture(false,'contact')
+  const initial=actorRef.current.shan
+  bind.mockResolvedValue(false)
+  await act(async()=>{
+    view.result.current.startActorDrag(pointer(20,30,'pointerdown'),employee)
+    view.result.current.moveActorDrag(pointer(856,723,'pointermove'))
+    view.result.current.finishActorDrag(pointer(856,723,'pointerup'))
+  })
+  expect(actorRef.current.shan).toEqual(initial)
+  canvas.remove()
+})
+
+it('settles at the final pointerup coordinates when the browser coalesces the last move',()=>{
+  const {employee,view,canvas,pointer,actorRef}=fixture(false,'contact')
+  const start=actorRef.current.shan.position
+  const stops=OFFICE_NAV_ACTION_POINTS.filter(p=>!isOfficeFootAnchorBlocked([p.x,p.y]) && !OFFICE_SEAT_BOXES.some(b=>p.x>=b.x && p.x<=b.x+b.width && p.y>=b.y && p.y<=b.y+b.height))
+  const first=stops[0]!, last=stops.at(-1)!
+  expect(first.id).not.toEqual(last.id)
+  act(()=>{
+    view.result.current.startActorDrag(pointer(start.x,start.y,'pointerdown'),employee)
+    view.result.current.moveActorDrag(pointer(first.x,first.y,'pointermove'))
+    view.result.current.finishActorDrag(pointer(last.x,last.y,'pointerup'))
+  })
+  expect(actorRef.current.shan.position).toEqual({x:last.x,y:last.y})
+  canvas.remove()
+})
+
+function fixture(working = false, destination:'workbench'|'contact'='workbench',paperPlanePick?: (id:string, point:{x:number;y:number})=>void) {
   const canvas = document.createElement('div')
   document.body.append(canvas)
   Object.assign(canvas, { getBoundingClientRect: () => ({ left:0, top:0, right:1672, bottom:941, width: 1672, height: 941 }),
@@ -19,7 +69,7 @@ function fixture(working = false, destination:'workbench'|'contact'='workbench')
   const open = vi.fn(), bind = vi.fn(), pet = vi.fn()
   const view = renderHook(() => useOfficeSceneInteractions({ canvasRef: { current: canvas }, scrollerRef: { current: null },
     actorRef, setActors: vi.fn(), officeBindingsRef: { current: [] }, presentationActive: true,
-    closeActionMenu: vi.fn(), employeeDestination: destination, onDesktopPet: pet, onCharacterClick: open, onBindWorkstation: bind }))
+    closeActionMenu: vi.fn(), employeeDestination: destination, onDesktopPet: pet, onCharacterClick: open, onBindWorkstation: bind,paperPlanePick }))
   function pointer(x: number, y: number, type: string) {
     return { pointerId: 4, button: 0, isPrimary: true, currentTarget: canvas, clientX: x, clientY: y, stopPropagation() {}, type } as unknown as PointerEvent<HTMLButtonElement>
   }
@@ -89,4 +139,29 @@ it('places another companion beside an occupied spot and never settles on a bloc
   expect(point[1]).toBe(200)
   expect(Math.min(Math.abs(point[0]-200),Math.abs(point[0]-245))).toBeGreaterThanOrEqual(36)
   expect(uncrowdedFloorPoint([200,200],[[200,200]],()=>[200,200])).toBeUndefined()
+})
+
+it('releases a dragged employee at reception without a frame back in the private office', () => {
+  const { actorRef, bind, employee, view, pointer } = fixture(false, 'contact')
+  actorRef.current.shan = { ...actorRef.current.shan, position: {x:320,y:720}, targetWorkstationId:'private-lower' }
+  act(() => {
+    view.result.current.startActorDrag(pointer(260,610,'pointerdown'), employee)
+    view.result.current.moveActorDrag(pointer(856,723,'pointermove'))
+    view.result.current.finishActorDrag(pointer(856,723,'pointerup'))
+  })
+  expect(bind.mock.calls).toEqual([['shan','reception']])
+  const [x,y] = OFFICE_WORKSTATION_APPROACHES.reception.point
+  expect(actorRef.current.shan.position).toEqual({x,y})
+})
+
+it('settles just beyond a counter edge on reachable floor and rejects distant wall drops', () => {
+  const foot = [700,711] as const
+  expect(isOfficeFootAnchorBlocked(foot)).toBe(true)
+  const p = findOfficeDropFloor(foot, [])!
+  expect(isOfficeFootAnchorBlocked(p)).toBe(false)
+  expect(Math.hypot(p[0] - foot[0], p[1] - foot[1])).toBeLessThanOrEqual(25)
+  expect(findWorkstationRouteFromPoint(p, 'private-lower').distance).toBeGreaterThan(0)
+  expect(findOfficeDropFloor([1500,130], [])).toBeUndefined()
+  const adjacent = findOfficeDropFloor(p, [p])!
+  expect(Math.hypot(adjacent[0] - p[0], adjacent[1] - p[1])).toBeGreaterThanOrEqual(36)
 })

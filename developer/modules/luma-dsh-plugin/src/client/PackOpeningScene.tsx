@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from 'react'
-import { ArrowLeft, Check, RotateCcw, Sparkles, Volume2, VolumeX, X } from 'lucide-react'
+import { ArrowLeft, Check, MoveHorizontal, RotateCcw, Sparkles, Volume2, VolumeX, X } from 'lucide-react'
 import { getPackCard } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/economy/domain/cardPacks.ts'
 import { PremiumCardFinish } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/collection/PremiumCardFinish.tsx'
 import { LumaCardViewer } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/collection/LumaCardViewer.tsx'
@@ -28,11 +28,10 @@ function localPointer(clientX: number, clientY: number, space: PouchSpace) {
   }
 }
 const themes: Record<string, string> = { 'dawn-prelude': 'dawn', 'blue-rose-echo': 'rose', 'moon-collection': 'moon', 'first-meeting-journey': 'journey' }
-const rarityNames = { N: '初遇', R: '珍藏', SR: '闪耀珍藏', SSR: '星光典藏' }
 
 export type PackOpeningSceneProps = { onClose(): void; onOpenOwned?(): void; invitationFor?(key: string, instanceId: string): { label: string; open(): void } | undefined } & (
   | { cards: readonly LocalOwnedCard[]; preview?: never; historyReplay?: boolean }
-  | { cards?: never; preview: { cardKeys: readonly string[]; packId: string; skin?: PackSkin }; historyReplay?: never }
+  | { cards?: never; preview: { cardKeys: readonly string[]; packId: string; skin?: PackSkin; returnLabel?:string }; historyReplay?: never }
 )
 /** Saved acquisitions and artwork previews share presentation, never ownership. */
 export function PackOpeningScene({ cards, preview, historyReplay, onClose, onOpenOwned, invitationFor }: PackOpeningSceneProps) {
@@ -267,14 +266,15 @@ export function PackOpeningScene({ cards, preview, historyReplay, onClose, onOpe
   return <div className="lumaOpeningBackdrop">
     <section ref={dialog} className="lumaOpening" role="dialog" aria-modal="true" aria-label={historyReplay ? '开包回放' : '开包结果'}
       data-phase={phase} data-theme={skin?.theme ?? themes[firstPack.id]} data-reduced={reduced} data-count={rows.length} data-preview={!!preview}>
-      <header className="lumaOpeningHeader"><span><Sparkles size={15} /> {historyReplay ? '开包回放' : 'LUMA · 一包小小的心动'}</span><div>
+      <header className="lumaOpeningHeader"><span>{revealed && !historyReplay && !preview ? <Check size={16} aria-hidden="true"/> : <Sparkles size={15} aria-hidden="true"/>}
+        {historyReplay ? '开包回放' : preview ? '试拆 · 不计入持有' : revealed ? '已收入卡册' : '拆卡包'}</span><div>
         <button type="button" aria-label={sound ? '关闭开包音效' : '开启开包音效'} aria-pressed={sound} onClick={() => setSound(value => !value)}>{sound ? <Volume2 size={18} /> : <VolumeX size={18} />}</button>
         <button type="button" aria-label="关闭开包结果" onClick={onClose}><X size={20} /></button></div></header>
       {detail && current ? <div className="lumaOpeningDetail"><button type="button" className="lumaOpeningBack" autoFocus onClick={() => setDetail(false)}><ArrowLeft size={16} /> 返回开包结果</button><LumaCardViewer card={current.art} onClose={() => setDetail(false)} /></div>
         : <>
-          <div className="lumaOpeningTitle"><span className="lumaOpeningEyebrow">{revealed ? 'A LITTLE JOY, JUST FOR YOU' : 'SOMETHING LOVELY IS INSIDE'}</span>
-            <h2>{revealed ? rows.length > 1 ? '喜欢的相遇，一起到来' : '是为你而来的小小惊喜' : '今天的心动，藏在这里'}</h2>
-            <p aria-live="polite">{revealed ? preview ? `正在欣赏 ${rows.length} 张原始卡面 · 素材预览` : `这 ${rows.length} 张卡片已收入我的卡册` : phase === 'sealed' ? '从左向右轻拉封口，也可从右侧反向拆开' : phase === 'tearing' ? '拆开一点点，快乐多一点点…' : '让这一刻，闪闪发光'}</p>
+          <div className="lumaOpeningTitle">
+            <h2>{rows.length > 1 && !preview ? `拆封 ${rows.length} 包` : packName}</h2>
+            <p aria-live="polite">{phase === 'sealed' ? <><MoveHorizontal size={18} aria-hidden="true"/>轻拉封口</> : phase === 'tearing' ? '拆封中…' : phase === 'emerging' ? '揭晓中…' : null}</p>
           </div>
           <div className="lumaOpeningStage">
             <div ref={gallery} className="lumaOpeningCards" inert={!revealed} onScroll={syncGallerySelection} onPointerDown={() => { scrollingTo.current = null }}>
@@ -300,7 +300,6 @@ export function PackOpeningScene({ cards, preview, historyReplay, onClose, onOpe
                     event.currentTarget.style.setProperty('--shine-x', `${(event.clientX - bounds.left) / bounds.width * 100}%`)
                   }}>
                   <span className="lumaOpeningCardFrame"><span className="lumaOpeningCardBody"><span className={`lumaOpeningCardFace ${isBack ? 'is-back' : 'is-front'}`}><img src={isBack ? art.backUrl : art.frontUrl} alt={isBack ? `${art.name}卡背` : art.alt} draggable={false} />{!isBack && <><PremiumCardFinish card={art} active={emerging} reduced={reduced} /><span className="lumaOpeningCardSheen" /></>}</span></span></span>
-                  <span className="lumaOpeningCardCaption"><b>{preview && !art.rarity ? '原作' : rarity}</b>{art.character}</span>
                 </button>
               })}
               </div>
@@ -313,12 +312,11 @@ export function PackOpeningScene({ cards, preview, historyReplay, onClose, onOpe
             {emerging && !reduced && <div className="lumaOpeningConfetti" aria-hidden="true">{Array.from({ length: 38 }, (_, index) => <i key={index} style={{ '--i': index, '--dx': `${Math.sin(index * 2.4) * (180 + index * 6)}px`, '--dy': `${-80 - (index * 47) % 310}px`, '--dr': `${index * 83}deg`, '--confetti-color': ['#d5a8bc', '#c7bcdf', '#a9c9be', '#e8c784', '#a6c6dc'][index % 5] } as CSSProperties} />)}</div>}
           </div>
           <footer className="lumaOpeningFooter">
-            {revealed && rows.length > 1 && <p className="lumaOpeningBrowseHint">{compact ? '左右滑动，或点编号欣赏完整卡片' : '每一张都完整展开 · 选中后可细看'}</p>}
             {revealed && rows.length > 1 && <nav className="lumaOpeningCardPicker" aria-label="选择揭晓的卡片">{rows.map(({ art, id }, index) => <button key={id} type="button" aria-label={`选择第 ${index + 1} 张：${art.name}`} aria-pressed={selected === index} onClick={() => select(index)}>{index + 1}</button>)}</nav>}
-            {revealed && current ? <><div className="lumaOpeningCardInfo"><span className={`lumaOpeningRarity rarity-${current.rarity}`}>{preview && !current.art.rarity ? '原作素材预览' : `${current.rarity} · ${rarityNames[current.rarity]}`}</span><h3>{current.art.name}</h3><p>{current.art.character} · {current.art.versionLabel}{current.art.edition === 'errata' ? ' · 错版' : ''}</p></div>
+            {revealed && current ? <><div className="lumaOpeningCardInfo" aria-live="polite"><span className={`lumaOpeningRarity rarity-${current.rarity}`}>{preview && !current.art.rarity ? '原作' : current.rarity}</span><h3>{current.art.name}</h3><p>{current.art.character} · {current.art.edition === 'errata' && '错版 · '}{current.art.versionLabel}</p></div>
               <div className="lumaOpeningTools"><button type="button" disabled={!current.art.backUrl || flipStatus === 'loading'} aria-busy={flipStatus === 'loading'} onClick={() => void flipCard()}><RotateCcw size={14} />{flipStatus === 'failed' ? '重试翻面' : flipStatus === 'loading' ? '正在翻面…' : back ? '看看正面' : '翻到背面'}</button><button type="button" onClick={() => setDetail(true)}><Sparkles size={14} />细看卡片与工艺</button><button type="button" onClick={replay}>再看一次</button></div>
-              <div className="lumaOpeningActions">{invitation && <button type="button" onClick={invitation.open}>{invitation.label}</button>}{!preview && onOpenOwned && <button type="button" onClick={onOpenOwned}>查看我的持有</button>}<button ref={finishButton} type="button" className="lumaOpeningPrimary" onClick={onClose}><Check size={16} />{preview ? '返回素材册' : historyReplay ? '返回收支记录' : '收好这次相遇'}</button></div>
-            </> : <><span className="lumaOpeningHint">{preview ? `${packName} · ${rows.length} 张卡面预览 · 不计入持有` : rows.length > 1 ? `${rows.length} 包 · 每包一张 · 一起揭晓` : packName + ' · 一包一张小小惊喜'}</span><button type="button" className="lumaOpeningSkip" onClick={() => setPhase('revealed')}>跳过动画</button></>}
+              <div className="lumaOpeningActions">{invitation && <button type="button" onClick={invitation.open}>{invitation.label}</button>}{!preview && onOpenOwned && <button type="button" onClick={onOpenOwned}>查看我的持有</button>}<button ref={finishButton} type="button" className="lumaOpeningPrimary" onClick={onClose}><Check size={16} />{preview ? preview.returnLabel ?? '返回素材册' : historyReplay ? '返回收支记录' : '收好这次相遇'}</button></div>
+            </> : <button type="button" className="lumaOpeningSkip" onClick={() => setPhase('revealed')}>跳过动画</button>}
           </footer>
         </>}
     </section>

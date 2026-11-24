@@ -151,9 +151,11 @@ export function createOfficePageRuntime(ctx: ClientContext, roomAccess: () => Ro
       adapter.acknowledgeReport(reportId)
       return report.employeeId
     },
-    async bindWorkstation(employeeId: string, workstationId: string, placement?: {swap:true}): Promise<void> {
-      const result = await relationships.store.bindWorkstation(employeeId, workstationId, placement)
+    async bindWorkstation(employeeId: string, workstationId: string, placement?: {swap:true},
+      displayed?: readonly {id:string; workstationId?:string}[]) {
+      const result = await relationships.store.bindWorkstation(employeeId, workstationId, placement, displayed)
       publishProblem(result.status === 'rejected' ? '工位未保存，请检查 DSH 设置连接后重试。' : undefined)
+      return result
     },
     handleSceneEvent(event: SceneEvent): void {
       if (disposed) return

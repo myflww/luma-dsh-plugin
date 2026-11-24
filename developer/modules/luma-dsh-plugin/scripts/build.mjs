@@ -1,4 +1,5 @@
 import { build } from 'esbuild'
+import { nativeBundleOptions } from './native-bundle-options.mjs'
 import { createHash } from 'node:crypto'
 import { existsSync, readFileSync, mkdirSync, writeFileSync, cpSync } from 'node:fs'
 import { dirname, resolve, relative, sep } from 'node:path'
@@ -57,6 +58,7 @@ const common = { absWorkingDir: repo, bundle: true, target: 'es2022', jsx: 'auto
 if (!desktopClient) await build({ ...common, entryPoints: [resolve(root, 'src/index.ts')], outfile: resolve(root, 'lib/index.js'),
   platform: 'node', format: 'esm', packages: 'external' })
 const client = await build({ ...common,
+  ...(desktopClient ? nativeBundleOptions : {}),
   entryPoints: [resolve(root, desktopClient ? 'native-desktop/client.mjs' : 'src/client/index.ts')],
   outfile: resolve(root, desktopClient ? '.runtime/native-desktop/client.mjs' : 'lib/client.js'),
   sourcemap: !desktopClient,

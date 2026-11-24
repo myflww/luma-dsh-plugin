@@ -20,6 +20,10 @@ export function SealedPackShelf({packs, disabled, onOpen, onShop}: Props) {
   const copies = focus?.copies ?? []
   const first = copies[0]
   return <section className="lumaPouchStudio" data-pack={pack.id} aria-label="未开封卡包">
+    {inventory.length>1 && <nav className="lumaPouchShelfIndex" aria-label="切换库存包装">{inventory.map(({pack:item,copies:stock})=><button key={item.id} type="button"
+      disabled={disabled} aria-pressed={item.id===pack.id} onClick={()=>setChosen(item.id)} aria-label={item.name+'，库存 '+stock.length+' 包'}>
+      <img src={item.artworkUrl} alt="" loading="lazy"/><span>{item.name}<small>{stock.length} 包</small></span>
+    </button>)}</nav>}
     <div className="lumaPouchExhibit">
       <div className="lumaPouchPlinth" aria-hidden="true"/>
       <img key={pack.id} src={pack.artworkUrl} alt={focus ? pack.name+'实物包装' : pack.name+'卡包店包装预览'} decoding="async"/>
@@ -34,10 +38,6 @@ export function SealedPackShelf({packs, disabled, onOpen, onShop}: Props) {
           {packs.length>1 && <button type="button" disabled={disabled} onClick={()=>onOpen(packs.slice(0,5).map(item=>item.id))}>一起拆开 · {Math.min(5,packs.length)} 包</button>}</div>
         <small className="lumaPouchFootnote">{inventory.length>1 ? '批量拆封按购买顺序从全部库存取包。' : '购入于 '+date(first.purchasedAt)}</small>
       </> : <button className="lumaPouchOpen" type="button" onClick={onShop}><ShoppingBag size={16} aria-hidden="true"/>去选一包 <ArrowUpRight size={15} aria-hidden="true"/></button>}
-      {inventory.length>1 && <div className="lumaPouchPicker"><h3>切换包装</h3><div>{inventory.map(({pack:item,copies:stock})=><button key={item.id} type="button"
-        disabled={disabled} aria-pressed={item.id===pack.id} onClick={()=>setChosen(item.id)} aria-label={item.name+'，库存 '+stock.length+' 包'}>
-          <img src={item.artworkUrl} alt="" loading="lazy"/><span>{item.name}<small>× {stock.length}</small></span>
-        </button>)}</div></div>}
     </div>
   </section>
 }

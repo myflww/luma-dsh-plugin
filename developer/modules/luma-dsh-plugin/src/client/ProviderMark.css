@@ -1,0 +1,19 @@
+.lumaProviderMark {
+  box-sizing:border-box;
+  display:inline-grid;
+  place-items:center;
+  flex:none;
+  border-radius:50%;
+  color:white;
+  vertical-align:middle;
+  background:#647887;
+  line-height:1;
+}
+.lumaProviderMark[data-kind=openai] {background:#172a29}
+.lumaProviderMark[data-kind=claude] {background:#a94f36}
+.lumaProviderMark[data-kind=dsh] {background:#395eaa}
+.lumaProviderMark[data-kind=local] {background:#2e756e}
+.lumaProviderMark[data-kind=custom] {background:#72508f}
+.lumaProviderMark[data-kind=unknown] {color:#516c80;background:#e5edf2}
+.lumaProviderMark[data-kind]>svg {display:block;flex:none;max-width:78%;max-height:78%;color:white}
+.lumaProviderMark[data-kind=unknown]>svg {color:#516c80}

@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
+import { Cloud, Server, Settings2, X } from 'lucide-react'
 import { agentRequest } from './agent-desk-api.ts'
 import './CloudOfficePanel.css'
 
@@ -13,41 +14,61 @@ export function CloudOfficeConnection({onSaved, writable = true}:{onSaved?():voi
   const [url,setUrl] = useState(''), [saved,setSaved] = useState('')
   const [token,setToken] = useState(''), [note,setNote] = useState('')
   const [busy,setBusy] = useState(false), [ready,setReady] = useState(false)
+  const [checked,setChecked]=useState(false),[hasToken,setHasToken]=useState(false),[revision,reload]=useState(0),[error,setError]=useState('')
+  const lock=useRef(false)
   useEffect(() => {
-    let active = true
-    void agentRequest<CloudState>('cloudstate').then(c=>{ if (active) {setUrl(c.url); setSaved(c.url); setReady(true)} }).catch(e=>{if(active) setNote(problem(e))})
-    return () => { active = false }
-  },[])
+    const abort=new AbortController()
+    setError('')
+    void agentRequest<CloudState>('cloudstate',{},AbortSignal.any([abort.signal,AbortSignal.timeout(10000)])).then(c=>{
+      if(!abort.signal.aborted){setUrl(c.url);setSaved(c.url);setHasToken(c.hasToken);setReady(true)}
+    }).catch(e=>{if(!abort.signal.aborted)setError(problem(e))})
+    return ()=>abort.abort()
+  },[revision])
   async function act(action:'save'|'probe'|'disconnect') {
-    if (busy) return
-    setBusy(true); setNote('')
+    if (lock.current || (action!=='probe' && !writable)) return
+    lock.current=true;setBusy(true);setNote('');setError('');setChecked(false)
     try {
       if (action === 'probe') {
         const result = await agentRequest<{kinds:Kind[]}>('cloudprobe')
+        setChecked(true)
         setNote('已连接，可用功能：' + result.kinds.map(k=>labels[k]).join('、'))
       } else {
         const next = await agentRequest<CloudState>('cloudconfigure',{url:action === 'disconnect' ? '' : url, token:action === 'disconnect' ? '' : token})
-        setSaved(next.url); setUrl(next.url); setToken(''); onSaved?.()
+        setSaved(next.url);setHasToken(next.hasToken);setUrl(next.url); setToken(''); onSaved?.()
         setNote(next.url ? '已保存。点击「测试连接」检查服务器能力。' : '已断开，已交付文档仍可下载。')
       }
-    } catch(error) {setNote(problem(error))} finally {setBusy(false)}
+    } catch(e) {setError(problem(e))} finally {lock.current=false;setBusy(false)}
   }
   return <div className="lumaCloudConnection">
-    <p>在自己的云电脑运行插件目录里的 <code>cloud-office/worker.mjs</code>，再填入工作器地址和令牌。部署步骤见同目录 README.md。</p>
-    <label>工作器地址<input type="url" value={url} onChange={e=>setUrl(e.target.value)} placeholder="https://office.example.com" maxLength={1024}/></label>
-    <label>连接令牌<input type="password" value={token} onChange={e=>setToken(e.target.value)} autoComplete="new-password" maxLength={512} placeholder={saved ? '已保存，更换地址时需重新填写' : '工作器启动时设置的令牌'}/></label>
+    <div className="lumaCloudEndpoint"><Server size={16} aria-hidden="true"/><span>{ready ? !saved?'未配置工作器':checked?'本次连接测试通过':'已保存工作器地址':error?'设置读取失败':'正在读取设置…'}</span></div>
+    <fieldset disabled={!writable || !ready || busy}><label>工作器地址<input type="url" value={url} onChange={e=>{setUrl(e.target.value);setChecked(false);setToken('');setNote('')}} placeholder="https://office.example.com" maxLength={1024}/></label>
+    <label>连接令牌<input type="password" value={token} onChange={e=>{setToken(e.target.value);setChecked(false);setNote('')}} autoComplete="new-password" maxLength={512} placeholder={hasToken && url.trim()===saved?'已保存，留空沿用':'工作器启动时设置的令牌'}/></label></fieldset>
     <div className="lumaCloudActions">
-      <button type="button" disabled={!writable || !ready || busy || !url.trim()} onClick={()=>void act('save')}>保存服务器</button>
+      <button type="button" className="lumaCloudPrimary" disabled={!writable || !ready || busy || !url.trim()} onClick={()=>void act('save')}>保存服务器</button>
       <button type="button" disabled={!saved || busy || url !== saved || Boolean(token)} onClick={()=>void act('probe')}>测试连接</button>
       {saved && <button type="button" disabled={!writable || busy} onClick={()=>void act('disconnect')}>断开连接</button>}
     </div>
     {note && <p role="status">{note}</p>}
+    {error && <p role="alert">{error} {!ready && <button type="button" onClick={()=>reload(n=>n+1)}>重新读取云设置</button>}</p>}
+    <details><summary>部署工作器</summary><p>在自己的云电脑运行插件目录中的 <code>cloud-office/worker.mjs</code>。部署步骤见同目录的 README.md。</p></details>
   </div>
 }
 
-export function CloudOfficeLauncher(props:{roleId:string; name:string; initialText?:string; disabled?:boolean}) {
+export function CloudOfficeLauncher({disabled,children,className,label,...props}:{
+  roleId:string; name:string; initialText?:string; disabled?:boolean; children?:ReactNode | ((connection:string)=>ReactNode); className?:string; label?:string
+}) {
   const [open,setOpen] = useState(false)
-  return <><button type="button" disabled={props.disabled} onClick={()=>setOpen(true)}>{props.initialText ? '云电脑处理' : '云电脑'}</button>
+  const [connection,setConnection]=useState('读取配置中')
+  const describe=typeof children==='function'
+  useEffect(()=>{
+    if(!describe || open)return
+    const abort=new AbortController()
+    void agentRequest<CloudState>('cloudstate',{roleId:props.roleId},AbortSignal.any([abort.signal,AbortSignal.timeout(9000)]))
+      .then(result=>{if(!abort.signal.aborted)setConnection(typeof result?.url==='string'?(result.url?'已配置工作器':'未配置工作器'):'配置状态未知')})
+      .catch(()=>{if(!abort.signal.aborted)setConnection('配置状态未知')})
+    return ()=>abort.abort()
+  },[describe,open,props.roleId])
+  return <><button type="button" className={className} aria-label={label} aria-description={describe?connection:undefined} aria-haspopup="dialog" disabled={disabled} onClick={()=>setOpen(true)}>{typeof children==='function'?children(connection):children ?? (props.initialText ? '云电脑处理' : '云电脑')}</button>
     {open && <CloudOfficePanel key={props.roleId} {...props} onClose={()=>setOpen(false)}/>}</>
 }
 export function CloudOfficePanel({roleId,name,initialText='',onClose}:{roleId:string;name:string;initialText?:string;onClose():void}) {
@@ -111,9 +132,10 @@ export function CloudOfficePanel({roleId,name,initialText='',onClose}:{roleId:st
     finally {await load().catch(e=>setNote(problem(e))); locked.current=false; setBusy(false)}
   }
   return <dialog className="lumaCloudDialog" ref={dialog} aria-label={name+'的云电脑'} onCancel={e=>{e.preventDefault();onClose()}}>
-    <header><h2>{name}的云电脑</h2><button type="button" onClick={onClose} aria-label="关闭云电脑">×</button></header>
+    <header><span className="lumaCloudMark"><Cloud size={20} aria-hidden="true"/></span><h2>{name}的云电脑</h2><button type="button" onClick={onClose} aria-label="关闭云电脑"><X size={17}/></button></header>
     {state && <>
-      <p>{state.url || '尚未连接云办公服务器。'} <button type="button" onClick={()=>setConfigure(!configure)}>{configure?'收起设置':'配置连接'}</button></p>
+      <div className="lumaCloudServer"><span><small>云办公服务器</small><strong>{state.url || '尚未连接云办公服务器。'}</strong></span>
+        <button type="button" aria-expanded={configure} onClick={()=>setConfigure(!configure)}><Settings2 size={14} aria-hidden="true"/>{configure?'收起设置':'配置连接'}</button></div>
       {configure && <CloudOfficeConnection onSaved={()=>void load().catch(e=>setNote(problem(e)))}/>}
       {state.url && <><label>工作内容<select value={kind} onChange={e=>setKind(e.target.value as Kind)}>{Object.entries(labels).map(([k,l])=><option key={k} value={k}>{l}</option>)}</select></label>
         <label>文档标题<input value={title} onChange={e=>setTitle(e.target.value)} placeholder="留空时使用材料首行" maxLength={100}/></label>
@@ -131,5 +153,6 @@ export function CloudOfficePanel({roleId,name,initialText='',onClose}:{roleId:st
       </li>)}</ul></section>}
     </>}
     {(note || !state) && <p role="status">{note || '读取云电脑设置…'}</p>}
+    {!state && note && <button type="button" onClick={()=>{setNote('');void load().catch(e=>setNote(problem(e)))}}>重新读取云电脑</button>}
   </dialog>
 }

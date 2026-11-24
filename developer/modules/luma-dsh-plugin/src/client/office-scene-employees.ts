@@ -1,4 +1,5 @@
 import type { OfficeEmployeeVisualState } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office-harness/HarnessOfficeProjectionAdapter.ts'
+import { officeDailyRoutine } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/officeDailyRoutine.ts'
 import type { OfficeTimePolicy } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/timePolicy.ts'
 import { OFFICE_WORKSTATION_AUTO_ASSIGN_PRIORITY } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/office-workflow/shared/office-workstations.ts'
 import { employeeLocation } from './office-presence.ts'
@@ -33,7 +34,7 @@ export function projectPluginSceneEmployees(roster: readonly OfficeEmployeeVisua
     const task = runningRoles.includes(employee.employeeId) && employee.sceneActivity !== 'working' ? 'running' : employee.taskState
     const workstationId = employee.workstationId ?? (busy || policy.attendancePeriod!=='off-duty' ? displaySeats.get(employee.employeeId) : undefined)
     const ambientDesk = Boolean(available && policy.isWorkPeriod && task==='idle' && !busy && workstationId)
-    const idleLabel = ambientDesk ? '整理资料' : policy.attendancePeriod === 'lunch' ? '午间休息'
+    const idleLabel = ambientDesk ? officeDailyRoutine(employee.employeeId)?.desk ?? '整理资料' : policy.attendancePeriod === 'lunch' ? '午间休息'
       : policy.attendancePeriod === 'off-duty' ? (policy.isWorkingDate && policy.hour < 9 ? '尚未上班' : '下班休息') : label.idle
     return { id: employee.employeeId, name: employee.displayName, location, activity: location === 'unknown' ? '位置待同步' : task === 'idle' ? idleLabel : label[task],
       availability: busy ? 'working' as const : 'available' as const, sceneActivity: busy ? 'working' as const : employee.sceneActivity,

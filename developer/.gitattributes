@@ -17,3 +17,6 @@ modules/luma-dsh-plugin/src/client/PackCollectionPreview.tsx -text
 modules/luma-dsh-plugin/src/client/bedroom-art.generated.ts -text whitespace=trailing-space,space-before-tab,cr-at-eol
 modules/luma-dsh-plugin/src/shared/preview-card-catalog.ts -text
 overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/workMotionAssetRecords.generated.ts -text
+
+# Keep frozen input bytes reproducible, including embedded desktop styles.
+* -text !eol whitespace=trailing-space,space-before-tab,cr-at-eol

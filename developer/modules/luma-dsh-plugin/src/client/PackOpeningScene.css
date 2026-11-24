@@ -2,6 +2,18 @@
 .lumaOpening { --opening-accent: #957190; --opening-soft: #f0e3e9; --opening-ink: #51464f; position: relative; width: min(1120px,100%); max-height: calc(100dvh - 48px); overflow: auto; color: var(--opening-ink); background: #faf7f1; border: 1px solid #fffc; border-radius: 28px; box-shadow: 0 30px 100px #1b122840; font: 14px/1.6 system-ui,'Microsoft YaHei',sans-serif; isolation: isolate; }
 .lumaOpening[data-theme=rose] { --opening-accent: #668e9d; --opening-soft: #e4eef0; }
 .lumaOpening[data-theme=moon] { --opening-accent: #8976a7; --opening-soft: #ede7f4; }
+.lumaOpeningBackdrop .lumaOpening { --opening-ink:#243c4c; color:var(--opening-ink); background:#fffdfa; border-radius:17px; }
+.lumaOpeningBackdrop .lumaOpeningHeader { padding:9px 16px; background:#f5f8f8; border-bottom:1px solid #dbe4e8; }
+.lumaOpeningBackdrop .lumaOpeningHeader>span { color:#476274; letter-spacing:0; font-size:13px; font-weight:600; }
+.lumaOpeningBackdrop .lumaOpeningTitle { padding:11px 16px 0; }
+.lumaOpeningBackdrop .lumaOpeningTitle h2 { margin:2px 0; letter-spacing:.015em; font:650 clamp(19px,2.3vw,27px)/1.4 system-ui,"Microsoft YaHei UI",sans-serif; }
+.lumaOpeningBackdrop .lumaOpeningTitle p { color:#566b79; }
+.lumaOpeningTitle p { display:flex; align-items:center; justify-content:center; gap:6px; }
+.lumaOpeningBackdrop .lumaOpeningFooter { padding:11px 16px 15px; border-top:1px solid #dae3e8; background:#f6f8f7; }
+.lumaOpeningBackdrop .lumaOpeningTools { gap:5px; margin:5px 0 8px; }
+.lumaOpeningBackdrop .lumaOpeningTools button { color:#395b72; font-size:12px; border:1px solid #d2e0e7; border-radius:7px; padding:4px 8px; background:white; }
+.lumaOpeningBackdrop .lumaOpeningActions button,.lumaOpeningBackdrop .lumaOpeningSkip { border-radius:8px; }
+.lumaOpeningBackdrop .lumaOpeningActions .lumaOpeningPrimary { background:#27688d; color:white; }
 .lumaOpening[data-theme=dawn] { --opening-accent: #af8560; --opening-soft: #f4e7d7; }
 .lumaOpening *, .lumaOpening *::before, .lumaOpening *::after { box-sizing: border-box; }
 .lumaOpening button { display: inline-flex; justify-content: center; align-items: center; gap: 7px; cursor: pointer; font: inherit; color: inherit; padding: 9px 15px; border: 1px solid #e2d9d6; border-radius: 999px; background: #fffc; }
@@ -41,22 +53,21 @@
 .lumaOpeningCardFace.is-back { transform: none; }
 .lumaOpeningCardFace>img { width: 100%; height: 100%; display: block; object-fit: contain; pointer-events: none; user-select: none; }
 .lumaOpeningCardSheen { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(115deg,transparent 15%,#fffa 45%,transparent 65%); opacity: .16; mix-blend-mode: screen; transform: translateX(calc((var(--shine-x,50%) - 50%)*.8)); }
-.lumaOpeningCardCaption { display: flex; align-items: center; justify-content: center; gap: 7px; color: #958887; font-size: 10px; min-height: 18px; margin-top: 14px; opacity: 0; transition: opacity .5s; }
-.lumaOpening[data-phase=revealed] .lumaOpeningCardCaption { opacity: 1; }
-.lumaOpeningCardCaption b { font: 11px Georgia,serif; color: var(--opening-accent); }
 .lumaOpeningConfetti { position: absolute; left: 50%; top: 40%; pointer-events: none; }
 .lumaOpeningConfetti i { position: absolute; width: 5px; height: 9px; border-radius: 2px; background: var(--confetti-color); opacity: 0; animation: lumaPaperPop 1.8s cubic-bezier(.2,.65,.35,1) forwards; animation-delay: calc(var(--i)*8ms); }
 .lumaOpeningFooter { text-align: center; padding: 0 25px 26px; position: relative; min-height: 95px; }
-.lumaOpeningBrowseHint { margin: 0 0 12px; color: #a28e8d; font-size: 10px; letter-spacing: .05em; }
 .lumaOpeningCardPicker { display: flex; justify-content: center; gap: 8px; margin: 0 0 12px; }
 .lumaOpening .lumaOpeningCardPicker button { width: 30px; height: 30px; padding: 0; font-size: 10px; color: #9b8c90; border: 1px solid #e4dcd6; background: transparent; border-radius: 50%; }
 .lumaOpening .lumaOpeningCardPicker button[aria-pressed=true] { background: var(--opening-soft); color: var(--opening-accent); border-color: var(--opening-accent); }
-.lumaOpeningHint { display: block; font-size: 11px; color: #94868c; letter-spacing: .1em; margin-bottom: 8px; }
 .lumaOpening .lumaOpeningSkip { padding: 4px 10px; background: transparent; border: 0; font-size: 11px; color: #96888d; text-decoration: underline; text-underline-offset: 4px; }
 .lumaOpening .lumaOpeningCardInfo h3 { font: 500 20px/1.5 Georgia,'SimSun',serif; color: var(--opening-ink); margin: 4px 0; }
 .lumaOpening .lumaOpeningCardInfo p { font-size: 11px; color: #96888d; margin: 0; }
-.lumaOpeningRarity { display: inline-block; font-size: 10px; letter-spacing: .14em; color: var(--opening-accent); }
-.lumaOpeningRarity.rarity-SSR { color: #9e7840; }
+.lumaOpeningCardInfo { display:flex; align-items:center; justify-content:center; gap:0 8px; flex-wrap:wrap; }
+.lumaOpeningCardInfo p { flex-basis:100%; }
+.lumaOpeningRarity { padding:1px 6px; font-size:11px; font-weight:700; color:#465f6a; border:1px solid currentColor; border-radius:4px; }
+.lumaOpeningRarity.rarity-R { color:#316f75; }
+.lumaOpeningRarity.rarity-SR { color:#78598c; }
+.lumaOpeningRarity.rarity-SSR { color:#805b22; background:#fff1ce; }
 .lumaOpeningTools { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin: 9px 0 15px; }
 .lumaOpening .lumaOpeningTools button { background: transparent; border: 0; padding: 4px; font-size: 11px; color: #8e8088; }
 .lumaOpeningActions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
@@ -73,7 +84,7 @@
   100% { opacity: 1; transform: none; }
 }
 @keyframes lumaPaperPop { 0% { transform: translate(0,20px) scale(.3); opacity: 0; } 18% { opacity: .9; } 60% { opacity: .7; } 100% { transform: translate(var(--dx),calc(var(--dy) + 330px)) rotate(var(--dr)); opacity: 0; } }
-@media (max-width: 700px) { .lumaOpeningBackdrop { padding: 10px; } .lumaOpening { max-height: calc(100dvh - 20px); border-radius: 22px; } .lumaOpeningStage { height: 330px; } .lumaOpeningHeader { padding: 14px 16px; } .lumaOpeningHeader>span { font-size: 9px; letter-spacing: .07em; } .lumaOpeningCardCaption { font-size: 10px; } .lumaOpeningCards { scrollbar-width: none; } .lumaOpeningCards::-webkit-scrollbar { display: none; } }
+@media (max-width: 700px) { .lumaOpeningBackdrop { padding: 10px; } .lumaOpening { max-height: calc(100dvh - 20px); border-radius: 22px; } .lumaOpeningStage { height: 330px; } .lumaOpeningHeader { padding: 14px 16px; } .lumaOpeningHeader>span { font-size: 9px; letter-spacing: .07em; } .lumaOpeningCards { scrollbar-width: none; } .lumaOpeningCards::-webkit-scrollbar { display: none; } }
 @media (max-width: 440px) { .lumaOpeningStage { height: 305px; } .lumaOpeningTitle { padding-inline: 10px; } .lumaOpening .lumaOpeningTitle h2 { font-size: 21px; letter-spacing: .03em; } }
 @media (max-height: 740px) and (min-width: 701px) { .lumaOpeningStage { height: 285px; } .lumaOpening[data-phase=emerging] .lumaOpeningStage, .lumaOpening[data-phase=revealed] .lumaOpeningStage { height: 280px; } .lumaOpeningTitle { padding-top: 0; } .lumaOpeningHeader { padding-block: 12px; } .lumaOpeningFooter { padding-bottom: 18px; } }
 .lumaOpening[data-reduced=true] *, .lumaOpening[data-reduced=true] *::before, .lumaOpening[data-reduced=true] *::after { animation: none !important; transition: none !important; }

@@ -59,6 +59,7 @@ describe('allowlisted plugin backup and preferences', () => {
     const host = hostFixture(), backup = createPluginBackupRuntime(host.api)
     const original = await backup.exportBackup()
     expect((await backup.previewBackup(JSON.stringify({ ...original, pluginVersion: '0.4.3' }))).pluginVersion).toBe('0.4.3')
+    expect((await backup.previewBackup(JSON.stringify({ ...original, pluginVersion: '0.5.4-web.1' }))).pluginVersion).toBe('0.5.4-web.1')
     const foreign = { ...original, namespaces: { ...original.namespaces, 'llm-private-provider': {} } }
     await expect(backup.previewBackup(JSON.stringify(foreign))).rejects.toThrow('插件范围之外')
     await expect(backup.previewBackup(JSON.stringify({ ...original, version: 2 }))).rejects.toThrow('版本')
@@ -176,6 +177,8 @@ describe('allowlisted plugin backup and preferences', () => {
     await waitFor(() => expect(host.sections.get(PLUGIN_PREFERENCES_NAMESPACE).preferences.reducedMotion).toBe('reduce'))
     fireEvent.click(view.getByRole('button', { name: '前往 DSH 设置入口' }))
     expect(nativeSettings).toHaveBeenCalledTimes(1)
+    fireEvent.click(view.getByRole('button', {name: '备份与恢复'}))
+    expect(view.getByRole('button', {name:'备份与恢复'}).getAttribute('aria-current')).toBe('page')
     host.api.replace.mockClear()
     const document = await runtime.exportBackup()
     const incoming = clone(document) as any

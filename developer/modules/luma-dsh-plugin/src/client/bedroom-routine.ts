@@ -33,6 +33,8 @@ export interface BedroomStep {
   throughTo?:Point
   arrivalFacing?:OfficeWalkDirection
   departureFacing?:OfficeWalkDirection
+  /** A furniture invitation can interrupt a sitting or standing transition. */
+  initialContact?:number
 }
 export interface BedroomRoutine { start:number; end:number; steps:BedroomStep[] }
 type Speeds = Record<OfficeWalkDirection, number>

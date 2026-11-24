@@ -1,0 +1,26 @@
+.lumaContacts .lumaRoleEditor {width:clamp(310px,27vw,410px);max-width:100%}
+@container luma-contacts (max-width:1050px){
+  .lumaContacts .lumaRoleEditor {position:absolute;inset:0 0 0 auto;z-index:5;width:min(380px,100%);box-shadow:-5px 0 22px #24445a20}
+}
+.lumaRoleModelEditor>header>div {min-width:0}
+.lumaRoleModelEditor>header small {display:block;margin-bottom:2px;color:#52697c;font-size:12px}
+.lumaRoleModelEditor.lumaRoleEditor>header button {display:grid;place-items:center;width:32px;height:32px;padding:0;border:0;border-radius:50%;background:#eef4f7}
+.lumaRoleModelEditor .lumaModelSources {min-width:0;margin:16px 0 15px;padding:0 0 12px;border:0;border-bottom:1px solid #dce6ed}
+.lumaModelSources legend {padding:0;margin-bottom:6px;color:#385266;font-size:12px;font-weight:600}
+.lumaModelSources>div {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px}
+.lumaRoleModelEditor .lumaModelSources label {position:relative;display:block;margin:0;min-width:0;cursor:pointer}
+.lumaModelSources input[type=radio] {position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);padding:0;margin:0}
+.lumaModelSourceChoice {display:grid;justify-items:center;gap:6px;padding:9px 2px 7px;border-radius:10px;font-size:12px;color:#526b7c}
+.lumaModelSourceIcon {position:relative;display:inline-flex;flex:none}
+.lumaModelSourceIcon i {position:absolute;display:grid;place-items:center;right:-5px;bottom:-2px;width:15px;height:15px;box-sizing:content-box;border:2px solid #fff;border-radius:50%;background:#245b70;color:white}
+.lumaModelSourceLabel {white-space:nowrap;line-height:1.4}
+.lumaModelSources label:hover .lumaModelSourceChoice,.lumaModelSources input:checked+.lumaModelSourceChoice {background:#eef4f6}
+.lumaModelSources input:checked+.lumaModelSourceChoice {color:#234d65;font-weight:650}
+.lumaModelSources input:focus-visible+.lumaModelSourceChoice {outline:2px solid #28669e;outline-offset:1px}
+.lumaModelSources input:disabled+.lumaModelSourceChoice {opacity:.6}
+.lumaRoleModelEditor .lumaHarnessBinding {justify-items:stretch}
+.lumaRoleModelEditor .lumaHarnessBinding label {margin:0;gap:5px}
+.lumaRoleModelEditor .lumaHarnessBinding>button {justify-self:start}
+.lumaContacts .lumaRoleModelEditor :is(p,label,small) {color:var(--contact-faint,#526b7e)}
+.lumaContacts .lumaRoleModelEditor .is-primary {background:#286e75;border-color:#286e75;color:white}
+.lumaContacts .lumaRoleModelEditor>.lumaHarnessPanel+button {margin-top:10px}

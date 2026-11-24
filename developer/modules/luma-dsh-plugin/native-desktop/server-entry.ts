@@ -1,5 +1,6 @@
-import { desktopPets } from './desktop-pet.ts'
 import { releaseChecker } from './release-check.ts'
+import { desktopPets } from './desktop-pet.ts'
+import { createStudioDesktop } from '../src/host/studio-desktop.ts'
 import { DatabaseSync } from 'node:sqlite'
 import { join } from 'node:path'
 import { resolveLumaProfileRoot } from './profile-data.mjs'
@@ -15,7 +16,7 @@ import { employeeWorkspaceHandler, type EmployeeWorkspaceHost } from './employee
 import { createEmployeePresetRoster, type DesktopPresetRegistry } from './employee-presets.ts'
 import { verifyPortableLibraries } from '../src/host/love-house.ts'
 import { prepareRoleHomes } from '../src/host/role-homes.ts'
-import { MESSAGES_NAMESPACE, validateMessageSettings } from '../src/messages-settings.ts'
+import { MESSAGES_NAMESPACE, decodeMessageSettings, validateMessageSettings } from '../src/messages-settings.ts'
 import { LOCAL_COLLECTION_SETTINGS_NAMESPACE, validateLocalCollectionSettings } from '../src/local-collection-settings.ts'
 import { projectLocalCollectionSettings } from '../src/shared/local-collection-domain.ts'
 import { OFFICE_PRESENTATION_NAMESPACE, validateOfficePresentationSettingsWire } from '../src/office-presentation-settings.ts'
@@ -124,7 +125,11 @@ function settingsHandler(db: DatabaseSync, homes: Record<string,string>, syncPre
       return send(res, 400, {ok:false,error:'设置内容无效或无法保存。'})
     }
   }
-  return {handle,refreshWallet}
+  function readSavedProfiles() {
+    const section = read.get(MESSAGES_NAMESPACE)
+    return section ? decodeMessageSettings(JSON.parse(String(section.value)))?.preferences?.profiles ?? {} : {}
+  }
+  return {handle,refreshWallet,readSavedProfiles}
 }
 
 export async function apply(ctx: Context) {
@@ -184,8 +189,9 @@ export async function apply(ctx: Context) {
       clean.push(ctx.webServer.register({kind:'exact',path:'/luma-native/desktop-pet',handler:protect(pets.handler)}))
       clean.push(()=>presets.dispose())
       startup = Promise.all([presets.sync(false), settings.refreshWallet()]).then(() => {})
+      const studioDesktop = createStudioDesktop(fileURLToPath(new URL('./agent-desktop/agent-desktop.exe', import.meta.url)))
       const desk = createAgentWork(join(root, 'agent-workbench'), req => ownerAdmission(ctx, req) === 0,
-        { read:() => readPortableBinding(undefined, true), verify:verifyPortableLibraries }, readUnlockedEmployees, true, ctx, usage.recordModelUsage)
+        { read:() => readPortableBinding(undefined, true), verify:verifyPortableLibraries }, readUnlockedEmployees, true, ctx, usage.recordModelUsage, studioDesktop, settings.readSavedProfiles)
       clean.push(() => desk.dispose())
       clean.push(ctx.webServer.register({ kind:'exact', path:'/luma-native/settings', handler:protect(settings.handle) }))
       clean.push(ctx.webServer.register({ kind:'exact', path:'/luma-native/employee-workspace', handler:protect(employeeWorkspaceHandler(ctx,homes,readUnlockedEmployees)) }))

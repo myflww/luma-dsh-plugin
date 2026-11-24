@@ -95,6 +95,7 @@ test('desktop session bridge projects employee identity, real Chat target, permi
   const session = Object.assign(store({openState:'open',running:false}), {prompt: async (content, mode)=>({ok:true,value:{content,mode}})})
   const retained = [], released = [], native = []
   const staged = [], uploads = []
+  const archivedActions=[]
   const ctx = {fileUpload:{async upload(id, blob, name, signal) {
     uploads.push(blob)
     staged.push({id, bytes:Buffer.from(await blob.arrayBuffer()), name, aborted:signal.aborted})
@@ -103,11 +104,14 @@ test('desktop session bridge projects employee identity, real Chat target, permi
     assert.equal(source,'lumaEmployee'); retained.push(id)
     return {binding:{session}, ready:Promise.resolve(), release:()=>released.push(id)}
   }},uiSession:{sessionStatus:status},uiConversation:{binding:()=>({target(key){assert.equal(key,'chat');return chat}})},
-  workspaces:{list:store({archivedSessionIds:[],items:[{workspaceId:'work',sessionIds:['role']}]})},uiWorkspace:{openSession:id=>native.push(id)},
+  workspaces:{list:store({archivedSessionIds:[],items:[{workspaceId:'work',sessionIds:['role']}]}),
+    archiveSession:async id=>archivedActions.push(['archive',id]),unarchiveSession:async id=>archivedActions.push(['restore',id])},uiWorkspace:{openSession:id=>native.push(id)},
   remote:{session:{create:async()=>({ok:true,value:{sessionId:'role',agentPreset:'luma-a'}})}}}
   const bridge = createDesktopSessions(ctx)
   try {
     assert.equal(bridge.sessions.list.getSnapshot().current,'general')
+    await bridge.workspaces.archiveSession('role');await bridge.workspaces.unarchiveSession('role')
+    assert.deepEqual(archivedActions,[['archive','role'],['restore','role']])
     assert.equal(bridge.sessions.list.getSnapshot().byId.role.agentPreset,'luma-a')
     assert.equal(bridge.sessions.binding('general'),undefined)
     bridge.sessions.showTopic('role')
