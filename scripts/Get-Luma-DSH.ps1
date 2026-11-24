@@ -28,21 +28,29 @@ function Hash-File([string]$file) {
     try { return [BitConverter]::ToString($hash.ComputeHash($stream)).Replace('-','').ToLowerInvariant() }
     finally { $hash.Dispose(); $stream.Dispose() }
 }
-function Get-PrivateAsset([string]$tag, [string]$name, [string]$destination) {
+function Get-ReleaseAsset([string]$tag, [string]$name, [string]$destination) {
     [IO.Directory]::CreateDirectory($destination) | Out-Null
-    if (!(Get-Command gh -ErrorAction SilentlyContinue)) { throw "请通过有权限的 GitHub 账号下载 $name 到 $destination，或安装 GitHub CLI 并登录后重试。" }
-    Write-Host "正在从私有发布 $tag 下载 $name …"
-    $mode = if ($name.Contains('?')) { '--skip-existing' } else { '--clobber' }
-    for ($attempt = 1; $attempt -le 3; $attempt++) {
-        $previous = $ErrorActionPreference
-        try {
-            $ErrorActionPreference = 'Continue'
-            & gh release download $tag --repo $repo --pattern $name --dir $destination $mode 2>$null
-            if ($LASTEXITCODE -eq 0) { return }
-        } finally { $ErrorActionPreference = $previous }
-        if ($attempt -lt 3) { Start-Sleep -Seconds (2*$attempt) }
+    $target = Join-Path $destination $name
+    $temporary = $target + '.' + [guid]::NewGuid().ToString('N') + '.partial'
+    $backup = $temporary + '.previous'
+    $url = 'https://github.com/' + $repo + '/releases/download/' + [Uri]::EscapeDataString($tag) + '/' + [Uri]::EscapeDataString($name)
+    try {
+        for ($attempt = 1; $attempt -le 3; $attempt++) {
+            try {
+                Write-Host "正在下载 $tag / $name"
+                Invoke-WebRequest -UseBasicParsing -Uri $url -OutFile $temporary -ErrorAction Stop
+                if ([IO.File]::Exists($target)) { [IO.File]::Replace($temporary, $target, $backup) }
+                else { [IO.File]::Move($temporary, $target) }
+                return
+            } catch {
+                if ($attempt -eq 3) { throw }
+                Start-Sleep -Seconds (2 * $attempt)
+            }
+        }
+    } finally {
+        if ([IO.File]::Exists($temporary)) { [IO.File]::Delete($temporary) }
+        if ([IO.File]::Exists($backup)) { [IO.File]::Delete($backup) }
     }
-    throw "未能下载 $tag 的 $name。请检查 GitHub 私有仓库访问权限与网络后重试。"
 }
 function Test-BaseFolder([string]$path, $files) {
     $descriptor = Join-Path $path 'package.json'
@@ -73,13 +81,9 @@ function Get-BasePackage($files) {
     try {
         if ([IO.File]::Exists($joined) -and (Hash-File $joined) -ceq $oldDigest) { return $joined }
         $index = Join-Path $oldCache 'parts.json'
-        if (!(Test-Path -LiteralPath $index) -or (Hash-File $index) -cne '14ceb1d555eb59546105f3b34601743f080ff1822a8cb11d53ba71c7d1e0cc35') { Get-PrivateAsset 'v0.4.3' 'parts.json' $oldCache }
+        if (!(Test-Path -LiteralPath $index) -or (Hash-File $index) -cne '14ceb1d555eb59546105f3b34601743f080ff1822a8cb11d53ba71c7d1e0cc35') { Get-ReleaseAsset 'v0.4.3' 'parts.json' $oldCache }
         if ((Hash-File $index) -cne '14ceb1d555eb59546105f3b34601743f080ff1822a8cb11d53ba71c7d1e0cc35') { throw "基础包分卷清单校验失败：$index" }
         $parts = (Get-Content -LiteralPath $index -Raw -Encoding UTF8 | ConvertFrom-Json).parts
-        if (@($parts | Where-Object { !(Test-Path -LiteralPath (Join-Path $oldCache $_.name) -PathType Leaf) }).Count) {
-            Write-Host '首次安装需要下载约 1.87 GB 的基础包。中断后可重新运行，已完成的分卷将被复用。'
-            Get-PrivateAsset 'v0.4.3' "$oldZip.???" $oldCache
-        }
         $partial = Join-Path $oldCache ('.joining-' + [guid]::NewGuid().ToString('N'))
         $output = [IO.File]::Open($partial,'CreateNew','Write','None')
         try {
@@ -88,7 +92,7 @@ function Get-BasePackage($files) {
                 $partInfo = [IO.FileInfo]::new($path)
                 if (!$partInfo.Exists -or $partInfo.Length -ne $part.size -or (Hash-File $path) -cne $part.sha256) {
                     Write-Host "正在补齐分卷 $($part.name)"
-                    Get-PrivateAsset 'v0.4.3' $part.name $oldCache
+                    Get-ReleaseAsset 'v0.4.3' $part.name $oldCache
                     if ((Hash-File $path) -cne $part.sha256) { throw "分卷校验失败，请重试：$($part.name)" }
                 }
                 $stream = [IO.File]::OpenRead($path)
@@ -152,7 +156,7 @@ if (!$Patch) {
     $Patch = Join-Path $PSScriptRoot $patchName
     if (!(Test-Path -LiteralPath $Patch -PathType Leaf)) {
         $Patch = Join-Path $cache $patchName
-        if (!(Test-Path -LiteralPath $Patch -PathType Leaf) -or (Hash-File $Patch) -cne $patchDigest) { Get-PrivateAsset 'v0.6.0' $patchName $cache }
+        if (!(Test-Path -LiteralPath $Patch -PathType Leaf) -or (Hash-File $Patch) -cne $patchDigest) { Get-ReleaseAsset 'v0.6.0' $patchName $cache }
     }
 }
 $Patch = (Get-Item -LiteralPath $Patch).FullName
