@@ -8,6 +8,8 @@ import { join } from 'node:path'
 import { apply } from '../native-desktop/server-entry.ts'
 import { COMPANION_REWARDS, LOCAL_PACKS, type LocalCollectionEvent } from '../src/shared/local-collection-domain.ts'
 import { LOCAL_COLLECTION_SETTINGS_NAMESPACE } from '../src/local-collection-settings.ts'
+import { OFFICE_PRESENTATION_NAMESPACE } from '../src/office-presentation-settings.ts'
+import { SHOP_BEDROOMS } from '../src/shared/shop-bedrooms.ts'
 import { getPackOdds, PACK_POOL_VERSION } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/economy/domain/cardPacks.ts'
 import { OFFICE_EMPLOYEE_PRESET_IDS } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/office-employee-presets.ts'
 
@@ -78,6 +80,12 @@ it('desktop routes grant the second contact only after a persisted exchange, inc
     expect((await write([...events,redeemed],3)).status).toBe(200)
     const restored = await (await post('/luma-agents/state',{})).json()
     expect(restored.value.rooms).toHaveLength(1)
+    const skin=SHOP_BEDROOMS[0]
+    const assign=()=>post('/luma-native/settings',{action:'update',ns:OFFICE_PRESENTATION_NAMESPACE,expectedRevision:0,
+      section:{selection:{schemaVersion:1,officeTheme:null,employeeSkins:{},bedroomThemes:{shan:skin.id,jingyuniang:skin.id}}}})
+    expect((await assign()).status).toBe(400)
+    expect((await write([...events,redeemed,{type:'buy-bedroom-skin',id:'room-purchase-1',at,themeId:skin.id,price:skin.price}],4)).status).toBe(200)
+    expect((await assign()).status).toBe(200)
   } finally {
     await unload?.()
     vi.unstubAllGlobals()

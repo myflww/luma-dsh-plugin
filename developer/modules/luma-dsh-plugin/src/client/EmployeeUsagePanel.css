@@ -1,21 +1,21 @@
-.lumaEmployeeUsage { margin: 24px 0; color: #193853; }
+.lumaEmployeeUsage { margin: 24px 0; color: var(--luma-ink, #193853); }
 .lumaEmployeeUsage header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
 .lumaEmployeeUsage header h3 { margin-top: 0; }
 .lumaEmployeeUsage header button { flex-shrink: 0; }
 .lumaEmployeeUsage ul { list-style: none; padding: 0; display: grid; gap: 10px; }
-.lumaEmployeeUsage li { display: grid; grid-template-columns: minmax(140px,1fr) minmax(140px,1.6fr) auto; gap: 20px; align-items: center; background: #fff; border: 1px solid #d4e2ed; border-radius: 14px; padding: 18px; }
+.lumaEmployeeUsage li { display: grid; grid-template-columns: minmax(140px,1fr) minmax(140px,1.6fr) auto; gap: 20px; align-items: center; background: var(--luma-surface, #fff); border: 1px solid var(--luma-line, #d4e2ed); border-radius: 14px; padding: 18px; }
 .lumaUsageName { display: flex; align-items: center; gap: 12px; }
 .lumaUsageName .lumaMessageAvatar { width: 46px; height: 46px; }
 .lumaUsageName strong,.lumaUsageName span:not(.lumaMessageAvatar) { display: block; }
-.lumaUsageName div span,.lumaUsageMeter small { color: #536d82; font-size: 12px; font-variant-numeric: tabular-nums; }
-.lumaUsageMeter progress { display: block; appearance: none; width: 100%; height: 7px; border: 0; border-radius: 9px; overflow: hidden; margin: 0 0 6px; background: #e4edf4; }
-.lumaUsageMeter progress::-webkit-progress-bar { background: #e4edf4; }
-.lumaUsageMeter progress::-webkit-progress-value { background: #457ca5; border-radius: 9px; }
-.lumaUsageMeter progress::-moz-progress-bar { background: #457ca5; border-radius: 9px; }
+.lumaUsageName div span,.lumaUsageMeter small { color: var(--luma-muted, #536d82); font-size: 12px; font-variant-numeric: tabular-nums; }
+.lumaUsageMeter progress { display: block; appearance: none; width: 100%; height: 7px; border: 0; border-radius: 9px; overflow: hidden; margin: 0 0 6px; background: var(--luma-surface-muted, #e4edf4); }
+.lumaUsageMeter progress::-webkit-progress-bar { background: var(--luma-surface-muted, #e4edf4); }
+.lumaUsageMeter progress::-webkit-progress-value { background: var(--luma-accent, #457ca5); border-radius: 9px; }
+.lumaUsageMeter progress::-moz-progress-bar { background: var(--luma-accent, #457ca5); border-radius: 9px; }
 .lumaOfficeMemberActions .lumaUsageMeter.is-compact, .lumaRosterMeterState { flex: 1 1 110px; min-width: 0; margin-inline-start: 5px; }
-.lumaUsageCaption { display: flex; justify-content: space-between; gap: 8px; color: #405f7b; font-size: 11px; font-variant-numeric: tabular-nums; }
+.lumaUsageCaption { display: flex; justify-content: space-between; gap: 8px; color: var(--luma-muted, #405f7b); font-size: 11px; font-variant-numeric: tabular-nums; }
 .lumaUsageMeter.is-compact progress { height: 5px; margin: 4px 0 0; }
-.lumaRosterMeterState, .lumaRosterUsageNote { color: #536d82; font-size: 12px; }
+.lumaRosterMeterState, .lumaRosterUsageNote { color: var(--luma-muted, #536d82); font-size: 12px; }
 .lumaRosterUsageNote { margin: 8px 0 0; }
 @container luma-scene (max-width: 380px) {
   .lumaOfficeMemberActions .lumaUsageMeter.is-compact, .lumaRosterMeterState { flex-basis: 100%; margin: 3px 0 0; }

@@ -44,6 +44,7 @@ export interface OfficeSceneSurfaceProps {
   readonly commands?: readonly SceneCommand[]
   readonly onSceneEvent?: (event: SceneEvent) => void
   readonly onCharacterClick?: (employeeId: string) => void
+  readonly paperPlanePick?: ((id: string, point: {x:number; y:number}) => void) | undefined
   readonly employeeDestination?: import('./office2d/actorPortraitActivation.ts').OfficeEmployeeDestination
   readonly onReportClick?: (reportId: string) => void
   readonly onDesktopPet?: import('./office2d/scenePlacement.ts').DesktopPetDrop | undefined

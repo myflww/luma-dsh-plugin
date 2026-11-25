@@ -5,6 +5,12 @@ import { employeeLocation, withActiveTaskMonitors } from '../src/client/office-p
 import { decodeOfficePresentationSettings } from '../src/office-presentation-settings.ts'
 
 describe('office scene membership without task or attendance authority', () => {
+  it('reports the exact minute at the start of every local clock minute', () => {
+    for (let minute=0; minute<1440; minute++) {
+      const date=new Date(2026,10,25,0,minute,0)
+      expect(createOfficeTimePolicy({date}).minuteOfDay).toBe(minute)
+    }
+  })
   it.each([
     [8, 'bedroom'], [9, 'office'], [11, 'office'], [12, 'office'], [13, 'office'], [17, 'office'], [18, 'bedroom'], [23, 'bedroom'],
   ] as const)('puts an idle employee in exactly one room at %i', (hour, location) => {

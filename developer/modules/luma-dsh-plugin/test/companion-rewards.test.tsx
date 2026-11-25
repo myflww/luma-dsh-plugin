@@ -63,6 +63,8 @@ it('requires a confirmed, currently held instance and changes contacts only afte
   try {
     render(<CompanionRewards runtime={{store,dispose:()=>store.dispose()}} onFindPack={()=>{}} />)
     const tile = within(screen.getByRole('article',{name:employee.name}))
+    expect(tile.getByRole('progressbar',{name:employee.name+'空间收集进度'})).toBeTruthy()
+    expect(tile.getByText('查看卡片条件')).toBeTruthy()
     fireEvent.click(tile.getByRole('button',{name:'选择兑换卡'}))
     expect(revision).toBe(0)
     fireEvent.click(tile.getByRole('button',{name:'取消'}))

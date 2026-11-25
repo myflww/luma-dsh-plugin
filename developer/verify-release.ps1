@@ -1,6 +1,7 @@
-param(
+﻿param(
     [Parameter(Mandatory = $true, ParameterSetName='Full')][string]$Archive,
     [Parameter(Mandatory = $true, ParameterSetName='Update')][string]$Update,
+    [Parameter(ParameterSetName='Update')][string]$Installer,
     [Parameter(Mandatory = $true)][string]$Package
 )
 $ErrorActionPreference = 'Stop'
@@ -50,7 +51,29 @@ if ($Update) {
             if ($key.StartsWith('public/')) { $assetCount++ }
             if ($key -in 'native-desktop/client.mjs','native-desktop/server.mjs','cordis.patch.yml') { $artifacts[$key]=$sha }
         }
-        [ordered]@{version=$version;updateSha256=(Read-FileSha256 $Update);matchingFiles=$files.Count;matchingPublicAssets=$assetCount;verifiedPayloadFiles=$payloadCount;sha256=$artifacts} | ConvertTo-Json
+        $result = [ordered]@{version=$version;updateSha256=(Read-FileSha256 $Update);matchingFiles=$files.Count;matchingPublicAssets=$assetCount;verifiedPayloadFiles=$payloadCount;sha256=$artifacts}
+        if ($Installer) {
+            $bootstrap = [IO.Compression.ZipFile]::OpenRead((Get-Item -LiteralPath $Installer).FullName)
+            try {
+                $required = @('Install-Luma-DSH.cmd','Get-Luma-DSH.ps1','LICENSE.md','THIRD_PARTY_NOTICES.md','安装说明.txt')
+                if ($bootstrap.Entries.Count -ne $required.Count) { throw 'Unexpected bootstrap contents.' }
+                foreach ($name in $required) {
+                    $entry = $bootstrap.GetEntry($name)
+                    if (!$entry -or !$entry.Length) { throw "Bootstrap entry missing: $name" }
+                    if ($name -in 'LICENSE.md','THIRD_PARTY_NOTICES.md') {
+                        $stream = $entry.Open()
+                        try { $sha = [BitConverter]::ToString($payloadHash.ComputeHash($stream)).Replace('-','').ToLowerInvariant() }
+                        finally { $stream.Dispose() }
+                        if ($sha -cne (Read-FileSha256 (Join-Path $root $name))) { throw "Bootstrap license differs: $name" }
+                    }
+                }
+                $reader = [IO.StreamReader]::new($bootstrap.GetEntry('Get-Luma-DSH.ps1').Open(), [Text.Encoding]::UTF8)
+                try { $script = $reader.ReadToEnd() } finally { $reader.Dispose() }
+                if (!$script.Contains($result.updateSha256) -or !$script.Contains("Luma-DSH-$version-Update.zip") -or $script.Contains('@PATCH_SHA256@')) { throw 'Bootstrap does not pin this update.' }
+                $result.installerSha256 = Read-FileSha256 $Installer
+            } finally { $bootstrap.Dispose() }
+        }
+        $result | ConvertTo-Json
     } finally { $delta.Dispose(); $payloadHash.Dispose() }
     return
 }

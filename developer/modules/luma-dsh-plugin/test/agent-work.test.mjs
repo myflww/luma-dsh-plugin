@@ -27,7 +27,7 @@ test('group membership, public multi-turn history and named replies survive rest
     await rm(root, {recursive:true, force:true})
   })
   const make = { requestId:'test-group', name:'星图编辑部', roleIds:['shan','lu-mi'] }
-  const room = await desk.call('createroom', make)
+  let room = await desk.call('createroom', make)
   assert.deepEqual(await desk.call('createroom', make), room)
   await assert.rejects(desk.call('createroom',{...make, name:'另一个群'}))
   await assert.rejects(desk.call('createroom',{...make, requestId:'solo', roleIds:['shan']}))
@@ -52,6 +52,13 @@ test('group membership, public multi-turn history and named replies survive rest
     await send('round1','SHARED-BRIEF',make.roleIds)
     await assert.rejects(send('overlap','no',['lu-mi']), /上一条消息/)
     await done('round1')
+    const rename = {roomId:room.id,previousName:room.name,name:'星图二组'}
+    room = await desk.call('renameroom', rename)
+    assert.equal(room.name,rename.name)
+    assert.deepEqual(await desk.call('renameroom', rename),room)
+    await assert.rejects(desk.call('renameroom',{...rename,name:'旧页面覆盖'}),/已更新/)
+    await assert.rejects(desk.call('renameroom',{...rename,name:'   '}))
+    assert.deepEqual(await desk.call('createroom',make),room)
     assert.match(JSON.stringify(received[1]), /DELIVERED-shan-1/)
     assert.equal(db.prepare('SELECT count(*) n FROM notes WHERE topic=?').get(room.id).n,0)
     const legacy = db.prepare('INSERT INTO notes(id,role,topic,user,assistant,createdAt,synced) VALUES(?,?,?,?,?,?,?)')
@@ -246,7 +253,7 @@ test('contacts automatically reserve eight verified libraries in an isolated hou
   const runtime = join(root,'house.json'), oldRuntime = process.env.LUMA_LOVEHOUSE_RUNTIME_FILE
   process.env.LUMA_LOVEHOUSE_RUNTIME_FILE = runtime
   const catalog = [], received = [], roles = ['jingyuniang','shan']
-  let selected = 'personal', desk
+  let selected = 'personal', desk, finishUpload
   const server = createServer(async (req,res) => {
     let raw = ''
     for await (const part of req) raw += part
@@ -259,7 +266,12 @@ test('contacts automatically reserve eight verified libraries in an isolated hou
       selected=library.id; catalog.push(library); return reply({library})
     }
     if (req.url === '/api/library/select') { selected=data.library_id; return reply({ok:true}) }
-    if (req.url === '/api/ai/record') { received.push({library:req.headers['x-nkb-library'],...data}); return reply({saved:true,id:data.request_id}) }
+    if (req.url === '/api/ai/context') return reply({memory_context:'远端已绑定的历史记忆'})
+    if (req.url === '/api/ai/record') {
+      received.push({library:req.headers['x-nkb-library'],...data})
+      if (data.user==='我的署名是待确认月签。') await new Promise(ok=>{finishUpload=ok})
+      return reply({saved:true,id:data.request_id})
+    }
     res.writeHead(404); res.end()
   })
   server.listen(0,'127.0.0.1')
@@ -269,7 +281,7 @@ test('contacts automatically reserve eight verified libraries in an isolated hou
   t.after(async () => { desk?.dispose(); server.closeAllConnections(); await new Promise(ok=>server.close(ok))
     if (oldRuntime === undefined) delete process.env.LUMA_LOVEHOUSE_RUNTIME_FILE; else process.env.LUMA_LOVEHOUSE_RUNTIME_FILE = oldRuntime
     await rm(root,{recursive:true,force:true}) })
-  const turn = {roleId:'jingyuniang',topic:'test',id:'test-id',user:'测试问题',assistant:'鲸鱼记录'}
+  const turn = {roleId:'jingyuniang',topic:'test',id:'test-id',user:'我的默认格式是原生纸张。',assistant:'鲸鱼记录'}
   desk=connect()
   await desk.call('record',turn)
   await desk.call('record',turn)
@@ -290,11 +302,31 @@ test('contacts automatically reserve eight verified libraries in an isolated hou
   await desk.call('record',{...turn,roleId:'shan',assistant:'端木记录'})
   await until(()=>received.length === 2)
   assert.equal(received[1].library,catalog.find(lib=>lib.name.includes('端木嫣')).id)
+  const portrait=roleId=>desk.call('portrait',{roleId})
+  const remove=async(roleId,phrase)=>{
+    const {id,revision}=(await portrait(roleId)).items.find(item=>item.text.includes(phrase))
+    return desk.call('portraitforget',{roleId,id,revision})
+  }
+  const remote=async roleId=>JSON.parse((await desk.call('recall',{roleId,query:'格式',topic:'remote'})).context).loveHouse
+  assert.match(await remote('jingyuniang'),/远端已绑定/)
+  assert.equal((await remove('jingyuniang','原生纸张')).remoteRecall,'filtered')
+  assert.equal(await remote('jingyuniang'),'')
+  assert.match(await remote('shan'),/远端已绑定/)
   // A restored/replaced service may recycle a numeric ID for an unrelated library.
-  catalog.find(lib=>lib.name.includes('端木嫣')).name='其他人的库'
+  const shanLibrary=catalog.find(lib=>lib.name.includes('端木嫣')), originalName=shanLibrary.name
+  shanLibrary.name='其他人的库'
   assert.equal((await desk.call('housestatus',{})).status,'mismatch')
   await assert.rejects(desk.call('houseconnect',{}),/已绑定记忆库不可用/)
-  await desk.call('record',{...turn,roleId:'shan',id:'next',assistant:'等待恢复'})
+  await desk.call('record',{...turn,roleId:'shan',id:'next',user:'我的昵称是星沙行者。',assistant:'等待恢复'})
   await until(async () => (await desk.call('state',{})).loveHouse.message.includes('待同步'))
   assert.equal(received.length,2)
+  assert.equal((await remove('shan','星沙行者')).remoteRecall,'bound')
+  shanLibrary.name=originalName
+  assert.match(await remote('shan'),/远端已绑定/)
+  await desk.call('record',{...turn,roleId:'shan',id:'awaiting-receipt',user:'我的署名是待确认月签。'})
+  await until(()=>Boolean(finishUpload))
+  assert.equal((await portrait('shan')).remoteRecall,'bound')
+  try {assert.equal((await remove('shan','待确认月签')).remoteRecall,'filtered')}
+  finally {finishUpload()}
+  assert.equal(await remote('shan'),'')
 })

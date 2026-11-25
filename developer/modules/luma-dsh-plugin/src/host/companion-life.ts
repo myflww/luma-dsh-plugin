@@ -10,11 +10,18 @@ type Options = {
   topic: (role: string, nativeTopic?: string) => string
   record: (letter: LifeLetter) => void
   speechStyle?: (role:string)=>{current:unknown[];withdrawn:unknown[]}
+  portrait?: (role:string)=>unknown
+  allowNote?: (role:string,id:string)=>boolean
+  allowLetter?: (role:string,id:string)=>boolean
   now?: () => number
   usage?: ReturnType<typeof createAppUsage>
 }
 type Candidate = {role: string; place: 'office'|'home'; topic?: string; persona?: string}
 const minute=60_000
+function allowsOutreach(date: Date) {
+  const localMinute = date.getHours() * 60 + date.getMinutes()
+  return localMinute >= 8 * 60 + 30 && localMinute < 20 * 60
+}
 const validTopic = (s:unknown) => typeof s === 'string' && /^[a-zA-Z0-9_.:-]{1,180}$/.test(s)
 export function createCompanionLife(db: DatabaseSync, opts:Options) {
   const now=opts.now ?? Date.now
@@ -24,6 +31,8 @@ export function createCompanionLife(db: DatabaseSync, opts:Options) {
   let modelNotice=''
   db.exec(`CREATE TABLE IF NOT EXISTS companion_letters(id INTEGER PRIMARY KEY, role TEXT NOT NULL, topic TEXT NOT NULL, text TEXT NOT NULL DEFAULT '', time INTEGER NOT NULL, source TEXT NOT NULL DEFAULT 'local');
     CREATE INDEX IF NOT EXISTS companion_letter_by_role ON companion_letters(role,time);
+    CREATE TABLE IF NOT EXISTS companion_letter_counter(id INTEGER PRIMARY KEY CHECK(id=1),lastId INTEGER NOT NULL);
+    INSERT OR IGNORE INTO companion_letter_counter SELECT 1,COALESCE(MAX(id),0) FROM companion_letters;
     CREATE TABLE IF NOT EXISTS companion_daylight(id INTEGER PRIMARY KEY CHECK (id=1), firstSeen INTEGER NOT NULL);`)
   function preferences():CompanionSettings {
     const row=db.prepare("SELECT value FROM integration WHERE id='companion.preferences'").get()
@@ -61,8 +70,12 @@ export function createCompanionLife(db: DatabaseSync, opts:Options) {
   function privateContext(role:string, allowApps:boolean, includeStyle=true) {
     const settings=preferences()
     const usage=allowApps && settings.collectApps && settings.sharedRoles.includes(role) ? apps.summary() : []
-    const letters=db.prepare("SELECT text FROM companion_letters WHERE role=? AND text!='' ORDER BY time DESC LIMIT 2").all(role)
-    return {expression:relationship(role), ...(includeStyle && opts.speechStyle ? {conversationPreferences:opts.speechStyle(role)} : {}), previousLetters:letters.map(l=>l.text), ...(usage.length ? {recentForegroundApps:usage,usageWindowMinutes:15} : {}) }
+    const previousLetters:string[]=[]
+    for (const row of db.prepare("SELECT id,text FROM companion_letters WHERE role=? AND text!='' ORDER BY time DESC").iterate(role)) {
+      if (!opts.allowLetter || opts.allowLetter(role,String(row.id))) previousLetters.push(String(row.text))
+      if (previousLetters.length===2) break
+    }
+    return {expression:relationship(role), ...(includeStyle && opts.speechStyle ? {conversationPreferences:opts.speechStyle(role)} : {}), previousLetters, ...(usage.length ? {recentForegroundApps:usage,usageWindowMinutes:15} : {}) }
   }
   function history():LifeLetter[] {
     const roles = new Set(opts.unlocked())
@@ -71,8 +84,7 @@ export function createCompanionLife(db: DatabaseSync, opts:Options) {
   }
   function claim(candidates: Candidate[], at:number) {
     const day=new Date(at)
-    const hours=day.getHours()+day.getMinutes()/60
-    if(hours<8.5 || hours>=20) return
+    if(!allowsOutreach(day)) return
     day.setHours(0,0,0,0)
     db.exec('BEGIN IMMEDIATE')
     let rolledBack=false
@@ -82,8 +94,7 @@ export function createCompanionLife(db: DatabaseSync, opts:Options) {
       if(!first || at-Number(first.firstSeen)<2*minute) return
       const recent=db.prepare('SELECT MAX(time) AS last, COUNT(CASE WHEN time>=? THEN 1 END) AS today FROM companion_letters').get(day.getTime())!
       if(Number(recent.today)>=3 || recent.last!=null && at-Number(recent.last)<90*minute) return
-      const contacts=db.prepare("SELECT role,MAX(createdAt) AS last FROM employee_private_notes WHERE user!='' AND topic!='notes' GROUP BY role").all()
-      if(contacts.some(row=>at-Number(row.last)<20*minute)) return
+      if(hasRecentChat(at)) return
       const latest=db.prepare('SELECT role, MAX(time) AS last FROM companion_letters GROUP BY role').all()
       const stamp=(role:string)=>Number(latest.find(row=>row.role===role)?.last ?? 0)
       for(const c of [...candidates].sort((a,b)=>stamp(a.role)-stamp(b.role))) {
@@ -98,11 +109,15 @@ export function createCompanionLife(db: DatabaseSync, opts:Options) {
         if(!available.length) continue
         const text=available[Math.floor(at/86400000)%available.length]
         const topic=opts.topic(c.role,c.topic)
-        const row=db.prepare('INSERT INTO companion_letters(role,topic,time) VALUES(?,?,?)').run(c.role,topic,at)
-        return {c,letter:{id:String(row.lastInsertRowid),role:c.role,topic,text,time:at,source:'local'} as LifeLetter}
+        const sequence=db.prepare('UPDATE companion_letter_counter SET lastId=MAX(lastId,(SELECT COALESCE(MAX(id),0) FROM companion_letters))+1 WHERE id=1 RETURNING lastId').get()!
+        db.prepare('INSERT INTO companion_letters(id,role,topic,time) VALUES(?,?,?,?)').run(sequence.lastId,c.role,topic,at)
+        return {c,letter:{id:String(sequence.lastId),role:c.role,topic,text,time:at,source:'local'} as LifeLetter}
       }
     } catch(error){db.exec('ROLLBACK');rolledBack=true;throw error}
     finally {if(!rolledBack)db.exec('COMMIT')}
+  }
+  function hasRecentChat(at: number) {
+    return Boolean(db.prepare("SELECT 1 FROM employee_private_notes WHERE user!='' AND topic!='notes' AND createdAt>? LIMIT 1").get(at-20*minute))
   }
   async function pulse(body:Record<string,unknown>) {
     const p=preferences()
@@ -124,11 +139,11 @@ export function createCompanionLife(db: DatabaseSync, opts:Options) {
     try {
       if(p.model) {
         const context=privateContext(c.role,false)
-        const memo=db.prepare("SELECT user,assistant FROM employee_private_notes WHERE role=? AND topic!='notes' AND user!='' ORDER BY createdAt DESC,noteOrder DESC LIMIT 2").all(c.role)
-          .filter(r=>!Object.keys(statedStyles(String(r.user))).length)
+        const memo=db.prepare("SELECT * FROM employee_private_notes WHERE role=? AND topic!='notes' AND user!='' ORDER BY createdAt DESC,noteOrder DESC LIMIT 100").all(c.role)
+          .filter(r=> (!opts.allowNote || opts.allowNote(c.role,String(r.id))) && !Object.keys(statedStyles(String(r.user))).length).slice(0,2)
           .map(r=>({user:String(r.user).slice(0,450),reply:String(r.assistant).slice(0,450)}))
         const brief=JSON.stringify({place:c.place==='home'?'自己的卧室':'办公室',voice:companionVoices[c.role].voice,persona:c.persona,
-          topicIdea:letter.text,context,recentPrivateConversation:memo})
+          topicIdea:letter.text,context,userPortrait:opts.portrait?.(c.role),recentPrivateConversation:memo})
         let answer:string|undefined
         try {
           answer=await opts.makeReply(c.role,brief,controller.signal)
@@ -144,9 +159,16 @@ export function createCompanionLife(db: DatabaseSync, opts:Options) {
         }
       }
       if(disposed || controller.signal.aborted || !preferences().proactive || !opts.unlocked().includes(c.role) || opts.busy(c.role)) return {danmaku:false}
+      if(p.model) {
+        const delivered = new Date(now())
+        if(!allowsOutreach(delivered) || delivered.toDateString() !== new Date(letter.time).toDateString() || hasRecentChat(delivered.getTime())) return {danmaku:false}
+      }
       db.exec('BEGIN IMMEDIATE')
       try {
-        db.prepare('UPDATE companion_letters SET text=?,source=? WHERE id=?').run(letter.text,letter.source,Number(letter.id))
+        const saved=db.prepare("UPDATE companion_letters SET text=?,source=? WHERE id=? AND role=? AND time=? AND text='' AND (topic=? OR (?='native-inbox' AND topic LIKE 'native:%')) RETURNING topic")
+          .get(letter.text,letter.source,Number(letter.id),letter.role,letter.time,letter.topic,letter.topic)
+        if(!saved) {db.exec('COMMIT');return {danmaku:false}}
+        letter.topic=String(saved.topic)
         opts.record(letter)
         db.exec('COMMIT')
       } catch(error){db.exec('ROLLBACK');throw error}

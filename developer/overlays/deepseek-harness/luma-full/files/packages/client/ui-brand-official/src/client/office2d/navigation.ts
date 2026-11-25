@@ -535,6 +535,23 @@ export function projectToWalkable(
   return nearest
 }
 
+/** A released actor may settle beside a counter or another actor, within one body width. */
+export function findOfficeDropFloor(foot: OfficePointTuple, peers: readonly OfficePointTuple[]): OfficePointTuple | undefined {
+  const clearFloor = !isOfficeFootAnchorBlocked(foot)
+  const available = (p: OfficePointTuple) => peers.every(other => distance(pointFrom(other), pointFrom(p)) >= 36)
+    && !isOfficeFootAnchorBlocked(p)
+    && Boolean(walkableProjections(p, { allowWorkOnly: true }).next().value)
+  if (clearFloor && available(foot)) return foot
+  for (let radius = 8; radius <= 80; radius += 8) {
+    for (let spoke = 0; spoke < 16; spoke++) {
+      const angle = spoke * Math.PI / 8
+      const candidate: OfficePointTuple = [foot[0] + radius * Math.cos(angle), foot[1] + radius * Math.sin(angle)]
+      if (available(candidate) && (!clearFloor || isOfficeFootSegmentWalkable(foot, candidate))) return candidate
+    }
+  }
+  return undefined
+}
+
 const appendUniquePoint = (points: OfficePointTuple[], pointValue: OfficePointInput): void => {
   const point = pointFrom(pointValue)
   const previous = points.at(-1)

@@ -61,6 +61,27 @@ test('outreach uses a real unlocked idle person and one durable conversation acr
   assert.equal((await f.pulse()).letter,undefined)
   assert.equal(f.get().history().length,2)
 })
+test('an outreach completion after its topic is removed cannot recreate a letter or reuse a deleted feedback ID',async t=>{
+  const f=fixture(t),recorded=[]
+  f.options.record=letter=>recorded.push(letter)
+  await f.pulse()
+  f.clock.at+=3*min
+  f.get().configure({model:true})
+  let resolve
+  f.options.makeReply=()=>new Promise(done=>{resolve=done})
+  const writing=f.pulse()
+  while(!resolve)await pause(1)
+  const reserved=f.db.prepare('SELECT id FROM companion_letters').get().id
+  f.db.prepare('DELETE FROM companion_letters WHERE id=?').run(reserved)
+  resolve('这条旧话题的来信已被删除。')
+  assert.equal((await writing).letter,undefined)
+  assert.deepEqual(recorded,[])
+  f.restart()
+  f.get().configure({model:false})
+  f.clock.at+=91*min
+  const next=(await f.pulse()).letter
+  assert.ok(Number(next.id)>Number(reserved))
+})
 test('schedule, recent chat, explicit request for space and muted or revoked preferences suppress delivery',async t=>{
   const f=fixture(t)
   await f.pulse()
@@ -89,6 +110,25 @@ test('schedule, recent chat, explicit request for space and muted or revoked pre
   finish('不应被投递的草稿')
   assert.equal((await writing).letter,undefined)
   assert.equal(f.get().history().length,0)
+})
+test('a delayed model letter respects quiet hours, a new local day and a chat opened while writing',async t=>{
+  for (const change of ['quiet','next-day','chat']) {
+    const f=fixture(t)
+    f.clock.at=new Date(2026,10,25,19,56).getTime()
+    await f.pulse()
+    f.clock.at+=3*min
+    let finish
+    f.options.makeReply=()=>new Promise(resolve=>{finish=resolve})
+    f.get().configure({model:true})
+    const pending=f.pulse()
+    assert.equal(typeof finish,'function')
+    if(change==='quiet') f.clock.at+=min
+    if(change==='next-day') f.clock.at=new Date(2026,10,26,9).getTime()
+    if(change==='chat') f.db.prepare('INSERT INTO notes VALUES(?,?,?,?,?)').run('jingyuniang','在忙','好的','main',f.clock.at)
+    finish('写好的睡前来信')
+    assert.equal((await pending).letter,undefined,change)
+    assert.equal(f.get().history().length,0,change)
+  }
 })
 test('application names and dwell only, suspend gaps and invalid paths excluded, samples immediately forgotten on stop',()=>{
   const usage=createAppUsage(()=>0)

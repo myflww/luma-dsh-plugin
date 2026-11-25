@@ -6,10 +6,10 @@ const walkSpeed=.095
 function routeLength(points:readonly Point[]) {
   return points.slice(1).reduce((length,point,i)=>length+floorDistance(points[i]!,point),0)
 }
-export function bedroomDropJourney(room:BedroomRoom, requested:Point, routine:BedroomRoutine, now:number) {
+export function bedroomDropJourney(room:BedroomRoom, requested:Point, routine:BedroomRoutine, now:number, holdMs=8500) {
   const floor=BEDROOM_FLOORS[room], center=floor.center
   const origin=placeOnBedroomFloor(room,requested)
-  const holdUntil=now+8500
+  const holdUntil=now+holdMs
   const approach=bedroomFloorRoute(room,origin,center)
   const approachLength=routeLength(approach)
   const centerAt=holdUntil+approachLength/walkSpeed

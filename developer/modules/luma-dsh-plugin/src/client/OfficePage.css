@@ -9,22 +9,22 @@
 .lumaDshOfficeRoster { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; padding: 0; list-style: none; }
 .lumaDshOfficeRoster button { display: flex; width: 100%; text-align: left; flex-direction: column; gap: 5px; padding: 14px; color: inherit; background: transparent; border: 1px solid #9c846b40; border-radius: 10px; cursor: pointer; }
 .lumaDshOfficeRoster button:hover { background: #9c846b10; }
-.lumaDshOfficeRoster button:focus-visible { outline: 2px solid #a68459; outline-offset: 2px; }
+.lumaDshOfficeRoster button:focus-visible { outline: 2px solid var(--luma-focus); outline-offset: 2px; }
 .lumaDshOfficeRoster button:disabled { cursor: progress; opacity: .7; }
 .lumaDshOfficeRoster span { font-size: 12px; color: var(--color-text-secondary, #807c73); }
 .lumaDshOfficeAppearance { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; margin-bottom: 18px; font-size: 13px; }
 .lumaDshOfficeAppearance p { color: var(--color-text-secondary, #807c73); margin: 0; }
 .lumaDshOfficeThemeLabel { display: flex; align-items: center; gap: 12px; }
 .lumaDshOfficeAppearance select { color: inherit; background: var(--dsw-alias-bg-layer-1, #fff); border: 1px solid #9c846b55; border-radius: 7px; padding: 7px 10px; font: inherit; min-width: 150px; max-width: 100%; }
-.lumaDshOfficeAppearance select:focus-visible { outline: 2px solid #a68459; outline-offset: 2px; }
+.lumaDshOfficeAppearance select:focus-visible { outline: 2px solid var(--luma-focus); outline-offset: 2px; }
 .lumaDshOfficeAppearance select:disabled { opacity: .65; }
 .lumaBedroomToolbar { gap:8px 12px; }
 .lumaBedroomToolbar button {
-  border:1px solid #445a50; border-radius:7px; padding:8px 12px; font:inherit;
+  border:1px solid var(--luma-accent); border-radius:7px; padding:8px 12px; font:inherit;
   background:#445a50; color:#fff; cursor:pointer;
 }
 .lumaBedroomToolbar button:hover { background:#35483f; }
-.lumaBedroomToolbar button:focus-visible { outline:2px solid #99714c; outline-offset:3px; }
+.lumaBedroomToolbar button:focus-visible { outline:2px solid var(--luma-focus); outline-offset:3px; }
 .lumaDshOfficeOutfits { flex-basis: 100%; border-top: 1px solid #9c846b30; padding-top: 12px; }
 .lumaDshOfficeOutfits summary { cursor: pointer; width: fit-content; }
 .lumaDshOfficeOutfitGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; padding-top: 14px; }
@@ -36,7 +36,7 @@
   font:inherit; font-size:13px; color:inherit; background:var(--dsw-alias-bg-layer-1,#fffdf8);
   border:1px solid #a996805e; border-radius:8px; padding:7px 13px; cursor:pointer;
 }
-.lumaOfficeTools button[aria-pressed=true], .lumaOfficeTools button[aria-expanded=true] { color:#fff; background:#445a50; border-color:#445a50; }
+.lumaOfficeTools button[aria-pressed=true], .lumaOfficeTools button[aria-expanded=true] { color:#fff; background:#445a50; border-color:var(--luma-accent); }
 .lumaOfficePanel { padding:16px; margin:0 0 18px; border:1px solid #a996803d; border-radius:12px; }
 .lumaOfficePanelTitle { margin:0 0 14px; }
 .lumaOfficePanelTitle h2 { margin:0; font-size:17px; }
@@ -49,52 +49,69 @@
 .lumaOfficeMemberActions button { padding:5px 11px; }
 .lumaOfficeWardrobeChoices { display:flex; gap:12px; }
 .lumaOfficeWardrobeChoices button { display:grid; grid-template-rows:auto auto auto; justify-items:center; gap:4px; flex:0 1 150px; padding:10px; }
-.lumaOfficeWardrobeChoices button[aria-pressed=true] { border-color:#647c6c; background:#6d8c7015; }
+.lumaOfficeWardrobeChoices button[aria-pressed=true] { border-color:var(--luma-accent); background:#6d8c7015; }
 .lumaOfficeWardrobeChoices button:disabled { cursor:default; }
 .lumaOfficeWardrobeChoices svg { display:block; width:100%; height:115px; }
 .lumaBedroomArt { position:relative; overflow:hidden; border-radius:14px; background:#464345; border:1px solid #a996803d; }
 .lumaBedroomArt>img, .lumaBedroomResidentLayer { width:100%; height:100%; display:block; position:absolute; inset:0; }
 .lumaBedroomResidentLayer { pointer-events:none; overflow:visible; }
+.lumaBedroomArt[data-bedroom-light="lamplight"] :is([data-bedroom-pose="sleep"],[data-bedroom-pose="phone"],[data-bedroom-pose="walking"],[data-bedroom-pose="awake"],[data-bedroom-pose="computer"]>svg) {
+  filter:brightness(.85) saturate(.9) sepia(.05);
+}
+.lumaBedroomArt .lumaBedroomInvite {
+  position:absolute; z-index:1; transform:translate(-50%,-50%); display:grid; place-items:center;
+  width:34px; height:34px; padding:0; border:1px solid #f5efdea8; border-radius:50%;
+  color:#fffaf1; background:#344740d9; box-shadow:0 2px 8px #181c1638; cursor:pointer;
+}
+.lumaBedroomArt .lumaBedroomInvite:is(:hover,:focus-visible,[aria-pressed=true]) { color:#2f473c; background:#fff8e8; }
+.lumaBedroomInvite:focus-visible { outline:2px solid #2b5f51; outline-offset:3px; }
+.lumaBedroomInvite span,.lumaBedroomReply {
+  position:absolute; border-radius:8px; padding:5px 9px; background:#fff9eb; color:#2d4036;
+  box-shadow:0 2px 9px #211d1830; font:500 12px/1.5 "Microsoft YaHei",sans-serif; pointer-events:none;
+}
+.lumaBedroomInvite span { top:calc(100% + 4px); left:50%; transform:translateX(-50%); white-space:nowrap; visibility:hidden; }
+.lumaBedroomInvite:is(:hover,:focus-visible) span { visibility:visible; }
+.lumaBedroomReply { z-index:2; transform:translate(-50%,calc(-100% - 24px)); max-width:min(184px,30%); width:max-content; }
 .lumaRoomActions { padding:12px 0; }
 .lumaRoomActions strong { margin-right:2px; }
 .lumaRoomActions span { margin-right:auto; }
 .lumaDshOffice {
   box-sizing:border-box; container-type:inline-size; max-width:1600px;
-  padding:clamp(12px,2.2vw,26px); color:#233f3e;
+  padding:clamp(12px,2.2vw,26px); color:var(--luma-ink);
 }
 .lumaDshOfficeHeader { margin:0 0 12px; gap:10px; }
 .lumaDshOfficeHeader h1 { margin:0; font:600 clamp(19px,2.15vw,30px)/1.25 Georgia,"Microsoft YaHei",serif; }
 .lumaOfficeClock { display:flex; align-items:center; gap:10px; }
-.lumaOfficeClock span { font-size:12px; color:#50645d; border-right:1px solid #c8cfc6; padding-right:10px; }
+.lumaOfficeClock span { font-size:12px; color:var(--luma-muted); border-right:1px solid var(--luma-line); padding-right:10px; }
 .lumaOfficeClock time { font:500 16px/1.1 "Segoe UI",sans-serif; font-variant-numeric:tabular-nums; }
 .lumaOfficeCommandBar {
   display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:4px 14px;
-  margin:0 0 10px; padding:5px 8px; border-radius:12px; background:#e9eee7; border:1px solid #ced8cd;
+  margin:0 0 10px; padding:5px 8px; border-radius:12px; background:var(--luma-surface-muted); border:1px solid var(--luma-line);
 }
 .lumaOfficeTools { border:0; padding:0; margin:0; gap:4px; }
 .lumaOfficeTools button {
   display:inline-flex; align-items:center; justify-content:center; min-height:40px; gap:4px; padding:2px 11px 2px 4px;
-  border:1px solid transparent; background:transparent; color:#34514b; font-weight:550;
+  border:1px solid transparent; background:transparent; color:var(--luma-muted); font-weight:550;
 }
 .lumaOfficeTools img { display:block; width:34px; height:34px; object-fit:contain; }
-.lumaOfficeTools button:is([aria-pressed=true],[aria-expanded=true]) { background:#234b46; border-color:#284a40; color:#fffaf0; }
+.lumaOfficeTools button:is([aria-pressed=true],[aria-expanded=true]) { background:#234b46; border-color:var(--luma-accent); color:#fffaf0; }
 .lumaOfficeTools button:hover { box-shadow:inset 0 0 0 1px #889a89; }
-.lumaScenePreferences { color:#324f48; font-size:13px; }
+.lumaScenePreferences { color:var(--luma-muted); font-size:13px; }
 .lumaScenePreferences summary { display:flex; align-items:center; gap:4px; min-height:36px; padding:0 7px; list-style:none; cursor:pointer; }
 .lumaScenePreferences summary::-webkit-details-marker { display:none; }
 .lumaScenePreferences[open] { flex-basis:100%; }
 .lumaScenePreferences[open] summary { width:fit-content; }
 .lumaScenePreferences[open] summary svg { transform:rotate(180deg); }
 .lumaScenePreferences .lumaDshOfficeAppearance { margin:0; padding:4px 7px 8px; }
-.lumaOfficeFrame { overflow:hidden; background:#142e30; border:1px solid #334e47; border-radius:14px; box-shadow:0 5px 16px #23352a15; }
+.lumaOfficeFrame { overflow:hidden; background:#142e30; border:1px solid var(--luma-accent); border-radius:14px; box-shadow:0 5px 16px #23352a15; }
 .lumaOfficeFrame .lumaDshOfficeRoom { border:0; border-radius:0; }
 .lumaRoomCaption { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:5px 12px; color:#f3efdf; }
 .lumaRoomCaption p { margin:0; font-size:12px; }
-.lumaRoomCaption button { display:inline-flex; align-items:center; justify-content:center; gap:6px; flex:none; color:inherit; border:1px solid #71908a; border-radius:6px; font:inherit; font-size:12px; background:#294742; padding:5px 8px; cursor:pointer; }
+.lumaRoomCaption button { display:inline-flex; align-items:center; justify-content:center; gap:6px; flex:none; color:inherit; border:1px solid var(--luma-accent); border-radius:6px; font:inherit; font-size:12px; background:#294742; padding:5px 8px; cursor:pointer; }
 .lumaOfficeFrame.is-expanded { position:fixed; inset:0; z-index:5; display:flex; flex-direction:column; align-items:center; justify-content:center; border:0; border-radius:0; }
 .lumaOfficeFrame.is-expanded .lumaDshOfficeRoom { width:min(100%,calc((100dvh - 58px) * 1.7768)); max-height:calc(100% - 44px); }
 .lumaOfficeFrame.is-expanded .lumaRoomCaption { align-self:stretch; }
-.lumaDshOffice :is(button,select,summary):focus-visible { outline:3px solid #ac8045; outline-offset:2px; }
+.lumaDshOffice :is(button,select,summary):focus-visible { outline:3px solid var(--luma-focus); outline-offset:2px; }
 @container (max-width:570px) {
   .lumaOfficeTools { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); flex:1 1 100%; }
   .lumaOfficeTools button { flex-direction:column; gap:0; padding:2px 4px; font-size:12px; }
@@ -108,34 +125,34 @@
   .lumaRoomActions span { width:calc(100% - 115px); }
 }
 
-.lumaSpatialOffice { color:#213d60; }
-.lumaSpatialOffice .lumaDshOfficeHeader { align-items:center; border-color:#dbe7f3; }
-.lumaSpaceSwitch { display:inline-flex; align-items:center; border:1px solid #d5e2f1; border-radius:10px; background:#edf4fc; padding:3px; gap:3px; }
-.lumaSpaceSwitch button, .lumaSpaceTools button { display:inline-flex; flex-direction:row; align-items:center; justify-content:center; gap:7px; min-height:35px; padding:6px 11px; border:1px solid transparent; border-radius:7px; color:#405e7f; background:transparent; font:550 13px/1.3 "Segoe UI","Microsoft YaHei",sans-serif; cursor:pointer; }
-.lumaSpaceSwitch button[aria-pressed=true] { color:#1e5eaf; background:white; border-color:#d9e5f4; box-shadow:0 1px 3px #173d7515; }
-.lumaSpatialOffice .lumaOfficeClock { color:#3e6387; gap:7px; }
-.lumaSpatialOffice .lumaOfficeClock span { color:#536f8e; border-color:#cdddf0; }
+.lumaSpatialOffice { color:var(--luma-ink); }
+.lumaSpatialOffice .lumaDshOfficeHeader { align-items:center; border-color:var(--luma-line); }
+.lumaSpaceSwitch { display:inline-flex; align-items:center; border:1px solid var(--luma-line); border-radius:10px; background:var(--luma-paper); padding:3px; gap:3px; }
+.lumaSpaceSwitch button, .lumaSpaceTools button { display:inline-flex; flex-direction:row; align-items:center; justify-content:center; gap:7px; min-height:35px; padding:6px 11px; border:1px solid transparent; border-radius:7px; color:var(--luma-accent); background:transparent; font:550 13px/1.3 "Segoe UI","Microsoft YaHei",sans-serif; cursor:pointer; }
+.lumaSpaceSwitch button[aria-pressed=true] { color:var(--luma-accent); background:var(--luma-accent-soft); border-color:var(--luma-line); box-shadow:0 1px 3px #173d7515; }
+.lumaSpatialOffice .lumaOfficeClock { color:var(--luma-accent); gap:7px; }
+.lumaSpatialOffice .lumaOfficeClock span { color:var(--luma-muted); border-color:var(--luma-line); }
 .lumaSpaceToolbar, .lumaSpaceHeading, .lumaRoomDecor, .lumaRoomDecor label { display:flex; align-items:center; flex-wrap:wrap; gap:8px 12px; }
 .lumaSpaceToolbar { justify-content:space-between; margin:0 0 12px; }
-.lumaSpaceHeading h1 { margin:0; color:#203956; font:650 clamp(18px,2.1vw,25px)/1.4 "Segoe UI","Microsoft YaHei",sans-serif; }
-.lumaSpaceHeading > span { color:#59728e; font-size:12px; }
+.lumaSpaceHeading h1 { margin:0; color:var(--luma-ink); font:650 clamp(18px,2.1vw,25px)/1.4 "Segoe UI","Microsoft YaHei",sans-serif; }
+.lumaSpaceHeading > span { color:var(--luma-muted); font-size:12px; }
 .lumaSpatialOffice .lumaSpaceTools { display:flex; flex-wrap:wrap; flex:none; gap:5px; }
 .lumaSpatialOffice .lumaSpaceTools button, .lumaSpatialOffice .lumaOfficePanel button,
-.lumaSpatialOffice .lumaSpaceHeading select,.lumaSpatialOffice .lumaOfficePanel select,.lumaSpatialOffice .lumaRoomActions button { border:1px solid #c7d8ea; background:#fff; color:#315779; border-radius:7px; font-size:13px; }
-.lumaSpatialOffice .lumaSpaceTools button[aria-expanded=true],.lumaSpatialOffice .lumaOfficeWardrobeChoices button[aria-pressed=true] { background:#e4effd; color:#205fac; border-color:#99bce6; }
+.lumaSpatialOffice .lumaSpaceHeading select,.lumaSpatialOffice .lumaOfficePanel select,.lumaSpatialOffice .lumaRoomActions button { border:1px solid var(--luma-line); background:var(--luma-surface); color:var(--luma-accent); border-radius:7px; font-size:13px; }
+.lumaSpatialOffice .lumaSpaceTools button[aria-expanded=true],.lumaSpatialOffice .lumaOfficeWardrobeChoices button[aria-pressed=true] { background:var(--luma-accent-soft); color:var(--luma-accent); border-color:var(--luma-line); }
 .lumaSpatialOffice .lumaSpaceHeading select { max-width:100%; padding:5px 8px; font:inherit; font-size:12px; }
-.lumaSpatialOffice .lumaOfficePanel { color:#254768; border-color:#d7e4f3; background:#f7faff; }
-.lumaSpatialOffice .lumaOfficeTeamGrid li { border-color:#d9e5f2; background:white; }
-.lumaSpatialOffice .lumaOfficeTeamGrid small, .lumaSpatialOffice .lumaOfficePanelTitle span { color:#516e8d; }
+.lumaSpatialOffice .lumaOfficePanel { color:var(--luma-accent); border-color:var(--luma-line); background:var(--luma-surface); }
+.lumaSpatialOffice .lumaOfficeTeamGrid li { border-color:var(--luma-line); background:var(--luma-surface); }
+.lumaSpatialOffice .lumaOfficeTeamGrid small, .lumaSpatialOffice .lumaOfficePanelTitle span { color:var(--luma-muted); }
 .lumaSpatialOffice .lumaRoomDecor { padding:12px; justify-content:space-between; }
-.lumaRoomDecor label { color:#3b5878; font-size:13px; }
+.lumaRoomDecor label { color:var(--luma-accent); font-size:13px; }
 .lumaSpatialOffice .lumaStudioCanvas { border-color:#c5d9ed; background:#19324e; }
-.lumaSpatialOffice .lumaRoomCaption { min-height:31px; justify-content:flex-start; background:#edf5ff; color:#385978; }
-.lumaSpatialOffice .lumaRoomCaption button { border-color:#c3d8ed; background:white; color:#225f9f; }
-.lumaSpatialOffice .lumaRoomActions { color:#284766; background:#f6faff; }
-.lumaSpatialOffice .lumaRoomActions span { color:#506b87; }
+.lumaSpatialOffice .lumaRoomCaption { min-height:31px; justify-content:flex-start; background:var(--luma-paper); color:var(--luma-accent); }
+.lumaSpatialOffice .lumaRoomCaption button { border-color:var(--luma-line); background:var(--luma-surface); color:var(--luma-accent); }
+.lumaSpatialOffice .lumaRoomActions { color:var(--luma-accent); background:var(--luma-surface); }
+.lumaSpatialOffice .lumaRoomActions span { color:var(--luma-muted); }
 .lumaSpatialOffice .lumaStudioCanvas .lumaCanvasZoom { color:#f4f9ff; background:#193655e6; border-color:#acc6e8a6; }
-.lumaSpatialOffice :is(button,select):focus-visible { outline:3px solid #4888d3; outline-offset:2px; }
+.lumaSpatialOffice :is(button,select):focus-visible { outline:3px solid var(--luma-focus); outline-offset:2px; }
 @container (max-width:550px) {
   .lumaSpatialOffice .lumaDshOfficeHeader { flex-wrap:wrap; }
   .lumaSpaceToolbar { align-items:flex-start; }
@@ -143,11 +160,19 @@
   .lumaSpatialOffice .lumaRoomActions span { width:auto; }
 }
 
-/* The authored daylight plate contains bright LCDs. Reveal the room only when
-   its first composited frame includes the current roster and actual monitor states. */
-.lumaOfficePaintPending {
-  position:absolute; inset:0; display:grid; place-content:center; pointer-events:none;
-  color:#446788; font:500 13px/1.6 "Segoe UI","Microsoft YaHei",sans-serif;
-  background:radial-gradient(ellipse at center,#f7fcff 10%,#e1eefb 76%,#d3e5f6);
+.lumaIndependentOfficePending { position:relative; width:100%; aspect-ratio:1672/941; }
+.lumaOfficeScenePreview {
+  position:absolute; inset:0; display:grid; place-items:center; pointer-events:none;
+  background-color:#283038; background-size:100% 100%; background-position:center;
+  background-repeat:no-repeat;
 }
-.lumaIndependentOffice canvas[data-office-actors] ~ .lumaOfficePaintPending { display:none; }
+.lumaOfficeScenePreview > span {
+  padding:7px 13px; border:1px solid #fff3; border-radius:10px; background:#172b38dd;
+  color:white; font:500 13px/1.5 "Segoe UI","Microsoft YaHei",sans-serif;
+}
+.lumaIndependentOffice canvas[data-office-actors] ~ .lumaOfficeScenePreview { display:none; }
+.lumaOfficeSceneCanvas[data-lighting-ready='false'] .lumaOfficeLightingUnavailable,
+.lumaIndependentOffice .lumaOfficeLightingUnavailable {
+  top:50%; left:50%; transform:translate(-50%,-50%); width:max-content; max-width:86%;
+  pointer-events:auto; background:var(--luma-surface,#fff); color:var(--luma-ink,#233d49);
+}

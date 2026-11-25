@@ -10,6 +10,7 @@ import type {
 } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { IndependentOfficeSceneSurface } from './IndependentOfficeSceneSurface.tsx'
+import { OfficeScenePreview } from './OfficeScenePreview.tsx'
 import { OfficeActionMenu, type OfficeActionMenuTarget } from './OfficeActionMenu.tsx'
 import { OfficeMonitorScreen } from './OfficeMonitorScreen.tsx'
 import { OfficeLightingImages, useOfficeSceneLighting } from './OfficeSceneLighting.tsx'
@@ -55,12 +56,13 @@ import {
   getOfficeWorkstation,
   isOfficeWorkstationId
 } from './office2d/workstations.ts'
-import { advanceOfficeActorTrafficFrame, applyOfficeAutonomyDecision, canRenderOfficeActorOverlay, initialRuntime, prepareActorRuntime, resolvePresentOfficeEmployeeIds, resolveVisibleOfficeMonitorIds } from './officeSceneActorRuntime.ts'
+import { advanceOfficeActorTrafficFrame, applyOfficeAutonomyDecision, canRenderOfficeActorOverlay, classicFloorFootpoints, initialRuntime, prepareActorRuntime, resolvePresentOfficeEmployeeIds, resolveVisibleOfficeMonitorIds } from './officeSceneActorRuntime.ts'
 import { cancelSceneFrame, requestSceneFrame } from './officeSceneFrame.ts'
 import { OFFICE_SEAT_BOXES, type OfficeActorBinding } from './officeSceneSeatTargets.ts'
 import { useOfficeAmbientViewportEligibility } from './useOfficeAmbientViewportEligibility.ts'
 import { hitOfficeActorAtPoint } from './officeActorHitTest.ts'
 import { useOfficeSceneInteractions } from './useOfficeSceneInteractions.ts'
+import { OfficeSeatFeedback, useOfficeSeatFeedback } from './OfficeSeatFeedback.tsx'
 export type { ActorMode, ActorRuntime, OfficeSceneEmployee, OfficeSceneReport, OfficeSceneSurfaceProps, Point } from './OfficeSceneSurface.types.ts'
 export { advanceOfficeActorTrafficFrame, applyOfficeAutonomyDecision, canRenderOfficeActorOverlay, prepareActorRuntime, resolvePresentOfficeEmployeeIds, resolveVisibleOfficeMonitorIds } from './officeSceneActorRuntime.ts'
 export type { OfficeActorTrafficFrameInput, OfficeActorTrafficFrameResult } from './officeSceneActorRuntime.ts'
@@ -90,7 +92,7 @@ function ClassicOfficeSceneSurface({
   reports,
   commands = [],
   onSceneEvent,
-  onCharacterClick,
+  onCharacterClick, paperPlanePick,
   employeeDestination,
   onReportClick,
   onBindWorkstation, onDesktopPet,
@@ -349,16 +351,18 @@ function ClassicOfficeSceneSurface({
     return () => { if (frameId !== null) cancelSceneFrame(frameId) }
   }, [emitSceneEvent, seatReview])
 
+  const seatFeedback=useOfficeSeatFeedback(employees,onBindWorkstation,officeTheme,presentationActive)
   const { seatDrag, actorDragRef, clearPendingActorTap, handleActorClick, startActorDrag,
     moveActorDrag, finishActorDrag, startPan, movePan, finishPan, onKeyDown } = useOfficeSceneInteractions({
       canvasRef, scrollerRef, actorRef, setActors, officeBindingsRef, presentationActive,
-      closeActionMenu, onCharacterClick, onBindWorkstation, onDesktopPet, employeeDestination,
+      closeActionMenu, onCharacterClick, paperPlanePick, onBindWorkstation:seatFeedback.bind, onFloorDrop:seatFeedback.floor, onDesktopPet, employeeDestination,
     })
 
   const visibleMonitorIds = seatReview
     ? new Set([seatReview.workstationId])
     : resolveVisibleOfficeMonitorIds({ employees, actors, timePolicy })
   const presentEmployeeIds = resolvePresentOfficeEmployeeIds({ employees, actors, timePolicy })
+  const floorFootpoints = classicFloorFootpoints(actors,presentEmployeeIds)
   const visibleEmployees = seatReview ? [] : employees.filter(employee => presentEmployeeIds.has(employee.id))
   const integratedChairStationIds = new Set<OfficeWorkstationId>()
   if (seatReview) {
@@ -463,6 +467,7 @@ function ClassicOfficeSceneSurface({
           data-lighting-ready={String(lighting.current !== null)}
           data-lighting-motion={String(!drawingPaused && !reducedMotion)}
           style={{ '--luma-office-lighting-duration': `${OFFICE_LIGHTING_TRANSITION_MS}ms` } as CSSProperties}>
+          {!lighting.current && <OfficeScenePreview theme={officeTheme} phase={timePolicy.phase} waiting={lighting.status!=='error'}/>}
           <div className="lumaOfficeSceneArtwork" role="img" aria-label="开放式虚拟办公室，包含九个可用工位、会议室、休息区和吧台">
             <OfficeLightingImages lighting={lighting} plane="worldUrl" />
           </div>
@@ -538,6 +543,7 @@ function ClassicOfficeSceneSurface({
             const moving = manual ? manual.mode !== 'hold' && manual.id !== 'stand-front'
               : actor.mode === 'ambient' || actor.mode === 'task' || actor.mode === 'report'
             const automaticMode = actor.mode === 'ambient' || actor.mode === 'task' || actor.mode === 'report' ? actor.mode : undefined
+            const foot = floorFootpoints[employee.id] ?? actor.position
             const automaticStrip = automaticMode ? getOfficeAsset(catalog.walk[direction]).frameStrip : undefined
             const automaticCadence = automaticMode && automaticStrip ? officeAutomaticWalkCadence(automaticMode, automaticStrip) : undefined
             const automaticTimeline = automaticStrip ? createOfficeFrameTimeline(automaticStrip) : undefined
@@ -562,15 +568,15 @@ function ClassicOfficeSceneSurface({
                 data-manual-action={manual?.id}
                 data-scene-activity={autonomyActivity}
                 {...actor.activeCommandId === null ? {} : { 'data-scene-command-id': actor.activeCommandId }}
-                {...officeEmployeeAction(employee.name, employeeDestination, employee.canDrag && !manual)}
+                {...officeEmployeeAction(employee.name, employeeDestination, employee.canDrag && !manual, !!paperPlanePick)}
                 style={{
-                  left: `${actor.position.x / OFFICE_NAV_WIDTH * 100}%`,
-                  top: `${actor.position.y / OFFICE_NAV_HEIGHT * 100}%`,
+                  left: `${foot.x / OFFICE_NAV_WIDTH * 100}%`,
+                  top: `${foot.y / OFFICE_NAV_HEIGHT * 100}%`,
                   width: `${framePresentation.width / OFFICE_NAV_WIDTH * 100}%`,
                   ...(framePresentation.anchor
                     ? { transform: `translate(${-framePresentation.anchor.x * 100}%, ${-framePresentation.anchor.y * 100}%)` }
                     : {}),
-                  zIndex: Math.round(actor.position.y),
+                  zIndex: Math.round(foot.y),
                 } satisfies CSSProperties}
                 onClick={event => { handleActorClick(event, employee.id) }}
                 onContextMenu={event => openActionMenu(event, employee)}
@@ -612,6 +618,7 @@ function ClassicOfficeSceneSurface({
               key={`seated:${employee.id}:${actor.targetWorkstationId}`}
               employee={employee}
               employeeDestination={employeeDestination}
+              paperPlane={!!paperPlanePick}
               skinId={employeeSkins[employee.id]}
               workstationId={actor.targetWorkstationId}
               {...executing ? { command: executing } : {}}
@@ -659,7 +666,7 @@ function ClassicOfficeSceneSurface({
               : station ? {
                   x: (station.rect.x + station.rect.width * station.employee.x) * OFFICE_NAV_WIDTH,
                   y: (station.rect.y + station.rect.height * station.employee.y) * OFFICE_NAV_HEIGHT,
-                } : actor.position
+                } : floorFootpoints[employee.id] ?? actor.position
             return <div key={`overlay:${employee.id}`} className="lumaOfficeActorOverlay" data-employee-id={employee.id}
               style={{ left: `${anchor.x / OFFICE_NAV_WIDTH * 100}%`, top: `${anchor.y / OFFICE_NAV_HEIGHT * 100}%`, zIndex: OFFICE_NAV_HEIGHT + 10 } satisfies CSSProperties}>
               {renderActorOverlay(employee.id)}
@@ -673,6 +680,7 @@ function ClassicOfficeSceneSurface({
           })}
         </div>
       </div>
+      {employeeDestination==='contact' && <OfficeSeatFeedback roster={employees} preview={seatDrag} receipt={seatFeedback.receipt}/>}
       {actionTarget && <OfficeActionMenu target={actionTarget} skinId={employeeSkins[actionTarget.employeeId]} onClose={closeActionMenu}
         contact={employeeDestination==='contact'?{activity:employees.find(e=>e.id===actionTarget.employeeId)?.activity,open:()=>onCharacterClick?.(actionTarget.employeeId)}:undefined}
         onRestore={() => restoreAutomatic(actionTarget.employeeId)} onAction={(id, mode) => {

@@ -20,6 +20,7 @@ export function useDesktopPets(enabled: boolean, notify: (message: string) => vo
   const [roleIds, setRoleIds] = useState(empty)
   const session = useRef<AbortController | null>(null)
   const sequence = useRef(0)
+  const changes = useRef(Promise.resolve())
   const pending = useRef(new Set<string>())
   const accept = useCallback((result: PetStatus) => {
     setAvailable(result.supported)
@@ -41,7 +42,7 @@ export function useDesktopPets(enabled: boolean, notify: (message: string) => vo
       const revision = sequence.current
       try {
         if (!document.hidden && !pending.current.size) {
-          const result = await request('status', controller.signal)
+          const result = await request('status', controller.signal, undefined, false, reduced() || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)
           if (!controller.signal.aborted && revision === sequence.current) {
             accept(result)
             hasPets = result.pets.length > 0
@@ -63,22 +64,25 @@ export function useDesktopPets(enabled: boolean, notify: (message: string) => vo
       window.removeEventListener('focus', refresh)
       document.removeEventListener('visibilitychange', refresh)
     }
-  }, [enabled, accept])
+  }, [enabled, accept, reduced])
 
   const change = useCallback(async (action: 'open' | 'recall', roleId: string, atCursor = false) => {
     const controller = session.current
     if (!controller || pending.current.has(roleId)) return
     pending.current.add(roleId)
-    const revision = ++sequence.current
-    try {
-      const result = await request(action, controller.signal, roleId, atCursor, reduced() || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)
-      if (!controller.signal.aborted && revision === sequence.current) accept(result)
-      if (!controller.signal.aborted) notify('')
-    } catch (error) {
-      if (!controller.signal.aborted) notify(error instanceof Error ? error.message : '无法连接桌宠，请重试。')
-    } finally { pending.current.delete(roleId) }
+    ++sequence.current
+    changes.current=changes.current.then(async()=>{
+      try {
+        if(controller.signal.aborted)return
+        const result = await request(action, controller.signal, roleId, atCursor, reduced() || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)
+        if (!controller.signal.aborted) {accept(result);notify('')}
+      } catch (error) {
+        if (!controller.signal.aborted) notify(error instanceof Error ? error.message : '无法连接桌宠，请重试。')
+      } finally { pending.current.delete(roleId) }
+    })
+    await changes.current
   }, [accept, notify, reduced])
   const open = useCallback((role: string, point?: {screenX: number; screenY: number}) => { void change('open', role, !!point) }, [change])
   const recall = useCallback((role: string) => { void change('recall', role) }, [change])
-  return { roleIds, open: enabled && available ? open : undefined, recall: enabled && available ? recall : undefined }
+  return { roleIds:enabled?roleIds:empty, open: enabled && available ? open : undefined, recall: enabled && available ? recall : undefined }
 }

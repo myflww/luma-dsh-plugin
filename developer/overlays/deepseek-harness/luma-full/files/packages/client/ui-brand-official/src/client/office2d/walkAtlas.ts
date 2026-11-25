@@ -1,6 +1,7 @@
 import type { OfficeFrameStrip } from './assets.ts'
 import { createOfficeFrameTimeline } from './frameTimeline.ts'
 import catalog from './walkAtlas.generated.json'
+import { WALK_FRAME_FIT } from './walkFrameFit.generated.ts'
 
 interface WalkAtlas {
   readonly src: string
@@ -18,6 +19,18 @@ export function getWalkAtlas(assetId: string) {
   return atlases[assetId]
 }
 
+/** Keep the sole on the same floor point when correcting the drawing's scale. */
+export function walkAtlasBounds(atlas: WalkAtlas, rect: readonly [number, number, number, number]) {
+  const fit = WALK_FRAME_FIT[atlas.sha256]
+  if (!fit) return atlas.bounds
+  const index = rect[0] / rect[2] + (rect[1] / rect[3]) * atlas.columns
+  const scale = (fit.scale[index] ?? 1000) / 1000
+  if (scale === 1) return atlas.bounds
+  const [x, y, width, height] = atlas.bounds
+  const [footX, footY] = fit.foot
+  return [footX + (x! - footX) * scale, footY + (y! - footY) * scale, width! * scale, height! * scale] as const
+}
+
 export function sampleWalkAtlas(atlas: WalkAtlas, strip: OfficeFrameStrip, elapsedMs: number) {
   let timeline = timelines.get(strip)
   if (!timeline) { timeline = createOfficeFrameTimeline(strip); timelines.set(strip, timeline) }
@@ -32,6 +45,6 @@ export function sampleWalkAtlas(atlas: WalkAtlas, strip: OfficeFrameStrip, elaps
 
 export function drawWalkAtlas(context: CanvasRenderingContext2D, image: CanvasImageSource,
     atlas: WalkAtlas, rect: readonly [number, number, number, number], x: number, y: number, scale: number) {
-  const [left, top, width, height] = atlas.bounds
+  const [left, top, width, height] = walkAtlasBounds(atlas, rect)
   context.drawImage(image, ...rect, x + left! * scale, y + top! * scale, width! * scale, height! * scale)
 }

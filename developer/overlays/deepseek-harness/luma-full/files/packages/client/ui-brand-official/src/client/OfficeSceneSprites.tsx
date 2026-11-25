@@ -15,7 +15,8 @@ import {
   resolveOfficeAssetUrl,
   type OfficeAssetId,
 } from './office2d/assets.ts'
-import { getEmployeeCatalogWithSkin, getEmployeeTypingProfileWithSkin } from './office2d/employeeSkins.ts'
+import { getBrowserOfficeDefaultSkinId, getEmployeeCatalogWithSkin, getEmployeeSkinPack, getEmployeeTypingProfileWithSkin } from './office2d/employeeSkins.ts'
+import { OFFICE_WORKSTATION_KEYBOARD_BOUNDS } from './office2d/workstationProps.ts'
 import { createOfficeFrameTimeline } from './office2d/frameTimeline.ts'
 import {
   OFFICE_NAV_HEIGHT,
@@ -29,6 +30,13 @@ import { seatedFigureScale } from './office2d/officeFigureScale.ts'
 import { getWalkAtlas, sampleWalkAtlas, drawWalkAtlas } from './office2d/walkAtlas.ts'
 import { sampleDeskRhythm } from './office2d/deskRhythm.ts'
 import { compileOfficeEmployeeOcclusionPolygons, compileOfficeEmployeeVisibleClipPath, getWorkstationTypingFrameAnchor } from './officeSceneGeometry.ts'
+
+// Midpoint between the original rear-view hands, in the 512 × 860 typing cell.
+const originalBackHands: Readonly<Record<string, readonly [number, number]>> = {
+  shan: [256, 446], 'bai-shuangming': [254, 564], 'lu-mi': [256, 387],
+  jingyuniang: [250, 548], longmama: [268, 644], claude: [236, 552],
+}
+
 export function SpriteStripCanvas({
   assetId,
   className,
@@ -268,7 +276,8 @@ export function SpriteStripCanvas({
 }
 
 /** Reception uses its calibrated counter placement, not a chair-contact anchor. */
-export function SeatedActor({ employee, workstationId, command, onClick, onContextMenu, onPointerDown, onPointerMove, onPointerUp, onPointerCancel, paused = false, review, skinId, employeeDestination }: Readonly<{
+export function SeatedActor({ employee, workstationId, command, onClick, onContextMenu, onPointerDown, onPointerMove, onPointerUp, onPointerCancel, paused = false, review, skinId, employeeDestination, paperPlane = false }: Readonly<{
+  paperPlane?: boolean
   employeeDestination?: OfficeSceneSurfaceProps['employeeDestination']
   skinId?: string | undefined
   employee: OfficeSceneEmployee
@@ -289,7 +298,16 @@ export function SeatedActor({ employee, workstationId, command, onClick, onConte
   if (!catalog || !workstation) return null
   const profile = getEmployeeTypingProfileWithSkin(employee.id, workstation.typingFacing, skinId)
   if (!profile) return null
-  const anchor = getWorkstationTypingFrameAnchor(profile, workstation, frameIndex)
+  const assetId = catalog.typing[workstation.typingFacing]
+  const sourceSha = getOfficeAsset(assetId).sha256
+  // Side rooms put the keyboard left of the empty chair. Seat the whole rear
+  // pose at the keys, including its own chair, so the hands reach the desk.
+  const keys = workstation.zone === 'private-office' ? OFFICE_WORKSTATION_KEYBOARD_BOUNDS[workstation.id] : undefined
+  const pack = keys && getEmployeeSkinPack(employee.id, skinId ?? getBrowserOfficeDefaultSkinId(employee.id))
+  const pixels = originalBackHands[employee.id]
+  const hand = pack ? pack.typingProfiles.back.landmarks.hand : pixels ? { x: pixels[0] / 512, y: pixels[1] / 860 } : undefined
+  const contactProfile = keys && hand ? { ...profile, seatAnchor: hand } : profile
+  const anchor = getWorkstationTypingFrameAnchor(contactProfile, workstation, frameIndex, sourceSha)
   const depth = Math.max(.77, Math.min(1.11, .74 + workstation.y * .38))
   const rectWidth = workstation.rect.width * OFFICE_NAV_WIDTH
   const rectHeight = workstation.rect.height * OFFICE_NAV_HEIGHT
@@ -298,12 +316,11 @@ export function SeatedActor({ employee, workstationId, command, onClick, onConte
     rectHeight * .93 / 860,
     rectWidth * .84 / 512,
   ) * workstation.employee.scale * profile.scaleMultiplier
-  const assetId = catalog.typing[workstation.typingFacing]
-  const spriteScale = seatedFigureScale(getOfficeAsset(assetId).sha256, workstation.y * OFFICE_NAV_HEIGHT, originalScale)
+  const spriteScale = seatedFigureScale(sourceSha, workstation.y * OFFICE_NAV_HEIGHT, originalScale)
   const ambientTyping = !command && employee.ambientDesk === true
   const sessionWorking = Boolean(command || employee.sceneActivity === 'working')
   const animateTyping = !employee.deskOnHold && Boolean(sessionWorking || ambientTyping || review?.mode === 'working')
-  const base = workstation.seatPoint
+  const base = keys && hand ? { x: (keys.left + keys.right) / 2, y: (keys.top + keys.bottom) / 2 } : workstation.seatPoint
     ? { x: workstation.seatPoint[0], y: workstation.seatPoint[1] }
     : {
         x: (workstation.rect.x + workstation.rect.width * workstation.employee.x) * OFFICE_NAV_WIDTH,
@@ -336,7 +353,7 @@ export function SeatedActor({ employee, workstationId, command, onClick, onConte
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerCancel}
-      {...officeEmployeeAction(employee.name, employeeDestination, employee.canDrag && !sessionWorking)}
+      {...officeEmployeeAction(employee.name, employeeDestination, employee.canDrag && !sessionWorking, paperPlane)}
       style={{
         left: `${base.x / OFFICE_NAV_WIDTH * 100}%`,
         top: `${base.y / OFFICE_NAV_HEIGHT * 100}%`,
@@ -383,7 +400,7 @@ export function SeatedActor({ employee, workstationId, command, onClick, onConte
                 base,
                 width: 512 * spriteScale,
                 height: 860 * spriteScale,
-                anchor: getWorkstationTypingFrameAnchor(profile, workstation, nextFrameIndex),
+                anchor: getWorkstationTypingFrameAnchor(contactProfile, workstation, nextFrameIndex, sourceSha),
                 rotation: workstation.employee.rotation,
                 frameWidth: 512,
                 frameHeight: 860,

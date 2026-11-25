@@ -10,8 +10,6 @@ export interface LumaCardLibrarySurfaceProps {
   cards: readonly CardEditionDefinition[]
   snapshot: CardLibrarySnapshot
   actions: CardLibraryActions
-  onBack(): void
-  onOpenLegacy?(): void
   onOpenDeviceArchive?(): void
   onOpenShop?(): void
   onOpenExchange?(): void
@@ -52,7 +50,7 @@ export function LumaCardLibrarySurface({ cards, snapshot, actions, onOpenShop, o
   const restoreFocus = useRef<string | null>(null)
   const gridScroll = useRef(0)
   const mutationLock = useRef(false)
-  const [view, setView] = useState<View>('all')
+  const [requestedView, setView] = useState<View>('all')
   const [query, setQuery] = useState('')
   const [series, setSeries] = useState('')
   const [character, setCharacter] = useState('')
@@ -83,6 +81,8 @@ export function LumaCardLibrarySurface({ cards, snapshot, actions, onOpenShop, o
   const noteConflict = !!selectedDraft && selectedDraft.base !== selectedEntry.note && noteDirty
   const favoriteCount = cards.filter(card => entryFor(card.key).favorite).length
   const errataCount = cards.filter(card => card.edition === 'errata').length
+  const showErrata = ownedCounts === undefined || errataCount > 0
+  const view = requestedView === 'errata' && !showErrata ? 'all' : requestedView
   const presentationOnlyKeys = useMemo(() => new Set(cards.flatMap(source => {
     if (source.historicalRevision || source.duplicateOf) return []
     const target = resolveCardPresentation(source, cards)
@@ -237,7 +237,7 @@ export function LumaCardLibrarySurface({ cards, snapshot, actions, onOpenShop, o
       </section> : <>
         <div className="lumaCardLibraryHeading"><div><h1>卡牌收藏</h1></div><div className="lumaCardLibraryStats" aria-label={`${workCount} 款作品，${catalogCards.length} 个版本`}><div><strong>{workCount}</strong><span>款作品</span></div><div><strong>{catalogCards.length}</strong><span>个版本</span></div>{ownedCount !== undefined && <div aria-label={`持有 ${ownedCount} 张卡片`}><strong>{ownedCount}</strong><span>张卡片</span></div>}</div></div>
         {themeCollection}
-        <nav className="lumaCardLibraryTabs" aria-label="收藏分类">{([['all', '全部', catalogCards.length], ['favorites', '喜欢', favoriteCount], ['errata', '错版', errataCount], ['albums', '我的收藏夹', albums.length]] as const).map(([key, label, count]) => <button key={key} ref={key === view ? tabRef : undefined} aria-pressed={view === key} onClick={() => { setView(key); setMessage('') }}>{label}<small>{count}</small></button>)}</nav>
+        <nav className="lumaCardLibraryTabs" aria-label="收藏分类">{([['all', '全部', catalogCards.length], ['favorites', '喜欢', favoriteCount], ['errata', '错版', errataCount], ['albums', '我的收藏夹', albums.length]] as const).filter(([key]) => key !== 'errata' || showErrata).map(([key, label, count]) => <button key={key} ref={key === view ? tabRef : undefined} aria-pressed={view === key} onClick={() => { setView(key); setMessage('') }}>{label}<small>{count}</small></button>)}</nav>
         {view === 'albums' && <><div className="lumaCardLibraryAlbums"><div className="lumaCardLibraryAlbumList">{albums.map(album => <button className="lumaCardLibraryAlbum" key={album.id} aria-pressed={albumId === album.id} onClick={() => { setAlbumId(album.id); setRenameAlbum(null); setDeleteAlbum(null) }}><strong>{album.name}</strong><span>{cards.filter(card => album.versionKeys.includes(card.key)).length} 个版本</span></button>)}</div>{newAlbumForm}</div>{activeAlbum && <div className="lumaCardLibraryAlbumTools"><h2>{activeAlbum.name}</h2>{renameAlbum === activeAlbum.id ? <form className="lumaCardLibraryInlineForm" onSubmit={event => { event.preventDefault(); void mutate(() => actions.saveAlbum({ ...activeAlbum, name: renamedName.trim() }), '收藏夹已改名').then(ok => { if (ok) setRenameAlbum(null) }) }}><input aria-label="修改收藏夹名称" value={renamedName} maxLength={60} disabled={disabled} onChange={event => setRenamedName(event.target.value)} /><button className="lumaCardLibraryButton" disabled={disabled || !renamedName.trim()}>保存名称</button><button type="button" className="lumaCardLibraryQuiet" onClick={() => setRenameAlbum(null)}>取消</button></form> : <button className="lumaCardLibraryQuiet" disabled={disabled} onClick={() => { setRenameAlbum(activeAlbum.id); setRenamedName(activeAlbum.name) }}>改名</button>}<button className="lumaCardLibraryQuiet" disabled={disabled} onClick={() => setDeleteAlbum(activeAlbum.id)}>删除收藏夹</button></div>}{deleteAlbum && <div className="lumaCardLibraryNotice" role="alert"><p>删除“{albums.find(album => album.id === deleteAlbum)?.name}”？卡片、喜欢、星级和备注都会保留。</p><button className="lumaCardLibraryButton" disabled={disabled} onClick={() => void mutate(() => actions.removeAlbum(deleteAlbum), '收藏夹已删除，卡片仍保留').then(ok => { if (ok) setDeleteAlbum(null) })}>确认删除收藏夹</button><button className="lumaCardLibraryQuiet" onClick={() => setDeleteAlbum(null)}>取消</button></div>}</>}
         <div className="lumaCardLibraryToolbar"><label className="lumaCardLibrarySearch"><span className="lumaCardLibrarySr">搜索卡牌</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><circle cx="10" cy="10" r="6.5" /><path d="m15 15 5 5" /></svg><input type="search" placeholder="搜索作品、角色或版本" value={query} onChange={event => setQuery(event.target.value)} /></label><select aria-label="筛选系列" value={series} onChange={event => setSeries(event.target.value)}><option value="">全部系列</option>{seriesOptions.map(value => <option key={value}>{value}</option>)}</select><select aria-label="筛选角色" value={character} onChange={event => setCharacter(event.target.value)}><option value="">全部角色</option>{characterOptions.map(value => <option key={value}>{value}</option>)}</select><select aria-label="卡牌排序" value={sort} onChange={event => setSort(event.target.value)}><option value="catalog">收录顺序</option>{acquiredAtByKey && <option value="recent">最近获得</option>}<option value="name">作品名称</option><option value="rating">我的星级</option></select>{view === 'all' && ownedCounts === undefined && (presentationOnlyKeys.size > 0 || cards.some(card => card.historicalRevision || card.duplicateOf)) && <label><input type="checkbox" checked={showHistory} onChange={event => setShowHistory(event.target.checked)} />显示历史版本</label>}<span className="lumaCardLibraryResultCount">{new Set(filtered.map(card => card.workId)).size} 款 · {filtered.length} 个版本</span></div>
         {filtered.length ? groups.map(({ title, label, cards: members }) => {

@@ -1,12 +1,95 @@
-.lumaPluginSettings { max-width: 960px; margin: 0 auto; padding: clamp(18px, 4vw, 40px); line-height: 1.7; color: inherit; font-size: 14px; }
-.lumaPluginSettings h1 { font-size: 26px; margin: 0; }.lumaPluginSettings header > p { margin: 6px 0 24px; color: #747882; }
-.lumaPluginSettings section { margin: 20px 0; padding: 22px; border: 1px solid #9c846b38; background: #fff8; border-radius: 12px; }
-.lumaPluginSettings h2 { font-size: 18px; margin: 0 0 12px; }.lumaPluginSettings h3 { margin-top: 0; font-size: 16px; }
-.lumaPluginSettings p { overflow-wrap: anywhere; }.lumaPluginSettings label { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
-.lumaPluginSettings button,.lumaPluginSettings select { font: inherit; padding: 8px 12px; border: 1px solid #9c846b50; border-radius: 7px; background: #fff; color: inherit; }
-.lumaPluginSettings button { cursor: pointer; }.lumaPluginSettings :is(button,select,input):focus-visible { outline: 2px solid #a68459; outline-offset: 3px; }
-.lumaPluginSettings :disabled { opacity: .55; cursor: default; }.lumaPluginSettingsActions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.lumaPluginSettingsFile { padding: 8px 0; }.lumaPluginSettingsFile input { max-width: 100%; }.lumaPluginSettingsPreview { padding: 18px; border: 1px solid #a6845970; border-radius: 8px; }
-.lumaPluginSettingsPreview li { margin: 12px 0; }.lumaPluginSettingsPreview li > span { display: block; font-size: 12px; color: #747882; }
-.lumaPluginSettingsPreview details p { font-size: 12px; }.lumaPluginSettingsResult { background: #a6845912; padding: 12px 16px; border-radius: 8px; }
-@media(max-width:600px) { .lumaPluginSettings section { padding: 16px; }.lumaPluginSettingsPreview { padding: 12px; }.lumaPluginSettingsPreview ul { padding-left: 20px; } }
+.lumaPluginSettings {
+  --settings-ink:var(--luma-ink);
+  --settings-muted:var(--luma-muted);
+  --settings-line:var(--luma-line);
+  --settings-accent:var(--luma-accent);
+  --settings-wash:var(--luma-surface-muted);
+  display:grid;
+  grid-template-columns:clamp(198px,22%,258px) minmax(0,1fr);
+  height:100%;
+  min-height:0;
+  background:var(--luma-surface);
+  color:var(--settings-ink);
+  font:14px/1.6 "Segoe UI","Microsoft YaHei UI",sans-serif;
+}
+.lumaSettingsIndex,.lumaSettingsBody {min-width:0;box-sizing:border-box;overflow:auto;overscroll-behavior:contain}
+.lumaSettingsIndex {padding:26px 16px 18px;background:var(--luma-paper);border-inline-end:1px solid var(--settings-line)}
+.lumaSettingsIndex header {padding:0 8px 18px}
+.lumaSettingsIndex h1,.lumaSettingsPageTitle h2 {margin:0;font-size:22px;line-height:1.35;font-weight:650}
+.lumaPluginSettings :is(button,select,input,textarea) {font:inherit;color:inherit}
+.lumaPluginSettings :is(button,select) {min-height:32px;padding:5px 10px;border:1px solid var(--luma-line);border-radius:8px;background:var(--luma-surface)}
+.lumaPluginSettings button {cursor:pointer;font-size:13px}
+.lumaPluginSettings button:enabled:hover {background:var(--luma-accent-soft)}
+.lumaPluginSettings button>svg {vertical-align:middle;flex:none}
+.lumaPluginSettings :focus-visible {outline:2px solid var(--settings-accent);outline-offset:2px}
+.lumaPluginSettings :disabled {opacity:.55;cursor:default}
+.lumaPluginSettings .lumaSettingsSearch {display:flex;align-items:center;gap:7px;margin:0 0 18px;padding:6px 9px;border:1px solid var(--luma-line);border-radius:9px;background:var(--luma-surface)}
+.lumaSettingsSearch:focus-within {outline:2px solid var(--settings-accent);outline-offset:1px}
+.lumaSettingsSearch svg {color:var(--settings-muted);flex:none}
+.lumaSettingsSearch input {width:100%;min-width:0;border:0;background:transparent;font-size:13px;outline:0}
+.lumaSettingsIndex nav,.lumaSettingsGroup {display:grid;gap:2px}
+.lumaSettingsIndex nav {gap:16px}
+.lumaSettingsGroup h3 {margin:0 7px 4px;font-size:11px;font-weight:600;color:var(--settings-muted)}
+.lumaPluginRoot .lumaSettingsIndex nav button,.lumaSettingsIndex nav button {display:flex;align-items:center;gap:10px;text-align:start;min-height:35px;padding:7px 9px;border:0;background:transparent;box-shadow:none;color:var(--luma-muted);font-weight:500}
+.lumaPluginRoot .lumaSettingsIndex nav button[aria-current],.lumaSettingsIndex nav button[aria-current] {background:var(--luma-accent-soft);color:var(--luma-accent);font-weight:650}
+.lumaSettingsNoMatch {font-size:12px;color:var(--settings-muted)}
+.lumaSettingsBody {padding:clamp(18px,3.2vw,48px) clamp(16px,5vw,72px) 40px}
+.lumaSettingsBody>* {max-width:830px;margin-inline:auto}
+.lumaSettingsPageTitle {display:flex;align-items:center;gap:11px;margin-bottom:12px}
+.lumaSettingsPageTitle>span {display:grid;place-items:center;width:35px;height:35px;border-radius:10px;background:var(--luma-surface-muted);color:var(--settings-accent)}
+.lumaSettingsPageTitle small {margin-left:auto;color:var(--settings-muted)}
+.lumaPluginSettings .lumaSettingsBody>section {box-sizing:border-box;padding:20px 0;margin-block:0;border:0;border-block-end:1px solid var(--settings-line);border-radius:0;background:transparent;box-shadow:none}
+.lumaPluginSettings .lumaSettingsBody>section:last-child {border-block-end:0}
+.lumaSettingsBody section h2 {margin:0 0 6px;font-size:16px;line-height:1.45;font-weight:650;color:var(--settings-ink)}
+.lumaSettingsBody section h3 {margin:8px 0;font-size:14px}
+.lumaSettingsBody p,.lumaSettingsBody dd {overflow-wrap:anywhere}
+.lumaSettingsBody p {margin:6px 0 11px;line-height:1.65;color:var(--settings-muted);font-size:13px}
+.lumaSettingsBody p:last-child {margin-bottom:0}
+.lumaSettingsSplit {display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:7px 16px}
+.lumaSettingsSplit>div {flex:1 1 220px}
+.lumaSettingsSplit>button,.lumaSettingsIdentity>button,.lumaPluginSettingsActions>button,.lumaPluginSettingsFile {display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.lumaSettingsSplit p {margin:0}
+.lumaSettingsBody .lumaSettingsHint {color:var(--settings-muted);font-size:12px}
+.lumaPluginSettings .lumaSettingsBody>.lumaSettingsIdentity {display:flex;align-items:center;gap:10px;padding:13px 15px;margin:18px auto 6px;border:0;border-radius:12px;background:var(--luma-paper);flex-wrap:wrap}
+.lumaSettingsIdentity>label {display:grid;align-items:start;flex:1;min-width:100px;color:var(--luma-muted);font-size:11px}
+.lumaSettingsIdentity label select {width:fit-content;max-width:100%;min-height:28px;margin:0;padding:2px 16px 2px 0;border:0;border-radius:2px;background:transparent;color:var(--settings-ink);font-size:14px;font-weight:650}
+.lumaSettingsIdentity .lumaMessageAvatar {flex:none;width:42px;height:42px}
+.lumaSettingsBody .lumaRoleEditor {position:static;box-sizing:border-box;width:100%;max-width:100%;padding:12px 0 0;border:0;box-shadow:none}
+.lumaSettingsBody .lumaRoleEditor form {display:grid;max-width:640px;gap:12px}
+.lumaSettingsBody .lumaRoleEditor form label {display:grid;gap:4px}
+.lumaSettingsBody :is(input,select,textarea) {box-sizing:border-box;max-width:100%;min-width:0}
+.lumaCurrentBinding {display:flex;align-items:center;gap:10px;margin:10px 0 0;font-size:13px}
+.lumaCurrentBinding>div {min-width:0;display:grid;gap:2px;overflow-wrap:anywhere}
+.lumaCurrentBinding small {color:var(--settings-muted);font-size:12px}
+.lumaSettingsPersonality {white-space:pre-wrap}
+.lumaPluginSettings .lumaSettingsTextAction {border:0;background:var(--luma-paper);color:var(--settings-accent);min-height:27px;padding:3px 7px;font-size:12px}
+.lumaPluginSettings .lumaPortraitFilters input:focus-visible {outline:0}
+.lumaSettingsReadOnly,.lumaPluginSettingsResult {padding:9px 12px;border-radius:8px;background:var(--luma-surface-muted)}
+.lumaPluginSettingsActions {display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.lumaPluginRoot .lumaPluginSettings .lumaSettingsPrimary,.lumaPluginSettings .lumaSettingsPrimary {border-color:var(--luma-action);background:var(--luma-action);color:var(--luma-on-action)}
+.lumaPluginSettings .lumaSettingsPrimary:enabled:hover {background:#205788}
+.lumaPluginSettingsFile {position:relative;overflow:hidden;min-height:32px;box-sizing:border-box;padding:5px 10px;border:1px solid var(--luma-line);border-radius:8px;background:var(--luma-surface);font-size:13px;cursor:pointer}
+.lumaPluginSettingsFile input {position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.lumaPluginSettingsFile:focus-within {outline:2px solid var(--settings-accent);outline-offset:2px}
+.lumaPluginSettingsPreview {margin-top:15px;padding:15px;border-radius:11px;background:var(--luma-paper)}
+.lumaPluginSettingsPreview ul {padding:0;list-style:none}
+.lumaPluginSettingsPreview li {padding:10px 0;border-block-end:1px solid var(--settings-line)}
+.lumaPluginSettingsPreview li>span,.lumaPluginSettingsPreview details {font-size:12px;color:var(--settings-muted)}
+.lumaPluginSettings summary {cursor:pointer}
+.lumaSettingsBody .lumaLifeSettings fieldset {gap:0;margin-top:10px}
+.lumaSettingsBody .lumaLifeSettings fieldset>label {padding:7px 0}
+.lumaSettingsBody .lumaLifeSettings fieldset>small {font-size:12px}
+@container (max-width:680px) {
+  .lumaPluginSettings {display:flex;flex-direction:column}
+  .lumaSettingsIndex {flex:none;padding:7px 12px 9px;overflow:visible;border:0;border-bottom:1px solid var(--settings-line)}
+  .lumaSettingsIndex header,.lumaSettingsGroup h3 {display:none}
+  .lumaPluginSettings .lumaSettingsSearch {margin:0 0 6px;padding:4px 8px}
+  .lumaSettingsIndex nav {display:flex;flex-wrap:wrap;gap:2px}
+  .lumaSettingsGroup {display:contents}
+  .lumaPluginRoot .lumaSettingsIndex nav button,.lumaSettingsIndex nav button {gap:4px;min-height:29px;padding:3px 7px;font-size:12px;white-space:nowrap}
+  .lumaSettingsIndex nav button svg {width:14px}
+  .lumaSettingsBody {flex:1;padding:16px 15px 26px}
+  .lumaSettingsPageTitle {margin-bottom:4px}
+  .lumaSettingsPageTitle h2 {font-size:19px}
+  .lumaPluginSettings .lumaSettingsBody>section {padding-block:15px}
+}

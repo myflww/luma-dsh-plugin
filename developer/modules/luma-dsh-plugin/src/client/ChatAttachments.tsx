@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
-import { Paperclip } from 'lucide-react'
+import { Paperclip, Plus } from 'lucide-react'
 import { checkAttachmentBatch, FILE_ACCEPT, inspectChatFile, type AttachmentInfo } from '../shared/chat-attachments.ts'
 import './ChatAttachments.css'
 
@@ -47,8 +47,8 @@ export function ComposerActions({ files, native, nativeUploads = false, disabled
   return <div className="lumaComposerActions" ref={container} onKeyDown={event => {
     if (open && event.key === 'Escape') { event.stopPropagation(); event.preventDefault(); close() }
   }} onBlur={event => { if (event.relatedTarget instanceof Node && !event.currentTarget.contains(event.relatedTarget)) setOpen(false) }}>
-    <button ref={trigger} type="button" className="lumaContactAdd" aria-label="更多聊天操作" aria-expanded={open}
-      aria-controls={open ? menuId : undefined} onClick={() => setOpen(value => !value)}>＋</button>
+    <button ref={trigger} type="button" className="lumaContactAdd" aria-label="更多聊天操作" title="附件和聊天操作" aria-expanded={open}
+      aria-controls={open ? menuId : undefined} onClick={() => setOpen(value => !value)}><Plus size={20} aria-hidden="true"/></button>
     <input type="file" ref={input} hidden multiple accept={nativeUploads ? undefined : native ? FILE_ACCEPT.replace('.pdf,', '') : FILE_ACCEPT}
       aria-label="选择图片或文件" disabled={disabled} onChange={e => {
         const next = [...files, ...Array.from(e.currentTarget.files ?? [])]

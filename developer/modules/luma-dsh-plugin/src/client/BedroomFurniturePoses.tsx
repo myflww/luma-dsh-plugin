@@ -1,7 +1,12 @@
+import { PERSONAL_BEDROOMS } from './bedroom-personal-layouts.ts'
+import { mapShopBedrooms } from './bedroom-shop-layouts.ts'
+import type { BedroomRoom } from './bedroom-floor.ts'
 import { useId, useMemo } from 'react'
 import type { Point, ResidentId } from './bedroom-routine.ts'
 import { getEmployeeCatalogWithSkin, getEmployeeTypingProfileWithSkin, getEmployeeSkinPack, getBrowserOfficeDefaultSkinId } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/employeeSkins.ts'
 import { getOfficeAsset, officeFrameRect, resolveOfficeAssetUrl } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/assets.ts'
+import { deskFrameRegistration } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/deskFrameRegistration.ts'
+import { seatedFigureScale } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/officeFigureScale.ts'
 import standardPhone from '../../art/bedroom-poses/phone-standard.webp'
 import outfitPhone from '../../art/bedroom-poses/phone-outfit.webp'
 
@@ -21,17 +26,19 @@ const outfit: readonly PhoneFrame[] = [
 const blend = (a:number,b:number,t:number) => a+(b-a)*t
 
 export function BedroomPhonePose({id,skinId,room,approach,reclined,animate}: {
-  id:ResidentId; skinId?:string|undefined; room:Geometry; approach:Point; reclined:number; animate:boolean
+  id:ResidentId; skinId?:string|undefined; room:Pick<Geometry,'head'|'feet'>; approach:Point; reclined:number; animate:boolean
 }) {
-  const filterId=useId(), cell=phoneRoles.indexOf(id), alt=!!skinId
-  const [head,feet,handset]=(alt?outfit:standard)[cell]!
+  const filterId=useId(), cell=phoneRoles.indexOf(id)
+  const outfitPack=getEmployeeSkinPack(id,skinId ?? getBrowserOfficeDefaultSkinId(id))
+  const [head,feet,handset]=(outfitPack?outfit:standard)[cell]!
   const tx=room.feet[0]-room.head[0], ty=room.feet[1]-room.head[1]
   const dx=feet[0]-head[0],dy=feet[1]-head[1],mirror=Math.sign(dx)===Math.sign(tx)?1:-1
-  const footX=blend(approach[0],room.feet[0],reclined),footY=blend(approach[1]-6,room.feet[1],reclined)
   const headX=blend(approach[0]-Math.sign(tx)*20,room.head[0],reclined)
   const headY=blend(approach[1]-129,room.head[1],reclined)
-  const scale=Math.hypot(footX-headX,footY-headY)/Math.hypot(dx,dy)
-  const angle=(Math.atan2(footY-headY,footX-headX)-Math.atan2(dy,dx*mirror))*180/Math.PI
+  const length=blend(Math.hypot(20,123),Math.hypot(tx,ty),reclined)
+  const tilt=blend(Math.atan2(123,Math.sign(tx)*20),Math.atan2(ty,tx),reclined)
+  const scale=length/Math.hypot(dx,dy)
+  const angle=(tilt-Math.atan2(dy,dx*mirror))*180/Math.PI
   // A local displacement follows the painted hands and phone; the pillow and shoes stay still.
   const motionMap=useMemo(()=> 'data:image/svg+xml,'+encodeURIComponent(
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240"><defs><radialGradient id="w"><stop offset="0" stop-color="#f53980"/><stop offset=".5" stop-color="#dc5580"/><stop offset="1" stop-color="#808080"/></radialGradient></defs><rect width="240" height="240" fill="#808080"/><ellipse cx="${handset[0]}" cy="${handset[1]}" rx="30" ry="35" fill="url(#w)"/></svg>`),[handset])
@@ -44,7 +51,7 @@ export function BedroomPhonePose({id,skinId,room,approach,reclined,animate}: {
         </feDisplacementMap>
       </filter></defs>}
       <g filter={animate?`url(#${filterId})`:undefined}>
-        <image href={alt?outfitPhone:standardPhone} x={-240*(cell%4)} y={-240*Math.floor(cell/4)} width="960" height="480"/>
+        <image href={outfitPack?outfitPhone:standardPhone} x={-240*(cell%4)} y={-240*Math.floor(cell/4)} width="960" height="480"/>
       </g>
     </svg>
   </g>
@@ -52,8 +59,9 @@ export function BedroomPhonePose({id,skinId,room,approach,reclined,animate}: {
 
 type Chair = { seat:Point; back:string }
 const plainChair:Chair={seat:[743,597],back:'M662 550 Q661 542 671 544 L727 555 Q734 556 734 563 L734 626 Q732 634 723 634 L668 619 Q661 617 662 610 Z'}
-const chairs:Record<ResidentId|'classic',Chair>={
-  classic:plainChair, shan:plainChair, 'lu-mi':plainChair, 'bai-shuangming':plainChair,
+const chairs:Record<BedroomRoom,Chair>={
+  ...mapShopBedrooms(layout=>layout.chair),
+  classic:plainChair, shan:PERSONAL_BEDROOMS['shan'].chair, 'lu-mi':PERSONAL_BEDROOMS['lu-mi'].chair, 'bai-shuangming':PERSONAL_BEDROOMS['bai-shuangming'].chair,
   jingyuniang:{seat:[1176,417],back:'M1112 360 Q1108 355 1112 354 L1158 368 Q1164 368 1166 378 L1174 409 L1168 422 L1169 437 Q1150 438 1129 427 Q1121 423 1120 411 Z'},
   longmama:{seat:[1179,439],back:'M1130 368 Q1131 362 1138 365 L1169 374 L1174 392 L1190 436 Q1185 449 1188 460 Q1172 460 1143 449 Z'},
   claude:{seat:[1273,589],back:'M1201 522 Q1198 518 1206 518 L1257 529 Q1267 529 1270 541 L1278 580 L1278 616 Q1251 616 1211 602 Z'},
@@ -61,12 +69,13 @@ const chairs:Record<ResidentId|'classic',Chair>={
   grok:{seat:[1156,471],back:'M1078 402 Q1076 397 1083 399 L1125 412 Q1139 418 1141 440 Q1142 452 1153 453 L1179 447 L1178 487 Q1145 505 1093 482 Z'},
 }
 const plainKeys:Point=[789,531]
-const keys:Record<ResidentId|'classic',Point>={classic:plainKeys,shan:plainKeys,'bai-shuangming':plainKeys,'lu-mi':plainKeys,
+const keys:Record<BedroomRoom,Point>={...mapShopBedrooms(layout=>layout.keyboard),classic:plainKeys,shan:PERSONAL_BEDROOMS['shan'].keyboard,'bai-shuangming':PERSONAL_BEDROOMS['bai-shuangming'].keyboard,'lu-mi':PERSONAL_BEDROOMS['lu-mi'].keyboard,
   jingyuniang:[1215,362],longmama:[1226,400],claude:[1306,533],gemini:[1235,462],grok:[1203,405]}
 type Screen=readonly [topLeft:Point,topRight:Point,bottomLeft:Point]
 const plainScreen:Screen=[[790,406],[894,439],[790,462]]
-const screens:Record<ResidentId|'classic',Screen>={
-  classic:plainScreen,shan:plainScreen,'bai-shuangming':plainScreen,'lu-mi':plainScreen,
+const screens:Record<BedroomRoom,Screen>={
+  ...mapShopBedrooms(layout=>layout.screen),
+  classic:plainScreen,shan:PERSONAL_BEDROOMS['shan'].screen,'bai-shuangming':PERSONAL_BEDROOMS['bai-shuangming'].screen,'lu-mi':PERSONAL_BEDROOMS['lu-mi'].screen,
   jingyuniang:[[1190,280],[1278,300],[1187,331]],longmama:[[1231,331],[1298,349],[1228,375]],
   claude:[[1282,429],[1377,455],[1281,484]],gemini:[[1232,372],[1318,394],[1225,423]],
   grok:[[1194,329],[1266,347],[1189,379]],
@@ -75,7 +84,7 @@ const screens:Record<ResidentId|'classic',Screen>={
 // strokes legible at office scale, and let the cursor follow the employee's pastime.
 const deskSketch: Record<ResidentId, string> = {
   jingyuniang: 'M24 35Q32 28 40 35T56 35T72 35T91 33M28 26l9-8 9 4 11-10 8 5',
-  'lu-mi': 'M27 20h62m-62 4h62m-62 4h62m-62 4h62m-62 4h62M38 31v-13l12-3v12m12 8v-14l13-2v12',
+  'lu-mi': 'M26 24l7-11h14l8 11-15 15zM26 24h29m-22-11 7 26 7-26M63 23q-2-7 5-7 3-6 8-1 7-2 9 5 4 6-2 10-4 6-12 4-8 0-8-8zm5 0q2-7 10-4 6 4 0 9-7 4-9-2 0-5 6-4m-2 13-4 6',
   'bai-shuangming': 'M27 15h21m-21 5h16m-16 7h58m-58 5h53m-53 5h32M63 22l6-7 6 3 10-7',
   shan: 'M34 36q4-8 9-11l2-8 6 6q6-2 12 1l7-6 1 10q5 4 9 11M48 31q3 2 5 0m6 0q3 2 5 0',
   longmama: 'M27 16h27m-27 8h59m-59 5h49m-49 5h55m-55 5h31',
@@ -83,6 +92,15 @@ const deskSketch: Record<ResidentId, string> = {
   gemini: 'M28 35l12-15 14 5 13-12 17 8M39 20l4 15 11-10m14-12 2 12',
   grok: 'M28 15h53v25H28zM39 15v14h11v11m0-25v7h12v11h9m0-18v8h10m-53 11h11',
 }
+export function bedroomMonitorCenter(room: BedroomRoom): Point {
+  const [,right,bottom] = screens[room]
+  return [(right[0]+bottom[0])/2,(right[1]+bottom[1])/2]
+}
+export function bedroomSeatedCenter(room:BedroomRoom):Point {
+  const seat=chairs[room].seat
+  return [seat[0],seat[1]-48]
+}
+
 function DeskScreen({id,surface,tint,elapsed}: {id:ResidentId;surface:Screen;tint:string;elapsed:number}) {
   const [[x,y],right,bottom]=surface
   const matrix=[(right[0]-x)/100,(right[1]-y)/100,(bottom[0]-x)/56,(bottom[1]-y)/56,x,y]
@@ -93,7 +111,7 @@ function DeskScreen({id,surface,tint,elapsed}: {id:ResidentId;surface:Screen;tin
     <circle cx="4" cy="3" r="1.2" fill={tint}/><circle cx="8" cy="3" r="1.2" fill="#cfd2d5"/>
     <path d="M0 7H21V56H0Z" fill="#223746"/>
     <path d="M4 14h12m-12 5h9m-9 5h11m-11 5h6" stroke="#73919f" strokeWidth="1.6"/>
-    <path d={deskSketch[id]} stroke="#d2e0ec" strokeWidth="1.45" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d={deskSketch[id]} stroke={id==='lu-mi'?'#8ed4ff':'#d2e0ec'} strokeWidth="1.45" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
     <path d={`M26 45h${line}`} stroke={tint} strokeWidth="2.2"/>
   </g>
 }
@@ -103,6 +121,11 @@ const baseContacts:Partial<Record<ResidentId,readonly [Point,Point]>>={
   shan:[[267,550],[413,366]],'bai-shuangming':[[247,637],[400,416]],'lu-mi':[[241,634],[421,511]],
 }
 const basePixels:Partial<Record<ResidentId,number>>={jingyuniang:527,longmama:397,claude:459,shan:671,'bai-shuangming':700,'lu-mi':587}
+// Native left-facing chair-free base strips, measured at the seated hip and fingertips.
+const baseLeftContacts:Partial<Record<ResidentId,readonly [Point,Point]>>={
+  'lu-mi':[[213,625],[84,515]],jingyuniang:[[271,700],[124,589]],
+  longmama:[[276,702],[171,610]],claude:[[281,669],[147,587]],
+}
 // The outfit strips shift whole bodies between cells. Register to the seated
 // torso so the keystrokes move the arms without scooting the chair each frame.
 const outfitRegistration:Record<ResidentId,readonly Point[]>={
@@ -112,38 +135,72 @@ const outfitRegistration:Record<ResidentId,readonly Point[]>={
   'bai-shuangming':[[0,0],[-1,0],[0,-3],[-3,-3]],'lu-mi':[[0,0],[18,-1],[1,1],[15,0]],
 }
 
-export function BedroomDeskPose({id,skinId,roomId,room,background,approach,seated,elapsed,animate}:{
-  id:ResidentId; skinId?:string|undefined; roomId:ResidentId|'classic'; room:Geometry; background:string; approach:Point
-  seated:number; elapsed:number; animate:boolean
+// Room-matched pull-out trays keep elbows near the body in deep seats.
+const trayFinishes:Record<BedroomRoom,string>={
+  classic:'#997752',shan:'#94634a',jingyuniang:'#9a9c97',longmama:'#ada59d',claude:'#806047',gemini:'#a19ba6',grok:'#77563f',
+  'bedroom.shop.rose-sketchbook.v1':'#aa846b','bedroom.shop.sapphire-music.v1':'#715239','bedroom.shop.alpine-library.v1':'#bdb8aa',
+  'bedroom.shop.camellia-pavilion.v1':'#a98870','bedroom.shop.blue-rose-gallery.v1':'#6c5149','bedroom.shop.frostwing-glasshouse.v1':'#b7aa94',
+  'lu-mi':'#604128','bai-shuangming':'#ada28d',
+}
+function DeskInputTray({point,tint,open,night,leftFacing}:{point:Point;tint:string;open:number;night:boolean;leftFacing:boolean}){
+  const side=leftFacing?-1:1
+  return <g data-bedroom-input-tray="" transform={`translate(${point[0]+(1-open)*18*side} ${point[1]-(1-open)*9}) scale(${side} 1)`} opacity={open}
+    style={night?{filter:'brightness(.68)'}:undefined} aria-hidden="true">
+    <path d="m27 -7 17 -9 4 1 -14 10m12 2 15 -7 3 1 -14 9" fill="#746b61"/>
+    <path d="M-18 2 14-12 58-3 26 12Z" fill={tint} stroke="#4e443d" strokeWidth="1.1"/>
+    <path d="M-18 2 26 12 58-3V.7L26 15.5-18 5Z" fill={tint} stroke="#5b5045" strokeWidth=".8"/>
+    <g transform="matrix(.88 .19 -.76 .33 -6 -1)">
+      <rect x="-8" y="-14" width="44" height="24" rx="3.5" fill="#393b40" stroke="#d1cdbe" strokeWidth="1.3"/>
+      <path d="M-3-8H29M-3-3H29M-1 2H25M4-10V3M12-10V3M20-10V3" fill="none" stroke="#b9b7ac" strokeWidth="1.1"/>
+    </g>
+  </g>
+}
+
+export function BedroomDeskPose({id,skinId,roomId,room,background,approach,seated,elapsed,animate,waiting=false}:{
+  id:ResidentId; skinId?:string|undefined; roomId:BedroomRoom; room:Geometry; background:string; approach:Point
+  seated:number; elapsed:number; animate:boolean; waiting?:boolean
 }) {
   const clipId=useId()
-  const facing='backRight', chair=chairs[roomId]
+  const chair=chairs[roomId], keyboard=keys[roomId]
+  const deskFacing=bedroomMonitorCenter(roomId)[0]<chair.seat[0]?'backLeft':'backRight'
+  // Three looks have a black office chair painted into their native left sheet.
+  // Mirror only those chair-free right views so the room keeps its own furniture.
+  const mirror=deskFacing==='backLeft' && getEmployeeTypingProfileWithSkin(id,deskFacing,skinId)?.integratedChair===true
+  const facing=mirror?'backRight':deskFacing
   const catalog=getEmployeeCatalogWithSkin(id,skinId)!, rig=getEmployeeTypingProfileWithSkin(id,facing,skinId)!
   const asset=getOfficeAsset(catalog.typing[facing]),strip=asset.frameStrip!
   const variant=getEmployeeSkinPack(id,skinId??getBrowserOfficeDefaultSkinId(id))
   const anatomy=variant?.typingProfiles[facing].landmarks
   const sourcePoint=(p:{x:number;y:number}):Point=>[p.x*strip.frameWidth,p.y*strip.frameHeight]
-  const [hip,hand]=anatomy?[sourcePoint(anatomy.hip),sourcePoint(anatomy.hand)]:baseContacts[id]!
-  const keyboard=keys[roomId]
-  const armX=hand[0]-hip[0], armY=hand[1]-hip[1]
-  const contactScale=((keyboard[0]-chair.seat[0])*armX+(keyboard[1]-chair.seat[1])*armY)/(armX*armX+armY*armY)
+  const [hip,hand]=anatomy?[sourcePoint(anatomy.hip),sourcePoint(anatomy.hand)]:(facing==='backLeft'?baseLeftContacts:baseContacts)[id]!
+  const sourceX=(p:Point)=>mirror?strip.frameWidth-p[0]:p[0]
   const sourceHeight=variant?variant.typingProfiles[facing].visibleRect.height*strip.frameHeight:basePixels[id]!
-  const scale=blend(158,Math.max(170,Math.min(235,contactScale*sourceHeight)),seated)/sourceHeight
+  // Use the approaching figure's scale. Different arm lengths should move a
+  // resident's chair contact, never enlarge her entire body at the keyboard.
+  const seatedScale=seatedFigureScale(asset.sha256,approach[1],145/sourceHeight)
+  const scale=blend(seatedScale/.91,seatedScale,seated)
   // Typing comes in short bursts, with a held pose while the employee reads the monitor.
   const beat=elapsed%(4200+phoneRoles.indexOf(id)*137)
   const frame=animate && beat<2750 ? Math.floor(beat/(191+phoneRoles.indexOf(id)*6))%strip.frameCount : rig.reducedMotionFrame
   const rect=officeFrameRect(strip,frame)
-  const shift=variant?outfitRegistration[id][frame]!:[rig.frameX[frame]??0,0] as const
-  const x=blend(approach[0]-hip[0]*scale,keyboard[0]-hand[0]*scale,seated)+shift[0]*scale
-  const y=blend(approach[1]-41-hip[1]*scale,keyboard[1]-hand[1]*scale,seated)+shift[1]*scale
+  const shift=deskFrameRegistration(asset.sha256,frame) ?? (variant?outfitRegistration[id][frame]!:[rig.frameX[frame]??0,0] as const)
+  const reachX=chair.seat[0]+(sourceX(hand)-sourceX(hip))*seatedScale
+  const reachY=chair.seat[1]+(hand[1]-hip[1])*seatedScale
+  // A small lean can reach the painted keyboard. Beyond that, use the tray
+  // rather than shifting the resident off the seat to put fingers on the keys.
+  const tray=Math.hypot(reachX-keyboard[0],reachY-keyboard[1])>14 ? trayFinishes[roomId] : undefined
+  const input:Point=tray?[chair.seat[0]+(sourceX(hand)-sourceX(hip))*scale,chair.seat[1]+(hand[1]-hip[1])*scale]:keyboard
+  const x=blend(approach[0]-sourceX(hip)*scale,input[0]-sourceX(hand)*scale,seated)+(mirror?-shift[0]:shift[0])*scale
+  const y=blend(approach[1]-41-hip[1]*scale,input[1]-hand[1]*scale,seated)+shift[1]*scale
   const width=strip.frameWidth*scale,height=strip.frameHeight*scale
   const reading=animate && beat>=2750
   const readingFraction=reading?(beat-2750)/(4200+phoneRoles.indexOf(id)*137-2750):0
   const lean=reading?Math.sin(Math.PI*readingFraction)**2*1.6:0
-  return <g data-bedroom-pose="computer" data-bedroom-frame={frame} data-desk-action={reading?'reading':'typing'}>
+  return <g data-bedroom-pose="computer" data-bedroom-frame={frame} data-desk-facing={deskFacing} data-desk-action={waiting?'waiting':reading?'reading':'typing'}>
+    {tray && <DeskInputTray point={input} tint={tray} open={seated} night={background.includes('-night.')} leftFacing={deskFacing==='backLeft'}/>}
     {seated>.6 && <DeskScreen id={id} surface={screens[roomId]} tint={['#88c9da','#ccbae3','#efb888','#9fc1ff','#d9b77d','#f2c4ce','#a8dbea','#aeace6'][phoneRoles.indexOf(id)]!} elapsed={animate?elapsed:0}/>}
     <svg transform={lean?'rotate('+lean+' '+chair.seat[0]+' '+chair.seat[1]+')':undefined} x={x} y={y} width={width} height={height} viewBox={rect.join(' ')} overflow="hidden">
-      <image href={resolveOfficeAssetUrl(asset.id)} width={asset.dimensions.width} height={asset.dimensions.height}/>
+      <image href={resolveOfficeAssetUrl(asset.id)} transform={mirror?'translate('+(2*rect[0]+rect[2])+' 0) scale(-1 1)':undefined} width={asset.dimensions.width} height={asset.dimensions.height}/>
     </svg>
     <defs><clipPath id={clipId}><path d={chair.back}/></clipPath></defs>
     <image href={background} width={room.size[0]} height={room.size[1]} clipPath={`url(#${clipId})`} opacity={seated}/>

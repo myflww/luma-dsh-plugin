@@ -1,11 +1,11 @@
 .lumaImmersiveOffice {
   --stage-edge: clamp(12px, 2vw, 30px);
-  --stage-glass: rgba(248, 251, 255, .95);
-  --stage-stroke: rgba(191, 212, 237, .82);
-  --stage-blue: #1f548e;
+  --stage-glass: var(--luma-surface);
+  --stage-stroke: var(--luma-line);
+  --stage-blue: var(--luma-accent);
   --stage-shadow: 0 4px 18px #11283d28;
   position:relative; isolation:isolate; width:100%; height:100%; min-width:0; min-height:0;
-  overflow:hidden; container: luma-scene / size; color:#163658; background:#182638;
+  overflow:hidden; container: luma-scene / size; color:var(--luma-ink); background:#182638;
   font: 14px/1.45 "Segoe UI","Microsoft YaHei",sans-serif;
 }
 .lumaImmersiveOffice *, .lumaImmersiveOffice *::before, .lumaImmersiveOffice *::after { box-sizing:border-box; }
@@ -34,20 +34,20 @@
 .lumaStageTopTools,.lumaStageSwitch,.lumaStageDock { display:flex; align-items:center; }
 .lumaStageTopTools { gap:8px; margin-left:auto; }
 .lumaStageSwitch,.lumaStageDock,.lumaStageEye,.lumaStageFlyout {
-  color:#254463; border:1px solid var(--stage-stroke); background:var(--stage-glass); border-radius:13px; box-shadow:var(--stage-shadow);
+  color:var(--luma-ink); border:1px solid var(--stage-stroke); background:var(--stage-glass); border-radius:13px; box-shadow:var(--stage-shadow);
   backdrop-filter:blur(14px);
 }
 .lumaStageSwitch,.lumaStageDock { gap:2px; padding:4px; }
 .lumaImmersiveOffice :is(.lumaStageTopTools,.lumaStageDock,.lumaStageContext,.lumaStageFlyout) button,
 .lumaStageRoomPick select { font:inherit; cursor:pointer; }
 .lumaStageSwitch button,.lumaStageDock button,.lumaStageContext button,.lumaStageEye,.lumaStageClose { display:inline-flex; align-items:center; justify-content:center; gap:7px; }
-.lumaStageSwitch button,.lumaStageDock button { min-height:34px; padding:7px 12px; color:#314d6a; background:transparent; border:0; border-radius:8px; white-space:nowrap; font-weight:550; }
+.lumaStageSwitch button,.lumaStageDock button { min-height:34px; padding:7px 12px; color:var(--luma-accent); background:transparent; border:0; border-radius:8px; white-space:nowrap; font-weight:550; }
 .lumaImmersiveOffice .lumaStageSwitch button[aria-pressed=true],.lumaImmersiveOffice .lumaStageDock button:is([aria-pressed=true],[aria-expanded=true]) {
-  color:#154e94; background:#deedff; box-shadow:inset 0 0 0 1px #abc9eb;
+  color:var(--luma-accent); background:var(--luma-accent-soft); box-shadow:inset 0 0 0 1px #abc9eb;
 }
-.lumaStageDock button.lumaStageFit { border-left:1px solid #ccdbea; border-radius:0 8px 8px 0; margin-left:2px; width:37px; padding-inline:6px; }
+.lumaStageDock button.lumaStageFit { border-left:1px solid var(--luma-line); border-radius:0 8px 8px 0; margin-left:2px; width:37px; padding-inline:6px; }
 .lumaStageEye { width:42px; height:44px; }
-.lumaImmersiveOffice :is(.lumaStageTopTools,.lumaStageDock,.lumaStageContext,.lumaStageFlyout) button:not(:disabled):hover { color:#164981; background:#e5f1ff; }
+.lumaImmersiveOffice :is(.lumaStageTopTools,.lumaStageDock,.lumaStageContext,.lumaStageFlyout) button:not(:disabled):hover { color:var(--luma-accent); background:var(--luma-accent-soft); }
 .lumaImmersiveOffice :is(button,select):focus-visible,.lumaStageRoomPick:focus-within { outline:3px solid #54a0f8; outline-offset:2px; }
 .lumaStageFooter { bottom:var(--stage-edge); z-index:3; align-items:flex-end; }
 .lumaStageFooter::before {
@@ -68,32 +68,32 @@
 .lumaStageContext:not(:empty) { margin-top:7px; }
 .lumaImmersiveOffice .lumaStageContext .lumaRoomActions { display:flex; gap:5px; align-items:center; flex-wrap:wrap; padding:0; margin:0; color:white; background:transparent; }
 .lumaImmersiveOffice .lumaStageContext .lumaRoomActions > span { width:auto; margin-right:5px; font-size:12px; color:#f1f7ff; }
-.lumaImmersiveOffice .lumaStageContext button { border:1px solid #e0eeff99; border-radius:8px; min-height:32px; background:#f0f7fff0; padding:5px 8px; color:#264867; font-size:12px; }
+.lumaImmersiveOffice .lumaStageContext button { border:1px solid #e0eeff99; border-radius:8px; min-height:32px; background:var(--luma-paper); padding:5px 8px; color:var(--luma-accent); font-size:12px; }
 .lumaStageStatus { position:absolute; z-index:2; top:calc(var(--stage-edge) + 54px); left:var(--stage-edge); max-width:min(450px,calc(100% - 2 * var(--stage-edge))); pointer-events:none; }
 .lumaStageStatus p { margin:0 0 4px; padding:7px 12px; border:1px solid var(--stage-stroke); border-radius:8px; background:var(--stage-glass); font-size:12px; }
 .lumaStageFlyout {
   position:absolute; right:0; bottom:calc(100% + 12px); width:min(390px,100%);
-  max-height:min(63cqh,510px); overflow:auto; border-radius:15px; color:#24425f; text-shadow:none;
+  max-height:min(63cqh,510px); overflow:auto; border-radius:15px; color:var(--luma-ink); text-shadow:none;
 }
 .lumaImmersiveOffice .lumaStageFlyout .lumaOfficePanel { background:transparent; border:0; margin:0; padding:19px 15px 15px; }
-.lumaStageClose { position:absolute; right:9px; top:9px; width:30px; height:30px; border:0; border-radius:7px; background:#e9f1f9; color:#365473; }
+.lumaStageClose { position:absolute; right:9px; top:9px; width:30px; height:30px; border:0; border-radius:7px; background:var(--luma-surface-muted); color:var(--luma-accent); }
 .lumaStageFlyout .lumaOfficePanelTitle { padding-right:31px; }
 .lumaStageFlyout .lumaOfficePanelTitle h2 { margin:0; font-size:17px; }
-.lumaStageFlyout .lumaOfficePanelTitle span { color:#516b85; font-size:12px; }
+.lumaStageFlyout .lumaOfficePanelTitle span { color:var(--luma-muted); font-size:12px; }
 .lumaStageFlyout .lumaRoomDecor { display:grid; gap:12px; }
 .lumaStageFlyout .lumaRoomDecor label { display:grid; gap:8px; padding-right:26px; font-weight:600; }
 .lumaStageFlyout .lumaRoomDecor select { min-width:0; width:100%; }
-.lumaStageFlyout .lumaOfficePanel :is(button,select) { min-height:33px; background:#fff; border:1px solid #c5d7e9; border-radius:7px; color:#265073; }
-.lumaStageFlyout .lumaOfficePanel button[aria-pressed=true] { background:#e1effd; border-color:#95badf; }
+.lumaStageFlyout .lumaOfficePanel :is(button,select) { min-height:33px; background:var(--luma-surface); border:1px solid var(--luma-line); border-radius:7px; color:var(--luma-accent); }
+.lumaStageFlyout .lumaOfficePanel button[aria-pressed=true] { background:var(--luma-accent-soft); border-color:var(--luma-line); }
 .lumaStageFlyout .lumaOfficePanel button:disabled { cursor:default; }
 .lumaStageFlyout .lumaOfficeTeamGrid { grid-template-columns:minmax(0,1fr); }
-.lumaStageFlyout .lumaOfficeTeamGrid li { border-color:#d9e5f2; background:#fff; }
+.lumaStageFlyout .lumaOfficeTeamGrid li { border-color:var(--luma-line); background:var(--luma-surface); }
 .lumaStageFlyout .lumaOfficeMemberActions { display:flex; gap:5px; }
 .lumaImmersiveOffice .lumaOfficeActionMenu {
-  max-width:calc(100% - 16px); color:#24425f; border-color:var(--stage-stroke);
+  max-width:calc(100% - 16px); color:var(--luma-ink); border-color:var(--stage-stroke);
   background:var(--stage-glass); box-shadow:var(--stage-shadow); overscroll-behavior:contain;
 }
-.lumaImmersiveOffice .lumaOfficeActionMenu button:is(:hover,:focus-visible,[aria-pressed=true]) { background:#deedff; color:#154e94; }
+.lumaImmersiveOffice .lumaOfficeActionMenu button:is(:hover,:focus-visible,[aria-pressed=true]) { background:var(--luma-accent-soft); color:var(--luma-accent); }
 
 @container luma-scene (max-width:730px) {
   .lumaStageFooter { flex-wrap:wrap; gap:10px; }
@@ -118,6 +118,22 @@
   .lumaStageFlyout { position:fixed; inset:10px 10px 62px auto; max-height:none; width:min(380px,calc(100% - 20px)); }
 }
 
-.lumaRosterDeskSelect{display:inline-flex;align-items:center;gap:.4em;font-size:.86em;color:#365b7a}
-.lumaRosterDeskSelect select{min-width:0;max-width:10em;border:1px solid #bed5e9;border-radius:.55em;padding:.38em .3em;background:white;color:#214a70;font:inherit}
-.lumaRosterPlacementHint{margin:.45em 0 .75em;color:#47667e;font-size:.84em;line-height:1.5}
+.lumaStageFlyout .lumaCrewRow { position:relative; grid-template-columns: minmax(0,1fr) minmax(66px,82px); }
+.lumaCrewSummary { display:flex; align-items:center; min-width:0; gap:8px; text-align:left; }
+.lumaCrewSummary::after { content:""; position:absolute; inset:0; }
+.lumaCrewRow .lumaOfficeMemberActions > button, .lumaCrewRow .lumaCrewProgress, .lumaCrewRow .lumaCrewUsageDetails { position:relative; z-index:1; }
+.lumaCrewSummary > span:not(.lumaMessageAvatar) { min-width:0; overflow-wrap:anywhere; }
+.lumaCrewSummary > svg { flex:none; }
+.lumaCrewProgress { position:relative; min-width:0; display:grid; align-items:center; min-height:34px; }
+.lumaStageFlyout .lumaCrewProgress > button { position:absolute; inset:0; width:100%; min-height:0; border:0; border-radius:6px; background:transparent; cursor:pointer; }
+.lumaStageFlyout .lumaCrewProgress > button:hover { background:#739da514; }
+.lumaCrewUsageDetails { grid-column:1/-1; margin:0; color:var(--luma-muted); font-size:12px; overflow-wrap:anywhere; }
+.lumaCrewRow :is(button,summary):focus-visible, .lumaWardrobeBack:focus-visible { outline:2px solid var(--luma-focus); outline-offset:1px; }
+.lumaWardrobeBack { display:inline-flex; align-items:center; gap:4px; }
+@container luma-scene (max-width:420px) {
+  .lumaStageFlyout .lumaCrewRow { column-gap:6px; }
+  .lumaStageFlyout .lumaCrewSummary { padding-inline:0; }
+  .lumaStageFlyout .lumaCrewRow .lumaOfficeMemberActions > button { min-height:40px; }
+  .lumaStageFlyout .lumaOfficePanelTitle label { max-width:100%; }
+}
+.lumaRosterPlacementHint{margin:.45em 0 .75em;color:var(--luma-accent);font-size:.84em;line-height:1.5}

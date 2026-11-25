@@ -6,6 +6,9 @@
 *.yml text eol=lf
 *.md text eol=lf
 *.webp binary
+*.py text eol=lf
+# Package asset filenames and the manifest pin these exact bytes.
+modules/luma-dsh-plugin/art/release-assets/** -text
 upstream/desktop-*/standard.patch.yml -text
 # This file is copied byte-for-byte to the released desktop package.
 modules/luma-dsh-plugin/native-desktop/README.md -text whitespace=trailing-space,space-before-tab,cr-at-eol

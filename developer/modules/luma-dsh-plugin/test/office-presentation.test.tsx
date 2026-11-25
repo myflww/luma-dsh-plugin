@@ -2,6 +2,8 @@ import { cleanup, fireEvent, render, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { OfficePresentationStore } from '../src/client/OfficePresentationStore.ts'
 import { OFFICE_OUTFIT_CHOICES } from '../src/client/office-theme-catalog.ts'
+import { SHOP_BEDROOMS } from '../src/shared/shop-bedrooms.ts'
+import { SHOP_BEDROOM_ART } from '../src/client/bedroom-art.generated.ts'
 import { decodeOfficePresentationSettings, validateOfficePresentationSettingsWire } from '../src/office-presentation-settings.ts'
 import { OfficePage } from '../src/client/OfficePage.tsx'
 import type { OfficePageRuntime } from '../src/client/office-runtime.ts'
@@ -27,6 +29,98 @@ function scope(initial: unknown = {}) {
 afterEach(() => { cleanup(); vi.useRealTimers() })
 
 describe('DSH office presentation preferences', () => {
+  it('renames rooms independently, keeps old preferences and validates custom names on the host', async () => {
+    const theme = 'office.jingyuniang.v1', host = scope({selection: {
+      schemaVersion: 1, officeTheme: theme, employeeSkins: {}, presence: 'schedule',
+    }})
+    const access = () => ({unlockedEmployeeIds:['jingyuniang'], unlockedThemeIds:[theme]})
+    const store = new OfficePresentationStore(host, access)
+    expect((await store.setOfficeName('office.claude.v1', '别人的房间')).status).toBe('rejected')
+    await Promise.all([store.setOfficeName(null, '  启航  '), store.setOfficeName(theme, '潮汐档案室')])
+    store.dispose()
+    const restored = new OfficePresentationStore(host, access)
+    expect(restored.getSnapshot().selection).toMatchObject({
+      officeTheme:theme, presence:'schedule', officeNames:{classic:'启航',[theme]:'潮汐档案室'},
+    })
+    await restored.setOfficeName(theme, '   ')
+    expect(restored.getSnapshot().selection.officeNames).toEqual({ classic: '启航' })
+    await restored.setOfficeName(null, '')
+    expect(restored.getSnapshot().selection.officeNames).toBeUndefined()
+    for (const invalid of [JSON.parse('{"__proto__":"标题"}'), {classic:42}, {classic:'换\n行'}]) {
+      expect(() => validateOfficePresentationSettingsWire({selection: {
+        ...restored.getSnapshot().selection, officeNames: invalid,
+      }})).toThrow()
+    }
+    restored.dispose()
+  })
+  it('edits the scene heading in place, supports IME and cancel, and restores the default on clearing', async () => {
+    const host = scope(), store = new OfficePresentationStore(host)
+    const runtime = {
+      getSnapshot:()=>({presentation:store.getSnapshot(),projection:{employees:[],officeReportMarkers:[]},commands:[],persistence:'host'}),
+      subscribe:store.subscribe, setOfficeName:(theme:string|null, value:string)=>store.setOfficeName(theme,value),
+    } as unknown as OfficePageRuntime
+    const view=render(<OfficePage runtime={runtime} onOpenChat={()=>{}}/>)
+    const edit=(value:string)=>fireEvent.click(view.getByRole('button',{name:'编辑办公室名称，'+value}))
+    const input=()=>view.getByRole('textbox',{name:'办公室名称'}) as HTMLInputElement
+    edit('经典办公室')
+    expect(input()).toBe(document.activeElement)
+    fireEvent.change(input(), {target:{value:'潮汐研究室'}})
+    fireEvent.keyDown(input(), {key:'Enter',isComposing:true})
+    expect(host.set).not.toHaveBeenCalled()
+    fireEvent.keyDown(input(), {key:'Enter'})
+    expect(await view.findByRole('heading',{name:'潮汐研究室'})).toBeTruthy()
+    edit('潮汐研究室')
+    fireEvent.change(input(), {target:{value:'草稿'}})
+    fireEvent.keyDown(input(), {key:'Escape'})
+    expect(view.getByRole('heading',{name:'潮汐研究室'})).toBeTruthy()
+    edit('潮汐研究室')
+    fireEvent.change(input(), {target:{value:''}})
+    fireEvent.click(view.getByRole('button',{name:'保存办公室名称'}))
+    expect(await view.findByRole('heading',{name:'经典办公室'})).toBeTruthy()
+    view.unmount(); store.dispose()
+  })
+  it('shares purchased universal themes across resident rooms, retains exclusive-card movement and reopens both assignments',async()=>{
+    const host=scope(),owned:string[]=['bedroom.duanmu-yan.v1']
+    const access=()=>({unlockedEmployeeIds:['shan','lu-mi'],unlockedThemeIds:owned})
+    const store=new OfficePresentationStore(host,access)
+    const first=SHOP_BEDROOMS[0].id,second=SHOP_BEDROOMS[1].id
+    expect((await store.setBedroomTheme('shan',first)).status).toBe('rejected')
+    expect(host.set).not.toHaveBeenCalled()
+    owned.push(first,second)
+    for(const id of ['shan','lu-mi']) expect((await store.setBedroomTheme(id,first)).status).toBe('saved')
+    store.dispose()
+    const reopened=new OfficePresentationStore(host,access)
+    expect(reopened.getSnapshot().selection.bedroomThemes).toEqual({shan:first,'lu-mi':first})
+    expect((await reopened.setBedroomTheme('shan',second)).status).toBe('saved')
+    expect(reopened.getSnapshot().selection.bedroomThemes).toEqual({shan:second,'lu-mi':first})
+    expect((await reopened.setBedroomTheme('shan','bedroom.duanmu-yan.v1')).status).toBe('saved')
+    expect((await reopened.setBedroomTheme('lu-mi','bedroom.duanmu-yan.v1')).status).toBe('saved')
+    expect(reopened.getSnapshot().selection.bedroomThemes).toEqual({'lu-mi':'bedroom.duanmu-yan.v1'})
+    expect((await reopened.setBedroomTheme('grok',first)).status).toBe('rejected')
+    reopened.dispose()
+  })
+  it('previews a locked room from the bedroom, then equips and renders an owned room for two different residents',async()=>{
+    const [owned,locked]=SHOP_BEDROOMS,host=scope(),openShop=vi.fn()
+    const ids=['jingyuniang','shan'],themes=[owned.id]
+    const store=new OfficePresentationStore(host,()=>({unlockedEmployeeIds:ids,unlockedThemeIds:themes}))
+    const employees=ids.map((employeeId,i)=>({employeeId,displayName:['鲸鱼娘','端木嫣'][i],sceneActivity:'idle',taskState:'idle',canDrag:true}))
+    const runtime={getSnapshot:()=>({presentation:store.getSnapshot(),projection:{employees,officeReportMarkers:[]},commands:[],persistence:'host'}),
+      subscribe:store.subscribe,setBedroomTheme:(id:string,theme:string|null)=>store.setBedroomTheme(id,theme)} as unknown as OfficePageRuntime
+    const view=render(<OfficePage runtime={runtime} unlockedEmployeeIds={ids} unlockedThemeIds={themes} onOpenChat={vi.fn()} onOpenBedroomShop={openShop}/>)
+    fireEvent.click(view.getByRole('button',{name:'伙伴卧室'}));fireEvent.click(view.getByRole('button',{name:'换肤'}))
+    fireEvent.click(view.getByRole('button',{name:'预览'+locked.name}))
+    expect(view.getByRole('dialog',{name:locked.name+'预览'}).querySelector('img')?.getAttribute('src')).toBe(SHOP_BEDROOM_ART[locked.id].day)
+    fireEvent.click(view.getByRole('button',{name:'关闭预览'}));expect(host.set).not.toHaveBeenCalled()
+    expect(view.queryByRole('button',{name:locked.name,exact:true})).toBeNull()
+    fireEvent.click(view.getByRole('button',{name:'前往商店'}));expect(openShop).toHaveBeenCalledOnce()
+    const equip=()=>fireEvent.click(view.getByRole('button',{name:owned.name,exact:true}))
+    equip()
+    await waitFor(()=>expect([SHOP_BEDROOM_ART[owned.id].day,SHOP_BEDROOM_ART[owned.id].night]).toContain(view.container.querySelector('.lumaBedroomArt > img')?.getAttribute('src')))
+    fireEvent.change(view.getByLabelText('选择房间'),{target:{value:'shan'}})
+    fireEvent.click(view.getByRole('button',{name:'换肤'}));equip()
+    await waitFor(()=>expect(store.getSnapshot().selection.bedroomThemes).toEqual({jingyuniang:owned.id,shan:owned.id}))
+    store.dispose()
+  })
   it('writes no defaults; room and exact own outfits survive a new store over the same Host data', async () => {
     const host = scope(), first = new OfficePresentationStore(host)
     expect(host.set).not.toHaveBeenCalled()
@@ -129,7 +223,9 @@ describe('DSH office presentation preferences', () => {
     expect(legacy.set).not.toHaveBeenCalled()
     view.rerender(<OfficePage runtime={runtime} onOpenChat={chat} onOpenRewards={rewards} unlockedThemeIds={['office.jingyuniang.v1','bedroom.jingyuniang.v1']}/>)
     expect(bedroomSelector.querySelector('[aria-pressed=true]')?.getAttribute('aria-label')).toBe('鲸鱼娘主题')
-    fireEvent.click(view.getByRole('button',{name:'换装'}))
+    expect(view.queryByRole('button',{name:'换装',exact:true})).toBeNull()
+    fireEvent.click(view.getByRole('button',{name:'员工列表'}))
+    fireEvent.click(view.getByRole('button',{name:'鲸鱼娘换装'}))
     expect((view.getByLabelText('衣橱员工') as HTMLSelectElement).options).toHaveLength(1)
     vi.setSystemTime(date(12))
     fireEvent(document, new Event('visibilitychange'))
@@ -170,6 +266,11 @@ describe('DSH office presentation preferences', () => {
     const shan = view.getByRole('progressbar', {name: '端木嫣的下一枚星币'}) as HTMLProgressElement
     expect(shan.value).toBe(0)
     expect(shan.getAttribute('aria-valuetext')).toContain('已获得 1 星币')
+    const details=view.getByRole('button',{name:'查看端木嫣的星币进度'})
+    fireEvent.click(details)
+    expect(details.getAttribute('aria-expanded')).toBe('true')
+    expect(document.getElementById(details.getAttribute('aria-controls')!)?.hidden).toBe(false)
+    expect(view.getByRole('dialog',{name:'员工列表'})).toBeTruthy()
     expect(read).toHaveBeenCalledTimes(1)
     const signal = read.mock.calls[0]![0]
     fireEvent.click(toggle)
@@ -193,7 +294,7 @@ describe('DSH office presentation preferences', () => {
     store.dispose()
   })
 
-  it('opens the same employee workspace from the roster, bedroom and office without creating native sessions', () => {
+  it('visits a resident directly from the roster and opens the same employee workspace from the bedroom and office', () => {
     const store = new OfficePresentationStore(scope()), openWorkspace = vi.fn(), openNative = vi.fn()
     const runtime = {
       getSnapshot: () => ({ presentation:store.getSnapshot(), projection:{employees:[{employeeId:'shan', displayName:'端木嫣', sceneActivity:'idle',taskState:'idle',canDrag:true}],officeReportMarkers:[]},commands:[],persistence:'host' }),
@@ -202,11 +303,14 @@ describe('DSH office presentation preferences', () => {
     const view = render(<OfficePage runtime={runtime} onOpenChat={openWorkspace} unlockedEmployeeIds={['shan','jingyuniang']}/>)
     scene.props.onCharacterClick('shan')
     fireEvent.click(view.getByRole('button',{name:'员工列表'}))
-    fireEvent.click(view.getByRole('button',{name:'联系端木嫣'}))
+    expect(view.queryByRole('button',{name:'联系端木嫣'})).toBeNull()
+    expect(view.queryByRole('combobox',{name:'端木嫣的工位'})).toBeNull()
     fireEvent.click(view.getByRole('button',{name:'进入端木嫣的卧室'}))
+    expect(view.queryByRole('dialog')).toBeNull()
+    expect(document.activeElement).toBe(view.getByRole('button',{name:'伙伴卧室'}))
     expect(view.container.querySelector('.lumaBedroomArt > img')?.getAttribute('src')).toContain('bedroom-classic')
     fireEvent.click(view.getByRole('button',{name:'联系端木嫣'}))
-    expect(openWorkspace.mock.calls).toEqual([['shan'],['shan'],['shan']])
+    expect(openWorkspace.mock.calls).toEqual([['shan'],['shan']])
     fireEvent.change(view.getByRole('combobox',{name:'选择房间'}), {target:{value:'jingyuniang'}})
     const shortcut = view.getByRole('button',{name:'给鲸鱼娘派任务'})
     expect(shortcut).toBeTruthy()
@@ -240,6 +344,34 @@ describe('DSH office presentation preferences', () => {
     fireEvent.keyDown(document,{key:'Escape'})
     expect(view.getByRole('button',{name:'场景菜单'})).toBeTruthy()
     expect(view.getByTestId('actual-scene-port')).toBe(canvas)
+    store.dispose()
+  })
+  it('keeps dressing, pet controls and their keyboard focus separate from room navigation',()=>{
+    const store=new OfficePresentationStore(scope())
+    const employees=[{employeeId:'jingyuniang',displayName:'鲸鱼娘'},{employeeId:'shan',displayName:'端木嫣'}].map(row=>({...row,sceneActivity:'idle',taskState:'idle',canDrag:true}))
+    const runtime={getSnapshot:()=>({presentation:store.getSnapshot(),projection:{employees,officeReportMarkers:[]},commands:[],persistence:'host'}),subscribe:store.subscribe} as unknown as OfficePageRuntime
+    const pet=vi.fn(),recall=vi.fn(),chat=vi.fn()
+    const view=render(<OfficePage runtime={runtime} onOpenChat={chat} onDesktopPet={pet} onRecallDesktopPet={recall} desktopPetRoleIds={['shan']} unlockedEmployeeIds={['shan','jingyuniang']}/>)
+    const roster=view.getByRole('button',{name:'员工列表'})
+    expect(view.getByRole('button',{name:'换肤'})).toBeTruthy()
+    expect(view.queryByRole('button',{name:'换装',exact:true})).toBeNull()
+    fireEvent.click(roster)
+    expect(view.container.querySelector('.lumaCrewRow button button')).toBeNull()
+    fireEvent.click(view.getByRole('button',{name:'让鲸鱼娘到桌面陪伴'}))
+    fireEvent.click(view.getByRole('button',{name:'让端木嫣回到场景'}))
+    expect(pet.mock.calls).toEqual([['jingyuniang']]);expect(recall.mock.calls).toEqual([['shan']])
+    fireEvent.click(view.getByRole('button',{name:'端木嫣换装'}))
+    expect(view.getByRole('dialog',{name:'员工列表'})).toBeTruthy()
+    expect((view.getByLabelText('衣橱员工') as HTMLSelectElement).value).toBe('shan')
+    expect(document.activeElement).toBe(view.getByRole('button',{name:'返回员工列表'}))
+    expect(view.container.querySelector('.lumaFittingRoom figure > svg > svg[overflow="hidden"]')).toBeTruthy()
+    fireEvent.change(view.getByLabelText('衣橱员工'),{target:{value:'jingyuniang'}})
+    fireEvent.keyDown(window,{key:'Escape'})
+    expect(document.activeElement).toBe(view.getByRole('button',{name:'端木嫣换装'}))
+    fireEvent.keyDown(window,{key:'Escape'})
+    expect(document.activeElement).toBe(roster)
+    expect(view.getByTestId('actual-scene-port')).toBeTruthy()
+    expect(chat).not.toHaveBeenCalled()
     store.dispose()
   })
 })

@@ -1,0 +1,95 @@
+.lumaContacts .lumaMessagesConversation > .lumaMessageToolbar {
+  position: relative;
+  z-index: 2;
+  border: 0;
+  background: transparent;
+  padding-block: clamp(10px, 1.4vh, 18px);
+  align-items: center;
+}
+.lumaContacts .lumaMessagesConversation > .lumaMessageComposer {
+  border: 0;
+  background: transparent;
+  padding-block: 8px 14px;
+  padding-inline: max(clamp(10px, 2.5cqi, 30px), calc((100% - 1080px) / 2));
+}
+.lumaContacts .lumaMessagesConversation .lumaComposerDock > textarea {
+  display: block;
+  box-sizing: border-box;
+  height: auto;
+  min-height: 36px;
+  max-height: min(174px, 24vh);
+  field-sizing: content;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.lumaContacts .lumaEmployeeTitle .lumaContactTitleButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 1px 2px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+.lumaContacts .lumaMessageToolbar .lumaContactTitleButton span {
+  color: inherit;
+  font: inherit;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.lumaContactTitleButton svg { flex: none; color: var(--luma-muted, #536975); }
+.lumaContacts .lumaContactTitleButton:hover svg { color: var(--luma-accent, #216c72); }
+.lumaContactTitleEditor {
+  position: absolute;
+  z-index: 3;
+  inset: calc(100% - 5px) auto auto clamp(10px, 2.3%, 25px);
+  box-sizing: border-box;
+  width: min(300px, calc(100% - 20px));
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0;
+  padding: 15px;
+  border: 1px solid var(--luma-line, #dce5e6);
+  border-radius: 14px;
+  background: var(--luma-paper, white);
+  color: var(--luma-ink, #203a49);
+  box-shadow: 0 9px 30px #173a441b;
+}
+.lumaContactTitleEditor label { font-size: 14px; font-weight: 650; }
+.lumaContactTitleEditor small { font-size: 11px; color: var(--luma-muted, #536975); overflow-wrap: anywhere; }
+.lumaContactTitleEditor input,
+.lumaContactTitleEditor [role=alert],
+.lumaContactTitleEditor > div { grid-column: 1 / -1; }
+.lumaContactTitleEditor input {
+  box-sizing: border-box; width: 100%; padding: 8px 10px;
+  border: 1px solid var(--luma-line, #dce5e6); border-radius: 7px;
+  background: var(--luma-surface, #f5f8f7); color: var(--luma-ink, #203a49);
+}
+.lumaContactTitleEditor > div { display: flex; justify-content: flex-end; gap: 6px; }
+.lumaContacts .lumaContactTitleEditor button { display: inline-flex; align-items: center; gap: 5px; padding: 6px 9px; font-size: 12px; }
+@container luma-conversation (min-width: 690px) {
+  .lumaContacts .lumaMessagesConversation > .lumaMessageToolbar {
+    display: grid;
+    grid-template-columns: 1fr minmax(0, max-content) 1fr;
+  }
+  .lumaContacts .lumaMessageToolbar > .lumaEmployeeTitle {
+    grid-column: 2; width: fit-content; max-width: min(35cqi, 360px);
+  }
+  .lumaContacts .lumaMessageToolbar > .lumaContactTools { grid-column: 3; justify-self: end; }
+  .lumaContactTitleEditor { left: 50%; transform: translateX(-50%); }
+}
+@container luma-conversation (max-width: 440px) {
+  .lumaContacts .lumaMessagesConversation > .lumaMessageToolbar {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 6px 8px;
+  }
+  .lumaContacts .lumaMessageToolbar .lumaContactTools { grid-column: 1 / -1; justify-content: flex-end; }
+  .lumaContacts .lumaMessageToolbar .lumaEmployeeTitle { justify-self: start; max-width: 100%; }
+}

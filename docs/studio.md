@@ -1,6 +1,6 @@
 # 工作室版 · 从窗口操作到交付
 
-工作室版适合需要多位伙伴同时工作、跨工作记住偏好，或想把操作交到具体应用窗口的用户。它与桌宠版共用 DSH 的个人档案，同一档案一次启用一个 Luma 版本。[下载工作室预览版](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.6.0-studio.1)
+工作室适合多位伙伴协作、跨工作记住偏好，或让成员操作具体应用窗口。0.6.1 将工作室、办公室和桌宠整合在同一插件中。[下载 Windows 正式版](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.6.1)
 
 ## Windows 安装
 
@@ -33,4 +33,4 @@
 
 ## 源码与许可
 
-标签内的 `developer/` 包含本次工作室版对应的源码和构建入口。桌宠版 0.6.0 继续独立提供。两版均适用个人非商业、禁止换皮条款，第三方组件遵循各自许可。[工作室源码](https://github.com/myflww/luma-dsh-plugin/tree/v0.6.0-studio.1/developer) · [桌宠版](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.6.0) · [使用许可](../LICENSE.md)
+标签内的 `developer/` 包含本次工作室版对应的源码和构建入口。桌宠版 0.6.0 继续独立提供。两版均适用个人非商业、禁止换皮条款，第三方组件遵循各自许可。[工作室源码](https://github.com/myflww/luma-dsh-plugin/tree/v0.6.1/developer) · [桌宠版](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.6.0) · [使用许可](../LICENSE.md)

@@ -1,29 +1,35 @@
-.lumaHouseCard {
-  box-sizing:border-box; color:#193653; background:white; font:14px/1.55 "Segoe UI","Microsoft YaHei",sans-serif;
-  border:1px solid #cfdeee; border-radius:16px; padding:20px;
-}
-.lumaHouseDialog { position:fixed; inset:0; margin:auto; width:min(370px,calc(100% - 28px)); height:max-content; max-height:calc(100% - 32px); overflow:auto; box-shadow:0 20px 65px #122f522c; }
-.lumaHouseDialog::backdrop { background:#152f4d50; }
-.lumaHouseDialog { pointer-events:auto; }
-.lumaHouseHeader,.lumaHouseStatus { display:flex; gap:10px; align-items:center; }
-.lumaHouseHeader h2 { margin:0; font-size:19px; line-height:1.3; font-weight:650; }
-.lumaHouseMark { color:#285c9f; background:#e8f2ff; padding:8px; display:inline-flex; border-radius:11px; }
-.lumaHouseCard button { cursor:pointer; font:inherit; }
-.lumaHouseCard .lumaHouseClose { margin-left:auto; display:grid; place-items:center; width:34px; height:34px; border:0; border-radius:8px; color:#4e6480; background:transparent; }
-.lumaHouseStatus { flex-wrap:wrap; margin:18px 0 7px; }
-.lumaHouseStatus strong { color:#245993; }
-.lumaHouseStatus span,.lumaHouseDetail { color:#566c85; font-size:13px; }
-.lumaHouseDetail { margin:6px 0 12px; }
-.lumaHouseDetail span { display:block; margin-top:4px; }
-.lumaHouseError { color:#8b3d32; }
-.lumaHouseCard .lumaHouseConnect { display:inline-flex; align-items:center; gap:7px; min-height:36px; margin-top:5px; border:0; border-radius:8px; background:#255b9e; color:white; padding:6px 14px; }
-.lumaHouseCard button:focus-visible { outline:2px solid #3484dd; outline-offset:3px; }
-.lumaHouseCard button:disabled { opacity:.65; cursor:progress; }
-.lumaHouseDirectory { border-top:1px solid #dce6f0; margin-top:16px; padding-top:10px; font-size:13px; }
-.lumaHouseDirectory summary { cursor:pointer; color:#45627f; }
-.lumaHouseDirectory form { display:grid; gap:8px; margin-top:10px; }
-.lumaHouseDirectory label { display:grid; gap:4px; }
-.lumaHouseDirectory input,.lumaHouseDirectory button { box-sizing:border-box; min-height:34px; border:1px solid #bacfe5; border-radius:6px; background:white; color:#214e7f; font:inherit; padding:6px 9px; }
-.lumaHouseDirectory button { justify-self:start; }
-.lumaHouseDirectory p { font-size:12px; color:#566c85; margin:0; }
-.lumaHouseDirectory a { color:#245b9c; text-underline-offset:3px; }
+.lumaHouseCard {box-sizing:border-box;color:var(--luma-ink);background:var(--luma-surface);font:14px/1.55 "Segoe UI","Microsoft YaHei",sans-serif}
+.lumaHouseDialog {position:fixed;inset:0;margin:auto;width:min(393px,calc(100vw - 28px));height:max-content;max-height:calc(100dvh - 32px);overflow:auto;pointer-events:auto;padding:20px;border:1px solid var(--luma-line);border-radius:16px;box-shadow:0 18px 68px #17365135}
+.lumaHouseDialog::backdrop {background:#17324b59}
+.lumaHouseHeader,.lumaHouseStatus,.lumaHouseActions,.lumaHouseDirectory summary {display:flex;align-items:center;gap:8px}
+.lumaHouseHeader h2,.lumaSettingsBody .lumaHouseHeader h2 {margin:0;font-size:17px;line-height:1.35;font-weight:650}
+.lumaHouseMark {display:grid;place-content:center;width:34px;height:34px;border-radius:9px;background:var(--luma-surface-muted);color:var(--luma-accent)}
+.lumaHouseCard button {cursor:pointer;font:inherit}
+.lumaHouseCard .lumaHouseClose {display:grid;place-items:center;width:32px;height:32px;margin-left:auto;padding:0;border:0;border-radius:8px;color:var(--luma-muted);background:transparent}
+.lumaHouseStatus {flex-wrap:wrap;gap:6px 10px;margin:15px 0 7px}
+.lumaHouseStatus strong {display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--luma-accent)}
+.lumaHouseStatus strong:before {content:"";width:7px;height:7px;flex:none;border-radius:50%;background:#8193a1}
+.lumaHouseStatus[data-state=connected] strong:before {background:#32836b}
+.lumaHouseStatus:is([data-state=mismatch],[data-state=unverified]) strong:before {background:#ae7332}
+.lumaHouseStatus span,.lumaHouseDetail {color:var(--luma-muted);font-size:12px}
+.lumaHouseDetail {margin:6px 0 10px}
+.lumaHouseCounts {display:flex;gap:14px 25px;flex-wrap:wrap;margin:12px 0;padding:9px 12px;border-radius:9px;background:var(--luma-paper)}
+.lumaHouseCounts>div {display:grid;gap:1px}
+.lumaHouseCounts dt {font-size:11px;color:var(--luma-muted)}
+.lumaHouseCounts dd {font-size:14px;font-weight:600;margin:0;font-variant-numeric:tabular-nums}
+.lumaHouseCard .lumaHouseError {color:var(--luma-warning)}
+.lumaHouseActions {gap:7px;flex-wrap:wrap}
+.lumaHouseActions button {display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:5px 9px;border:1px solid var(--luma-line);border-radius:8px;color:var(--luma-accent);background:var(--luma-surface);font-size:12px}
+.lumaHouseCard .lumaHouseConnect,.lumaPluginRoot .lumaHouseCard .lumaHouseConnect,.lumaPluginSettings .lumaHouseConnect:enabled:hover {border-color:var(--luma-accent);background:#28669e;color:white}
+.lumaHouseCard :focus-visible {outline:2px solid var(--luma-focus);outline-offset:2px}
+.lumaHouseCard button:disabled {opacity:.55;cursor:default}
+.lumaHouseDirectory {border-top:1px solid var(--luma-line);margin-top:13px;padding-top:5px;font-size:12px}
+.lumaHouseDirectory summary {justify-content:space-between;min-height:31px;font-weight:600;cursor:pointer;color:var(--luma-accent);list-style:none}
+.lumaHouseDirectory summary::-webkit-details-marker {display:none}
+.lumaHouseDirectory[open] summary svg {transform:rotate(180deg)}
+.lumaHouseDirectory form {display:grid;gap:7px;margin-top:7px}
+.lumaHouseDirectory label {display:grid;gap:4px}
+.lumaHouseDirectory input,.lumaHouseDirectory button {min-width:0;max-width:100%;box-sizing:border-box;min-height:32px;padding:5px 8px;border:1px solid var(--luma-line);border-radius:7px;background:var(--luma-surface);color:var(--luma-accent);font:inherit}
+.lumaHouseDirectory button {justify-self:start}
+.lumaHouseDirectory p {font-size:12px;color:var(--luma-muted);margin:0}
+.lumaHouseDirectory a {color:var(--luma-accent);text-underline-offset:3px;justify-self:start}

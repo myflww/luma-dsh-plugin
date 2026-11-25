@@ -1,4 +1,6 @@
 import { build } from 'esbuild'
+import { nativeBundleOptions } from '../scripts/native-bundle-options.mjs'
+import { prepareStudioDesktop } from '../scripts/prepare-studio-desktop.mjs'
 import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { DEFAULT_SCHEMA, Type, load as parse } from 'js-yaml'
@@ -15,6 +17,7 @@ const plugin = dirname(here), repo = resolve(plugin, '../..')
 const baseline = process.env.LUMA_DSH_SOURCE ?? join(repo, '.luma-cache/deepseek-harness-baseline/141eb6fef83422698aef7a981029e843e8161534')
 const output = join(plugin, '.runtime/native-desktop')
 await mkdir(output, {recursive:true})
+await prepareStudioDesktop(output)
 if (process.platform==='win32') execFileSync('powershell.exe',['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',join(here,'build-pet.ps1'),output],{windowsHide:true,stdio:'inherit'})
 // This release is Windows-only and the plugin requires profileContext. Resolve
 // exactly those three official switches at build time; reject unfamiliar tags.
@@ -63,6 +66,7 @@ for (const preset of Object.keys(employees)) {
   }
 }
 await build({
+  ...nativeBundleOptions,
   entryPoints:[join(here, 'server-entry.ts')], outfile:join(output, 'server.mjs'),
   platform:'node', format:'esm', target:'node24', bundle:true,
   define:{__LUMA_DESKTOP_PRESETS__:JSON.stringify({employees,plugins:config.plugins}),__LUMA_PET_ART__:JSON.stringify(petArt)},

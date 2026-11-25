@@ -408,7 +408,7 @@ describe('read-only opening artwork preview', () => {
     expect(screen.getByRole('img', { name: `${skin.name}卡包完整外观` }).getAttribute('src')).toBe(skin.openingArtworkUrl)
     expect(screen.getByText(/不计入持有/u)).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: '跳过动画' }))
-    expect(screen.getByText('正在欣赏 2 张原始卡面 · 素材预览')).toBeTruthy()
+    expect(screen.getByText('试拆 · 不计入持有')).toBeTruthy()
     expect(screen.queryByText(/已收入我的卡册/u)).toBeNull()
     expect(screen.queryByRole('button', { name: '查看我的持有' })).toBeNull()
     const shown = screen.getAllByRole('img').map(image => image.getAttribute('src'))

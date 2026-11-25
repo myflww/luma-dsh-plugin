@@ -1,4 +1,9 @@
-// Original Luma room geometry. Regenerate with scripts/prepare-bedrooms.py.
+import { PERSONAL_BEDROOMS } from './bedroom-personal-layouts.ts'
+import { mapShopBedrooms } from './bedroom-shop-layouts.ts'
+import { isShopBedroomId } from '../shared/shop-bedrooms.ts'
+import type { BedroomRoom } from './bedroom-floor.ts'
+import shopImages from './shop-bedroom-images.generated.json' with { type:'json' }
+// Bedroom image URLs. Import personal-room PNG replacements with scripts/import-bedroom-themes.mjs.
 export const CLASSIC_BEDROOM_ART = {
   "size": [
     1600,
@@ -21,64 +26,22 @@ export const CLASSIC_BEDROOM_ART = {
 } as const
 export const BEDROOM_ART = {
   "shan": {
-    "size": [
-      1600,
-      1000
-    ],
-    "head": [
-      561,
-      464
-    ],
-    "feet": [
-      433,
-      537
-    ],
-    "stand": [
-      826,
-      744
-    ],
-    "day": "/luma-office/luma-plugin-art/bedroom-shan-day.29a8c5e6a6ab.png",
-    "night": "/luma-office/luma-plugin-art/bedroom-shan-night.3dc4763a01bb.png"
+    size:[1586,992],
+    head:PERSONAL_BEDROOMS['shan'].head, feet:PERSONAL_BEDROOMS['shan'].feet, stand:PERSONAL_BEDROOMS['shan'].stops.center,
+    "day": "/luma-office/luma-plugin-art/bedroom-shan-day.c0159526fdb4.png",
+    "night": "/luma-office/luma-plugin-art/bedroom-shan-night.d553718911a5.png"
   },
   "bai-shuangming": {
-    "size": [
-      1600,
-      1000
-    ],
-    "head": [
-      561,
-      464
-    ],
-    "feet": [
-      433,
-      537
-    ],
-    "stand": [
-      826,
-      744
-    ],
-    "day": "/luma-office/luma-plugin-art/bedroom-bai-shuangming-day.52734155b646.png",
-    "night": "/luma-office/luma-plugin-art/bedroom-bai-shuangming-night.0babf6199544.png"
+    size:[1586,992],
+    head:PERSONAL_BEDROOMS['bai-shuangming'].head, feet:PERSONAL_BEDROOMS['bai-shuangming'].feet, stand:PERSONAL_BEDROOMS['bai-shuangming'].stops.center,
+    "day": "/luma-office/luma-plugin-art/bedroom-bai-shuangming-day.d033fee7015c.png",
+    "night": "/luma-office/luma-plugin-art/bedroom-bai-shuangming-night.ebbcad22db84.png"
   },
   "lu-mi": {
-    "size": [
-      1600,
-      1000
-    ],
-    "head": [
-      561,
-      464
-    ],
-    "feet": [
-      433,
-      537
-    ],
-    "stand": [
-      826,
-      744
-    ],
-    "day": "/luma-office/luma-plugin-art/bedroom-lu-mi-day.ed5199b41f48.png",
-    "night": "/luma-office/luma-plugin-art/bedroom-lu-mi-night.7a1d7d87708a.png"
+    size:[1586,992],
+    head:PERSONAL_BEDROOMS['lu-mi'].head, feet:PERSONAL_BEDROOMS['lu-mi'].feet, stand:PERSONAL_BEDROOMS['lu-mi'].stops.center,
+    "day": "/luma-office/luma-plugin-art/bedroom-lu-mi-day.5a3d7661c703.png",
+    "night": "/luma-office/luma-plugin-art/bedroom-lu-mi-night.7b557158ded4.png"
   },
   "jingyuniang": {
     "size": [
@@ -249,3 +212,13 @@ export const BEDROOM_SLEEP = {
     ]
   }
 } as const
+
+export const SHOP_BEDROOM_ART = mapShopBedrooms((layout,id)=>{
+  const image=shopImages[id]
+  return {size:[image.width,image.height] as const,head:layout.head,feet:layout.feet,stand:layout.stops.center,
+    day:image.day,night:image.night}
+})
+export function getBedroomArt(room:BedroomRoom) {
+  if (room==='classic') return CLASSIC_BEDROOM_ART
+  return isShopBedroomId(room)?SHOP_BEDROOM_ART[room]:BEDROOM_ART[room]
+}

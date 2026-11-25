@@ -8,25 +8,25 @@
 }
 .lumaPluginRoot:not(.is-chat) .lumaPluginNav {
   padding-inline: 6px;
-  background: linear-gradient(180deg,#fff 0%,#f4f8ff 100%);
+  background: linear-gradient(180deg,var(--luma-surface) 0%,var(--luma-paper) 100%);
   color: var(--luma-ink);
   border-right: 1px solid var(--luma-line);
 }
 .lumaPluginRoot:not(.is-chat) .lumaPluginBrand {
-  color: #19375e;
+  color: var(--luma-ink);
   font: 600 22px/1.25 Georgia,serif;
   letter-spacing: -1.2px;
 }
 .lumaPluginRoot:not(.is-chat) .lumaPluginTabs button,
-.lumaPluginRoot:not(.is-chat) .lumaReturnToDsh { color: #465c77; border-radius: 10px; }
-.lumaPluginRoot:not(.is-chat) .lumaPluginNav button:hover { background: #edf3fc; color: #194e93; }
+.lumaPluginRoot:not(.is-chat) .lumaReturnToDsh { color: var(--luma-accent); border-radius: 10px; }
+.lumaPluginRoot:not(.is-chat) .lumaPluginNav button:hover { background: var(--luma-accent-soft); color: var(--luma-accent); }
 .lumaPluginRoot:not(.is-chat) .lumaPluginTabs button[aria-current=page] {
-  color: #174e9f; background: #e2edff; box-shadow: inset 0 0 0 1px #c7dbfa; font-weight: 650;
+  color: var(--luma-accent); background: var(--luma-accent-soft); box-shadow: inset 0 0 0 1px #c7dbfa; font-weight: 650;
 }
 .lumaPluginRoot:not(.is-chat) .lumaReturnToDsh { border-top-color: var(--luma-line); border-radius: 0; }
 .lumaPluginRoot .lumaPluginNav button:focus-visible,
 .lumaPluginRoot .lumaPluginContent :is(button,select,summary,input,textarea):focus-visible {
-  outline: 2px solid #3379ca; outline-offset: 2px;
+  outline: 2px solid var(--luma-focus); outline-offset: 2px;
 }
 .lumaPluginRoot .lumaDshOffice { color: var(--luma-ink); }
 .lumaPluginRoot .lumaDshOfficeHeader { border-color: var(--luma-line); }
@@ -35,10 +35,10 @@
 .lumaPluginRoot .lumaOfficeClock time { color: var(--luma-blue); }
 .lumaPluginRoot .lumaStudioCanvas { border-color: #b6c9e2; background: #203756; box-shadow: 0 6px 22px #26446810; }
 .lumaPluginRoot .lumaCanvasZoom { background: #122b4be6; border-color: #c4dcf68c; color: white; }
-.lumaPluginRoot .lumaStudioCanvas .lumaRoomCaption { background: #fff; color: var(--luma-muted); padding: 9px 12px; }
-.lumaPluginRoot .lumaStudioCanvas .lumaRoomActions { background: #fff; color: var(--luma-ink); border-bottom: 1px solid var(--luma-line); }
+.lumaPluginRoot .lumaStudioCanvas .lumaRoomCaption { background: var(--luma-surface); color: var(--luma-muted); padding: 9px 12px; }
+.lumaPluginRoot .lumaStudioCanvas .lumaRoomActions { background: var(--luma-surface); color: var(--luma-ink); border-bottom: 1px solid var(--luma-line); }
 .lumaPluginRoot .lumaStudioInspector, .lumaPluginRoot .lumaOfficePanel {
-  background: #fff; color: var(--luma-ink); border: 1px solid var(--luma-line);
+  background: var(--luma-surface); color: var(--luma-ink); border: 1px solid var(--luma-line);
 }
 .lumaPluginRoot .lumaStudioSection + .lumaStudioSection,
 .lumaPluginRoot .lumaOfficeTeamGrid li { border-color: var(--luma-line); }
@@ -46,28 +46,24 @@
 .lumaPluginRoot .lumaStudioInspector .lumaDshOfficeThemeLabel { color: var(--luma-muted); }
 .lumaPluginRoot .lumaStudioInspector :is(button,select),
 .lumaPluginRoot .lumaRoomActions button,
-.lumaPluginRoot .lumaPluginSettings :is(button,select), .lumaPluginRoot .lumaCollectionHub button {
-  background: #fff; border-color: #c9d6e6; color: #284971; border-radius: 8px;
+.lumaPluginRoot .lumaPluginSettings :is(button,select) {
+  background: var(--luma-surface); border-color: var(--luma-line); color: var(--luma-accent); border-radius: 8px;
 }
 .lumaPluginRoot .lumaStudioInspector button:hover:not(:disabled),
-.lumaPluginRoot .lumaPluginSettings button:hover:not(:disabled),
-.lumaPluginRoot .lumaCollectionHub button:hover:not(:disabled) { background: #f1f6ff; border-color: #92b1db; color: #184e90; }
-.lumaPluginRoot .lumaStudioInspector button:is([aria-pressed=true],[aria-expanded=true]),
-.lumaPluginRoot .lumaCollectionHubTabs button[aria-current] {
-  color: #174e9f; background: var(--luma-blue-soft); border-color: #a9c4ec; box-shadow: none;
+.lumaPluginRoot .lumaPluginSettings button:hover:not(:disabled) { background: var(--luma-accent-soft); border-color: var(--luma-line); color: var(--luma-accent); }
+.lumaPluginRoot .lumaStudioInspector button:is([aria-pressed=true],[aria-expanded=true]) {
+  color: var(--luma-accent); background: var(--luma-blue-soft); border-color: var(--luma-line); box-shadow: none;
 }
-.lumaPluginRoot .lumaPluginSettings section,
-.lumaPluginRoot .lumaCollectionHubProduct,
-.lumaPluginRoot .lumaCollectionHubWallet { background: white; border-color: var(--luma-line); }
+.lumaPluginRoot .lumaPluginSettings section { background: var(--luma-surface); border-color: var(--luma-line); }
 .lumaPluginRoot .lumaCollectionHubWallet>strong { color: var(--luma-blue); }
 .lumaPluginRoot .lumaCollectionHubTabs { gap: 8px; }
 .lumaPluginRoot .lumaCollectionHubTabs button { padding: 7px 13px; }
 .lumaPluginRoot .lumaCollectionHub .lumaCollectionHubPrice button,
 .lumaPluginRoot .lumaBedroomToolbar button { background: var(--luma-blue); color: #fff; border-color: var(--luma-blue); }
-.lumaPluginRoot .lumaDshOfficeNotice, .lumaPluginRoot .lumaPluginSettingsResult { background: #e8f1ff; color: #274b76; }
-.lumaPluginRoot .lumaPluginCardsMode { background: #fff; border-color: var(--luma-line); }
-.lumaPluginRoot .lumaPluginCardsMode button { color: #284971; background: #fff; border-color: #c9d6e6; }
-.lumaPluginRoot .lumaPluginCardsMode button[aria-pressed=true] { color: #174e9f; background: var(--luma-blue-soft); border-color: #a9c4ec; }
+.lumaPluginRoot .lumaDshOfficeNotice, .lumaPluginRoot .lumaPluginSettingsResult { background: var(--luma-accent-soft); color: var(--luma-accent); }
+.lumaPluginRoot .lumaPluginCardsMode { background: var(--luma-surface); border-color: var(--luma-line); }
+.lumaPluginRoot .lumaPluginCardsMode button { color: var(--luma-accent); background: var(--luma-surface); border-color: var(--luma-line); }
+.lumaPluginRoot .lumaPluginCardsMode button[aria-pressed=true] { color: var(--luma-accent); background: var(--luma-blue-soft); border-color: var(--luma-line); }
 @container (max-width:625px) {
   .lumaPluginRoot:not(.is-chat) .lumaPluginNav { border-right: 0; border-top: 1px solid var(--luma-line); }
 }

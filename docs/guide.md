@@ -2,29 +2,15 @@
 
 Luma 在 DeepSeek Harness Desktop 内提供办公室、伙伴卧室和联系人。新档从鲸鱼娘开始。选中她可以聊天或交办工作，抽到对应的卡片后可以邀请更多伙伴。
 
-## 安装 0.6.0
+## 安装与升级
 
-首次使用 DeepSeek Harness Desktop 时，请先打开一次桌面客户端，让 DSH 建立桌面档案。Windows 安装器会通过该客户端的插件命令加载 Luma。在发行页下载 `Luma-DSH-0.6.0-Installer.zip`，解压后双击 `Install-Luma-DSH.cmd`。安装包自带更新，已有完整的 0.5.4、0.5.3、0.5.2、0.5.1、0.5.0 或 0.4.3 插件目录即可离线升级。[下载 0.6.0 安装包](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.6.0)
+先安装并启动一次 Windows 版 DeepSeek Harness。下载 **Luma-DSH-0.6.1-Installer.zip**，完整解压并双击 **Install-Luma-DSH.cmd**。安装器会自动寻找本机旧版资源并校验每个文件。首次安装需要下载约 1.87 GB 基础美术及本版更新，建议预留 6 GiB 空间。[下载正式版](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.6.1)
 
-首次安装可用新版下载器从公开发行页取得基础分卷及更新包。以下命令适用于 Windows PowerShell。
+安装后重新打开 DSH，从侧栏点「Luma 办公室」。保留安装器生成的插件目录，DSH 会直接读取里面的内容。
 
-```powershell
-Invoke-WebRequest -UseBasicParsing https://github.com/myflww/luma-dsh-plugin/releases/download/v0.6.0/Get-Luma-DSH-Public.ps1 -OutFile .\Get-Luma-DSH-Public.ps1
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Get-Luma-DSH-Public.ps1
-```
-
-安装器在桌面 `Luma-DSH` 中创建新版本的独立目录，核对每个文件的 SHA-256，再通过 DSH 自身的 CLI 安装。重新打开 DSH，点侧栏的「Luma 办公室」。DSH 会引用该目录，请长期保留。
-
-- **从旧版升级**　安装器会在桌面 `Luma-DSH` 目录中依次查找 `DesktopPlugin-0.5.4`、`DesktopPlugin-0.5.3`、`DesktopPlugin-0.5.2`、`DesktopPlugin-0.5.1`、`DesktopPlugin-0.5.0`、`DesktopPlugin-0.4.3` 和 `Luma-DSH-0.4.3-Windows.zip`。旧版存放在别处时，可在命令末尾添加 `-Base "D:\Luma\DesktopPlugin-0.5.4"` 或 `-Base "D:\Downloads\Luma-DSH-0.4.3-Windows.zip"`。
-- **首次安装**　安装器从本仓库的 0.4.3 发布取得基础美术，再应用 0.6.0 更新。首次下载约 1.87 GB，包含分卷、合并 ZIP 与完整插件时，建议预留 6 GiB。
-- **离线安装**　将 0.6.0 发布中的 `Get-Luma-DSH.ps1` 和 `Luma-DSH-0.6.0-Update.zip` 放在一起，再使用上面的 `-Base` 指定本地基础包。
-- **手动添加**　运行安装器时追加 `-PrepareOnly`，然后从 DSH 的插件页添加生成的 `DesktopPlugin-0.6.0` 目录。使用 `-Directory "D:\Luma"` 可以更改输出位置。
-
-如需退回上一个版本，保留旧目录，关闭 DSH，运行以下命令再重新打开 DSH。安装器会重新注册桌面的 `DesktopPlugin-0.5.4`。旧目录位于其他位置时，追加 `-Base "D:\Luma\DesktopPlugin-0.5.4"`。回退只切换插件程序，收藏和会话继续使用当前 DSH 档案。
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Get-Luma-DSH-Public.ps1 -Rollback
-```
+- **离线升级**　将本版的 `Luma-DSH-0.6.1-Update.zip` 放在解压的安装器旁边，并准备之前保留的完整插件目录或 0.4.3 基础 ZIP。自定义位置可通过 `-Base` 指定。
+- **手动添加**　运行 `.\Get-Luma-DSH.ps1 -PrepareOnly`，从 DSH 的「插件 → 添加第三方插件」选择生成的 `DesktopPlugin-0.6.1`。使用 `-Directory` 可指定生成位置。
+- **回退**　关闭 DSH，用 `.\Get-Luma-DSH.ps1 -Rollback` 重新注册旧版，然后打开宿主。你也可以用 `-Base` 指定保留的旧版完整目录。收藏和会话保存在桌面档案内。
 
 ## 拖动伙伴与桌面探头
 
@@ -60,6 +46,6 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Get-Luma-DSH-Public.ps
 
 - 在「插件设置 → 日常陪伴」管理主动来信和房间弹幕。清醒且空闲的伙伴偶尔会发来私信，每天合计至多三条，点弹幕即可回复。默认使用本地角色对白，也可显式启用伙伴自己的 API 写信。
 - 「屏幕使用情况」默认关闭。开启后可以预览最近 15 分钟的前台应用名和使用时长，再逐个选择能收到摘要的伙伴。摘要只随你主动发送的普通私聊交给所选伙伴的模型。关闭采集会清空本机临时记录。
-- 0.6.0 桌宠版内置的更新检查沿用 GitHub CLI。发现新版本可以查看、稍后查看或跳过此版，也可在「插件设置 → 版本更新」中手动检查。自动检查使用已登录的 GitHub CLI，也可手动到公开发行页下载。安装更新时沿用原来的桌面档案。
+进入插件会自动检查公开发行版。也可从「插件设置 → 版本与帮助」点「检查更新」。
 
 开发源码、重建和差分发行方法见 [开发说明](../developer/README.md)。美术与第三方组件的来源列于 [第三方声明](../THIRD_PARTY_NOTICES.md)。

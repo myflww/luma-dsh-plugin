@@ -1,15 +1,26 @@
 .lumaRoomGallery { padding:19px 16px 12px; }
 .lumaRoomGallery header { margin:0 32px 12px 0; }
-.lumaRoomGallery h2 { color:#1c3754; margin:0 0 3px; font-size:18px; }
-.lumaRoomGallery header p { color:#526b81; margin:0; font-size:12px; }
+.lumaRoomGallery h2 { color:var(--luma-ink); margin:0 0 3px; font-size:18px; }
+.lumaRoomGallery header p { color:var(--luma-muted); margin:0; font-size:12px; }
 .lumaRoomGallery ul { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; list-style:none; margin:0; padding:0; }
 .lumaRoomGallery li { min-width:0; }
-.lumaStageFlyout .lumaRoomGallery li button { display:block; width:100%; text-align:left; border:1px solid #bbccde; background:#fff; color:#173550; padding:0; border-radius:10px; overflow:hidden; position:relative; cursor:pointer; }
-.lumaStageFlyout .lumaRoomGallery li button[aria-pressed=true] { box-shadow:0 0 0 1px #3577b0; border-color:#3577b0; background:#edf6ff; opacity:1; }
-.lumaRoomGallery li img { display:block; width:100%; aspect-ratio:1.9; object-fit:cover; background:#dae7f0; }
+.lumaStageFlyout .lumaRoomGallery li button { display:block; width:100%; text-align:left; border:1px solid var(--luma-line); background:var(--luma-surface); color:var(--luma-ink); padding:0; border-radius:10px; overflow:hidden; position:relative; cursor:pointer; }
+.lumaStageFlyout .lumaRoomGallery li button[aria-pressed=true] { box-shadow:0 0 0 1px #3577b0; border-color:var(--luma-accent); background:var(--luma-accent-soft); opacity:1; }
+.lumaRoomGallery li img { display:block; width:100%; aspect-ratio:1.9; object-fit:cover; background:var(--luma-accent-soft); }
 .lumaRoomGalleryCaption { display:grid; gap:3px; padding:7px 10px 9px; }
-.lumaRoomGalleryCaption strong { color:#183653; font-size:13px; line-height:1.4; }
-.lumaRoomGalleryCaption small { color:#506d85; font-size:11px; line-height:1.3; }
-.lumaRoomGalleryTick { position:absolute; display:grid; place-items:center; right:6px; top:6px; background:#edf6ff; color:#225780; border-radius:50%; width:18px; height:18px; box-shadow:0 1px 5px #11273b50; }
-.lumaStageFlyout .lumaRoomGalleryProgress { display:inline-flex; align-items:center; gap:4px; margin:9px 0 0; padding:5px 0; border:0; background:transparent; color:#335f89; font:inherit; font-size:12px; cursor:pointer; }
-.lumaRoomGallery button:focus-visible { outline:3px solid #4986ba; outline-offset:2px; }
+.lumaRoomGalleryCaption strong { color:var(--luma-ink); font-size:13px; line-height:1.4; }
+.lumaRoomGalleryCaption small { color:var(--luma-muted); font-size:11px; line-height:1.3; }
+.lumaRoomGalleryTick { position:absolute; display:grid; place-items:center; right:6px; top:6px; background:var(--luma-paper); color:var(--luma-accent); border-radius:50%; width:18px; height:18px; box-shadow:0 1px 5px #11273b50; }
+.lumaStageFlyout .lumaRoomGalleryProgress { display:inline-flex; align-items:center; gap:4px; margin:9px 0 0; padding:5px 0; border:0; background:transparent; color:var(--luma-accent); font:inherit; font-size:12px; cursor:pointer; }
+.lumaRoomGallery button:focus-visible { outline:3px solid var(--luma-focus); outline-offset:2px; }
+.lumaShopRoomOptions { margin-top:12px; border-top:1px solid var(--luma-line); padding-top:10px; }
+.lumaShopRoomOptions > header { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+.lumaShopRoomOptions h3 { margin:0; font-size:14px; }
+.lumaShopRoomOptions > div { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.lumaShopRoomOptions article { min-width:0; overflow:hidden; border:1px solid var(--luma-line); border-radius:8px; background:var(--luma-surface); }
+.lumaShopRoomOptions .lumaShopRoomThumb { position:relative; display:block; width:100%; border:0; background:#20363b; padding:0; cursor:pointer; }
+.lumaShopRoomThumb img { display:block; width:100%; aspect-ratio:16/9; object-fit:cover; }
+.lumaShopRoomThumb span { position:absolute; bottom:3px; right:4px; padding:0 4px; border-radius:3px; color:white; background:#20333bd1; font-size:11px; }
+.lumaShopRoomOptions .lumaShopRoomEquip,.lumaShopRoomPrice { display:flex; flex-direction:column; width:100%; align-items:flex-start; padding:5px 7px; border:0; text-align:left; background:transparent; color:var(--luma-accent); font:inherit; }
+.lumaShopRoomEquip:not(:disabled) { cursor:pointer; }
+.lumaShopRoomOptions small { font-size:11px; }

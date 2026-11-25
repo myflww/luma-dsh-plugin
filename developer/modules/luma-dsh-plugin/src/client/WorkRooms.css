@@ -1,29 +1,173 @@
 .lumaRoomNav { display:flex; align-items:center; gap:5px; }
-.lumaRoomNav select { flex:1; width:0; font-size:12px; }
+.lumaRoomNav select { flex:1; min-width:0; font-size:12px; }
 .lumaRoomNav button { padding:7px 9px; }
-.lumaCreateRoomForm { overflow:auto; padding:clamp(16px,4vw,48px); width:min(100%,660px); box-sizing:border-box; margin:0 auto; }
-.lumaCreateRoomForm > label { display:grid; gap:8px; font-size:13px; font-weight:600; }
-.lumaCreateRoomForm > fieldset { margin:24px 0 14px; border:0; padding:0; }
-.lumaCreateRoomForm legend { font-weight:600; font-size:14px; margin-bottom:12px; }
-.lumaCreateRoomForm legend small { margin-left:6px; font-weight:400; color:#58695e; }
-.lumaRoomPeople { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:8px; }
-.lumaRoomPeople label { padding:8px; display:flex; align-items:center; gap:6px; background:#fff; border:1px solid #dadfd7; border-radius:9px; cursor:pointer; font-size:13px; }
-.lumaRoomPeople label:has(input:checked) { border-color:#728d7d; background:#eaf0e9; }
-.lumaRoomPeople .lumaMessageAvatar { width:32px; height:32px; }
-.lumaCreateRoomForm p,.lumaRoomEmpty p { font-size:13px; color:#59695e; line-height:1.7; }
-.lumaRoomEmpty { max-width:410px; margin:clamp(18px,6vh,80px) auto; text-align:center; }
-.lumaRoomEmpty > div { display:flex; justify-content:center; flex-wrap:wrap; }
-.lumaRoomEmpty .lumaMessageAvatar { width:49px; height:49px; margin-left:-5px; border:2px solid white; }
-.lumaRoomConversation .lumaMessageBubble > .lumaMessageAvatar { width:36px; height:36px; flex:none; }
-.lumaRoomConversation .lumaMessageBubble p { overflow-wrap:anywhere; white-space:pre-wrap; }
+
+.lumaRoomFaces { --face:27px; display:inline-block; flex:none; position:relative; isolation:isolate; width:calc(var(--face)*1.74); height:calc(var(--face)*1.52); }
+.lumaRoomFaces[data-count="1"] { width:var(--face); height:var(--face); }
+.lumaRoomFaces[data-count="2"] { width:calc(var(--face)*1.49); height:calc(var(--face)*1.25); }
+.lumaContacts .lumaRoomFaces > .lumaMessageAvatar,.lumaContacts .lumaEmployeeTitle .lumaRoomFaces > .lumaMessageAvatar {
+  display:block; position:absolute; box-sizing:border-box; width:var(--face); height:var(--face); margin:0;
+  border:1.5px solid var(--luma-line); border-radius:50%; background:var(--luma-surface-muted);
+}
+.lumaRoomFaces > :first-child { top:0; left:0; }
+.lumaRoomFaces > :nth-child(2) { top:0; right:0; }
+.lumaRoomFaces[data-count="2"] > :nth-child(2) { top:auto; bottom:0; }
+.lumaRoomFaces > :nth-child(3) { bottom:0; left:calc(50% - var(--face)/2); }
+.lumaContacts .lumaEmployeeTitle .lumaRoomFaces[data-count="4"] > .lumaMessageAvatar,.lumaContacts .lumaRoomRecipient .lumaRoomFaces[data-count="4"] > .lumaMessageAvatar { width:calc(var(--face)*.9); height:calc(var(--face)*.9); }
+.lumaRoomFaces[data-count="4"] { height:calc(var(--face)*1.68); }
+.lumaRoomFaces[data-count="4"] > :nth-child(3) { left:0; }
+.lumaRoomFaces > :nth-child(4) { right:0; bottom:0; }
+.lumaContacts .lumaRoomBack { display:grid; place-items:center; flex:none; width:36px; height:36px; padding:0; border-radius:50%; }
+.lumaStudioMembers { flex:none; color:var(--contact-ink,#193652); background:var(--luma-surface); border-bottom:1px solid var(--contact-border,#d7e3ed); }
+.lumaStudioMembers summary,.lumaStudioDesktopPicker summary { list-style:none; }
+.lumaStudioMembers summary::-webkit-details-marker,.lumaStudioDesktopPicker summary::-webkit-details-marker { display:none; }
+.lumaStudioMembers summary {
+  display:flex; align-items:center; gap:7px; width:fit-content; margin-inline:clamp(12px,2.3%,25px);
+  min-height:34px; font-size:12px; font-weight:650; cursor:pointer;
+}
+.lumaRoomChev { color:var(--contact-faint); }
+.lumaStudioMembers[open] .lumaRoomChev { transform:rotate(180deg); }
+.lumaStudioMembers ul {
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 20px;
+  list-style:none; padding:0 clamp(12px,2.3%,25px); margin:0; max-height:min(235px,28vh); overflow:auto; scrollbar-width:thin;
+}
+.lumaStudioMembers li { display:flex; align-items:center; gap:8px; min-width:0; padding:7px 0; border-top:1px solid var(--contact-border); }
+.lumaStudioMembers .lumaMessageAvatar { width:30px; height:30px; flex:none; }
+.lumaStudioMembers li > div { flex:1; min-width:0; display:grid; gap:2px; }
+.lumaStudioMembers li strong { display:flex; align-items:center; gap:4px; font-size:12px; }
+.lumaStudioMembers li strong svg { color:var(--luma-warning); }
+.lumaStudioMembers li > div > span { color:var(--contact-faint); overflow-wrap:anywhere; font-size:11px; }
+.lumaContacts .lumaStudioMembers li button {
+  display:inline-flex; gap:5px; align-items:center; max-width:42%; min-height:30px; padding:3px 8px;
+  color:var(--contact-accent); background:var(--luma-surface); font-size:11px; border-radius:16px;
+}
+.lumaStudioMembers li button svg { flex:none; }
+.lumaStudioMembers li button > span:last-child { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.lumaStudioStatus { display:flex; flex-wrap:wrap; gap:3px 12px; align-items:center; font-size:12px; padding:8px clamp(12px,2.5%,26px); color:var(--luma-accent); background:var(--luma-paper); border-bottom:1px solid var(--luma-line); }
+.lumaRoomConversation .lumaMessageHistory:has(.lumaRoomEmpty) { display:grid; align-items:center; container:luma-room-empty / size; }
+.lumaRoomEmpty { margin:auto; padding:6px 4px; max-width:360px; text-align:center; }
+.lumaRoomEmpty .lumaStudioIllustration { display:block; margin:auto; max-height:clamp(70px,18vh,138px); max-width:100%; object-fit:contain; }
+.lumaRoomDispatchArt { display:grid; place-items:center; width:min(100%,275px); margin:auto; position:relative; }
+.lumaRoomArtCast { position:absolute; inset:0; pointer-events:none; }
+.lumaContacts .lumaRoomArtCast button {
+  --cast-size:34px; display:grid; place-items:center; position:absolute; box-sizing:border-box; width:var(--cast-size); height:var(--cast-size);
+  padding:2px; border:1px solid var(--luma-line); border-radius:50%; background:var(--luma-surface); box-shadow:0 2px 5px #184e4410; pointer-events:auto;
+}
+.lumaRoomArtCast button:nth-child(1) { left:8%; bottom:5%; }
+.lumaRoomArtCast button:nth-child(2) { right:8%; bottom:5%; }
+.lumaRoomArtCast button:nth-child(3) { left:0; bottom:44%; }
+.lumaRoomArtCast button:nth-child(4) { right:0; bottom:44%; }
+.lumaRoomArtCast button .lumaMessageAvatar { width:100%; height:100%; display:block; }
+.lumaContacts .lumaRoomArtCast button:is(:hover:enabled,[aria-pressed=true]) { border-color:var(--contact-accent); background:var(--luma-success-soft); box-shadow:0 0 0 2px #c8e5da; }
+.lumaContacts .lumaRoomArtCast button[aria-pressed=true]::after { content:""; position:absolute; bottom:-1px; right:-1px; width:7px; height:7px; background:var(--contact-accent); border:2px solid var(--luma-line); border-radius:50%; }
+.lumaRoomEmpty h3 { font-size:clamp(16px,2.2cqi,20px); line-height:1.45; margin:8px 0 4px; }
+.lumaRoomEmpty p { color:var(--contact-faint); margin:0; font-size:12px; line-height:1.6; }
+@container luma-room-empty (max-height:205px) {
+  .lumaRoomEmpty { padding:0; }
+  .lumaRoomDispatchArt { width:min(100%,213px); }
+  .lumaRoomEmpty .lumaStudioIllustration { width:108px; height:72px; }
+  .lumaContacts .lumaRoomArtCast button { --cast-size:27px; }
+  .lumaRoomEmpty h3 { margin:3px 0 1px; }
+}
+@container luma-room-empty (max-height:115px) {
+  .lumaRoomEmpty .lumaStudioIllustration { width:84px; height:56px; }
+  .lumaRoomEmpty p { display:none; }
+}
+@container luma-room-empty (max-height:78px) {
+  .lumaRoomDispatchArt { display:none; }
+}
 .lumaRoomConversation .lumaMessageBubble header { flex-wrap:wrap; }
-.lumaRoomResultActions { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
-.lumaRoomResultActions > button { font-size:11px; padding:4px 8px; }
-.lumaRoomComposer > label { display:flex; align-items:center; gap:8px; font-size:12px; margin-bottom:8px; }
-.lumaRoomComposer select { font-size:12px; padding:5px 9px; }
+.lumaRoomConversation .lumaMessageBubble p { overflow-wrap:anywhere; white-space:pre-wrap; }
+.lumaRoomConversation [data-phase="review"] > div { border-color:var(--luma-line); }
+.lumaRoomConversation .lumaStudioHandoff { border-left:2px solid var(--luma-line); padding:4px 8px; color:var(--luma-accent); font-size:12px; }
+.lumaRoomResultActions { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; padding-top:6px; border-top:1px solid var(--contact-border); }
+.lumaRoomResultActions > button { min-height:27px; font-size:11px; padding:4px 8px; }
+.lumaDeleteWork { display:flex; gap:6px; flex-wrap:wrap; align-items:center; justify-content:flex-end; max-width:840px; margin:0 auto 10px; font-size:12px; }
+.lumaDeleteWork button { padding:4px 7px; font-size:11px; }
+.lumaDeleteWork small { color:var(--luma-danger); }
+
+.lumaContacts .lumaRoomDispatch { display:flex; align-items:flex-start; justify-content:flex-start; flex-wrap:wrap; gap:5px 9px; margin:0 0 7px; }
+.lumaRoomRecipient {
+  position:relative; box-sizing:border-box; display:inline-flex; align-items:center; gap:5px; height:34px; min-width:0; max-width:100%; padding:0 8px 0 6px;
+  color:var(--contact-ink); border-radius:18px; border:1px solid var(--contact-border); background:var(--luma-surface); font-size:12px;
+}
+.lumaRoomRecipient > span:not(.lumaRoomFaces,.lumaMessageAvatar) { color:var(--contact-faint); }
+.lumaContacts .lumaRoomRecipient select {
+  appearance:none; cursor:pointer; padding:4px 16px 4px 1px; margin-right:-18px; max-width:13em; height:100%; font:inherit; font-weight:650;
+  background:transparent; border:0; color:inherit; border-radius:5px;
+}
+.lumaRoomRecipient > svg:last-child { pointer-events:none; }
+.lumaWindowReviewer { display:inline-flex; align-items:center; align-self:flex-start; gap:5px; min-height:30px; max-width:100%; padding:0 6px 0 9px; border:1px solid var(--contact-border); border-radius:8px; background:var(--contact-paper,#fff); font-size:11px; }
+.lumaWindowReviewer span { white-space:nowrap; color:var(--contact-faint); }
+.lumaContacts .lumaWindowReviewer select { min-height:28px; max-width:130px; margin:0; padding:2px; border:0; background:transparent; color:var(--contact-ink); font:inherit; }
+.lumaRoomRecipient > .lumaMessageAvatar { display:block; width:22px; height:22px; border-radius:50%; }
+.lumaRoomRecipient .lumaRoomFaces { --face:15px; }
 .lumaRoomComposer .lumaRoomMissing { justify-content:flex-start; flex-wrap:wrap; margin:4px 0 8px; }
-.lumaRoomMissing button { padding:4px 8px; }
-@media (max-width:650px) {
-  .lumaRoomNav { max-width:320px; width:100%; }
-  .lumaRoomNav select,.lumaRoomNav button { padding:4px 8px; }
+.lumaContacts .lumaRoomComposer .lumaRoomMissing { align-items:center; gap:4px 6px; }
+.lumaContacts .lumaRoomMissing > span { color:var(--luma-warning); font-size:11px; }
+.lumaContacts .lumaRoomMissing button { display:inline-flex; align-items:center; gap:4px; min-height:26px; padding:2px 8px 2px 3px; border:1px solid var(--luma-line); border-radius:14px; background:var(--luma-surface); color:var(--luma-danger); font-size:11px; }
+.lumaRoomMissing .lumaMessageAvatar { width:18px; height:18px; }
+
+.lumaContacts .lumaCreateRoomForm { display:flex; flex:1; flex-direction:column; overflow:hidden; min-height:0; box-sizing:border-box; margin:0; }
+.lumaRoomSetup { flex:1; min-height:0; overflow-y:auto; padding:22px max(clamp(15px,4%,36px),calc((100% - 670px)/2)); background:var(--luma-surface); scrollbar-width:thin; }
+.lumaRoomSetup fieldset { min-width:0; padding:0; border:0; margin:22px 0 0; }
+.lumaRoomSetup legend,.lumaRoomName { font-weight:650; font-size:14px; color:var(--contact-ink); }
+.lumaRoomName { display:grid; gap:7px; }
+.lumaRoomSetup legend { padding:0; margin:0 0 9px; }
+.lumaRoomSetup legend small { margin-left:5px; font-size:11px; font-weight:400; color:var(--contact-faint); }
+.lumaContacts .lumaRoomName input { max-width:100%; width:100%; padding:9px 12px; color:var(--contact-ink); border-color:var(--contact-border); background:var(--luma-surface); font-size:14px; font-weight:400; }
+.lumaRoomPeople { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(135px,100%),1fr)); gap:7px; }
+.lumaRoomPeople label,.lumaWorkflowChoices label { position:relative; cursor:pointer; background:var(--luma-surface); border:1px solid var(--contact-border); border-radius:10px; }
+.lumaRoomPeople label { display:flex; align-items:center; gap:7px; padding:6px 8px; min-width:0; }
+.lumaRoomPeople label > strong { flex:1; min-width:0; overflow-wrap:anywhere; font-size:12px; }
+.lumaRoomPeople .lumaMessageAvatar { width:30px; height:30px; flex:none; border-radius:50%; }
+.lumaRoomPeople label > input { position:absolute; inset:0; z-index:1; width:100%; height:100%; margin:0; opacity:0; cursor:pointer; }
+.lumaRoomCheck { flex:none; display:grid; place-items:center; width:14px; height:14px; border-radius:50%; border:1px solid var(--luma-line); box-sizing:border-box; }
+.lumaRoomPeople label:has(:checked),.lumaWorkflowChoices label:has(:checked) { background:var(--luma-paper); border-color:var(--luma-line); }
+.lumaRoomPeople label:has(:checked) .lumaRoomCheck { color:white; border-color:var(--luma-action); background:var(--luma-action); }
+.lumaRoomPeople label:has(input:focus-visible) { outline:2px solid var(--contact-accent); outline-offset:2px; }
+.lumaWorkflowChoices { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.lumaWorkflowChoices label { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:9px; padding:10px; }
+.lumaWorkflowChoices label > input { grid-column:3; grid-row:1; margin:0; accent-color:var(--contact-accent); }
+.lumaWorkflowChoices label > svg { grid-column:1; grid-row:1; color:var(--contact-accent); }
+.lumaWorkflowChoices label > span { grid-column:2; grid-row:1; display:grid; gap:2px; min-width:0; }
+.lumaWorkflowChoices strong { font-size:13px; }
+.lumaWorkflowChoices small,.lumaRoomAssignments small { font-size:11px; color:var(--contact-faint); line-height:1.5; }
+.lumaContacts .lumaRoomAssignments ol { margin:0; padding:0; display:grid; gap:0; list-style:none; }
+.lumaContacts .lumaRoomAssignments li { display:flex; align-items:center; gap:10px; padding:10px 0; border:0; border-top:1px solid var(--contact-border); border-radius:0; }
+.lumaRoomAssignments .lumaMessageAvatar { width:34px; height:34px; flex:none; align-self:flex-start; margin-top:2px; }
+.lumaContacts .lumaRoomAssignments label { display:block; flex:1; min-width:0; }
+.lumaRoomAssignments label strong { font-size:13px; }
+.lumaContacts .lumaRoomAssignments label small { display:inline-flex; align-items:center; vertical-align:baseline; gap:4px; margin-left:7px; max-width:100%; overflow-wrap:anywhere; }
+.lumaContacts .lumaRoomAssignments input { display:block; width:100%; margin-top:5px; padding:6px 8px; background:var(--luma-surface); border-color:var(--contact-border); font-size:12px; }
+.lumaContacts .lumaRoomAssignments li button { display:grid; place-items:center; width:30px; height:30px; padding:0; border-radius:50%; }
+.lumaCreateRoomFooter {
+  box-sizing:border-box; display:flex; justify-content:space-between; align-items:center; gap:10px; flex:none; padding:10px max(clamp(15px,4%,36px),calc((100% - 670px)/2));
+  border-top:1px solid var(--contact-border); background:var(--luma-surface);
+}
+.lumaCreateRoomFooter > span,.lumaCreateRoomFooter > p { font-size:12px; color:var(--contact-faint); margin:0; }
+.lumaCreateRoomFooter > p[role=alert],.lumaRoomComposer > p[role=alert] { color:var(--luma-warning); overflow-wrap:anywhere; }
+.lumaCreateRoomFooter button { display:inline-flex; align-items:center; justify-content:center; gap:7px; flex:none; min-height:36px; font-size:13px; }
+@container luma-conversation (max-width:480px) {
+  .lumaRoomFaces { --face:23px; }
+  .lumaRoomRecipient .lumaRoomFaces { --face:14px; }
+  .lumaRoomSetup { padding-block:16px; }
+  .lumaWorkflowChoices label { gap:5px; padding:8px; }
+}
+@container luma-conversation (min-width:1120px) {
+  .lumaStudioMembers ul { grid-template-columns:repeat(4,minmax(0,1fr)); }
+}
+.lumaContacts .lumaRoomConversation .lumaRoomComposer { display:flex; flex-direction:column; min-height:0; max-height:48%; box-sizing:border-box; }
+.lumaContacts .lumaRoomComposer .lumaRoomDispatch { flex:1 1 auto; min-height:0; align-content:flex-start; }
+.lumaRoomDispatch:has(.lumaStudioDesktopPicker[open]) { overflow:auto; scrollbar-width:thin; }
+.lumaContacts .lumaRoomComposer .lumaRoomMissing { max-height:55px; overflow:auto; scrollbar-width:thin; }
+.lumaRoomComposer .lumaComposerDock { flex:none; }
+.lumaRoomConversation .lumaMessageHistory { box-sizing:border-box; min-height:min(96px,15vh); }
+@container luma-conversation (max-width:600px) {
+  .lumaStudioMembers ul { grid-template-columns:1fr; max-height:min(112px,15vh); }
+}
+@container luma-conversation (max-width:360px) {
+  .lumaWorkflowChoices { grid-template-columns:1fr; gap:5px; }
+  .lumaWorkflowChoices label > span { display:flex; flex-wrap:wrap; align-items:baseline; gap:3px 6px; }
+  .lumaRoomSetup fieldset { margin-top:16px; }
 }

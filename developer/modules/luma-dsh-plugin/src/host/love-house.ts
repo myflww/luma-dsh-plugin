@@ -317,19 +317,22 @@ export async function writeHouseMemory(
   assistant: string,
   expectedName: string,
   directory?:string,
+  beforeWrite?:()=>boolean,
 ) {
   const origin = await verifiedOrigin(library, expectedName,directory)
   const confirmed = (v: { saved?: boolean; id?: string }) => {
     if (v.saved !== true || !v.id) throw Error('爱之屋尚未确认写入。')
   }
   if (!user && assistant) {
+    if (beforeWrite && !beforeWrite()) return false
     confirmed(await request(origin,'/api/ai/event',library,{
       text:'伙伴主动写来：'+assistant, source_url:'http://localhost/luma-agents/companionpulse',
       outcome:'observed', session_id:session, request_id:id, origin:'luma-dsh',
     }))
-    return
+    return true
   }
   if (!assistant) {
+    if (beforeWrite && !beforeWrite()) return false
     confirmed(
       await request(origin, '/api/ai/event', library, {
         text: '员工记忆库收到手动笔记：\n' + user,
@@ -340,13 +343,14 @@ export async function writeHouseMemory(
         origin: 'luma-dsh',
       }),
     )
-    return
+    return true
   }
   const split = (s: string) => s.match(/[\s\S]{1,39000}/gu) ?? []
   const users = split(user),
     replies = split(assistant),
     count = Math.max(users.length, replies.length)
   for (let i = 0; i < count; i++) {
+    if (beforeWrite && !beforeWrite()) return false
     confirmed(
       await request(origin, '/api/ai/record', library, {
         user: users[i] || '〔原用户发言见第 1 段〕',
@@ -357,6 +361,7 @@ export async function writeHouseMemory(
       }),
     )
   }
+  return true
 }
 export async function recallHouse(library: string, query: string, session: string, expectedName: string,directory?:string) {
   const v = await request(await verifiedOrigin(library, expectedName,directory), '/api/ai/context', library, {

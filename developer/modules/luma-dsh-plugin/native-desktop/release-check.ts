@@ -15,10 +15,19 @@ export function newer(candidate: string, installed = manifest.version) {
   return index >= 0 && a[index]! > b[index]!
 }
 async function latestTag() {
+  try {
+    const response = await fetch('https://api.github.com/repos/' + repo + '/releases/latest', {
+      headers: { Accept: 'application/vnd.github+json' }, signal: AbortSignal.timeout(4500),
+    })
+    if (response.ok) {
+      const { tag_name: tag } = await response.json()
+      if (typeof tag === 'string' && versionParts(tag)) return tag
+    }
+  } catch { /* Restricted networks can still use the authenticated CLI below. */ }
   const installed = join(process.env.ProgramFiles ?? 'C:/Program Files', 'GitHub CLI', 'gh.exe')
   const binary = await access(installed).then(() => installed, () => 'gh')
   const { stdout } = await exec(binary, ['api', '--hostname', 'github.com', 'repos/' + repo + '/releases/latest', '--jq', '.tag_name'], {
-    windowsHide: true, timeout: 12000, maxBuffer: 8192,
+    windowsHide: true, timeout: 8000, maxBuffer: 8192,
     env: {...process.env, GH_PROMPT_DISABLED:'1', GH_NO_UPDATE_NOTIFIER:'1'},
   })
   const tag = stdout.trim()
@@ -59,8 +68,8 @@ export function releaseChecker(db: DatabaseSync, fetchTag = latestTag, clock = D
             return value
           }).catch(error=>{ failedAt=clock(); throw error }).finally(()=>{pending=undefined})
           await pending
-        } catch { problem = '暂时无法读取私有发布。请确认已联网，且 GitHub CLI 已登录有仓库权限的账号。' }
-      } else if (failedAt > row.checked) problem = '上次检查未能连接私有仓库，可手动重试。'
+        } catch { problem = '暂时无法读取 GitHub 上的版本信息，联网后可重新检查。' }
+      } else if (failedAt > row.checked) problem = '上次未能读取版本信息，可重新检查。'
       if (!alive) throw Error('插件已关闭')
       row = read.get() as typeof row
       return { installed:manifest.version, host:await hostPromise, latest:row.tag, checked:row.checked, problem,

@@ -1,5 +1,5 @@
 .lumaCardViewer{width:100%;min-width:0}
-.lumaCardViewerViewport{width:100%;height:min(66vh,680px);min-height:360px;position:relative;border:1px solid #a3afbe;border-radius:16px;background:radial-gradient(ellipse at 50% 40%,#edf0f4 0%,#d6dee8 56%,#b8c2d0 100%);box-shadow:inset 0 1px 0 #ffffffa6;isolation:isolate;overflow:hidden}
+.lumaCardViewerViewport{width:100%;height:min(66vh,680px);min-height:360px;position:relative;border:1px solid #ced7df;border-radius:16px;background:#fff;isolation:isolate;overflow:hidden;color-scheme:light}
 .lumaCardViewerViewport.is-landscape{height:min(60vh,600px)}
 .lumaCardViewerViewport iframe{position:absolute;inset:0;width:100%;height:100%;border:0;opacity:0;border-radius:inherit}
 .lumaCardViewerViewport iframe.is-ready{opacity:1}
@@ -26,7 +26,7 @@
 .lumaCardViewerEdge.is-bottom{top:100%;transform:translateY(-50%) rotateX(-90deg)}
 .lumaCardViewerStatic{position:absolute;inset:5%;margin:0;display:grid;place-items:center;min-width:0;min-height:0;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
 .lumaCardViewerStatic img{max-width:100%;max-height:100%;width:100%;height:100%;object-fit:contain;min-height:0}
-.lumaCardViewerMissing{width:100%;height:100%;display:grid;place-items:center;color:var(--cl-muted);padding:20px;text-align:center;font-size:12px}
+.lumaCardViewerMissing{width:100%;height:100%;display:grid;place-items:center;color:#455869;background:#fff;padding:20px;text-align:center;font-size:12px}
 .lumaCardViewerToolbar{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px 12px;margin-top:14px}
 .lumaCardViewerMode,.lumaCardViewerFaces{display:flex;gap:3px;padding:3px;border:1px solid var(--cl-line,var(--pack-line,#3a3e49));border-radius:10px;background:var(--cl-soft,var(--pack-surface,#1f232b))}
 .lumaCardViewerToolbar .lumaCardLibraryButton{min-height:32px;border:1px solid transparent;cursor:pointer;color:var(--cl-muted,var(--pack-muted,#aaafbc));background:transparent;border-radius:7px;padding:5px 12px;font-size:12px;line-height:1.4}

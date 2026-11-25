@@ -1,3 +1,4 @@
+import { dailyWalkTarget, faceNextStop, officeDailyRoutine } from './officeDailyRoutine.ts'
 import {
   OFFICE_NAV_ACTION_POINTS,
   findOfficeRouteFromPoint,
@@ -148,7 +149,7 @@ const activityHoldMs = (state: OfficeAutonomyState, policy: OfficeTimePolicy): n
     policy.autonomy.roamDurationMs,
     [15_000, 30_000],
   )
-  return Math.max(1_500, Math.min(3_000, Math.round(cycle * .16)))
+  return officeDailyRoutine(state.employeeId)?.pause ?? Math.max(1_500, Math.min(3_000, Math.round(cycle * .16)))
 }
 
 const scheduleDelayMs = (
@@ -213,14 +214,8 @@ const startRoam = (
       return route.distance > 40 && route.distance <= OFFICE_SEATED_READY_POLICY.maxOutboundDistance
     } catch { return false }
   })
-  const target = nearby.length > 0
-    ? nearby[hashSeed(`${state.employeeId}:roam:${state.ordinal}`) % nearby.length]!
-    : selectDeterministicRoamTarget(
-    `${state.employeeId}:roam:${state.ordinal}`,
-    { excludeNodeIds: actionPointById(state.targetActionPointId)?.nodeId
-      ? [actionPointById(state.targetActionPointId)!.nodeId]
-      : [] },
-  )
+  const choices=nearby.length ? nearby : OFFICE_NAV_ACTION_POINTS.filter(point=>point.id!==state.targetActionPointId)
+  const target=dailyWalkTarget(state.employeeId,state.ordinal,choices,point=>[point.x,point.y],hashSeed(`${state.employeeId}:roam:${state.ordinal}`))!
   if (returnWorkstationId !== null && nearby.length === 0) {
     return Object.freeze({ state: Object.freeze({ ...state, nextTransitionAt: now + deskBreakDurationMs(state, policy) }), decision: NONE })
   }
@@ -300,7 +295,7 @@ export function createOfficeAutonomyState({
   if (!timePolicy.charactersPresent) return base
   if (initiallyAtDesk && boundWorkstationId) {
     return { ...base, phase: 'desk-break', activity: 'desk-break', targetWorkstationId: boundWorkstationId,
-      nextTransitionAt: now + deskBreakDurationMs(base, timePolicy) }
+      nextTransitionAt: now + (officeDailyRoutine(employeeId)?.firstBreak ?? deskBreakDurationMs(base, timePolicy)) }
   }
   const standing = standState(
     base,
@@ -551,7 +546,13 @@ export function advanceOfficeAutonomyController({
   }
 
   if (state.phase === 'activity') {
-    if (now < state.nextTransitionAt) return Object.freeze({ state, decision: NONE })
+    if (now < state.nextTransitionAt) {
+      if(state.returnWorkstationId && workstationApproachPoint && state.nextTransitionAt-now<1100) {
+        const facing=faceNextStop(actorPosition.x,actorPosition.y,workstationApproachPoint.x,workstationApproachPoint.y)
+        if(facing!==state.facing) return {state:{...state,facing},decision:{type:'stand',facing}}
+      }
+      return {state,decision:NONE}
+    }
     if (canRestAt(state.returnWorkstationId)) {
       return startDeskBreak(state, state.returnWorkstationId)
     }

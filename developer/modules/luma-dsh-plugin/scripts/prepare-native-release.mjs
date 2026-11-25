@@ -40,10 +40,12 @@ for (const row of art) {
 }
 for (const entry of ['client.mjs', 'server.mjs']) await copyFile(resolve(built, entry), resolve(destination, 'native-desktop', entry))
 await copyFile(resolve(built, 'DesktopPet.exe'), resolve(destination, 'native-desktop', 'DesktopPet.exe'))
+await cp(resolve(built, 'agent-desktop'), resolve(destination, 'native-desktop', 'agent-desktop'), {recursive:true})
 await cp(resolve(source, 'pet-art'), resolve(destination, 'native-desktop', 'pet-art'), {recursive:true})
 await cp(resolve(root, 'presets'), resolve(destination, 'presets'), { recursive: true })
 await cp(resolve(root, 'cloud-office'), resolve(destination, 'cloud-office'), { recursive: true })
 await copyFile(resolve(root, 'THIRD_PARTY_NOTICES.md'), resolve(destination, 'THIRD_PARTY_NOTICES.md'))
+await copyFile(resolve(root, '../../../LICENSE.md'), resolve(destination, 'LICENSE.md'))
 await copyFile(resolve(source, 'README.md'), resolve(destination, 'README.md'))
 await copyFile(resolve(source,'cordis.patch.yml'),resolve(destination,'cordis.patch.yml'))
 await copyFile(resolve(source, 'manifest.json'), resolve(destination, 'package.json'))

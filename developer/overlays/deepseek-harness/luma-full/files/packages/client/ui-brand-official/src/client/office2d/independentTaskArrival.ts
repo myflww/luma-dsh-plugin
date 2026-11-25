@@ -21,6 +21,7 @@ export type IndependentArrivalState = {
   ambientStationId?: string | undefined
   seatedStationId?: string | undefined; command?: SceneCommand | undefined; lastCommandId?: string | undefined
   route: readonly Waypoint[]; waypointIndex: number; walkPhase?: number; walkElapsedMs: number; reportElapsedMs: number
+  routeStart?: Point
   owned: boolean; failure?: string | undefined; emitted: ReadonlySet<string>; seen: ReadonlySet<string>
 }
 const close = (a: Point, b: Point) => Math.hypot(a[0] - b[0], a[1] - b[1]) < .01
@@ -80,7 +81,7 @@ export function independentFloorRoute(g: IndependentFloorGraph, from: Point, goa
   return ids.map(id => ({ id, ...g.nodes[id]! })).filter((n, i) => i > 0 || !close(from, n.point))
 }
 export function createIndependentArrivalState(position: Point, bodyCoreHeightPx: number, restoredStationId?: string): IndependentArrivalState {
-  return { position, bodyCoreHeightPx, direction: 'down', mode: restoredStationId ? 'seated' : 'floor', ...(restoredStationId ? { seatedStationId: restoredStationId } : {}), route: [], waypointIndex: 0, walkElapsedMs: 0, reportElapsedMs: 0, owned: false, emitted: new Set(), seen: new Set() }
+  return { position, routeStart:position, bodyCoreHeightPx, direction: 'down', mode: restoredStationId ? 'seated' : 'floor', ...(restoredStationId ? { seatedStationId: restoredStationId } : {}), route: [], waypointIndex: 0, walkElapsedMs: 0, reportElapsedMs: 0, owned: false, emitted: new Set(), seen: new Set() }
 }
 function emit(s: IndependentArrivalState, events: IndependentArrivalEvent[], type: SceneEventType, reason?: string) {
   if (!s.command) return
@@ -95,7 +96,7 @@ function unseat(s: IndependentArrivalState, g: IndependentFloorGraph) {
 }
 function begin(s: IndependentArrivalState, g: IndependentFloorGraph, goal: string, mode: 'approaching' | 'leaving') {
   const route = independentFloorRoute(g, s.position, goal)
-  s.route = route; s.waypointIndex = 0; s.mode = mode; s.walkElapsedMs = 0; s.failure = undefined
+  s.routeStart = s.position; s.route = route; s.waypointIndex = 0; s.mode = mode; s.walkElapsedMs = 0; s.failure = undefined
 }
 function arrive(s: IndependentArrivalState) {
   if (s.mode === 'approaching') { s.mode = 'seat-pending'; s.seatedStationId = s.command!.workstationId }
@@ -180,7 +181,7 @@ export function approachProjectedWorkstation(actor: IndependentArrivalState, gra
   try {
     unseat(next, graph)
     const route = independentFloorRoute(graph, next.position, target.approachNode)
-    return { ...next, mode:'returning', route, waypointIndex:0, ambientStationId:stationId, owned:true, walkElapsedMs:0, failure:undefined }
+    return { ...next, mode:'returning', routeStart:next.position, route, waypointIndex:0, ambientStationId:stationId, owned:true, walkElapsedMs:0, failure:undefined }
   } catch { return actor }
 }
 

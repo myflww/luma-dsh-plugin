@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useContactDirectory } from './ContactDirectory.tsx'
 import { COMPANION_REWARDS, type CharacterId } from '../shared/local-collection-domain.ts'
 import type { EmployeeUsageReport, LocalCollectionRuntime } from './local-collection-store.ts'
 import { getChibiAvatar } from './employee-avatar.ts'
@@ -41,21 +42,28 @@ export function useEmployeeUsage(read: LocalCollectionRuntime['readEmployeeUsage
   return {data, error, loading, refresh: () => setRevision(n=>n+1)}
 }
 
+function remainingTokens(row:EmployeeUsageReport['roles'][string],threshold:number) {
+  return `距下一枚还需 ${format.format(threshold - row.remainderTokens)} token`
+}
+export function describeEmployeeUsage(row:EmployeeUsageReport['roles'][string],threshold:number) {
+  return `累计 ${format.format(row.totalTokens)} token，已获得 ${format.format(row.earnedCoins)} 星币，${remainingTokens(row,threshold)}`
+}
+
 export function EmployeeUsageMeter({name, row, threshold, compact = false}: {
   name: string; row: EmployeeUsageReport['roles'][string]; threshold: number; compact?: boolean
 }) {
-  const remaining = `距下一枚还需 ${format.format(threshold - row.remainderTokens)} token`
-  const description = `累计 ${format.format(row.totalTokens)} token，已获得 ${format.format(row.earnedCoins)} 星币，${remaining}`
+  const description = describeEmployeeUsage(row,threshold)
   const tenths = Math.floor(row.remainderTokens * 1000 / threshold)
   const percent = row.remainderTokens > 0 && tenths === 0 ? '<0.1%' : `${tenths / 10}%`
   return <div className={'lumaUsageMeter' + (compact ? ' is-compact' : '')} title={compact ? description : undefined}>
     {compact && <span className="lumaUsageCaption"><span>星币进度</span><span>{percent}</span></span>}
     <progress aria-label={name+'的下一枚星币'} aria-valuetext={description} max={threshold} value={row.remainderTokens}/>
-    {!compact && <small>{remaining}</small>}
+    {!compact && <small>{remainingTokens(row,threshold)}</small>}
   </div>
 }
 
 export function EmployeeUsagePanel({runtime, unlocked}: {runtime:LocalCollectionRuntime; unlocked:readonly CharacterId[]}) {
+  const {names}=useContactDirectory()
   const {data, error, loading, refresh} = useEmployeeUsage(runtime.readEmployeeUsage)
   return <section className="lumaEmployeeUsage" aria-label="员工用量">
     <header><div><h3>员工用量</h3><p>每位伙伴每累计使用 100 万 token，钱包自动获得 1 星币。未满的用量留到下次。</p></div>
@@ -64,11 +72,12 @@ export function EmployeeUsagePanel({runtime, unlocked}: {runtime:LocalCollection
     {data && <>
       {!data.nativeHistoryComplete && <p role="status">部分历史会话暂时无法读取，下次刷新时会再核对。</p>}
       <ul>{COMPANION_REWARDS.filter(r=>unlocked.includes(r.id) || data.roles[r.id]?.totalTokens > 0).map(r=>{
+        const name=names[r.id] ?? r.name
         const row = data.roles[r.id]
         if (!row) return null
         return <li key={r.id}>
-          <div className="lumaUsageName"><MessageAvatar {...getChibiAvatar(r.id)} /><div><strong>{r.name}</strong><span>累计 {format.format(row.totalTokens)} token</span></div></div>
-          <EmployeeUsageMeter name={r.name} row={row} threshold={data.threshold}/>
+          <div className="lumaUsageName"><MessageAvatar {...getChibiAvatar(r.id)} /><div><strong>{name}</strong><span>累计 {format.format(row.totalTokens)} token</span></div></div>
+          <EmployeeUsageMeter name={name} row={row} threshold={data.threshold}/>
           <div className="lumaUsageCoins"><strong>{format.format(row.earnedCoins)}</strong> 星币</div></li>
       })}</ul></>}
   </section>

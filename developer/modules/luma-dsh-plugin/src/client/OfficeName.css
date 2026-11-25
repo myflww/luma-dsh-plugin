@@ -1,0 +1,27 @@
+.lumaRoomSignature > :last-child, .lumaOfficeName { min-width: 0; }
+.lumaOfficeNameTrigger, .lumaOfficeNameControls :is(input, button) { pointer-events: auto; }
+.lumaStageRoomTitle .lumaOfficeNameTrigger {
+  display: inline-flex; align-items: center; gap: 7px; max-width: min(34ch, 56cqw);
+  padding: 2px 0; border: 0; border-radius: 4px; background: transparent; color: inherit;
+  font: inherit; letter-spacing: inherit; text-align: start; cursor: text;
+}
+.lumaOfficeNameTrigger span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.lumaOfficeNameTrigger svg { flex: none; color: #b6d7e4; }
+.lumaOfficeNameTrigger:hover svg, .lumaOfficeNameTrigger:focus-visible svg { color: white; }
+.lumaOfficeNameTrigger:disabled { cursor: default; }
+.lumaOfficeNameTrigger:disabled svg { visibility: hidden; }
+.lumaOfficeNameEdit { min-width: 0; }
+.lumaOfficeNameControls { display: flex; align-items: center; gap: 3px; }
+.lumaStageRoomTitle .lumaOfficeNameControls input {
+  width: clamp(80px, 16cqw, 205px); min-width: 0; padding: 4px 6px; border-radius: 5px;
+  border: 1px solid #96bccb; background: #f4fbff; color: #183f50; font: inherit; line-height: 1.4;
+}
+.lumaStageRoomTitle .lumaOfficeNameControls button {
+  display: grid; place-items: center; padding: 0; width: 27px; height: 28px; border: 0;
+  border-radius: 5px; color: #e2f1f7; background: #ffffff15;
+}
+.lumaStageRoomTitle .lumaOfficeNameControls button:hover { background: #ffffff30; }
+.lumaStageRoomTitle :is(.lumaOfficeNameTrigger, .lumaOfficeNameControls button, .lumaOfficeNameControls input):focus-visible {
+  outline: 2px solid #9bd9fb; outline-offset: 2px;
+}
+.lumaOfficeNameEdit small { display: block; color: #ffe2ce; margin-top: 4px; }

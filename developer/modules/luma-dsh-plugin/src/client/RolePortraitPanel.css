@@ -1,0 +1,33 @@
+.lumaPortrait {min-width:0;color:var(--luma-ink)}
+.lumaPortraitTitle,.lumaPortraitOptions summary,.lumaPortraitActions,.lumaPortraitMeta {display:flex;align-items:center;gap:8px}
+.lumaPortraitTitle>svg {flex:none;color:var(--luma-accent)}
+.lumaPortrait h2,.lumaSettingsBody .lumaPortraitTitle h2 {margin:0;font-size:16px}
+.lumaPortrait>p,.lumaPortrait small {font-size:12px;line-height:1.6;color:var(--luma-muted)}
+.lumaPortraitOptions {margin:12px 0;border-radius:9px;background:var(--luma-paper)}
+.lumaPortraitOptions summary {padding:7px 9px;min-height:30px;color:var(--luma-accent);font-size:12px;font-weight:600;cursor:pointer;list-style:none}
+.lumaPortraitOptions summary::-webkit-details-marker {display:none}
+.lumaPortraitOptions summary span {margin-left:auto;font-size:11px;font-weight:500}
+.lumaPortraitOptions[open] summary>svg:last-child {transform:rotate(180deg)}
+.lumaPortrait fieldset {display:grid;gap:4px;margin:0;padding:0 12px 12px;border:0}
+.lumaPortrait fieldset label {display:flex;align-items:center;gap:7px;margin-top:7px;font-size:13px}
+.lumaPortrait fieldset input[type=checkbox] {width:15px;height:15px;margin:0;flex:none;accent-color:#28669e}
+.lumaPortrait small {font-size:11px}
+.lumaPortraitFilters {display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:13px 0 10px}
+.lumaPortraitFilters label {display:flex;gap:6px;align-items:center;flex:1 1 155px;min-width:0;padding:5px 8px;border:1px solid var(--luma-line);border-radius:8px;background:var(--luma-surface);color:var(--luma-muted)}
+.lumaPortraitFilters input {padding:0!important;width:100%;height:23px;min-width:0;border:0!important;font:inherit;font-size:12px;background:transparent}
+.lumaPortraitFilters label:focus-within {outline:2px solid var(--luma-focus);outline-offset:1px}
+.lumaPortraitFilters input:focus-visible {outline:0}
+.lumaPortraitFilters select {max-width:100%;min-height:32px;font-size:12px}
+.lumaPortrait h3.lumaPortraitResult {margin:0;font-size:13px}
+.lumaPortraitResult span {color:var(--luma-muted);font-size:12px}
+.lumaPortraitItems {list-style:none;margin:0;padding:0}
+.lumaPortraitItems li {padding:12px 0;border-bottom:1px solid var(--luma-line);overflow-wrap:anywhere}
+.lumaPortraitItems li>p {white-space:pre-wrap;margin:8px 0;line-height:1.6;color:var(--luma-ink);font-size:13px}
+.lumaPortraitMeta,.lumaPortraitActions {flex-wrap:wrap}
+.lumaPortraitMeta {font-size:11px;color:var(--luma-muted)}
+.lumaPortraitMeta strong {border-radius:5px;background:var(--luma-surface-muted);padding:1px 5px;color:var(--luma-accent)}
+.lumaPortraitMeta time {margin-inline-start:auto;font-variant-numeric:tabular-nums}
+.lumaPortraitActions {margin-top:5px;gap:5px}
+.lumaPortraitActions button {min-height:27px;padding:3px 7px;font-size:12px}
+.lumaPortrait textarea {width:100%;min-height:65px;box-sizing:border-box}
+.lumaPortraitEmpty {padding:11px 12px;background:var(--luma-paper);border-radius:8px}

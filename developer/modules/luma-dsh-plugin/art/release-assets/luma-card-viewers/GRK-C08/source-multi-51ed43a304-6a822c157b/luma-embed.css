@@ -1,0 +1,14 @@
+/* Only application chrome changes; frozen artwork, geometry and shaders remain unchanged. */
+html:has(body.luma-collection-embedded),body.luma-collection-embedded{width:100%;height:100%;margin:0!important;overflow:hidden!important;background:#fff!important;color-scheme:light}
+body.luma-collection-embedded{padding:0!important;display:block!important;min-width:0!important;min-height:0!important}
+/* Viewer families place their controls both outside and inside main/gallery. */
+body.luma-collection-embedded header,body.luma-collection-embedded footer,body.luma-collection-embedded nav,body.luma-collection-embedded aside,body.luma-collection-embedded .gallery-footer,body.luma-collection-embedded .controls,body.luma-collection-embedded #loading,body.luma-collection-embedded .identity,body.luma-collection-embedded .toolbar,body.luma-collection-embedded .intro,body.luma-collection-embedded .caption,body.luma-collection-embedded #side-label,body.luma-collection-embedded #status,body.luma-collection-embedded .status{display:none!important}
+body.luma-collection-embedded main,body.luma-collection-embedded .gallery{display:block!important;width:100%!important;height:100%!important;max-width:none!important;min-height:0!important;padding:0!important;margin:0!important;border:0!important;background:transparent!important}
+body.luma-collection-embedded #stage{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;padding:0!important;margin:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;touch-action:none!important;outline-offset:-3px}
+body.luma-collection-embedded #stage canvas{display:block!important;width:100%!important;height:100%!important}
+body.luma-collection-embedded #gl{display:block!important;width:100%!important;height:100%!important;touch-action:none!important;outline-offset:-3px}
+body.luma-collection-embedded #hud,body.luma-collection-embedded #hint{display:none!important}
+body.luma-collection-embedded #fallback{width:100%!important;height:100%!important;object-fit:contain!important;position:absolute!important;inset:0!important}
+body.luma-collection-embedded #fallback[hidden]{display:none!important}
+
+body.luma-collection-embedded .reduced,body.luma-collection-embedded .motion,body.luma-collection-embedded label:has(#reduced-motion),body.luma-collection-embedded label:has(#reduced),body.luma-collection-embedded label[for="reduced-motion"]{display:none!important}

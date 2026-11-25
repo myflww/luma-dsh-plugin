@@ -1,0 +1,9 @@
+.lumaBedroomPreview { width:min(900px,92vw); max-height:90dvh; padding:0; margin:auto; overflow:auto; border:1px solid var(--luma-line, #bbcdca); border-radius:14px; background:var(--luma-surface, #fbfbf6); color:var(--luma-ink, #294650); box-shadow:0 12px 55px #17292d38; }
+.lumaBedroomPreview::backdrop { background:#10282dbb; }
+.lumaBedroomPreview header { display:flex; align-items:center; gap:10px; padding:12px 14px; }
+.lumaBedroomPreview h2 { flex:1; margin:0; font:650 clamp(16px,2.4vw,23px)/1.3 system-ui,sans-serif; }
+.lumaBedroomPreview header div { display:flex; gap:2px; }
+.lumaBedroomPreview header button { min-width:34px; min-height:34px; padding:4px 8px; border:1px solid transparent; border-radius:7px; background:transparent; color:var(--luma-muted, #36575b); font:inherit; cursor:pointer; }
+.lumaBedroomPreview header button[aria-pressed="true"] { background:var(--luma-accent-soft, #dfebe8); border-color:var(--luma-line, #afc6c0); }
+.lumaBedroomPreview button:focus-visible { outline:2px solid var(--luma-focus, #326f7e); }
+.lumaBedroomPreview > img { display:block; width:100%; max-height:calc(90dvh - 65px); object-fit:contain; background:#233139; }

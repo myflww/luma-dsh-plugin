@@ -6,11 +6,18 @@ import {
   type OfficeWorkstation
 } from './office2d/workstations.ts'
 import type { Point } from './OfficeSceneSurface.types.ts'
+import { deskFrameRegistration } from './office2d/deskFrameRegistration.ts'
 export function getWorkstationTypingFrameAnchor(
   profile: OfficeEmployeeTypingProfile,
   workstation: Pick<OfficeWorkstation, 'seatPoint'>,
   frameIndex: number,
+  sourceSha?: string,
 ) {
+  const shift = sourceSha && deskFrameRegistration(sourceSha, frameIndex)
+  if (shift) {
+    const anchor = workstation.seatPoint ? profile.seatAnchor : profile.anchor
+    return { x: anchor.x - shift[0] / 512, y: anchor.y - shift[1] / 860 }
+  }
   return getTypingFrameAnchor(profile, frameIndex, { seated: workstation.seatPoint !== null })
 }
 
@@ -69,14 +76,13 @@ function projectOfficeWorldPointToEmployee({
   anchor: Readonly<{ x: number; y: number }>
   rotation: number
 }>): Point {
-  const originX = width / 2
-  const originY = height
-  const translateX = -anchor.x * width
-  const translateY = -anchor.y * height
+  // Seated sprites rotate about their cushion/contact anchor at the world base.
+  const originX = width * anchor.x
+  const originY = height * anchor.y
   const cosine = Math.cos(rotation)
   const sine = Math.sin(rotation)
-  const translatedX = point[0] - base.x - originX - translateX
-  const translatedY = point[1] - base.y - originY - translateY
+  const translatedX = point[0] - base.x
+  const translatedY = point[1] - base.y
   return {
     x: originX + cosine * translatedX + sine * translatedY,
     y: originY - sine * translatedX + cosine * translatedY,

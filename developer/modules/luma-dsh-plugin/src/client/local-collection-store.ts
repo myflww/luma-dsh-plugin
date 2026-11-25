@@ -7,6 +7,7 @@ import {
   type CharacterId, canRedeemCard, characterIdForCard, type LocalCollectionEvent, type LocalCollectionProjection, type LocalCollectionSettings, type LocalCollectionState,
 } from '../shared/local-collection-domain.ts'
 import { LOCAL_COLLECTION_SETTINGS_NAMESPACE } from '../local-collection-settings.ts'
+import { shopBedroom } from '../shared/shop-bedrooms.ts'
 
 export type LocalCollectionResult = { readonly status: 'saved'; readonly event: LocalCollectionEvent }
   | { readonly status: 'unchanged' }
@@ -55,6 +56,13 @@ export class LocalCollectionStore {
     if (!localPackAvailability(this.snapshot, pack.id)) throw new Error('卡池剩余额度已分配给未开卡包，未扣除星币。')
     if (this.snapshot.balance < pack.price) throw new Error('星币不足，可以领取每日星币后再购买。')
     return { ...base, type: 'buy-pack', packId, price: pack.price, poolVersion: PACK_POOL_VERSION }
+  })
+  buyBedroomSkin = (id:string) => this.transact(base=>{
+    const room=shopBedroom(id)
+    if (!room) throw Error('这款卧室皮肤不在商店中。')
+    if (this.snapshot.unlockedThemeIds.includes(room.id)) throw Error('已经拥有这款卧室皮肤。')
+    if (this.snapshot.balance<room.price) throw Error(`还差 ${room.price-this.snapshot.balance} 星币。`)
+    return {...base,type:'buy-bedroom-skin',themeId:room.id,price:room.price}
   })
   openPack = (packInstanceId: string) => this.transact(base => {
     const pack = this.snapshot.packs.find(row => row.id === packInstanceId)

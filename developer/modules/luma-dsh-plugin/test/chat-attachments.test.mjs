@@ -10,7 +10,7 @@ import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { setTimeout as delay } from 'node:timers/promises'
 import { createAgentWork } from '../src/host/agent-work.ts'
-import { inspectChatFile, validateChatAttachments } from '../src/shared/chat-attachments.ts'
+import { acceptsImagesAndTextOnly, inspectChatFile, validateChatAttachments } from '../src/shared/chat-attachments.ts'
 
 const attachment = (name, mediaType, bytes) => ({name, mediaType, bytes:bytes.length, data:bytes.toString('base64')})
 const image = attachment('像素.png','image/png',Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGMQmbAbAAIbAWC6n0m1AAAAAElFTkSuQmCC','base64'))
@@ -24,6 +24,9 @@ const pdfBytes = (body) => Buffer.from(body + 'xref\n0 4\n0000000000 65535 f \n'
 const pdf = attachment('稿.pdf','application/pdf',pdfBytes(pdfBody))
 
 test('validates names, format signatures, encoding, count and size at the host boundary', () => {
+  const file = {name:'brief.pdf',type:'application/pdf',size:90}
+  assert.throws(() => inspectChatFile(file,['custom','local'].some(acceptsImagesAndTextOnly)),/图片与文本/)
+  assert.equal(inspectChatFile(file,acceptsImagesAndTextOnly('custom')).mediaType,'application/pdf')
   assert.deepEqual(validateChatAttachments([image,note,pdf]), [image,note,pdf])
   assert.throws(() => validateChatAttachments([{...note, name:'../secret'}]), /名称/)
   assert.throws(() => validateChatAttachments([{...image, data:note.data, bytes:note.bytes}]), /格式不符/)

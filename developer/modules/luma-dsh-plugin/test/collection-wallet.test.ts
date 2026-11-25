@@ -1,14 +1,18 @@
 // @vitest-environment node
 import { afterEach, expect, test } from 'vitest'
 import { DatabaseSync } from 'node:sqlite'
+import { createHash } from 'node:crypto'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { createEmployeeUsage } from '../src/host/employee-usage.ts'
 import { createCollectionWallet } from '../native-desktop/collection-wallet.ts'
+import { grantLocalProfileCollection } from '../native-desktop/local-profile-grant.ts'
+import { CHARACTER_NAMES, LOCAL_GRANT_CARD_KEYS } from '../src/shared/local-collection-domain.ts'
 import { LOCAL_COLLECTION_SETTINGS_NAMESPACE as ns } from '../src/local-collection-settings.ts'
+import { SHOP_BEDROOMS, type ShopBedroom } from '../src/shared/shop-bedrooms.ts'
 import { localCollectionDay, localCollectionUserEventCount, LOCAL_COLLECTION_LIMIT, projectLocalCollectionSettings, type LocalCollectionEvent } from '../src/shared/local-collection-domain.ts'
-import { PACK_POOL_VERSION } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/economy/domain/cardPacks.ts'
+import { PACK_POOL_VERSION, getPackOdds, getPackPool } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/economy/domain/cardPacks.ts'
 
 const cleanup: (() => void)[] = []
 afterEach(() => { while (cleanup.length) cleanup.pop()!() })
@@ -31,6 +35,31 @@ function openWallet(path = ':memory:', initial: object = {}) {
   }
   return {db,meter,wallet,saved}
 }
+
+test('permanently unlocks only the purchased universal rooms, charging once across two SQLite connections and restarts',()=>{
+  const folder=mkdtempSync(join(tmpdir(),'luma-bedroom-wallet-'))
+  cleanup.push(()=>rmSync(folder,{recursive:true,force:true}))
+  const path=join(folder,'wallet.db'), a=openWallet(path), b=openWallet(path)
+  const [first,second,third,fourth]=SHOP_BEDROOMS
+  const buy=(room:ShopBedroom,id:string,price:number=room.price):LocalCollectionEvent=>({id,at:10,type:'buy-bedroom-skin',themeId:room.id,price})
+  const zero=section([buy(first,'missing-funds')])
+  expect(()=>a.wallet.reconcile({expectedRevision:0,section:zero})).toThrow()
+  a.wallet.reconcile({expectedRevision:0,section:section([welcome])})
+  const one=buy(first,'first-bedroom'),firstSale=section([welcome,one])
+  expect(()=>a.wallet.reconcile({expectedRevision:1,section:section([welcome,buy(first,'wrong-price',1)])})).toThrow()
+  a.wallet.reconcile({expectedRevision:1,section:firstSale})
+  expect(b.wallet.reconcile({expectedRevision:1,section:firstSale}).conflict).toBe(true)
+  expect(()=>b.wallet.reconcile({expectedRevision:2,section:section([welcome,one,buy(first,'repeated-skin')])})).toThrow()
+  b.wallet.reconcile({expectedRevision:2,section:section([welcome,one,buy(fourth,'second-bedroom')])})
+  const final=openWallet(path).saved().projected
+  expect(final.balance).toBe(0)
+  expect(final.unlockedThemeIds).toEqual([first.id,fourth.id])
+  expect(final.unlockedEmployeeIds).toEqual(['jingyuniang'])
+  expect(final.purchases.map(p=>[p.kind,p.price])).toEqual([['bedroom-skin',120],['bedroom-skin',180]])
+  expect(final.ledger.map(r=>r.delta)).toEqual([300,-120,-180])
+  expect(final.unlockedThemeIds).not.toContain(second.id)
+  expect(final.unlockedThemeIds).not.toContain(third.id)
+})
 
 test('retired bindings refund both actual prices once, preserve the chosen artwork, and restore old receipts identically', () => {
   const {wallet,saved} = openWallet(':memory:',legacy)
@@ -111,4 +140,34 @@ test('automatic deposits still settle when a legacy collection reaches its user 
   expect(settled.length).toBe(LOCAL_COLLECTION_LIMIT + 1)
   expect(localCollectionUserEventCount(settled)).toBe(LOCAL_COLLECTION_LIMIT)
   expect(() => projectLocalCollectionSettings(section([...settled,daily(LOCAL_COLLECTION_LIMIT)]))).toThrow()
+})
+
+test('an explicit local grant supplies missing editions and roles while preserving previous cards, spending and draw quotas', () => {
+  const {db,wallet,saved} = openWallet()
+  const packId = 'first-meeting-journey', art = getPackPool(packId)[0]!
+  const initial = section([welcome,
+    {type:'buy-pack',id:'prior-purchase',at:2,packId,price:10,poolVersion:PACK_POOL_VERSION},
+    {type:'open-pack',id:'prior-opening',at:3,packInstanceId:'prior-purchase',versionKey:art.key,rarity:art.rarity,poolVersion:PACK_POOL_VERSION,odds:getPackOdds(packId,{})}])
+  wallet.reconcile({section:initial, expectedRevision:0})
+  const before = saved()
+  const hash = createHash('sha256').update(JSON.stringify(before.value)).digest('hex')
+  expect(() => grantLocalProfileCollection(db,'stale-backup')).toThrow(/备份/)
+  expect(grantLocalProfileCollection(db,hash)).toEqual({revision:2,addedCards:225,addedEmployees:7})
+  const after = saved(), grants = after.value.state.events.slice(-1)
+  expect(after.projected.cards).toContainEqual(before.projected.cards[0])
+  expect(after.value.state.events.slice(0,-1)).toEqual(initial.state.events)
+  expect(Object.keys(after.projected.ownedCounts).sort()).toEqual([...LOCAL_GRANT_CARD_KEYS].sort())
+  expect(after.projected.unlockedEmployeeIds.toSorted()).toEqual(Object.keys(CHARACTER_NAMES).sort())
+  expect(after.projected.unlockedThemeIds.length).toBeGreaterThan(0)
+  expect(after.projected).toMatchObject({packs:before.projected.packs, purchases:before.projected.purchases,
+    drawCounts:before.projected.drawCounts, balance:before.projected.balance, openedCards:before.projected.openedCards})
+  expect(after.projected.ledger.slice(0,-1)).toEqual(before.projected.ledger)
+  expect(after.projected.cards.filter(card=>card.grantId)).toHaveLength(225)
+  expect(grantLocalProfileCollection(db,hash)).toEqual({revision:2,addedCards:0,addedEmployees:0})
+  expect(wallet.reconcile({section:after.value, expectedRevision:2, restore:true}).revision).toBe(3)
+  const other = openWallet(':memory:',initial)
+  for (const restore of [true,false]) expect(() => other.wallet.reconcile({section:after.value, expectedRevision:0,restore})).toThrow(/授权/)
+  const altered = section([...initial.state.events,{...grants[0],versionKeys:grants[0].versionKeys.slice(1)}])
+  expect(() => wallet.reconcile({section:altered, expectedRevision:3,restore:true})).toThrow(/授权/)
+  expect(other.saved().projected.cards).toHaveLength(1)
 })

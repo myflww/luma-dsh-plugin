@@ -1,7 +1,66 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import { AgentServicePanel } from '../src/client/RoleModelPanel.tsx'
 afterEach(()=>{cleanup();vi.unstubAllGlobals()})
+
+it('shows the complete CLI catalog before detection, through a failed scan and after retry',async()=>{
+  let finishScan!:(response:Response)=>void
+  vi.stubGlobal('fetch',(url:string)=>url.endsWith('/localproviders')
+    ? new Promise<Response>(resolve=>{finishScan=resolve})
+    : Promise.resolve(Response.json({ok:true,value:{providers:[]}})))
+  render(<AgentServicePanel roleId="shan" name="山" canWrite refresh={async()=>true} close={()=>{}}/>)
+  fireEvent.click(screen.getByRole('radio',{name:'本机订阅'}))
+  const subscriptions=within(screen.getByRole('list',{name:'可绑定角色订阅'}))
+  const detection=within(screen.getByRole('list',{name:'仅识别安装'}))
+  expect(subscriptions.getAllByRole<HTMLButtonElement>('button').every(button=>button.disabled)).toBe(true)
+  expect(subscriptions.getByText(/Codex/)).toBeTruthy()
+  expect(subscriptions.getByText('Claude Code')).toBeTruthy()
+  expect(detection.getByText('GitHub Copilot CLI')).toBeTruthy()
+  expect(detection.getByText('Cursor Agent CLI')).toBeTruthy()
+  expect(detection.getByText('OpenCode CLI')).toBeTruthy()
+  expect(detection.getByText('Qwen Code')).toBeTruthy()
+  await act(async()=>{finishScan(Response.json({ok:false,error:'宿主离线'},{status:503}))})
+  expect(screen.getByRole('alert').textContent).toContain('宿主离线')
+  expect(detection.getAllByText('检测失败，可重新检测')).toHaveLength(4)
+  fireEvent.click(screen.getByRole('button',{name:'重新检测'}))
+  await act(async()=>{finishScan(Response.json({ok:true,value:{providers:[
+    {id:'copilot',name:'GitHub Copilot CLI',installed:true,authenticated:false,message:'已检测到安装'},
+  ]}}))})
+  expect(detection.getByText('已检测到安装')).toBeTruthy()
+  expect(detection.getAllByText('当前宿主未返回检测结果')).toHaveLength(3)
+  expect(detection.queryByRole('button')).toBeNull()
+  expect(screen.queryByLabelText('本机模型')).toBeNull()
+})
+
+it('binds a signed-in local client to the selected role without asking for an API key',async()=>{
+  const saves:object[]=[]
+  vi.stubGlobal('fetch',async(url:string,init:RequestInit)=>{
+    const action=url.split('/').at(-1), body=JSON.parse(String(init.body))
+    let value:object={}
+    if(action==='providers') value={providers:[]}
+    if(action==='localproviders') value={providers:[
+      {id:'codex',name:'Codex',installed:true,authenticated:true,message:'已登录 ChatGPT'},
+      {id:'claude',name:'Claude Code',installed:false,authenticated:false,message:'未检测到安装'},
+    ]}
+    if(action==='models' && body.source==='local')value={models:[{id:'model-a',name:'测试模型'}]}
+    if(action==='reasoning')value={efforts:[{id:'low',name:'低'}]}
+    if(action==='configure')saves.push(body)
+    return Response.json({ok:true,value})
+  })
+  render(<AgentServicePanel roleId="jingyuniang" name="鲸鱼娘" canWrite refresh={async()=>true} close={()=>{}}/>)
+  fireEvent.click(screen.getByRole('radio',{name:'本机订阅'}))
+  await screen.findByText('未检测到安装')
+  const codex=screen.getByRole('button',{name:'选择 Codex'})
+  const unavailable=screen.getByRole<HTMLButtonElement>('button',{name:'选择 Claude Code'})
+  expect(codex.getAttribute('aria-pressed')).toBe('true')
+  expect(codex.querySelector('[data-kind=openai]')).toBeTruthy()
+  expect(unavailable.disabled).toBe(true);expect(unavailable.querySelector('[data-kind=claude]')).toBeTruthy()
+  await screen.findByRole('option',{name:'测试模型 · model-a'})
+  fireEvent.change(await screen.findByLabelText('本机模型思考强度'),{target:{value:'low'}})
+  expect(screen.queryByLabelText('API 密钥')).toBeNull()
+  fireEvent.click(screen.getByRole('button',{name:'绑定给鲸鱼娘'}))
+  await waitFor(()=>expect(saves).toEqual([{roleId:'jingyuniang',source:'local',provider:'codex',model:'model-a',effort:'low'}]))
+})
 
 it('preserves the save receipt when the freshly saved custom endpoint refreshes its catalog',async()=>{
   vi.stubGlobal('fetch',async(url:string)=>{
@@ -10,7 +69,7 @@ it('preserves the save receipt when the freshly saved custom endpoint refreshes 
   })
   const props={roleId:'shan' as const,name:'山',canWrite:true,refresh:async()=>true,close:()=>{}}
   const panel=render(<AgentServicePanel {...props}/>)
-  fireEvent.change(screen.getByLabelText('模型来源'),{target:{value:'custom'}})
+  fireEvent.click(screen.getByRole('radio',{name:'自定义 API'}))
   const baseUrl='http://127.0.0.1:4321/v1'
   fireEvent.change(screen.getByLabelText('服务地址'),{target:{value:baseUrl}})
   fireEvent.change(screen.getByLabelText('模型标识'),{target:{value:'fixture-model'}})
@@ -43,7 +102,7 @@ it('reads the configured DSH catalog, saves model-specific reasoning and permits
   fireEvent.change(screen.getByLabelText('思考强度'),{target:{value:'thoughtful'}})
   fireEvent.click(screen.getByRole('button',{name:'保存服务'}))
   await waitFor(()=>expect(saves[0]).toEqual({roleId:'shan',source:'dsh',provider:'shared',model:'writer',effort:'thoughtful'}))
-  fireEvent.change(screen.getByLabelText('模型来源'),{target:{value:'custom'}})
+  fireEvent.click(screen.getByRole('radio',{name:'自定义 API'}))
   fireEvent.change(screen.getByLabelText('服务地址'),{target:{value:'http://localhost:1234/v1'}})
   fireEvent.change(screen.getByLabelText('API 密钥'),{target:{value:'fixture'}})
   fireEvent.click(screen.getByRole('button',{name:'读取端点模型'}))

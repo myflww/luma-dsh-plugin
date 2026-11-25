@@ -1,13 +1,15 @@
 // @vitest-environment node
 import { expect, it } from 'vitest'
 import { independentDropFloor } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/independentDropFloor.ts'
+import { yieldsAtOfficeCrossing } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/officePathCrossing.ts'
 import { BROWSER_OFFICE_FLOOR_PLANS, withBrowserOfficeNavigation, type BrowserIndependentFloorGraph } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/browserOfficeNavigation.ts'
 import { createIndependentArrivalState, advanceIndependentTaskArrival, independentFloorRoute, markIndependentArrivalPainted, validateIndependentFloorGraph } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/independentTaskArrival.ts'
 import { advanceIndependentAmbient, independentFloorLanePosition, independentTrafficMayAdvance, initialIndependentAmbient } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/independentAmbient.ts'
-import { initialRuntime, officeLaneRoute, advanceOfficeActorTrafficFrame, prepareActorRuntime } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/officeSceneActorRuntime.ts'
+import { initialRuntime, officeLaneRoute, advanceOfficeActorTrafficFrame, classicFloorFootpoints, prepareActorRuntime } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/officeSceneActorRuntime.ts'
 import { sampleDeskRhythm } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/deskRhythm.ts'
 import { workstationArrivalStep } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/frameTimeline.ts'
-import { isOfficeFootSegmentWalkable, findWorkstationRouteFromPoint } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/navigation.ts'
+import { isOfficeFootSegmentWalkable, findWorkstationRouteFromPoint, OFFICE_WORKSTATION_APPROACHES } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/navigation.ts'
+import { officeDailyRoutine } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/officeDailyRoutine.ts'
 import { createOfficeAutonomyState, advanceOfficeAutonomyController } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/autonomyController.ts'
 import { createOfficeTimePolicy } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/timePolicy.ts'
 import { SPACE as whale } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/independent-spaces/office-jingyuniang-v1.ts'
@@ -18,17 +20,59 @@ import { SPACE as grok } from '../../../overlays/deepseek-harness/luma-full/file
 const roles=['shan','bai-shuangming','lu-mi','jingyuniang','longmama','claude','gemini','grok']
 const all=createOfficeTimePolicy({date:new Date(2026,10,18,10)})
 
+it('staggers the eight desk routines and takes a complete break and return through every office floor plan',()=>{
+  const seats=['north-private','north-center','west-studio','south-left','south-focus','south-right','private-upper','private-lower'] as const
+  const deadlines=new Set<number>(), routines=new Set<string>()
+  for(const [i,id] of roles.entries()){
+    const seat=seats[i]!, [x,y]=OFFICE_WORKSTATION_APPROACHES[seat].point
+    const classic=createOfficeAutonomyState({employeeId:id,now:0,timePolicy:all,boundWorkstationId:seat,initiallyAtDesk:true})
+    deadlines.add(classic.nextTransitionAt);routines.add(officeDailyRoutine(id)!.desk)
+    const base={state:classic,now:classic.nextTransitionAt,actorMode:'desk-break' as const,actorPosition:{x,y},timePolicy:all,boundWorkstationId:seat,ambientDesk:true}
+    const roam=advanceOfficeAutonomyController(base)
+    expect(roam.decision.type).toBe('start-roam')
+    if(roam.decision.type!=='start-roam')throw Error('No outing')
+    const pause=advanceOfficeAutonomyController({...base,state:roam.state,actorMode:'idle',actorPosition:roam.decision.target,now:base.now+600})
+    expect(pause.state.phase).toBe('activity')
+    expect(advanceOfficeAutonomyController({...base,state:pause.state,actorMode:'idle',actorPosition:roam.decision.target,now:pause.state.nextTransitionAt}).decision).toEqual({type:'start-desk-break',workstationId:seat})
+    expect(advanceOfficeAutonomyController({...base,actorMode:'working'}).state.phase).toBe('suspended')
+    for(const room of [whale,dragon,claude,gemini,grok]){
+      const graph=withBrowserOfficeNavigation(room).layout.navigation.floorGraph as BrowserIndependentFloorGraph
+      const origin=graph.nodes[graph.targets[seat]!.approachNode]!
+      const input={employeeId:id,graph,policy:all,boundStationId:seat,ambientDesk:true,active:true,manual:false,reduceMotion:false}
+      let actor=createIndependentArrivalState(origin.point,origin.bodyCoreHeightPx,seat)
+      let ambient=initialIndependentAmbient(id,0,true,all)
+      expect(ambient.nextAt).toBe(classic.nextTransitionAt)
+      let now=ambient.nextAt
+      const step=()=>{const r=advanceIndependentAmbient(ambient,actor,{...input,now});ambient=r.ambient;actor=r.actor}
+      const travel=()=>{
+        for(let n=0;n<500 && actor.route.length;n++){
+          now+=100
+          step()
+          actor=advanceIndependentTaskArrival(actor,{graph,bindingAvailable:true,active:true,deltaMs:100,reduceMotion:false}).state
+        }
+      }
+      step(); expect(actor.mode).toBe('roaming')
+      travel();expect(actor.mode).toBe('floor')
+      step();expect(ambient.nextAt).toBeGreaterThan(now);now=ambient.nextAt
+      step();expect(actor.mode).toBe('returning')
+      travel();expect(actor.seatedStationId).toBe(seat)
+    }
+  }
+  expect(deadlines.size).toBe(8);expect(routines.size).toBe(8)
+})
+
 it('gives an on-duty seated employee a full desk stay and a short pause before returning from a walk', () => {
   const policy = createOfficeTimePolicy({hour:10})
   const graph = withBrowserOfficeNavigation(whale).layout.navigation.floorGraph as BrowserIndependentFloorGraph
   const station = 'north-private', node = graph.nodes[graph.entryNode]!
   const floor = createIndependentArrivalState(node.point, node.bodyCoreHeightPx)
   const start = initialIndependentAmbient('shan', 0, true, policy)
-  expect(start.nextAt).toBeGreaterThanOrEqual(240_000)
+  expect(start.nextAt).toBeGreaterThan(20_000)
+  expect(start.nextAt).toBeLessThan(120_000)
   const returning = advanceIndependentAmbient({...start, travelling:true}, floor, {employeeId:'shan', graph, now:8000, policy,
     boundStationId:station, active:true, manual:false, reduceMotion:false})
-  expect(returning.ambient.nextAt).toBeLessThan(12_000)
-  const move = advanceIndependentAmbient(returning.ambient, returning.actor, {employeeId:'shan', graph, now:12_000,
+  expect(returning.ambient.nextAt).toBeLessThan(15_000)
+  const move = advanceIndependentAmbient(returning.ambient, returning.actor, {employeeId:'shan', graph, now:returning.ambient.nextAt,
     policy, boundStationId:station, active:true, manual:false, reduceMotion:false})
   expect(move.actor).toMatchObject({mode:'returning',ambientStationId:station})
 })
@@ -176,5 +220,75 @@ it('keeps off-center interior placements in all five theme rooms and walks from 
       expect(()=>independentFloorRoute(graph,outside.point,target.approachNode)).not.toThrow()
     }
     expect(()=>independentFloorRoute(graph,[-19000,200],graph.entryNode)).toThrow()
+  }
+})
+
+it('lets work enter an unoccupied crossing first and lets a colleague already crossing finish',()=>{
+  const walker={id:'shan',from:[0,54] as const,to:[110,54] as const,working:false}
+  const worker={id:'claude',from:[55,0] as const,to:[55,110] as const,working:true}
+  expect(yieldsAtOfficeCrossing(walker,worker)).toBe(true)
+  expect(yieldsAtOfficeCrossing(worker,walker)).toBe(false)
+  const committed={...walker,from:[48,54] as const}
+  expect(yieldsAtOfficeCrossing(worker,committed)).toBe(true)
+  expect(yieldsAtOfficeCrossing(committed,worker)).toBe(false)
+})
+
+it('passes side by side through a narrow classic desk aisle without stepping outside the measured floor',()=>{
+  const a={...initialRuntime('lu-mi',0,0),mode:'task' as const,position:{x:877.7064,y:656.9946},
+    route:{points:[[899.7147,657.8411] as const],nodeIds:[],distance:22}}
+  const b={...initialRuntime('bai-shuangming',1,0),mode:'task' as const,position:{x:878.1957,y:657.4812},
+    route:{points:[[850,665] as const],nodeIds:[],distance:30}}
+  const visible=classicFloorFootpoints({[a.employeeId]:a,[b.employeeId]:b},new Set([a.employeeId,b.employeeId]))
+  const p=visible[a.employeeId]!,q=visible[b.employeeId]!
+  expect(isOfficeFootSegmentWalkable(a.position,p)).toBe(true)
+  expect(isOfficeFootSegmentWalkable(b.position,q)).toBe(true)
+  expect(Math.hypot(p.x-q.x,p.y-q.y)).toBeGreaterThan(20)
+})
+
+it('keeps a physical gap on intersecting classic floor routes even with different destination waypoints',()=>{
+  const make=(id:string,mode:'task'|'ambient',from:readonly[number,number],to:readonly[number,number])=>{
+    expect(isOfficeFootSegmentWalkable(from,to)).toBe(true)
+    return {...initialRuntime(id,0,0),mode,position:{x:from[0],y:from[1]},waypointIndex:1,
+      route:{points:[from,to],nodeIds:[],distance:Math.hypot(to[0]-from[0],to[1]-from[1])}}
+  }
+  let actors:ReturnType<typeof advanceOfficeActorTrafficFrame>['actors']={
+    shan:make('shan','ambient',[1108,470],[1205,470]),claude:make('claude','task',[1140,405],[1140,535]),
+  }
+  let minimum=Infinity
+  for(let i=0;i<150&&(actors.shan!.route||actors.claude!.route);i++) {
+    actors=advanceOfficeActorTrafficFrame({actors,now:i*32,deltaMs:32}).actors
+    const a=actors.shan!.position,b=actors.claude!.position
+    minimum=Math.min(minimum,Math.hypot(a.x-b.x,a.y-b.y))
+  }
+  expect(minimum).toBeGreaterThan(24)
+  expect([actors.shan!.mode,actors.claude!.mode]).toEqual(['idle','working'])
+})
+
+it('brings eight simultaneous assignments to all nine desk rotations in every independent office without stacking moving feet',()=>{
+  const people=['shan','lu-mi','bai-shuangming','jingyuniang','claude','gemini','longmama','grok'] as const
+  for(const space of [whale,claude,dragon,gemini,grok]){
+    const room=withBrowserOfficeNavigation(space)
+    const graph=room.layout.navigation.floorGraph as BrowserIndependentFloorGraph
+    for(let rotation=0;rotation<room.layout.stations.length;rotation++){
+      const actors=people.map((_,i)=>{const start=graph.nodes[graph.spawnNodes[i]!]!;return createIndependentArrivalState(start.point,start.bodyCoreHeightPx)})
+      const tasks=people.map((employeeId,i)=>({type:'start-task' as const,employeeId,taskId:'task-'+i,commandId:'move-'+i,workstationId:room.layout.stations[(i+rotation)%9]!.id}))
+      let minimum=Infinity
+      for(let tick=0;tick<400&&actors.some(a=>a.mode!=='seat-pending');tick++){
+        const feet: Array<readonly [number,number]>=[]
+        for(const [i,id] of people.entries()){
+          const peers=people.map((otherId,j)=>({id:otherId,actor:actors[j]!}))
+          const allowed=independentTrafficMayAdvance(id,actors[i]!,peers)
+          actors[i]=advanceIndependentTaskArrival(actors[i]!,{graph,bindingAvailable:true,active:true,reduceMotion:false,
+            command:tasks[i]!,deltaMs:allowed?40:0}).state
+          const foot=independentFloorLanePosition(actors[i]!,graph,{id,peers})
+          if(actors[i]!.mode==='approaching')feet.push(foot)
+        }
+        for(let i=0;i<feet.length;i++)for(const b of feet.slice(i+1)){
+          const a=feet[i]!;minimum=Math.min(minimum,Math.hypot(a[0]-b[0],a[1]-b[1]))
+        }
+      }
+      expect(actors.map(a=>a.seatedStationId)).toEqual(tasks.map(t=>t.workstationId))
+      expect(minimum).toBeGreaterThan(15)
+    }
   }
 })

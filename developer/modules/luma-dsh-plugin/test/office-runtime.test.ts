@@ -49,6 +49,36 @@ function fixture(withSession = true) {
 }
 
 describe('DSH plugin office runtime', () => {
+  it('persists the displayed pair when a temporary desk occupant exchanges with an assigned employee', async()=>{
+    const f=fixture(false), runtime=createOfficePageRuntime(f.ctx)
+    const before=[{id:'jingyuniang',workstationId:'south-left'},{id:'claude',workstationId:'south-right'}]
+    await runtime.bindWorkstation('jingyuniang','reception',{swap:true},before)
+    const shown=[{id:'jingyuniang',workstationId:'reception'},before[1]!]
+    f.set.mockClear()
+    expect(await runtime.bindWorkstation('jingyuniang','south-right',{swap:true},shown)).toMatchObject({status:'changed',displacedEmployeeId:'claude'})
+    expect(f.set).toHaveBeenCalledTimes(1)
+    runtime.dispose()
+    const reopened=createOfficePageRuntime(f.ctx)
+    const actual=reopened.getSnapshot().projection.employees
+    expect(actual.find(row=>row.employeeId==='claude')?.workstationId).toBe('reception')
+    expect(actual.find(row=>row.employeeId==='jingyuniang')?.workstationId).toBe('south-right')
+    expect(await reopened.bindWorkstation('jingyuniang','south-right',{swap:true},shown)).toMatchObject({status:'rejected',reason:'persistence-conflict'})
+    expect(f.set).toHaveBeenCalledTimes(1)
+    reopened.dispose()
+  })
+  it('leaves both temporary seats available after a failed write', async()=>{
+    const f=fixture(false), runtime=createOfficePageRuntime(f.ctx)
+    const shown=[{id:'grok',workstationId:'private-lower'},{id:'claude',workstationId:'south-right'}]
+    f.set.mockRejectedValueOnce(Error('offline'))
+    const result=await runtime.bindWorkstation('grok','south-right',{swap:true},shown)
+    expect(result.status).toBe('rejected')
+    expect(result.relationships.employees.grok.workstationId).toBeUndefined()
+    expect(result.relationships.employees.claude.workstationId).toBeUndefined()
+    const retry=await runtime.bindWorkstation('grok','south-right',{swap:true},shown)
+    expect(retry.relationships.employees.claude.workstationId).toBe('private-lower')
+    expect(retry.relationships.employees.grok.workstationId).toBe('south-right')
+    runtime.dispose()
+  })
   it('links a real role-owned message session to its workstation and rejects a foreign role session', async () => {
     const f = fixture(), runtime = createOfficePageRuntime(f.ctx)
     const initial = f.list.getSnapshot()

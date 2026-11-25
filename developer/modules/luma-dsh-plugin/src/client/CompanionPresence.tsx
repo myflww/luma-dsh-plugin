@@ -1,3 +1,5 @@
+import { contactDisplayName } from '../messages-settings.ts'
+import { useContactDirectory } from './ContactDirectory.tsx'
 import { useEffect, useRef, useState } from 'react'
 import { Monitor, MoonStar } from 'lucide-react'
 import { createOfficeTimePolicy } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/timePolicy.ts'
@@ -56,13 +58,13 @@ export function CompanionPresence({messages,office,sceneVisible,onContact,onLett
     return ()=>clearTimeout(timer)
   },[letter,sceneVisible])
   if(!letter || !sceneVisible)return null
-  const profile=messages.getSnapshot().preferences.profiles[letter.role]
-  const name=profile?.name ?? MESSAGE_CHARACTERS.find(person=>person.id===letter.role)?.name
+  const name=contactDisplayName(messages.getSnapshot().preferences,letter.role,MESSAGE_CHARACTERS.find(person=>person.id===letter.role)?.name ?? letter.role)
   return <div className={'lumaDanmakuTrack'+(office.getSnapshot().motionPreference==='reduce' ? ' is-reduced' : '')}><button key={letter.id} className="lumaLifeDanmaku" onClick={()=>{setLetter(undefined);if(onLetter)onLetter(letter);else onContact(letter.role)}} aria-label={'打开'+name+'的主动来信'}>
     <EmployeeFace id={letter.role} skin={messages.getSnapshot().employeeSkins?.[letter.role]}/><b>{name}</b><span>{letter.source==='model'?'给你写了一封私信，点开看看。':letter.text}</span></button></div>
 }
 
-export function CompanionSettingsPanel() {
+export function CompanionSettingsPanel({ writable = true }: { writable?: boolean }) {
+  const {names}=useContactDirectory()
   const [state,setState]=useState<LifeStatus>()
   const [error,setError]=useState('')
   const [busy,setBusy]=useState(false)
@@ -84,7 +86,7 @@ export function CompanionSettingsPanel() {
     return ()=>{ended=true;clearInterval(timer)}
   },[expanded])
   async function change(patch:Partial<CompanionSettings>){
-    if(writing.current)return
+    if(!writable || writing.current)return
     writing.current=true;generation.current++;setBusy(true);setError('')
     try {
       setState(await agentRequest<LifeStatus>('companionconfigure',patch,AbortSignal.timeout(9000)))
@@ -96,7 +98,7 @@ export function CompanionSettingsPanel() {
   return <section className="lumaLifeSettings" aria-label="日常陪伴">
     <h2><MoonStar aria-hidden="true" size={19}/>日常陪伴</h2>
     <p>伙伴在清醒、空闲时，偶尔会写来一条私信。每天最多三条，晚上八点后安静。</p>
-    {p && <fieldset disabled={busy}><label><input type="checkbox" checked={p.proactive} onChange={e=>void change({proactive:e.target.checked})}/>允许伙伴主动来信</label>
+    {p && <fieldset disabled={busy || !writable}><label><input type="checkbox" checked={p.proactive} onChange={e=>void change({proactive:e.target.checked})}/>允许伙伴主动来信</label>
       <label><input type="checkbox" checked={p.danmaku} disabled={!p.proactive} onChange={e=>void change({danmaku:e.target.checked})}/>在房间顶端飘过，点击可回复</label>
       <label><input type="checkbox" checked={p.model} disabled={!p.proactive} onChange={e=>void change({model:e.target.checked})}/>使用员工独立 API 写来信</label>
       <small>默认使用本地角色对白。开启独立 API 后，会把该员工的人设和近期私聊交给其模型，可能使用额度。模型也可以选择沉默。</small>
@@ -104,13 +106,13 @@ export function CompanionSettingsPanel() {
     </fieldset>}
     <details className="lumaAppSharing" open={expanded} onToggle={e=>setExpanded(e.currentTarget.open)}>
       <summary><Monitor aria-hidden="true" size={16}/>屏幕使用情况</summary>
-      {p && expanded && <fieldset disabled={busy}><p>在本机临时统计最近 15 分钟的前台应用名和使用时长。关闭后立即清空。窗口标题、网页地址、按键内容和画面均不采集。</p>
+      {p && expanded && <fieldset disabled={busy || !writable}><p>在本机临时统计最近 15 分钟的前台应用名和使用时长。关闭后立即清空。窗口标题、网页地址、按键内容和画面均不采集。</p>
         <label><input type="checkbox" checked={p.collectApps} onChange={e=>void change({collectApps:e.target.checked})}/>开启本机应用时长预览</label>
         {p.collectApps && <><ul className="lumaUsagePreview" aria-label="实际可共享的应用摘要">{state!.apps.map(app=><li key={app.app}><span>{app.app}</span><b>{Math.floor(app.seconds/60)} 分 {app.seconds%60} 秒</b></li>)}</ul>
           {!state!.apps.length && <small role="status">{state!.sampler==='unavailable'?'当前环境无法读取 Windows 前台应用。':'等待连续两次采样，约 15 秒后显示。电脑空闲时暂停计时。'}</small>}
           <strong>允许在私聊时接收摘要的伙伴</strong><small>只有你主动发送普通私聊时才附带摘要。该伙伴当前配置的 DSH 或 API 服务可能将其保存在会话中。</small>
           {state!.roles.map(id=><label key={id}><input type="checkbox" checked={p.sharedRoles.includes(id)}
-            onChange={e=>void change({sharedRoles:e.target.checked?[...p.sharedRoles,id]:p.sharedRoles.filter(v=>v!==id)})}/>{MESSAGE_CHARACTERS.find(role=>role.id===id)?.name ?? id}</label>)}</>}
+            onChange={e=>void change({sharedRoles:e.target.checked?[...p.sharedRoles,id]:p.sharedRoles.filter(v=>v!==id)})}/>{names[id] ?? MESSAGE_CHARACTERS.find(role=>role.id===id)?.name ?? id}</label>)}</>}
       </fieldset>}
     </details>
     {error && <p role="alert">{error}</p>}

@@ -1,0 +1,38 @@
+{
+  "bedroom.shop.rose-sketchbook.v1": {
+    "width": 1586,
+    "height": 992,
+    "day": "/luma-office/luma-plugin-art/bedroom-shop-rose-sketchbook-day.e33a24423deb.png",
+    "night": "/luma-office/luma-plugin-art/bedroom-shop-rose-sketchbook-night.82e989850112.png"
+  },
+  "bedroom.shop.sapphire-music.v1": {
+    "width": 1585,
+    "height": 992,
+    "day": "/luma-office/luma-plugin-art/bedroom-shop-sapphire-music-day.08feae860e05.png",
+    "night": "/luma-office/luma-plugin-art/bedroom-shop-sapphire-music-night.fa95d033cbb2.png"
+  },
+  "bedroom.shop.alpine-library.v1": {
+    "width": 1586,
+    "height": 992,
+    "day": "/luma-office/luma-plugin-art/bedroom-shop-alpine-library-day.3db7e671f663.png",
+    "night": "/luma-office/luma-plugin-art/bedroom-shop-alpine-library-night.5a4a5055b143.png"
+  },
+  "bedroom.shop.camellia-pavilion.v1": {
+    "width": 1585,
+    "height": 992,
+    "day": "/luma-office/luma-plugin-art/bedroom-shop-camellia-pavilion-day.1cc12af64935.png",
+    "night": "/luma-office/luma-plugin-art/bedroom-shop-camellia-pavilion-night.7124954be4f4.png"
+  },
+  "bedroom.shop.blue-rose-gallery.v1": {
+    "width": 1586,
+    "height": 992,
+    "day": "/luma-office/luma-plugin-art/bedroom-shop-blue-rose-gallery-day.b32c527723e5.png",
+    "night": "/luma-office/luma-plugin-art/bedroom-shop-blue-rose-gallery-night.251328322ab1.png"
+  },
+  "bedroom.shop.frostwing-glasshouse.v1": {
+    "width": 1585,
+    "height": 992,
+    "day": "/luma-office/luma-plugin-art/bedroom-shop-frostwing-glasshouse-day.1689901c71d6.png",
+    "night": "/luma-office/luma-plugin-art/bedroom-shop-frostwing-glasshouse-night.202c619f1001.png"
+  }
+}

@@ -1,0 +1,54 @@
+/* DSH resolves its saved light, dark or system setting onto the document body.
+   Keep scene lighting and collectible artwork independent of that preference. */
+.lumaPluginRoot.lumaWorkspace {
+  color-scheme: light;
+  --luma-paper: #f7f9f8;
+  --luma-surface: #fff;
+  --luma-surface-muted: #eff3f3;
+  --luma-ink: #203843;
+  --luma-muted: #536872;
+  --luma-line: #d6e1e1;
+  --luma-accent: #1c6370;
+  --luma-accent-soft: #dfefed;
+  --luma-focus: #237a8e;
+  --luma-action: #215c6b;
+  --luma-on-action: #fff;
+  --luma-warning: #88591b;
+  --luma-warning-soft: #faf0dd;
+  --luma-danger: #9d443e;
+  --luma-danger-soft: #f9eae6;
+  --luma-violet: #725684;
+  --luma-violet-soft: #f1eaf5;
+  --luma-success: #316b52;
+  --luma-success-soft: #e4f2e8;
+  --luma-shadow: 0 8px 32px #17364221;
+  --luma-sea: var(--luma-accent);
+  --luma-mist: var(--luma-accent-soft);
+  --luma-blue: var(--luma-accent);
+  --luma-blue-soft: var(--luma-accent-soft);
+  accent-color: var(--luma-action);
+}
+body[data-ds-dark-theme] .lumaPluginRoot.lumaWorkspace {
+  color-scheme: dark;
+  --luma-paper: var(--dsw-alias-bg-base, #1b2023);
+  --luma-surface: var(--dsw-alias-bg-layer-1, #242a2e);
+  --luma-surface-muted: #2b3337;
+  --luma-ink: #e4edee;
+  --luma-muted: #b0bec3;
+  --luma-line: #414c50;
+  --luma-accent: #92d6d3;
+  --luma-accent-soft: #263f42;
+  --luma-focus: #84d4dc;
+  --luma-action: #31636e;
+  --luma-warning: #edd099;
+  --luma-warning-soft: #483c2c;
+  --luma-danger: #f3b2a7;
+  --luma-danger-soft: #493331;
+  --luma-violet: #d0b7e4;
+  --luma-violet-soft: #3a3244;
+  --luma-success: #a7d8ba;
+  --luma-success-soft: #2c4035;
+  --luma-shadow: 0 8px 32px #0005;
+}
+.lumaPluginRoot :where(input, textarea)::placeholder { color: var(--luma-muted); opacity: .85; }
+.lumaPluginRoot :where(progress) { accent-color: var(--luma-accent); }

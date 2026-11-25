@@ -1,7 +1,8 @@
 import { DEFAULT_OFFICE_PRESENTATION, DEFAULT_OFFICE_PRESENCE, OFFICE_PRESENTATION_FIELD, decodeOfficePresentationSettings,
-  isOfficePresentationEmployee, isOfficePresentationTheme, isBedroomPresentationTheme,
+  cleanOfficeName, isOfficePresentationEmployee, isOfficePresentationTheme, isBedroomPresentationTheme,
   type OfficePresentationSelection, type OfficePresentationSettings } from '../office-presentation-settings.ts'
 import { OFFICE_OUTFIT_CHOICES } from './office-theme-catalog.ts'
+import { isShopBedroomId } from '../shared/shop-bedrooms.ts'
 
 export interface OfficePresentationScope {
   getSnapshot(): Readonly<{ status: 'loading' | 'ready' | 'unavailable'; value: OfficePresentationSettings | undefined;
@@ -23,6 +24,7 @@ const sameAssignments = (a: Readonly<Record<string,string>>, b: Readonly<Record<
 const equal = (a: OfficePresentationSelection, b: OfficePresentationSelection): boolean => a.officeTheme === b.officeTheme
   && (a.presence ?? DEFAULT_OFFICE_PRESENCE) === (b.presence ?? DEFAULT_OFFICE_PRESENCE)
   && sameAssignments(a.employeeSkins,b.employeeSkins)
+  && sameAssignments(a.officeNames ?? {}, b.officeNames ?? {})
   && sameAssignments(a.bedroomThemes ?? {},b.bedroomThemes ?? {})
 
 /** One confirmed Host field. Reads never award equipment or write defaults. */
@@ -50,12 +52,24 @@ export class OfficePresentationStore {
     if (presence !== 'all' && presence !== 'schedule') return Promise.resolve(this.reject('请选择有效的场景成员显示方式。'))
     return this.change(selection => ({ ...selection, presence }))
   }
+  setOfficeName(theme: string | null, value: string): Promise<OfficePresentationResult> {
+    if (theme !== null && !isOfficePresentationTheme(theme)) return Promise.resolve(this.reject('所选办公室不在当前目录中。'))
+    const key = theme ?? 'classic'
+    const name = cleanOfficeName(value)
+    return this.change(selection => {
+      const { officeNames: previous, ...rest } = selection
+      const officeNames = { ...previous }
+      if (name) officeNames[key] = name
+      else delete officeNames[key]
+      return Object.keys(officeNames).length ? { ...rest, officeNames } : rest
+    }, () => this.roomError(theme))
+  }
   setBedroomTheme(employeeId: string, theme: string | null): Promise<OfficePresentationResult> {
     if (!isOfficePresentationEmployee(employeeId) || theme !== null && !isBedroomPresentationTheme(theme))
       return Promise.resolve(this.reject('所选卧室或装饰不在当前目录中。'))
     return this.change(selection => {
       const bedrooms = selection.bedroomThemes ?? {}
-      const remaining = Object.fromEntries(Object.entries(bedrooms).filter(([room, equipped]) => room !== employeeId && equipped !== theme))
+      const remaining = Object.fromEntries(Object.entries(bedrooms).filter(([room, equipped]) => room !== employeeId && (isShopBedroomId(theme) || equipped !== theme)))
       return { ...selection, bedroomThemes: theme ? { ...remaining, [employeeId]:theme } : remaining }
     }, () => this.roomError(theme, employeeId))
   }
@@ -75,7 +89,7 @@ export class OfficePresentationStore {
     const access = this.roomAccess?.()
     if (!access) return
     if (employeeId && !access.unlockedEmployeeIds.includes(employeeId)) return '请先邀请这位伙伴入职。'
-    if (theme && !access.unlockedThemeIds.includes(theme)) return '集齐对应伙伴的全部正版卡面后，即可使用这款主题。'
+    if (theme && !access.unlockedThemeIds.includes(theme)) return isShopBedroomId(theme)?'请先在商店购买这款卧室皮肤。':'集齐对应伙伴的全部正版卡面后，即可使用这款主题。'
   }
   private change(update: (selection: OfficePresentationSelection) => OfficePresentationSelection, check?: () => string | undefined): Promise<OfficePresentationResult> {
     if (this.disposed) return Promise.resolve(this.reject('办公室设置已关闭。'))

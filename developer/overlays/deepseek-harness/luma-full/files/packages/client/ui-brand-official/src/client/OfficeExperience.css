@@ -431,7 +431,7 @@
   /* The previous fully painted composition stays opaque underneath. Fading
      both planes out at once would expose the page background between phases. */
   pointer-events: none;
-}.lumaOfficeSceneCanvas[data-lighting-ready='false'] > :not(.lumaOfficeSceneArtwork):not(.lumaOfficeLightingUnavailable) {
+}.lumaOfficeSceneCanvas[data-lighting-ready='false'] > :not(.lumaOfficeSceneArtwork):not(.lumaOfficeLightingUnavailable):not(.lumaOfficeScenePreview) {
   /* Keep actor state mounted, but never show floating people/monitors before
      the first complete backdrop and its foreground have decoded. */
   visibility: hidden;
@@ -1404,3 +1404,22 @@
 .lumaOnboardingOfficeEmpty strong { font-size: 15px; }
 .lumaOnboardingOfficeEmpty p { font-size: 12px; line-height: 1.8; color: var(--luma-office-muted); }
 .lumaOnboardingOfficeEmpty button { min-height: 36px; padding: 8px 15px; border: 0; border-radius: 10px; background: var(--luma-office-accent); color: white; font: inherit; font-size: 12px; cursor: pointer; }
+.lumaOfficeSeatFeedback {
+  pointer-events: none;
+  position: absolute;
+  z-index: 1005;
+  bottom: clamp(12px, 3.5%, 32px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 85%;
+  padding: 7px 13px;
+  border: 1px solid #b2cddd;
+  border-radius: 10px;
+  background: #233746f2;
+  box-shadow: 0 2px 10px #15253136;
+  color: #fff;
+  font: 500 clamp(12px, 1.2vw, 15px)/1.45 system-ui, sans-serif;
+}
+.lumaOfficeSeatFeedback:empty { display: none; }
+.lumaOfficeSeatFeedback[data-phase="error"] { background: #733b40f2; }

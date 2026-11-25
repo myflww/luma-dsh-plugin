@@ -37,7 +37,7 @@ beforeEach(() => {
   vi.spyOn(document, 'hidden', 'get').mockReturnValue(false)
   vi.spyOn(performance, 'now').mockImplementation(() => now)
   vi.spyOn(HTMLCanvasElement.prototype, 'getBoundingClientRect').mockReturnValue({ left: 0, top: 0, width: 100, height: 100 } as DOMRect)
-  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({ clearRect: vi.fn(), drawImage: draw,
+  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({ clearRect: vi.fn(), fillRect: vi.fn(), drawImage: draw,
     save: vi.fn(), restore: vi.fn(), beginPath: vi.fn(), moveTo: vi.fn(), lineTo: vi.fn(), closePath: vi.fn(), clip,
     getImageData: () => ({ data: new Uint8ClampedArray([0, 0, 0, 255]) }),
   } as unknown as CanvasRenderingContext2D)
@@ -92,6 +92,39 @@ function pointAt(canvas: HTMLElement, type: string, x: number, y: number) {
 function tap(canvas: HTMLElement, x: number, y: number) {
   pointAt(canvas, 'pointerdown', x, y); pointAt(canvas, 'pointerup', x, y)
 }
+
+it('delivers an equipped paper plane using pointer and keyboard coordinates on the painted actor',async()=>{
+  const {props}=fixture(), give=vi.fn(), chat=vi.fn()
+  const view=await mounted({...props,paperPlanePick:give,onCharacterClick:chat,employeeDestination:'contact'})
+  paint()
+  const canvas=view.getByLabelText('主题办公室')
+  Object.assign(canvas,{setPointerCapture(){}})
+  tap(canvas,15,25)
+  expect(give.mock.calls[0]).toEqual(['lu-mi',{x:15,y:25}])
+  fireEvent.click(view.getByRole('button',{name:'把纸飞机递给陆弥'}))
+  expect(give.mock.calls[1]![1].x).toBeCloseTo(20)
+  expect(give.mock.calls[1]![1].y).toBeGreaterThan(20)
+  expect(chat).not.toHaveBeenCalled()
+})
+
+it('names the occupied desk during drag and reports a failed save without delivering the equipped item',async()=>{
+  const {props}=fixture(),give=vi.fn(),bind=vi.fn(async()=>({status:'rejected'}))
+  const other={...selected.space.layout.stations[0],id:'south-left',seat:[80,80],approach:[80,80]}
+  selected.space.layout.stations.push(other)
+  props.employees.push({...props.employees[0],id:'shan',name:'端木嫣',workstationId:'south-left'})
+  const view=await mounted({...props,paperPlanePick:give,onBindWorkstation:bind,employeeDestination:'contact'})
+  paint()
+  const canvas=view.getByLabelText('主题办公室')
+  Object.assign(canvas,{setPointerCapture(){}})
+  pointAt(canvas,'pointerdown',15,25);pointAt(canvas,'pointermove',80,80)
+  const preview=view.container.querySelector('[data-phase="preview"]')!
+  expect(preview.textContent).toContain('南排左工位')
+  expect(preview.textContent).toContain('与端木嫣交换工位')
+  pointAt(canvas,'pointerup',80,80)
+  await waitFor(()=>expect(view.container.querySelector('[data-phase="error"]')?.textContent).toContain('陆弥的工位未保存'))
+  expect(bind.mock.calls).toEqual([['lu-mi','south-left']])
+  expect(give).not.toHaveBeenCalled()
+})
 
 it('opens a themed office employee on one tap or accessible button activation and ignores cancelled gestures', async () => {
   const { props } = fixture()
@@ -221,6 +254,23 @@ function enableFloor(props:any) {
   props.timePolicy.autonomy={allowRoaming:true,preferBoundWorkstation:false,roamIntervalMs:[12000,32000]}
 }
 
+it.each([[true, false], [true, true], [false, false], [false, true]])('paints the resident and acknowledges a portrait handoff once (floor %s, reduced motion %s)', async (withFloor, reduceMotion) => {
+  const {props} = fixture()
+  if (withFloor) enableFloor(props)
+  selected.catalog.reportHandoff = { mode: 'portrait-transition' }
+  const command = { type: 'complete-task', commandId: 'done', taskId: 'one', employeeId: 'lu-mi', workstationId: 'north-private' }
+  const onSceneEvent = vi.fn()
+  const view = await mounted({...props, commands:[command], onSceneEvent, reduceMotion})
+  const emitted = () => onSceneEvent.mock.calls.map(([event]) => event.type)
+  for (let n = 0; n < 180 && !emitted().includes('animation-finished'); n++) {
+    paint()
+    expect(actorDraws('walk.png').length + actorDraws().length).toBeGreaterThan(0)
+  }
+  expect(emitted()).toEqual(['command-accepted', 'animation-finished'])
+  expect((view.getByLabelText('主题办公室') as HTMLCanvasElement).getContext('2d')!.fillRect).toHaveBeenCalled()
+  view.unmount()
+})
+
 it('draws a separately authored neutral using its own canvas, feet and core height', async()=>{
   const {props}=fixture();enableFloor(props)
   delete props.employees[0].workstationId
@@ -249,7 +299,7 @@ it('publishes the installed contact scene only after it has painted the current 
   const { props } = fixture()
   const view = await mounted({ ...props, employeeDestination:'contact' })
   const canvas = view.getByLabelText('主题办公室') as HTMLCanvasElement
-  expect(view.getByText('正在布置办公室…')).toBeTruthy()
+  expect(view.container.querySelector('[data-office-loading]')).toBeTruthy()
   paint()
   expect(JSON.parse(canvas.dataset.officeActors!).map((row: {id:string}) => row.id)).toEqual(['lu-mi'])
   view.rerender(<IndependentOfficeSceneSurface {...props} employees={[]} employeeDestination="contact" />)

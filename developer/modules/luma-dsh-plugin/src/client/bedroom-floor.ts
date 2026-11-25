@@ -1,6 +1,9 @@
+import { PERSONAL_BEDROOMS } from './bedroom-personal-layouts.ts'
+import { mapShopBedrooms } from './bedroom-shop-layouts.ts'
+import type { ShopBedroomId } from '../shared/shop-bedrooms.ts'
 import type { Point, ResidentId } from './bedroom-routine.ts'
 
-export type BedroomRoom = ResidentId | 'classic'
+export type BedroomRoom = ResidentId | 'classic' | ShopBedroomId
 
 // Sole-clearance silhouettes, traced in the shipped backgrounds' own pixel
 // coordinates. Indents follow the bed frame, chair casters, planters and sofa.
@@ -67,7 +70,8 @@ const grokFloor: readonly Point[] = [
 ]
 
 export const BEDROOM_WALKABLE: Record<BedroomRoom, readonly Point[]> = {
-  classic:classicFloor, shan:classicFloor, 'bai-shuangming':classicFloor, 'lu-mi':classicFloor,
+  ...mapShopBedrooms(layout=>layout.walkable),
+  classic:classicFloor, shan:PERSONAL_BEDROOMS['shan'].walkable, 'bai-shuangming':PERSONAL_BEDROOMS['bai-shuangming'].walkable, 'lu-mi':PERSONAL_BEDROOMS['lu-mi'].walkable,
   jingyuniang:jingyuniangFloor, longmama:longmamaFloor, claude:claudeFloor, gemini:geminiFloor, grok:grokFloor,
 }
 const cross=(a:Point,b:Point)=>a[0]*b[1]-a[1]*b[0]

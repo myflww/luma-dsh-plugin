@@ -4,7 +4,7 @@
 
 在 DeepSeek Harness Desktop 里，伙伴有自己的工位、房间和聊天窗口。新档案从鲸鱼娘开始。在「联系」里和她聊两句，交给她一项工作，再邀请其他伙伴加入。
 
-[下载工作室预览版](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.6.0-studio.1) · [工作室使用指南](docs/studio.md) · [下载桌宠版 0.6.0](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.6.0) · [安装与使用手册](docs/guide.md) · [记忆与爱之屋](docs/memory.md) · [使用许可](LICENSE.md)
+[下载 Windows 正式版 0.6.1](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.6.1) · [工作室使用指南](docs/studio.md) · [安装与使用手册](docs/guide.md) · [记忆与爱之屋](docs/memory.md) · [使用许可](LICENSE.md)
 
 ## 从工位走到桌面
 
@@ -16,7 +16,7 @@
 
 ![工作室版测试档实机界面。左侧选人或工作室，中间是四位成员的分工与交付，右侧选择角色的模型来源。](docs/images/team.webp)
 
-桌宠版支持角色私聊、单人派工和按顺序接力。工作室版进一步允许给成员分配具体窗口、选择复核人，并在一处读完交付。上图取自工作室版的示例档案。四人分工、授权范围和回执的读法见[工作室指南](docs/studio.md)。
+0.6.1 将办公室、桌宠和协作工作室放在同一插件里。你可以私聊、单人派工或多人接力，也可以给成员分配具体窗口、选择复核人，并在一处读完交付。上图取自工作室版的示例档案。四人分工、授权范围和回执的读法见[工作室指南](docs/studio.md)。
 
 | 你想做什么 | 从哪里开始 |
 | --- | --- |
@@ -36,23 +36,16 @@
 ## Windows 首次安装
 
 1. 安装并打开一次 **DeepSeek Harness Desktop**，让宿主建立桌面档案。[DeepSeek Harness 项目](https://github.com/deepseek-ai/deepseek-harness)
-2. 从 0.6.0 发行页下载 **Get-Luma-DSH-Public.ps1**，在下载目录打开 Windows PowerShell，运行下面的命令。下载器会逐项核对文件哈希，并将插件注册到桌面档案。首次获取基础资源约 1.87 GB，建议预留 6 GiB。[桌宠版下载](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.6.0)
-3. 重新打开 DSH，在侧栏选择「Luma 办公室」。已有基础包的离线安装、手动添加和回退步骤见使用手册。[安装与回退](docs/guide.md)
+2. 从发行页下载 **Luma-DSH-0.6.1-Installer.zip**，完整解压，双击 **Install-Luma-DSH.cmd**。首次安装会下载基础美术和本版更新；已安装的用户可以复用旧版资源。[0.6.1 正式发行页](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.6.1)
+3. 重新打开 DSH，在侧栏选择「Luma 办公室」。新档只有鲸鱼娘。下班后可以从办公室左下角直接去她的卧室。想开第一包卡时，打开「收藏」领取新册礼，再选择卡包。[安装、离线升级与回退](docs/guide.md)
 
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Get-Luma-DSH-Public.ps1
-```
+## 工位、卧室与桌宠
 
-<details>
-<summary>后续场景版本预览 · 名册与卧室</summary>
+![九间办公室的八人入座实拍](docs/images/offices-061.jpg)
 
-以下两项属于单独开发的场景更新，其交付进度以对应版本的发行说明为准。
+在「员工列表」点伙伴进入她的卧室，旁边可以换装或召唤桌宠。空闲伙伴会坐回自己的工位，行走时在狭路和交叉口让行。卧室中的等待确认、自由活动和睡眠按任务与本机作息切换。
 
-打开「员工列表」，点击伙伴的头像、名字或角色栏即可进入她的卧室。点击名册里的「换装」进入她的衣橱，点击星币进度查看用量明细。
-
-「卡包商店 → 卧室皮肤」提供六款可永久使用的通用卧室。蔷薇画房、宝蓝琴房、雪原书斋各需 120 星币，山茶花亭、蓝晶蔷薇廊、霜蝶玻璃馆各需 180 星币。商店和卧室的「换肤」都能免费预览日景与夜景。每款购买一次，即可在多位伙伴的卧室中同时使用。
-
-</details>
+白天轻点桌宠可以打招呼。午休时她会小憩，夜间召唤会先回应，再靠到屏幕底边打盹。工作室保留角色记忆、群聊、卡包收藏及六款可购买的通用卧室。[工作室指南](docs/studio.md)
 
 ## 开发与使用许可
 

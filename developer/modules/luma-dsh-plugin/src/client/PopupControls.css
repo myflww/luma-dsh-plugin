@@ -1,0 +1,117 @@
+/* The browser owns the select's focus, type-ahead, dismissal and form value. */
+.lumaPluginRoot select:not([multiple]):not([size]) {
+  max-inline-size: 100%;
+  min-inline-size: 0;
+  text-overflow: ellipsis;
+}
+
+.lumaPluginRoot :is(select, details > summary):focus-visible {
+  outline: 2px solid var(--luma-accent, #17647a);
+  outline-offset: 2px;
+}
+
+.lumaPluginRoot :is(select:disabled, option:disabled) { cursor: default; }
+.lumaPluginRoot details > summary { cursor: pointer; }
+
+@supports (appearance: base-select) and selector(select::picker(select)) {
+  .lumaPluginRoot.lumaWorkspace select:not([multiple]):not([size]),
+  .lumaPluginRoot.lumaWorkspace select:not([multiple]):not([size])::picker(select) {
+    appearance: base-select;
+  }
+
+  .lumaPluginRoot select::picker-icon {
+    color: var(--luma-muted, #526775);
+    transition: rotate 140ms ease;
+  }
+  .lumaPluginRoot select:open::picker-icon { rotate: 180deg; }
+  /* These compact native triggers already have a purpose-built visible arrow. */
+  .lumaPluginRoot :is(.lumaStageRoomPick,.lumaDesktopTarget,.lumaRoomRecipient) select::picker-icon { display: none; }
+
+  .lumaPluginRoot select::picker(select) {
+    box-sizing: border-box;
+    inline-size: clamp(12rem, anchor-size(inline), 30rem);
+    max-inline-size: calc(100dvw - 16px);
+    max-block-size: min(20rem, 48dvh);
+    margin-block: 4px;
+    margin-inline: 0;
+    padding: 5px;
+    overflow: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--luma-muted, #687b83) transparent;
+    border: 1px solid var(--luma-line, #c6d7d9);
+    border-radius: 11px;
+    background: var(--luma-surface, #fff);
+    color: var(--luma-ink, #1d3541);
+    box-shadow: var(--luma-shadow, 0 8px 22px #152f3a28);
+    font: inherit;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+  .lumaPluginRoot select optgroup {
+    padding: 5px 3px 3px;
+    color: var(--luma-muted, #526775);
+    font-size: 11px;
+    font-weight: 650;
+    line-height: 1.65;
+  }
+  .lumaPluginRoot select optgroup + optgroup {
+    margin-block-start: 4px;
+    border-block-start: 1px solid var(--luma-line, #c6d7d9);
+  }
+  .lumaPluginRoot select option {
+    position: relative;
+    display: block;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    min-block-size: 32px;
+    padding: 7px 9px 7px 25px;
+    border-radius: 6px;
+    color: var(--luma-ink, #1d3541);
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.45;
+    cursor: pointer;
+  }
+  .lumaPluginRoot select option::checkmark {
+    position: absolute;
+    inset-inline-start: 7px;
+    color: var(--luma-accent, #17647a);
+    font-weight: 700;
+  }
+  .lumaPluginRoot select option:enabled:hover,
+  .lumaPluginRoot select option:focus-visible { background: var(--luma-surface-muted, #edf2f2); }
+  .lumaPluginRoot select option:focus-visible {
+    outline: 2px solid var(--luma-accent, #17647a);
+    outline-offset: -2px;
+  }
+  .lumaPluginRoot select option:checked {
+    background: var(--luma-accent-soft, #e0eff0);
+    font-weight: 600;
+  }
+  .lumaPluginRoot select option:disabled { opacity: .55; }
+}
+
+/* Opacity preserves the existing positioning of drawers, anchored menus and scenes. */
+@media (prefers-reduced-motion: no-preference) {
+  .lumaPluginRoot :is(
+    .lumaSceneNavigation,.lumaStageFlyout,.lumaChatSettings,.lumaRecordsDrawer,
+    .lumaRoleEditor,.lumaRoleWorkspace,.lumaReplyMenu,.lumaCloudDialog[open],
+    .lumaRecordConfirm[open],.lumaHouseDialog[open],[popover]:popover-open
+  ) {
+    animation: luma-panel-appear 140ms ease-out;
+  }
+  @supports selector(details::details-content) {
+    .lumaPluginRoot details::details-content { opacity: 0; transition: opacity 130ms ease-out; }
+    .lumaPluginRoot details[open]::details-content { opacity: 1; }
+  }
+  @supports selector(select::picker(select)) {
+    .lumaPluginRoot select::picker(select) { opacity: 0; transition: opacity 115ms ease-out; }
+    .lumaPluginRoot select:open::picker(select) { opacity: 1; }
+    @starting-style { .lumaPluginRoot select:open::picker(select) { opacity: 0; } }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lumaPluginRoot select::picker-icon { transition: none; }
+}
+@keyframes luma-panel-appear { from { opacity: 0; } to { opacity: 1; } }

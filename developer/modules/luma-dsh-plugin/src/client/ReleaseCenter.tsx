@@ -37,7 +37,7 @@ export function ReleaseNotice({ state }: {state:State}) {
 export function ReleaseSettings({state}: {state:State}) {
   const d=state.data
   return <section aria-label="版本更新"><h2>版本更新</h2>
-    <p>{d ? 'Luma '+d.installed+(d.host?' · DeepSeek Harness '+d.host:'') : '打开插件时自动检查私有发布。'}</p>
+    <p>{d ? 'Luma '+d.installed+(d.host?' · DeepSeek Harness '+d.host:'') : '正在读取版本信息…'}</p>
     <div className="lumaReleaseTools"><button type="button" disabled={state.working} onClick={()=>void state.check('check')}>{state.working?'正在检查…':'检查更新'}</button>
     {d?.available && <a href={d.url} target="_blank" rel="noopener noreferrer">获取 {d.latest}</a>}</div>
     <p role="status">{state.error || d?.problem || (d?.latest ? d.available?'发现可安装的新版本。':'当前已是最新正式版。':'')}</p></section>

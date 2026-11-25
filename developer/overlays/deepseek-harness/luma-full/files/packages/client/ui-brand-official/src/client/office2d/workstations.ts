@@ -104,13 +104,13 @@ export const OFFICE_WORKSTATION_DIRECTORY = Object.freeze([
     id: 'private-upper', label: '左侧上方独立办公室', autoAssignPriority: 70,
     zone: 'private-office', x: 0.116, y: 0.5632, snapRadius: 0.058,
     rect: { x: 0.0526, y: 0.4145, width: 0.1017, height: 0.1637 },
-    typingFacing: 'backLeft', employee: { x: 0.658, y: 0.94, scale: 0.69, rotation: -0.06 },
+    typingFacing: 'back', employee: { x: 0.658, y: 0.94, scale: 0.69, rotation: -0.06 },
   }),
   workstation({
     id: 'private-lower', label: '左侧下方独立办公室', autoAssignPriority: 80,
     zone: 'private-office', x: 0.1693, y: 0.7885, snapRadius: 0.058,
     rect: { x: 0.0891, y: 0.6217, width: 0.1077, height: 0.1807 },
-    typingFacing: 'backLeft', employee: { x: 0.708, y: 0.94, scale: 0.69, rotation: -0.05 },
+    typingFacing: 'back', employee: { x: 0.708, y: 0.94, scale: 0.69, rotation: -0.05 },
   }),
   workstation({
     id: 'reception', label: '服务前台', autoAssignPriority: 90,

@@ -12,12 +12,15 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 $repo = 'myflww/luma-dsh-plugin'
 $patchName = 'Luma-DSH-@VERSION@-Update.zip'
 $patchDigest = '@PATCH_SHA256@'
-$compatibleBaseVersions = @('0.5.4','0.5.3','0.5.2','0.5.1','0.5.0','0.4.3')
+$compatibleBaseVersions = @('0.6.0','0.5.4','0.5.3','0.5.2','0.5.1','0.5.0','0.4.3')
 $oldZip = 'Luma-DSH-0.4.3-Windows.zip'
 $oldDigest = 'e949d369a89da2bf6ce01c2eabef4b8a3a95ced38db5ab625ea90c2bb0549c81'
 $root = [IO.Directory]::CreateDirectory([IO.Path]::GetFullPath($Directory)).FullName
 $final = Join-Path $root 'DesktopPlugin-@VERSION@'
 $cache = Join-Path $root 'Downloads'
+$profileHome = if ($env:DSH_HOME) { $env:DSH_HOME } else { Join-Path ([Environment]::GetFolderPath('UserProfile')) '.dsh' }
+$profileDir = Join-Path $profileHome 'profiles\desktop'
+$rollbackPath = Join-Path $root 'previous-@VERSION@.json'
 function Extended([string]$absolute) {
     if ($absolute.StartsWith('\\')) { return '\\?\UNC\' + $absolute.Substring(2) }
     return '\\?\' + $absolute
@@ -28,17 +31,33 @@ function Hash-File([string]$file) {
     try { return [BitConverter]::ToString($hash.ComputeHash($stream)).Replace('-','').ToLowerInvariant() }
     finally { $hash.Dispose(); $stream.Dispose() }
 }
-function Get-ReleaseAsset([string]$tag, [string]$name, [string]$destination) {
+function Get-ReleaseAsset([string]$tag, [string]$name, [string]$destination, [string]$expected) {
     [IO.Directory]::CreateDirectory($destination) | Out-Null
     $target = Join-Path $destination $name
-    $temporary = $target + '.' + [guid]::NewGuid().ToString('N') + '.partial'
-    $backup = $temporary + '.previous'
+    $temporary = $target + '.partial'
+    $backup = $target + '.' + [guid]::NewGuid().ToString('N') + '.previous'
     $url = 'https://github.com/' + $repo + '/releases/download/' + [Uri]::EscapeDataString($tag) + '/' + [Uri]::EscapeDataString($name)
+    $assetLock = [IO.File]::Open($target + '.lock', 'OpenOrCreate', 'Write', 'None')
     try {
+        if ([IO.File]::Exists($target) -and (Hash-File $target) -ceq $expected) { return }
+        $curl = Get-Command curl.exe -ErrorAction SilentlyContinue
         for ($attempt = 1; $attempt -le 3; $attempt++) {
             try {
                 Write-Host "正在下载 $tag / $name"
-                Invoke-WebRequest -UseBasicParsing -Uri $url -OutFile $temporary -ErrorAction Stop
+                if (![IO.File]::Exists($temporary) -or (Hash-File $temporary) -cne $expected) {
+                    if ($curl) {
+                        $httpStatus = & $curl.Source -q --fail --silent --show-error --location --connect-timeout 30 --speed-time 90 --speed-limit 1 --continue-at - --write-out '%{http_code}' --output $temporary --url $url
+                        $downloadCode = $LASTEXITCODE
+                        if (($downloadCode -in @(33,36) -or $httpStatus -eq '416') -and [IO.File]::Exists($temporary)) { [IO.File]::Delete($temporary) }
+                        if ($downloadCode -ne 0) { throw "下载未完成 ($downloadCode)：$name" }
+                    } else {
+                        Invoke-WebRequest -UseBasicParsing -Uri $url -OutFile $temporary -ErrorAction Stop
+                    }
+                }
+                if ((Hash-File $temporary) -cne $expected) {
+                    [IO.File]::Delete($temporary)
+                    throw "下载文件完整性校验失败，正在重新获取：$name"
+                }
                 if ([IO.File]::Exists($target)) { [IO.File]::Replace($temporary, $target, $backup) }
                 else { [IO.File]::Move($temporary, $target) }
                 return
@@ -48,8 +67,25 @@ function Get-ReleaseAsset([string]$tag, [string]$name, [string]$destination) {
             }
         }
     } finally {
-        if ([IO.File]::Exists($temporary)) { [IO.File]::Delete($temporary) }
+        $assetLock.Dispose()
         if ([IO.File]::Exists($backup)) { [IO.File]::Delete($backup) }
+    }
+}
+function Registered-Directory {
+    $descriptor = Join-Path $profileDir 'package.json'
+    if (!(Test-Path -LiteralPath $descriptor -PathType Leaf)) { return }
+    $registration = Get-Content -Raw -LiteralPath $descriptor -Encoding UTF8 | ConvertFrom-Json
+    if ($registration.dsh.profile.bundles -notcontains '@luma/dsh-plugin' -or $registration.dependencies.'@luma/dsh-plugin' -notmatch '^(?:link|file):(.+)$') { return }
+    $path = $Matches[1]
+    if (![IO.Path]::IsPathRooted($path)) { $path = Join-Path $profileDir $path }
+    return [IO.Path]::GetFullPath($path)
+}
+function Prior-Directories {
+    foreach ($version in $compatibleBaseVersions) {
+        foreach ($parent in @($root, (Join-Path $root '工作室版'), $PSScriptRoot, $cache)) {
+            $path = Join-Path $parent "DesktopPlugin-$version"
+            if ([IO.Directory]::Exists($path)) { $path }
+        }
     }
 }
 function Test-BaseFolder([string]$path, $files) {
@@ -59,19 +95,20 @@ function Test-BaseFolder([string]$path, $files) {
     if ($package.name -cne '@luma/dsh-plugin' -or $package.version -cnotin $compatibleBaseVersions) { return $false }
     foreach ($row in $files) {
         if ($row.source -ne 'base') { continue }
-        $item = [IO.FileInfo]::new((Extended ([IO.Path]::Combine($path, $row.path.Replace('/','\')))))
-        if (!$item.Exists -or $item.Length -ne $row.bytes) { return $false }
+        $sourcePath = [IO.Path]::Combine($path, $row.path.Replace('/','\'))
+        $item = [IO.FileInfo]::new((Extended $sourcePath))
+        if (!$item.Exists -or $item.Length -ne $row.bytes -or (Hash-File $sourcePath) -cne $row.sha256) { return $false }
     }
     return $true
 }
 function Get-BasePackage($files) {
     if ($Base) { return (Get-Item -LiteralPath $Base).FullName }
+    foreach ($candidate in @((Registered-Directory)) + @(Prior-Directories)) {
+        if ($candidate -and (Test-BaseFolder $candidate $files)) { return $candidate }
+    }
     foreach ($directory in @($root, $PSScriptRoot, $cache)) {
-        foreach ($name in (@($compatibleBaseVersions | ForEach-Object { "DesktopPlugin-$_" }) + $oldZip)) {
-            $candidate = Join-Path $directory $name
-            if ([IO.Directory]::Exists($candidate) -and (Test-BaseFolder $candidate $files)) { return $candidate }
-            if ($name -eq $oldZip -and [IO.File]::Exists($candidate)) { return $candidate }
-        }
+        $candidate = Join-Path $directory $oldZip
+        if ([IO.File]::Exists($candidate) -and (Hash-File $candidate) -ceq $oldDigest) { return $candidate }
     }
     $oldCache = Join-Path $cache 'v0.4.3'
     [IO.Directory]::CreateDirectory($oldCache) | Out-Null
@@ -81,7 +118,7 @@ function Get-BasePackage($files) {
     try {
         if ([IO.File]::Exists($joined) -and (Hash-File $joined) -ceq $oldDigest) { return $joined }
         $index = Join-Path $oldCache 'parts.json'
-        if (!(Test-Path -LiteralPath $index) -or (Hash-File $index) -cne '14ceb1d555eb59546105f3b34601743f080ff1822a8cb11d53ba71c7d1e0cc35') { Get-ReleaseAsset 'v0.4.3' 'parts.json' $oldCache }
+        if (!(Test-Path -LiteralPath $index) -or (Hash-File $index) -cne '14ceb1d555eb59546105f3b34601743f080ff1822a8cb11d53ba71c7d1e0cc35') { Get-ReleaseAsset 'v0.4.3' 'parts.json' $oldCache '14ceb1d555eb59546105f3b34601743f080ff1822a8cb11d53ba71c7d1e0cc35' }
         if ((Hash-File $index) -cne '14ceb1d555eb59546105f3b34601743f080ff1822a8cb11d53ba71c7d1e0cc35') { throw "基础包分卷清单校验失败：$index" }
         $parts = (Get-Content -LiteralPath $index -Raw -Encoding UTF8 | ConvertFrom-Json).parts
         $partial = Join-Path $oldCache ('.joining-' + [guid]::NewGuid().ToString('N'))
@@ -92,7 +129,7 @@ function Get-BasePackage($files) {
                 $partInfo = [IO.FileInfo]::new($path)
                 if (!$partInfo.Exists -or $partInfo.Length -ne $part.size -or (Hash-File $path) -cne $part.sha256) {
                     Write-Host "正在补齐分卷 $($part.name)"
-                    Get-ReleaseAsset 'v0.4.3' $part.name $oldCache
+                    Get-ReleaseAsset 'v0.4.3' $part.name $oldCache $part.sha256
                     if ((Hash-File $path) -cne $part.sha256) { throw "分卷校验失败，请重试：$($part.name)" }
                 }
                 $stream = [IO.File]::OpenRead($path)
@@ -120,8 +157,13 @@ function Register-Plugin([string]$packagePath) {
     if ($PrepareOnly) { return }
     $cli = $DshCli
     if (!$cli) {
-        $shortcuts = @((Join-Path ([Environment]::GetFolderPath('Desktop')) 'DeepSeek Harness.lnk'),
-            (Join-Path ([Environment]::GetFolderPath('CommonDesktopDirectory')) 'DeepSeek Harness.lnk'))
+        $shortcuts = @(foreach ($kind in 'Desktop','CommonDesktopDirectory','Programs','CommonPrograms') {
+            $location = [Environment]::GetFolderPath($kind)
+            if ($location) {
+                Join-Path $location 'DeepSeek Harness.lnk'
+                Join-Path $location 'DeepSeek Harness\DeepSeek Harness.lnk'
+            }
+        })
         foreach ($shortcut in $shortcuts) {
             if (Test-Path -LiteralPath $shortcut -PathType Leaf) {
                 $exe = (New-Object -ComObject WScript.Shell).CreateShortcut($shortcut).TargetPath
@@ -136,16 +178,41 @@ function Register-Plugin([string]$packagePath) {
     $version = (& $cli --version | Out-String).Trim()
     if ($LASTEXITCODE -ne 0 -or !$version) { throw "DSH CLI 无法启动。可从桌面插件页添加目录 $packagePath。" }
     Write-Host "正在使用当前 DeepSeek Harness CLI ($version) 安装 Luma。"
-    & $cli plugin --profile desktop add $packagePath
+    $installArgs = @('plugin','--profile','desktop','add',$packagePath,'--offline','--ignore-scripts')
+    $metadata = Join-Path $profileDir 'node_modules\.modules.yaml'
+    if (Test-Path -LiteralPath $metadata -PathType Leaf) {
+        $modules = Get-Content -LiteralPath $metadata -Raw -Encoding UTF8
+        $store = if ($modules.TrimStart().StartsWith('{')) { ($modules | ConvertFrom-Json).storeDir }
+            elseif ($modules -match '(?m)^storeDir:\s*([^\r\n]+)') { $Matches[1].Trim().Trim('"').Trim("'") }
+        if ($store -and [IO.Path]::IsPathRooted($store) -and (Split-Path $store -Leaf) -match '^v\d+$') {
+            $installArgs += @('--store-dir',(Split-Path $store -Parent))
+        }
+    }
+    & $cli @installArgs
     if ($LASTEXITCODE -ne 0) { throw "DSH 未完成安装。首次使用请先打开一次 DSH 桌面客户端，再重试安装器，也可从插件页添加目录 $packagePath。" }
+    $registered = Registered-Directory
+    if ($registered -ine [IO.Path]::GetFullPath($packagePath)) { throw "DSH 登记的插件路径与所选目录不一致：$registered" }
+    $link = Get-Item -LiteralPath (Join-Path $profileDir 'node_modules\@luma\dsh-plugin')
+    $linkTarget = @($link.Target)[0]
+    if (!$linkTarget) { throw '无法核对 DSH 桌面档案中的插件链接。' }
+    if (![IO.Path]::IsPathRooted($linkTarget)) { $linkTarget = Join-Path $link.Parent.FullName $linkTarget }
+    if ([IO.Path]::GetFullPath($linkTarget) -ine $registered) { throw "当前 DSH 插件链接指向其他目录：$linkTarget" }
     Write-Host '已添加到桌面 DSH。重新打开 DSH 后，从侧栏进入 Luma 办公室。'
+}
+function Can-Rollback([string]$path) {
+    if (!$path -or !(Test-BaseFolder $path @())) { return $false }
+    foreach ($file in 'cordis.patch.yml','native-desktop\server.mjs','native-desktop\client.mjs') {
+        if (!(Test-Path -LiteralPath (Join-Path $path $file) -PathType Leaf)) { return $false }
+    }
+    return (Test-Path -LiteralPath (Join-Path $path 'public') -PathType Container)
 }
 if ($Rollback) {
     if ($PrepareOnly -or $Patch) { throw '回退模式只重新注册指定的旧版本目录。请移除 -PrepareOnly 和 -Patch。' }
-    $previous = if ($Base) { (Get-Item -LiteralPath $Base).FullName } else { Join-Path $root 'DesktopPlugin-0.5.4' }
-    $requiredFiles = @('cordis.patch.yml','native-desktop\server.mjs','native-desktop\client.mjs')
-    $missing = @($requiredFiles | Where-Object { !(Test-Path -LiteralPath (Join-Path $previous $_) -PathType Leaf) })
-    if (!(Test-BaseFolder $previous @()) -or $missing.Count -or !(Test-Path -LiteralPath (Join-Path $previous 'public') -PathType Container)) {
+    $previous = if ($Base) { (Get-Item -LiteralPath $Base).FullName } else {
+        $saved = if (Test-Path -LiteralPath $rollbackPath -PathType Leaf) { (Get-Content $rollbackPath -Raw -Encoding utf8 | ConvertFrom-Json).path }
+        @($saved) + @(Prior-Directories) | Where-Object { Can-Rollback $_ } | Select-Object -First 1
+    }
+    if (!(Can-Rollback $previous)) {
         throw '没有找到完整的旧版 Luma 插件。请使用 -Base 指定保留的旧版插件目录。'
     }
     Write-Host "正在恢复旧版插件目录：$previous"
@@ -156,7 +223,7 @@ if (!$Patch) {
     $Patch = Join-Path $PSScriptRoot $patchName
     if (!(Test-Path -LiteralPath $Patch -PathType Leaf)) {
         $Patch = Join-Path $cache $patchName
-        if (!(Test-Path -LiteralPath $Patch -PathType Leaf) -or (Hash-File $Patch) -cne $patchDigest) { Get-ReleaseAsset 'v@VERSION@' $patchName $cache }
+        if (!(Test-Path -LiteralPath $Patch -PathType Leaf) -or (Hash-File $Patch) -cne $patchDigest) { Get-ReleaseAsset 'v@VERSION@' $patchName $cache $patchDigest }
     }
 }
 $Patch = (Get-Item -LiteralPath $Patch).FullName
@@ -223,4 +290,17 @@ try {
     }
 }
 Write-Host "已校验全部 $($paths.Count) 个文件：$final"
+$previous = if (!$PrepareOnly) { Registered-Directory }
+if (Can-Rollback $previous) {
+    $receipt = $rollbackPath + '.' + [guid]::NewGuid().ToString('N') + '.tmp'
+    try {
+        [IO.File]::WriteAllText($receipt,(@{path=$previous} | ConvertTo-Json))
+        if ([IO.File]::Exists($rollbackPath)) {
+            $backup = $receipt + '.previous'
+            [IO.File]::Replace($receipt,$rollbackPath,$backup)
+            [IO.File]::Delete($backup)
+        }
+        else { [IO.File]::Move($receipt,$rollbackPath) }
+    } finally { if ([IO.File]::Exists($receipt)) { [IO.File]::Delete($receipt) } }
+}
 Register-Plugin $final

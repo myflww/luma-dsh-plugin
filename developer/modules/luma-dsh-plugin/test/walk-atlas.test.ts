@@ -2,7 +2,7 @@ import { expect, it } from 'vitest'
 import { getOfficeAsset } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/assets.ts'
 import { getEmployeeCatalogWithSkin } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/employeeSkins.ts'
 import { createOfficeFrameTimeline } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/frameTimeline.ts'
-import { getWalkAtlas, sampleWalkAtlas } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/walkAtlas.ts'
+import { getWalkAtlas, sampleWalkAtlas, walkAtlasBounds } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/walkAtlas.ts'
 import { BEDROOM_FLOORS, bedroomFootAt, bedroomTravelAt, createBedroomRoutine } from '../src/client/bedroom-routine.ts'
 
 it('gives every owned character and outfit three distinct draw cells per painted exposure in all directions', () => {
@@ -25,6 +25,22 @@ it('gives every owned character and outfit three distinct draw cells per painted
       expect(sampleWalkAtlas(atlas,strip,timeline.cycleMs).index).toBe(0)
     }
   }
+})
+
+it('fits the two drawing scales in Claude’s rear walk around the same floor contact', () => {
+  const atlas = getWalkAtlas(getEmployeeCatalogWithSkin('claude')!.walk.up)!
+  const [width, height] = atlas.cell
+  function measurement(index: number, inkHeight: number) {
+    const bounds = walkAtlasBounds(atlas, [
+      index % atlas.columns * width!, Math.floor(index / atlas.columns) * height!, width!, height!,
+    ])
+    const sole = 699
+    const soleUV = (sole - atlas.bounds[1]!) / atlas.bounds[3]!
+    expect(bounds[1]! + soleUV * bounds[3]!).toBeCloseTo(sole)
+    return inkHeight * bounds[3]! / height!
+  }
+  // Opaque extents measured in the 256-pixel packed cell.
+  expect(measurement(0, 248) / measurement(12, 224)).toBeLessThan(1.04)
 })
 
 it('keeps the planted foot phase and the same tangent through every room’s central aisle', () => {

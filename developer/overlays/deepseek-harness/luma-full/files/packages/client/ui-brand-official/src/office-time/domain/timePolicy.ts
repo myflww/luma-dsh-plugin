@@ -159,7 +159,11 @@ export function createOfficeClockPolicy(options: Readonly<{ date?: Date; hour?: 
   // runtime calls supply a Date and therefore apply weekends and rest dates.
   const workingDate = options.date === undefined && options.hour !== undefined
     ? true : isOfficeWorkingDate(date, options.calendar, options.officialCalendarCache)
-  const minuteOfDay = normalizeHourToMinute(hour)
+  // Keep whole clock minutes exact. Some fractions of an hour round just below
+  // their starting minute when multiplied back by sixty.
+  const minuteOfDay = options.hour === undefined
+    ? date.getHours() * MINUTES_PER_HOUR + date.getMinutes()
+    : normalizeHourToMinute(hour)
   const phase = phaseFromMinute(minuteOfDay)
   const attendancePeriod = workingDate ? getOfficeAttendancePeriod(hour) : 'off-duty'
   const isWorkPeriod = attendancePeriod === 'working'

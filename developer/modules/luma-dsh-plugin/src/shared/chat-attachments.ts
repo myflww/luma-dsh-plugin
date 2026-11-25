@@ -9,6 +9,8 @@ const textExtensions = 'txt md markdown csv tsv json jsonl yaml yml toml xml htm
 export const FILE_ACCEPT = [...Object.keys(formats), ...textExtensions].map(extension => '.' + extension).join(',') + ',text/*'
 export const attachmentInfo = ({ name, mediaType, bytes }: AttachmentInfo): AttachmentInfo => ({ name, mediaType, bytes })
 
+export const acceptsImagesAndTextOnly = (source: 'dsh' | 'local' | 'custom' | undefined) => source === 'dsh' || source === 'local'
+
 export function inspectChatFile(file: Pick<File, 'name' | 'type' | 'size'>, native: boolean, nativeUploads = false): AttachmentInfo {
   const extension = file.name.split('.').at(-1)?.toLowerCase() ?? ''
   const text = textExtensions.includes(extension) || file.type.startsWith('text/')
@@ -19,7 +21,7 @@ export function inspectChatFile(file: Pick<File, 'name' | 'type' | 'size'>, nati
     else if (native && nativeUploads) mediaType = 'application/octet-stream'
   }
   if (!mediaType) throw Error(file.name + '：不支持此格式。请选择图片、UTF-8 文本或独立 API 支持的 PDF。')
-  if (native && !nativeUploads && mediaType === 'application/pdf') throw Error('当前 DSH 模型通道接收图片与文本。发送 PDF 请选用支持 PDF 的自定义服务，或打开支持文件上传的原生 DSH 会话。')
+  if (native && !nativeUploads && mediaType === 'application/pdf') throw Error('当前模型通道接收图片与文本。发送 PDF 可选择支持 PDF 的自定义服务，或打开支持文件上传的原生 DSH 会话。')
   const info = { name: file.name, bytes: file.size, mediaType }
   checkInfo(info)
   return info

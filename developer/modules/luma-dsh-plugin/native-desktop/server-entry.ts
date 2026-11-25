@@ -1,5 +1,6 @@
-import { desktopPets } from './desktop-pet.ts'
 import { releaseChecker } from './release-check.ts'
+import { desktopPets, type DesktopPetCalendar } from './desktop-pet.ts'
+import { createStudioDesktop } from '../src/host/studio-desktop.ts'
 import { DatabaseSync } from 'node:sqlite'
 import { join } from 'node:path'
 import { resolveLumaProfileRoot } from './profile-data.mjs'
@@ -15,14 +16,15 @@ import { employeeWorkspaceHandler, type EmployeeWorkspaceHost } from './employee
 import { createEmployeePresetRoster, type DesktopPresetRegistry } from './employee-presets.ts'
 import { verifyPortableLibraries } from '../src/host/love-house.ts'
 import { prepareRoleHomes } from '../src/host/role-homes.ts'
-import { MESSAGES_NAMESPACE, validateMessageSettings } from '../src/messages-settings.ts'
+import { MESSAGES_NAMESPACE, decodeMessageSettings, validateMessageSettings } from '../src/messages-settings.ts'
 import { LOCAL_COLLECTION_SETTINGS_NAMESPACE, validateLocalCollectionSettings } from '../src/local-collection-settings.ts'
 import { projectLocalCollectionSettings } from '../src/shared/local-collection-domain.ts'
-import { OFFICE_PRESENTATION_NAMESPACE, validateOfficePresentationSettingsWire } from '../src/office-presentation-settings.ts'
+import { isShopBedroomId } from '../src/shared/shop-bedrooms.ts'
+import { OFFICE_PRESENTATION_NAMESPACE, decodeOfficePresentationSettings, validateOfficePresentationSettingsWire } from '../src/office-presentation-settings.ts'
 import { PLUGIN_PREFERENCES_NAMESPACE, validatePluginPreferencesSettingsWire } from '../src/plugin-preferences-settings.ts'
 import { CARD_LIBRARY_SETTINGS_NAMESPACE, validateCardLibrarySettingsWire } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/card-library-settings.ts'
 import { COLLECTION_SETTINGS_NAMESPACE, validateCollectionSettingsWire } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/collection-settings.ts'
-import { OFFICE_RELATIONSHIP_SETTINGS_NAMESPACE, validateOfficeRelationshipSettingsWire } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/office-relationship-settings.ts'
+import { OFFICE_RELATIONSHIP_SETTINGS_NAMESPACE, validateOfficeRelationshipSettingsWire, type OfficeRelationshipSettingsWire } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/office-relationship-settings.ts'
 
 export const name = 'luma-dsh-plugin'
 export const inject = ['webServer', 'connection', 'profileContext', 'workspaceRegistry', 'sessionQuery', 'agentPresets', 'llm', 'attachments']
@@ -113,6 +115,15 @@ function settingsHandler(db: DatabaseSync, homes: Record<string,string>, syncPre
         conflict = wallet.reconcile({section, expectedRevision, restore:body.restore === true}).conflict
       } else {
         sections.get(ns)!(section)
+        if(ns===OFFICE_PRESENTATION_NAMESPACE && body.restore!==true){
+          const selections=decodeOfficePresentationSettings(section)?.selection?.bedroomThemes??{}
+          const previous=decodeOfficePresentationSettings(view(ns).user)?.selection?.bedroomThemes??{}
+          const added=Object.entries(selections).flatMap(([id,theme])=>isShopBedroomId(theme) && previous[id as keyof typeof previous]!==theme?[theme]:[])
+          if(added.length){
+            const owned=projectLocalCollectionSettings(view(LOCAL_COLLECTION_SETTINGS_NAMESPACE).user).unlockedThemeIds
+            if(added.some(id=>!owned.includes(id))) throw Error('卧室皮肤尚未购买。')
+          }
+        }
         conflict = !write.run(JSON.stringify(section), ns, expectedRevision).changes
       }
       if (conflict) return send(res, 409, {ok:false,code:'settings-conflict',error:'设置已在其他窗口更新，请重新读取。'})
@@ -124,7 +135,11 @@ function settingsHandler(db: DatabaseSync, homes: Record<string,string>, syncPre
       return send(res, 400, {ok:false,error:'设置内容无效或无法保存。'})
     }
   }
-  return {handle,refreshWallet}
+  function readSavedProfiles() {
+    const section = read.get(MESSAGES_NAMESPACE)
+    return section ? decodeMessageSettings(JSON.parse(String(section.value)))?.preferences?.profiles ?? {} : {}
+  }
+  return {handle,refreshWallet,readSavedProfiles}
 }
 
 export async function apply(ctx: Context) {
@@ -176,16 +191,32 @@ export async function apply(ctx: Context) {
         return unlocked
       }
       const presets = createEmployeePresetRoster(ctx.agentPresets,readUnlockedEmployees)
+      let calendarRevision=-1
+      let petCalendar:DesktopPetCalendar={}
       const pets = desktopPets(fileURLToPath(new URL('.',import.meta.url)), readUnlockedEmployees, role => {
         const row = readCollection.get(OFFICE_PRESENTATION_NAMESPACE)
         return row && JSON.parse(String(row.value)).selection?.employeeSkins?.[role]
+      },()=>{
+        const row=readCollection.get(OFFICE_RELATIONSHIP_SETTINGS_NAMESPACE)
+        if(!row)return {}
+        if(Number(row.revision)!==calendarRevision) {
+          try {
+            const section:OfficeRelationshipSettingsWire=JSON.parse(String(row.value))
+            validateOfficeRelationshipSettingsWire(section)
+            petCalendar={...(section.calendar?{calendar:section.calendar}:{}),
+              ...(section.holidayCalendar?{officialCalendarCache:section.holidayCalendar}:{})}
+          } catch {petCalendar={}}
+          calendarRevision=Number(row.revision)
+        }
+        return petCalendar
       })
       clean.push(() => pets.dispose())
       clean.push(ctx.webServer.register({kind:'exact',path:'/luma-native/desktop-pet',handler:protect(pets.handler)}))
       clean.push(()=>presets.dispose())
       startup = Promise.all([presets.sync(false), settings.refreshWallet()]).then(() => {})
+      const studioDesktop = createStudioDesktop(fileURLToPath(new URL('./agent-desktop/agent-desktop.exe', import.meta.url)))
       const desk = createAgentWork(join(root, 'agent-workbench'), req => ownerAdmission(ctx, req) === 0,
-        { read:() => readPortableBinding(undefined, true), verify:verifyPortableLibraries }, readUnlockedEmployees, true, ctx, usage.recordModelUsage)
+        { read:() => readPortableBinding(undefined, true), verify:verifyPortableLibraries }, readUnlockedEmployees, true, ctx, usage.recordModelUsage, studioDesktop, settings.readSavedProfiles)
       clean.push(() => desk.dispose())
       clean.push(ctx.webServer.register({ kind:'exact', path:'/luma-native/settings', handler:protect(settings.handle) }))
       clean.push(ctx.webServer.register({ kind:'exact', path:'/luma-native/employee-workspace', handler:protect(employeeWorkspaceHandler(ctx,homes,readUnlockedEmployees)) }))

@@ -28,6 +28,17 @@ for ($i = 0; $i -le $bytes.Length - $guid.Length; $i++) {
 }
 if ($offset -lt 0) { throw 'Missing module identity' }
 [Array]::Clear($bytes, $offset, $guid.Length)
+# Framework csc also embeds a build-specific GUID in the hidden type that owns
+# constant array data. Its references use metadata tokens, so the name can stay
+# fixed across compilations of the same source.
+$ascii = [Text.Encoding]::ASCII
+$helper = [regex]::Matches($ascii.GetString($bytes), '<PrivateImplementationDetails>\{([0-9A-Fa-f-]{36})\}')
+if ($helper.Count -gt 1) { throw 'Unexpected multiple compiler-generated array types' }
+if ($helper.Count -eq 1) {
+    $name = $helper[0].Groups[1]
+    $stable = $ascii.GetBytes([Guid]::Empty.ToString('D'))
+    [Array]::Copy($stable, 0, $bytes, $name.Index, $stable.Length)
+}
 $hash = [Security.Cryptography.SHA256]::Create()
 try { [Array]::Copy($hash.ComputeHash($bytes), 0, $bytes, $offset, $guid.Length) }
 finally { $hash.Dispose() }

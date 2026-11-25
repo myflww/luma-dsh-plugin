@@ -25,6 +25,7 @@ import {
   type OfficeTimePolicy
 } from './office2d/timePolicy.ts'
 import { EMPTY_OFFICE_TRAFFIC_STATE, type OfficeTrafficState } from './office2d/trafficPolicy.ts'
+import { personalSpaceStep, walkingHeading, yieldsAtOfficeCrossing } from './office2d/officePathCrossing.ts'
 import {
   isOfficeWorkstationId
 } from './office2d/workstations.ts'
@@ -105,15 +106,41 @@ export function officeLaneRoute(route:OfficeRoute):OfficeRoute {
   return {...route,points,distance:points.slice(1).reduce((sum,p,i)=>sum+Math.hypot(p[0]-points[i]![0],p[1]-points[i]![1]),0)}
 }
 
+export function classicFloorFootpoints(actors:Readonly<Record<string,ActorRuntime>>, present:ReadonlySet<string>) {
+  const floor=Object.values(actors).filter(a=>present.has(a.employeeId) && a.mode!=='working' && a.mode!=='desk-break')
+    .map(a=>{
+      const foot=[a.position.x,a.position.y] as const, next=a.route?.points[a.waypointIndex]
+      return {id:a.employeeId,foot,...(next?{heading:walkingHeading(foot,next)}:{})}
+    })
+  const adjusted:Record<string,Point>={}
+  for(const actor of floor){
+    if(!actor.heading)continue
+    let nearest=22, candidate:readonly[number,number]=actor.foot
+    for(const other of floor){
+      if(other.id===actor.id)continue
+      const gap=Math.hypot(actor.foot[0]-other.foot[0],actor.foot[1]-other.foot[1])
+      if(gap>=nearest)continue
+      nearest=gap
+      candidate=personalSpaceStep(actor.id,actor.foot,actor.heading,other)
+    }
+    if(nearest<22){
+      for(const fraction of [1,.5,.25]){
+        const x=actor.foot[0]+(candidate[0]-actor.foot[0])*fraction
+        const y=actor.foot[1]+(candidate[1]-actor.foot[1])*fraction
+        if(isOfficeFootSegmentWalkable(actor.foot,[x,y])){adjusted[actor.id]={x,y};break}
+      }
+    }
+  }
+  return adjusted
+}
+
 function officeJunctionYield(actor:ActorRuntime,peers:Readonly<Record<string,ActorRuntime>>):boolean {
   const target=actor.route?.points[actor.waypointIndex];if(!target)return false
-  const distance=Math.hypot(target[0]-actor.position.x,target[1]-actor.position.y)
+  const self = {id:actor.employeeId,from:[actor.position.x,actor.position.y] as const,to:target,working:actor.mode!=='ambient'}
   for(const peer of Object.values(peers)){
     if(peer.employeeId===actor.employeeId||!['task','ambient','report'].includes(peer.mode))continue
-    const other=peer.route?.points[peer.waypointIndex];if(!other||Math.hypot(target[0]-other[0],target[1]-other[1])>1)continue
-    const remaining=Math.hypot(other[0]-peer.position.x,other[1]-peer.position.y)
-    const separation=Math.hypot(actor.position.x-peer.position.x,actor.position.y-peer.position.y)
-    if((distance<55&&remaining<55||separation<24)&&(remaining<distance-.1||Math.abs(remaining-distance)<=.1&&peer.employeeId<actor.employeeId))return true
+    const other=peer.route?.points[peer.waypointIndex];if(!other)continue
+    if (yieldsAtOfficeCrossing(self,{id:peer.employeeId,from:[peer.position.x,peer.position.y],to:other,working:peer.mode!=='ambient'})) return true
   }
   return false
 }
