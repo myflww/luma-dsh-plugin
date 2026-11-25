@@ -1,78 +1,105 @@
 {
-  "version": "0.6.0",
+  "version": "0.6.1",
   "platform": "Windows x64",
-  "node": "v24.19.0",
-  "installerPowerShell": "Windows PowerShell 5.1",
-  "baseZipSha256": "e949d369a89da2bf6ce01c2eabef4b8a3a95ced38db5ab625ea90c2bb0549c81",
-  "installerSha256": "63c186569b0a983f3e2cc5248bc3275c6c3895f6676294ce5c37729392ef88ea",
-  "installerBytes": 36195419,
-  "updateSha256": "19d295f8f1d9ee8a3548e5fc08687b48e81dda98caff49fb23f4815eab934075",
-  "updateBytes": 36192879,
-  "updaterSha256": "aab6f37482cba7c796795bf01153b57b55549938255a0be365c68ff8ea163f62",
-  "matchingFiles": 1850,
-  "matchingPublicAssets": 1811,
-  "changedFiles": 78,
-  "sha256": {
-    "cordis.patch.yml": "5017a014506a399f5db4f08e523996c7c9ac68f2472c2809e022442db62a59cc",
-    "native-desktop/client.mjs": "6bb7084acefe050042476bd96fd842835ce56985a70425a723c8162f4180ab04",
-    "native-desktop/server.mjs": "6f6936d7a1a8136539bcc38fa433da973c4564c66a70121bc977ab83384d25db",
-    "native-desktop/DesktopPet.exe": "20d96267e085617a526451949a3ba2475c1bf2c8c223ac4a099ce549b6fe5f27"
+  "tests": {
+    "rendererAndDomain": 313,
+    "hostAndNative": 73,
+    "failures": 0,
+    "skipped": 0
   },
-  "nativeTestsPassed": 32,
-  "vitestTestsPassed": 197,
-  "vitestFilesPassed": 29,
-  "recoveryInputs": [
-    "Verified desktop 0.5.4 directory and original 0.4.3 Windows base archive."
-  ],
-  "desktopRegistration": {
-    "standard": "Registered with official DSH CLI under a separate desktop profile.",
-    "preAndPostPersonalProgressMatched": true
+  "packageFiles": 1936,
+  "artwork": {
+    "standaloneImages": 1075,
+    "verifiedPublicFiles": 1838,
+    "localReferences": 540,
+    "htmlPages": 127,
+    "authoredPageCopies": 50,
+    "glbModels": 36,
+    "desktopPetImages": 70,
+    "inlinedImages": 57
   },
-  "nativeHostChecks": {
-    "versions": [
-      "0.2.2-rc.1",
-      "0.2.2-rc.5"
-    ],
-    "scenarios": [
-      "office",
-      "roster",
-      "native-pet-open",
-      "workstation-binding",
-      "native-recall",
-      "locked-employee-denied",
-      "roster-narrow",
-      "house",
-      "bedroom-placement",
-      "pointer-bedroom-drop-outside",
-      "single-resident-after-recall",
-      "bedroom",
-      "menu",
-      "decor",
-      "empty-album",
-      "usage",
-      "shop",
-      "compact"
-    ],
-    "pageErrors": 0
+  "packageDigests": {
+    "native-desktop/client.mjs": "f1fb31d1e68c8b4660d28774948632fb9c509b036b255e80ca9422aa2574ede0",
+    "native-desktop/server.mjs": "c3eb90e110b12013abbb28e734e776a07ae75280bc2abcb7a463821ff41d0a2a",
+    "native-desktop/DesktopPet.exe": "33107ae7b4233ffe419b963b83bc9702dee7434201591ac7add34c7450ad0572",
+    "package.json": "1d3b5f58d821b52864d9afe8d3d7ef74763fa9903ccfc8307e71864670c50f43"
   },
-  "petVerification": {
-    "residents": 8,
-    "distinctOutfits": 14,
-    "uniqueWalkAtlases": 56,
-    "visibleCellCount": 1479,
-    "bedroomLayoutsTested": 9,
-    "desktopArtFormat": "Transparent PNG",
-    "edgeModes": [
-      "left",
-      "right",
-      "hidden-edge"
-    ],
-    "additionalChecks": [
-      "Native transparent-window hit testing",
-      "Windows pointer capture across the browser window boundary at 150% DPI",
-      "Two independent companion windows and shutdown",
-      "Sleep and recall"
-    ],
-    "physicalDisplaysTested": 1
+  "office": {
+    "scenes": 9,
+    "actualSelectableRoleOutfits": 14,
+    "ordinaryLayoutThemes": 4,
+    "independentLayoutThemes": 5,
+    "slotsPerScene": 9,
+    "workstationCases": 1134,
+    "walkDirectionCases": 504,
+    "classicRenderComponentFrames": 2016,
+    "keyboardAnchors": 616,
+    "phaseBackgrounds": 54,
+    "nativeScreens": 18,
+    "actualSeatedActorsAcrossScreens": 144,
+    "actualOccupiedSlotsPerScene": {
+      "office.gemini.v1": 9,
+      "office.bai-shuangming.v1": 9,
+      "office.claude.v1": 9,
+      "office.grok.v1": 9,
+      "office.lu-mi.v1": 9,
+      "classic": 9,
+      "office.jingyuniang.v1": 9,
+      "office.longmama.v1": 9,
+      "office.duanmu-yan.v1": 9
+    },
+    "concealedKeyboardAnchors": 14
+  },
+  "traffic": {
+    "prior": {
+      "independent": {
+        "minFeet": 2.76968064083449,
+        "completed": 45,
+        "scenarios": 45,
+        "maxSeconds": 8.92
+      },
+      "classic": {
+        "minFeet": 0.6899863671378472,
+        "completed": 9,
+        "scenarios": 9,
+        "maxSeconds": 19.5
+      }
+    },
+    "now": {
+      "independent": {
+        "minFeet": 17.324111823840276,
+        "completed": 45,
+        "scenarios": 45,
+        "maxSeconds": 8.92
+      },
+      "classic": {
+        "minFeet": 16.225060863192628,
+        "completed": 9,
+        "scenarios": 9,
+        "maxSeconds": 19.5
+      }
+    }
+  },
+  "bedroom": {
+    "layouts": 15,
+    "wearableAppearances": 14,
+    "combinations": 210,
+    "poseRenders": 630,
+    "nativeChecks": 29
+  },
+  "desktopPets": {
+    "roles": 8,
+    "wearableAppearances": 14,
+    "physicalDisplaysTested": 1,
+    "negativeCoordinatesAndMixedDpiGeometry": true
+  },
+  "firstUse": {
+    "emptyProfile": true,
+    "starter": "jingyuniang",
+    "initialCoins": 0,
+    "welcomeGift": 300,
+    "firstPackPrice": 10,
+    "reopenedBalance": 290,
+    "reopenedCardCount": 1
   }
 }

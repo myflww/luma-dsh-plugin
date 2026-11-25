@@ -20,11 +20,11 @@ import { SPACE as grok } from '../../../overlays/deepseek-harness/luma-full/file
 const roles=['shan','bai-shuangming','lu-mi','jingyuniang','longmama','claude','gemini','grok']
 const all=createOfficeTimePolicy({date:new Date(2026,10,18,10)})
 
-it('staggers the eight desk routines and takes a complete break and return through every office floor plan',()=>{
-  const seats=['north-private','north-center','west-studio','south-left','south-focus','south-right','private-upper','private-lower'] as const
+const routineSeats=['north-private','north-center','west-studio','south-left','south-focus','south-right','private-upper','private-lower'] as const
+it('staggers the eight desk routines and returns each classic office employee to their seat',()=>{
   const deadlines=new Set<number>(), routines=new Set<string>()
   for(const [i,id] of roles.entries()){
-    const seat=seats[i]!, [x,y]=OFFICE_WORKSTATION_APPROACHES[seat].point
+    const seat=routineSeats[i]!, [x,y]=OFFICE_WORKSTATION_APPROACHES[seat].point
     const classic=createOfficeAutonomyState({employeeId:id,now:0,timePolicy:all,boundWorkstationId:seat,initiallyAtDesk:true})
     deadlines.add(classic.nextTransitionAt);routines.add(officeDailyRoutine(id)!.desk)
     const base={state:classic,now:classic.nextTransitionAt,actorMode:'desk-break' as const,actorPosition:{x,y},timePolicy:all,boundWorkstationId:seat,ambientDesk:true}
@@ -35,8 +35,16 @@ it('staggers the eight desk routines and takes a complete break and return throu
     expect(pause.state.phase).toBe('activity')
     expect(advanceOfficeAutonomyController({...base,state:pause.state,actorMode:'idle',actorPosition:roam.decision.target,now:pause.state.nextTransitionAt}).decision).toEqual({type:'start-desk-break',workstationId:seat})
     expect(advanceOfficeAutonomyController({...base,actorMode:'working'}).state.phase).toBe('suspended')
-    for(const room of [whale,dragon,claude,gemini,grok]){
-      const graph=withBrowserOfficeNavigation(room).layout.navigation.floorGraph as BrowserIndependentFloorGraph
+  }
+  expect(deadlines.size).toBe(8);expect(routines.size).toBe(8)
+})
+
+for (const [name, room] of Object.entries({whale, dragon, claude, gemini, grok})) {
+  it(`takes a complete break and returns all eight employees to their seats in ${name}`, () => {
+    const graph=withBrowserOfficeNavigation(room).layout.navigation.floorGraph as BrowserIndependentFloorGraph
+    for (const [i, id] of roles.entries()) {
+      const seat=routineSeats[i]!
+      const classic=createOfficeAutonomyState({employeeId:id,now:0,timePolicy:all,boundWorkstationId:seat,initiallyAtDesk:true})
       const origin=graph.nodes[graph.targets[seat]!.approachNode]!
       const input={employeeId:id,graph,policy:all,boundStationId:seat,ambientDesk:true,active:true,manual:false,reduceMotion:false}
       let actor=createIndependentArrivalState(origin.point,origin.bodyCoreHeightPx,seat)
@@ -57,9 +65,8 @@ it('staggers the eight desk routines and takes a complete break and return throu
       step();expect(actor.mode).toBe('returning')
       travel();expect(actor.seatedStationId).toBe(seat)
     }
-  }
-  expect(deadlines.size).toBe(8);expect(routines.size).toBe(8)
-})
+  })
+}
 
 it('gives an on-duty seated employee a full desk stay and a short pause before returning from a walk', () => {
   const policy = createOfficeTimePolicy({hour:10})
