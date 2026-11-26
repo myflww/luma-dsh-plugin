@@ -28,4 +28,4 @@ Identity-preserving illustrated game sprite atlas, matching the supplied referen
 
 白霜命原装的参考保留冰蓝渐变长卷发、蝶饰和分层短裙。龙妈妈原装保留白紫褶裙与金链，换装保留绣金深绿斗篷与象牙裙，两套均保留角、尾和厚卷发。这三套用了各自的站姿正面和坐姿背面作为身份参照，要求头与头饰约占全高的 43%，小步幅、窄肩和交替的手脚动作与上表图格顺序一致。
 
-绯洛、端木嫣换装、克劳德两套和白霜命换装的逐套提示见 [行走造型提示](walk-keydrawings/prompts.md)。
+绯洛、端木嫣换装、克劳德两套和白霜命换装的逐套提示，以及吉米、端木嫣换装最终采纳的比例微调与承重脚修订见 [行走造型提示](walk-keydrawings/prompts.md)。
