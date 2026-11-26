@@ -55,52 +55,63 @@ internal sealed class PetPoseAtlas : IDisposable {
         }
         return 7;
     }
-    public static int DragFrame(long elapsed,double lean,bool quiet){
+    public static int DragFrame(long elapsed,double x,double y,bool quiet){
         if(quiet)return 16;
         if(elapsed<LiftMs)return 8+(int)Math.Min(7,Math.Max(0,elapsed)*8/LiftMs);
-        double force=Math.Abs(lean);
-        if(force<.22)return 16;
-        int strength=(int)Math.Round(Math.Min(1,(force-.22)/.78)*7);
-        return (lean>0?24:32)+strength;
+        double ax=Math.Abs(x),ay=Math.Abs(y),strength=Math.Max(ax,ay);
+        if(strength<.105)return 16;
+        if(Math.Min(ax,ay)>.18&&Math.Min(ax,ay)>.48*strength)
+            return (x>0?24:32)+(y<0?4:6)+(strength>=.62?1:0);
+        if(ay>ax)return y<0?17+Math.Min(2,(int)(ay*3)):20+Math.Min(3,(int)(ay*4));
+        return (x>0?24:32)+Math.Min(3,(int)(ax*4));
     }
     public static int LandingOffset(long heldMs){
         // Releasing before her feet have lifted only needs the light recovery
         // cels. A partial lift joins the landing at a matching height.
-        if(heldMs<LiftMs/3)return LandMs*6/8;
-        return (int)Math.Max(0,(LiftMs-heldMs)*(LandMs/4)/(LiftMs-LiftMs/3));
+        if(heldMs<2*LiftMs/8)return LandMs*6/8;
+        return heldMs<6*LiftMs/8?LandMs*2/8:0;
+    }
+    public static int LandFrame(long elapsed,int releasedPose){
+        if(elapsed<LandMs/8&&releasedPose>=16&&releasedPose<40)return releasedPose;
+        return 40+(int)Math.Min(7,Math.Max(0,elapsed)*8/LandMs);
     }
     public void Dispose(){
         foreach(var cell in cells)if(cell!=null)cell.Dispose();
     }
 }
 
-// A lightly damped suspension follows horizontal hand velocity. A quick turn
-// carries the last lean through the reversal; stopping lets it swing back.
+// The same two damped axes as the room renderer. Integration uses short
+// substeps so a burst of pointer events and a slow paint tick can coexist.
 internal sealed class PetSuspension {
     public double Lean {get;private set;}
-    double angularSpeed, drive;
-    int pointerX;
+    public double Vertical {get;private set;}
+    double vx,vy,driveX,driveY;
+    Point pointer;
     long sampledAt, integratedAt;
     public void Grab(Point p,long now){
-        pointerX=p.X;sampledAt=integratedAt=now;Lean=angularSpeed=drive=0;
+        pointer=p;sampledAt=integratedAt=now;Lean=Vertical=vx=vy=driveX=driveY=0;
     }
-    public void Sample(Point p,long now,int width){
-        int dx=p.X-pointerX;
-        if(dx==0)return;
-        double dt=Math.Max(8,Math.Min(110,now-sampledAt))/1000.0;
-        double speed=Math.Max(-2.5,Math.Min(2.5,dx/(Math.Max(1,width)*dt)));
-        drive=.35*drive+.65*speed;
-        sampledAt=now;pointerX=p.X;
+    static double Clamp(double value,double limit){return Math.Max(-limit,Math.Min(limit,value));}
+    public void Sample(Point p,long now,double bodyHeight){
+        if(now<integratedAt||now-integratedAt>450){Grab(p,now);return;}
+        if(p!=pointer){
+            double dt=Math.Max(8,Math.Min(100,now-sampledAt)),scale=1000/(Math.Max(1,bodyHeight)*dt);
+            double blend=1-Math.Exp(-dt/23);
+            driveX+=(Clamp((p.X-pointer.X)*scale,2.6)-driveX)*blend;
+            driveY+=(Clamp((p.Y-pointer.Y)*scale,2.6)-driveY)*blend;
+            sampledAt=now;pointer=p;
+        }
+        Advance(now);
     }
     public void Advance(long now){
-        double dt=Math.Max(0,Math.Min(90,now-integratedAt))/1000.0;
-        double target=Math.Max(-1,Math.Min(1,drive*.68))*Math.Exp(-Math.Max(0,now-sampledAt-36)/82.0);
-        while(dt>.00001){
-            double step=Math.Min(.008,dt);
-            angularSpeed+=(109*(target-Lean)-12*angularSpeed)*step;
-            Lean=Math.Max(-1.05,Math.Min(1.05,Lean+angularSpeed*step));
-            dt-=step;
+        if(now<integratedAt||now-integratedAt>450){Grab(pointer,now);return;}
+        while(integratedAt<now){
+            long next=Math.Min(now,integratedAt+8);double dt=(next-integratedAt)/1000d;
+            double decay=Math.Exp(-Math.Max(0,next-sampledAt-24)/65d);
+            vx+=(145*(Clamp(driveX*.75,1)*decay-Lean)-13*vx)*dt;
+            vy+=(185*(Clamp(driveY*.66,1)*decay-Vertical)-16*vy)*dt;
+            Lean=Clamp(Lean+vx*dt,1.05);Vertical=Clamp(Vertical+vy*dt,1.05);
+            integratedAt=next;
         }
-        integratedAt=now;
     }
 }

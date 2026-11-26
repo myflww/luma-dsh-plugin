@@ -246,14 +246,21 @@ class ArticulatedDrawing:
         self.back *= (1-omitted+omitted*proximity)[:,:,None]
         self.back[hole==0]=src[hole==0]
 
-    def frame(self, amounts, offsets=None):
+    def frame(self, amounts, offsets=None, vertical=0):
         offsets=offsets or {}
-        if all(abs(amounts.get(p.family,0)*p.angle)<.001 and not any(offsets.get(p.family,(0,0))) for p,_ in self.parts):
+        if not vertical and all(abs(amounts.get(p.family,0)*p.angle)<.001 and not any(offsets.get(p.family,(0,0))) for p,_ in self.parts):
             return self.src
         body=self.back.copy()
         for part, layer in self.parts:
-            sprite=rotate(layer,part.pivot,part.angle*amounts.get(part.family,0))
+            # The two forearms and calves fold towards different sides of
+            # the torso; a vertical pull must never just rotate both left.
+            side=1 if part.pivot[0]>=W/2 else -1
+            bend={'arm':21,'shin':24,'tip':7}.get(part.family,0)
+            angle=part.angle*amounts.get(part.family,0)+side*bend*vertical
+            sprite=rotate(layer,part.pivot,angle)
             x,y=offsets.get(part.family,(0,0))
+            if vertical:
+                y+=vertical*{'arm':-1,'shin':-2,'tip':-2.5}.get(part.family,0)
             body=over(shift(sprite,x,y),body)
         body[self.protected]=self.src[self.protected]
         return body
@@ -362,24 +369,52 @@ def held_layers(entry, reg, art, eyes):
     return parts
 
 
-def frame_sequences(neutral, caught, held, crouch):
-    # Exposure sheets in 8 columns. Left and right are intensity tables: they
-    # stop when the pointer stops. No periodic sway runs while a pet is held.
-    # A hard cut on the catch and first ground contact retains one clean face.
+def bend_knees(drawing, pixels):
+    """The heel stays planted; only the short band through the knees bends.
+
+    Above the knee the painted head and dress travel as one rigid drawing.
+    The integer translation keeps the face identical to the source painting.
+    """
+    if not pixels:
+        return drawing
+    ys,xs=np.indices(drawing.shape[:2],dtype=np.float32)
+    weight=np.clip((SOLE-9-ys)/34,0,1)
+    return cv2.remap(drawing,xs,ys-pixels*weight,cv2.INTER_LINEAR)
+
+
+def swing_hips(drawing, waist, angle):
+    """Pivot the hips, skirt, and feet as one piece below a narrow waist joint."""
+    if not angle:
+        return drawing
+    y,x=np.indices(drawing.shape[:2],dtype=np.float32)
+    wx,wy=np.asarray(waist,np.float32)
+    weight=np.clip((y-wy+5)/18,0,1)
+    radians=np.float32(np.deg2rad(angle))*weight*weight*(3-2*weight)
+    s,c=np.sin(radians),np.cos(radians)
+    return cv2.remap(drawing,wx+c*(x-wx)-s*(y-wy),wy+s*(x-wx)+c*(y-wy),cv2.INTER_LINEAR)
+
+
+def frame_sequences(neutral, caught, held, crouch, eyes):
     hand=[0,.30,.71,1,.82,.38,-.16,-.09]
     hair=[0,-.06,.18,.55,.86,.75,.31,.06]
     idle=[neutral.frame({'arm':arm,'tip':tip}) for arm,tip in zip(hand,hair)]
     brace=neutral.frame({'arm':-1.2,'tip':-.30})
-    rows = [idle,
-            [neutral.src, brace, caught, caught, caught, caught, held.src, held.src],
-            [held.src]*8]
+    # One relaxed hang and seven vertical reactions. Upward travel leaves the
+    # shoes behind; a quick downward movement lifts and folds both knees.
+    vertical=[0,-.30,-.64,-1,.25,.52,.78,1]
+    rising=[held.frame({},vertical=v) for v in vertical]
+    rows=[idle,[neutral.src,bend_knees(brace,2),caught,shift(caught,0,-3),
+                shift(caught,0,-6),rising[2],rising[1],held.src],rising]
     for side in (-1,1):
-        frames=[]
-        for col in range(8):
-            amount=(col/7)**.9 * side
-            frames.append(held.frame({'arm':amount,'shin':amount,'tip':amount*.8}))
-        rows.append(frames)
-    rows.append([held.src,held.src,crouch,crouch,crouch,crouch,brace,neutral.src])
+        # Cardinal and diagonal reactions use the same painted hinges. When
+        # the pointer stops the controller returns to row two, column zero.
+        reactions=[(.25,0),(.52,0),(.82,0),(1.12,0),(.54,-.63),(1,-.85),(.54,.63),(1,.85)]
+        center=np.asarray(eyes).mean(axis=0)
+        waist=(center[0],center[1]+60)
+        rows.append([swing_hips(held.frame({'arm':side*x,'shin':side*x*1.14,'tip':side*x},
+                                          vertical=y),waist,side*x*7.5) for x,y in reactions])
+    rows.append([held.src,rising[3],bend_knees(crouch,-5),bend_knees(crouch,4),
+                 crouch,bend_knees(crouch,-7),bend_knees(brace,3),neutral.src])
     return rows
 
 
@@ -391,7 +426,7 @@ def make_actor(key, entry, path):
     parts=held_layers(entry,regs[1],held,eyes)
     layered=ArticulatedDrawing(held, parts, protect_face(eyes))
     standing=standing_layers(neutral,key,eyes)
-    return frame_sequences(standing,caught,layered,crouch),eyes,regs
+    return frame_sequences(standing,caught,layered,crouch,eyes),eyes,regs
 
 
 def export_png(frames):

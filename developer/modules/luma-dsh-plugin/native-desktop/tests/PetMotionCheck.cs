@@ -30,8 +30,10 @@ internal static class PetMotionCheck {
         Check(!rest.SequenceEqual(Pixels(atlas.Frame(4),cell)),key+" missing idle drawing");
         Check(!rest.SequenceEqual(Pixels(atlas.Frame(16),cell)),key+" missing suspended drawing");
         var held=Pixels(atlas.Frame(16),cell);
-        for(int frame=17;frame<24;frame++)
-            Check(held.SequenceEqual(Pixels(atlas.Frame(frame),cell)),key+" motion baked into the stationary hold");
+        var vertical=new HashSet<string>();
+        using(var sha=SHA256.Create())for(int frame=16;frame<24;frame++)
+            vertical.Add(Convert.ToBase64String(sha.ComputeHash(Pixels(atlas.Frame(frame),cell))));
+        Check(vertical.Count==8,key+" missing vertical pull/dip drawings");
         Check(!Pixels(atlas.Frame(31),cell).SequenceEqual(Pixels(atlas.Frame(39),cell)),key+" missing directional catch");
         if(meta.eyes!=null && meta.eyes.Length>0){
             var a=meta.eyes[0];
@@ -43,7 +45,7 @@ internal static class PetMotionCheck {
                 faceArea=new Rectangle(cx-(int)(d*.60),cy-(int)(d*.24),(int)(d*1.20),(int)(d*.70));
             }
             var face=Pixels(atlas.Frame(16),faceArea);
-            for(int frame=24;frame<40;frame++)
+            for(int frame=17;frame<40;frame++)
                 Check(face.SequenceEqual(Pixels(atlas.Frame(frame),faceArea)),key+" swing repainted eyes or cheeks");
         }
         Check(!rest.SequenceEqual(Pixels(atlas.Frame(43),cell)),key+" missing knee compression");
@@ -89,21 +91,24 @@ internal static class PetMotionCheck {
         for(int t=2020;t<=2260;t+=20){
             x+=12;catchMotion.Sample(new Point(x,100),t,184);catchMotion.Advance(t);
         }
-        Check(PetPoseAtlas.DragFrame(260,catchMotion.Lean,false)/8==3,"fast right drag must pull feet left");
+        Check(PetPoseAtlas.DragFrame(260,catchMotion.Lean,catchMotion.Vertical,false)/8==3,"fast right drag must pull feet left");
         x-=24;catchMotion.Sample(new Point(x,100),2280,184);catchMotion.Advance(2280);
         Check(catchMotion.Lean>0,"feet snapped at abrupt reversal");
         for(int t=2300;t<=2580;t+=20){
             x-=12;catchMotion.Sample(new Point(x,100),t,184);catchMotion.Advance(t);
         }
-        Check(PetPoseAtlas.DragFrame(580,catchMotion.Lean,false)/8==4,"fast left drag must pull feet right");
+        Check(PetPoseAtlas.DragFrame(580,catchMotion.Lean,catchMotion.Vertical,false)/8==4,"fast left drag must pull feet right");
         for(int t=2600;t<=4200;t+=20)catchMotion.Advance(t);
         Check(Math.Abs(catchMotion.Lean)<.015,"suspended pose did not settle");
-        Check(PetPoseAtlas.DragFrame(2200,catchMotion.Lean,false)/8==2,"wrong stationary held pose");
-        Check(PetPoseAtlas.DragFrame(223,0,false)==PetPoseAtlas.DragFrame(9973,0,false),"stationary hand repeated an animation");
-        Check(PetPoseAtlas.DragFrame(223,.8,false)==PetPoseAtlas.DragFrame(9973,.8,false),"swing depended on a timer");
-        Check(PetPoseAtlas.DragFrame(0,0,false)==8 && PetPoseAtlas.DragFrame(219,0,false)==15,"pickup timeline");
+        Check(PetPoseAtlas.DragFrame(2200,catchMotion.Lean,catchMotion.Vertical,false)==16,"wrong stationary held pose");
+        Check(PetPoseAtlas.DragFrame(223,0,0,false)==PetPoseAtlas.DragFrame(9973,0,0,false),"stationary hand repeated an animation");
+        Check(PetPoseAtlas.DragFrame(223,.8,0,false)==PetPoseAtlas.DragFrame(9973,.8,0,false),"swing depended on a timer");
+        Check(PetPoseAtlas.DragFrame(0,0,0,false)==8 && PetPoseAtlas.DragFrame(219,0,0,false)==15,"pickup timeline");
         Check(PetPoseAtlas.LandingOffset(10)>=300 && PetPoseAtlas.LandingOffset(140)>0 && PetPoseAtlas.LandingOffset(320)==0,"partial lift should land from its actual height");
-        Check(PetPoseAtlas.DragFrame(0,1,true)==16 && PetPoseAtlas.DragFrame(900,-1,true)==16,"reduced motion");
+        Check(PetPoseAtlas.DragFrame(0,1,1,true)==16 && PetPoseAtlas.DragFrame(900,-1,-1,true)==16,"reduced motion");
+        Check(PetPoseAtlas.DragFrame(600,0,-1,false)==19 && PetPoseAtlas.DragFrame(600,0,1,false)==23,"vertical reactions");
+        Check(PetPoseAtlas.DragFrame(600,1,-1,false)==29 && PetPoseAtlas.DragFrame(600,-1,1,false)==39,"diagonal reactions");
+        Check(PetPoseAtlas.LandFrame(20,39)==39 && PetPoseAtlas.LandFrame(85,39)==41,"lost release impulse");
     }
     public static void Main(string[] args){
         CheckSuspension();

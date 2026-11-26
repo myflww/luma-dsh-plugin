@@ -115,7 +115,7 @@ function BedroomWalker({id,skinId,walk,point,direction,moving,elapsed,scale,paus
       transform={`translate(${point[0]} ${point[1]})`}>
     <ellipse cx={0} cy={1} rx={width*(motion==='held'?.11:.14)} ry={width*.03} fill="#392f3b" opacity={motion==='held'?.1:.19}/>
     {pose && failedPose!==pose.src && motion ? <ActorMotionLayer atlas={pose} id={id} motion={motion}
-      footX={point[0]} bodyHeight={bodyHeight} paused={paused} landingStartedAt={landingStartedAt}
+      footX={point[0]} footY={point[1]} bodyHeight={bodyHeight} paused={paused} landingStartedAt={landingStartedAt}
       x={-pose.foot[0]*poseScale} y={-pose.foot[1]*poseScale}
       width={pose.cell[0]*poseScale} height={pose.cell[1]*poseScale}
       onError={()=>setFailedPose(pose.src)}/> : <svg x={-width*figure.anchor.x} y={-height*figure.anchor.y} width={width} height={height} viewBox={atlas?'0 0 '+strip.frameWidth+' '+strip.frameHeight:rect.join(' ')} overflow="hidden">

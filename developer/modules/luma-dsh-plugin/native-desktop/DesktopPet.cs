@@ -202,6 +202,7 @@ internal class PetWindow : Form {
     bool pinnedPeek;
     long idleOrigin,liftStart,landedAt=-1000;
     readonly PetSuspension suspension=new PetSuspension();
+    int lastHeldPose=16;
     double gazeX,gazeY;
     int side, renderStamp = -1;
     Point lastPosition=new Point(int.MinValue,int.MinValue);
@@ -568,8 +569,9 @@ internal class PetWindow : Form {
         int pose=-1;
         if(dragging) {
             suspension.Advance(now);
-            pose=PetPoseAtlas.DragFrame(now-liftStart,suspension.Lean,quiet);
-        } else if(landing)pose=40+(int)(sinceDrop*8/PetPoseAtlas.LandMs);
+            pose=PetPoseAtlas.DragFrame(now-liftStart,suspension.Lean,suspension.Vertical,quiet);
+            lastHeldPose=pose;
+        } else if(landing)pose=PetPoseAtlas.LandFrame(sinceDrop,lastHeldPose);
         else if(verticalPeek||(side==0&&!moving&&!asleep&&!greeting&&!seated))
             pose=quiet?0:poses.IdleFrame(now-(verticalPeek?dockStart:idleOrigin));
         var restArt=onLedge?costume.Sleep:asleep?costume.Sleepy:greeting?costume.Greeting:seated?costume.Lunch:null;
@@ -666,24 +668,24 @@ internal class PetWindow : Form {
     }
     protected override void OnMouseDown(MouseEventArgs e) {
         base.OnMouseDown(e);if(e.Button!=MouseButtons.Left)return;
-        BeginGrab(Cursor.Position);
+        BeginGrab(PointToScreen(e.Location));
     }
     internal void BeginGrab(Point pointer) {
         pressed=true;dragging=false;pressedAt=pointer;
         suspension.Grab(pointer,clock.ElapsedMilliseconds);
-        suspension.Grab(pointer,clock.ElapsedMilliseconds);
+        lastHeldPose=16;
         gripX=side==0?Math.Max(0,Math.Min(1,(pressedAt.X-x)/Width)):.5;
         gripY=Math.Max(0,Math.Min(1,(pressedAt.Y-y)/Height));Capture=true;
     }
     protected override void OnMouseMove(MouseEventArgs e) {
         base.OnMouseMove(e);if(!pressed)return;
-        MoveGrab(Cursor.Position);
+        MoveGrab(PointToScreen(e.Location));
     }
     internal void MoveGrab(Point p) {
         int dx=p.X-pressedAt.X,dy=p.Y-pressedAt.Y;
         if(!dragging && Math.Abs(dx)+Math.Abs(dy)<5)return;
         if(!dragging)liftStart=clock.ElapsedMilliseconds;
-        suspension.Sample(p,clock.ElapsedMilliseconds,spriteSide);
+        suspension.Sample(p,clock.ElapsedMilliseconds,spriteSide*.89);
         dragging=true;side=0;pinnedPeek=false;phase="field";moving=false;
         remarkEnd=0;if(asleep)nightActivity="sleepy";else dayActivity="awake";
         Screen target=Screen.FromPoint(p);
@@ -695,7 +697,7 @@ internal class PetWindow : Form {
     }
     protected override void OnMouseUp(MouseEventArgs e) {
         base.OnMouseUp(e);if(e.Button!=MouseButtons.Left||!pressed)return;
-        ReleaseGrab(Cursor.Position);
+        ReleaseGrab(PointToScreen(e.Location));
     }
     void BeginLanding(){
         long now=clock.ElapsedMilliseconds;

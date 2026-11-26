@@ -8,7 +8,7 @@ it.each([[30,46],[100,42],[165,40],[600,40]])('joins a %i ms lift to landing exp
   const timing=getActorPoseAtlas('jingyuniang')!.idleDurationsMs
   const released=1025, start=landingStartForRelease(released,released-held)
   const frames=Array.from({length:LANDING_MS+1},(_,afterRelease)=>
-    actorMotionFrame('landing',released+afterRelease-start,0,0,false,timing))
+    actorMotionFrame('landing',released+afterRelease-start,0,undefined,false,timing))
   expect(frames[0]).toBe(first)
   if (held<165) expect(frames).not.toContain(40)
   if (held<165) expect(frames).not.toContain(41)
@@ -29,20 +29,26 @@ it('registers every selectable outfit to planted feet and supplies six complete 
   expect(sources.size).toBe(14)
 })
 
-it('changes the limb pose on a direction reversal and settles after the pointer stops', () => {
+it('carries both axes through reversals, releases the last pose and settles to a still hang', () => {
   const timing = getActorPoseAtlas('jingyuniang')!.idleDurationsMs
-  const grip = sampleGripLag(undefined,0,0,100)
-  const right = sampleGripLag(grip,48,20,100)
-  const left = sampleGripLag(right,-40,40,100)
-  const rest = sampleGripLag(left,-40,900,100)
-  const row = (t: number, lag: number) => Math.floor(actorMotionFrame('held',t,0,lag,false,timing)/8)
-  expect([row(60,0),row(300,right.lag),row(500,left.lag),row(1050,rest.lag)]).toEqual([1,3,4,2])
-  expect(actorMotionFrame('landing',180,0,0,false,timing)).toBeGreaterThanOrEqual(40)
-  expect(actorMotionFrame('landing',LANDING_MS,0,0,false,timing)).toBe(0)
-  expect(actorMotionFrame('held',300,0,left.lag,true,timing)).toBe(16)
-  for (const elapsed of [260,310,850,1900,6800]) {
-    expect(actorMotionFrame('held',elapsed,0,0,false,timing)).toBe(16)
-    expect(actorMotionFrame('held',elapsed,0,left.lag,false,timing)).toBe(actorMotionFrame('held',300,0,left.lag,false,timing))
+  let grip=sampleGripLag(undefined,0,0,0,150)
+  const frame=() => actorMotionFrame('held',600,0,grip,false,timing)
+  const move=(dx:number,dy:number,n=18) => {
+    for(let i=0;i<n;i++) grip=sampleGripLag(grip,grip.x+dx,grip.y+dy,grip.time+16,150)
+    return frame()
   }
-  expect(actorMotionFrame('idle',1800,0,0,true,timing)).toBe(0)
+  expect(move(7,0)).toBe(27)
+  expect(move(-7,0,1)).toBe(27)
+  expect(move(-7,0)).toBe(35)
+  expect(move(0,-7)).toBe(19)
+  expect(move(0,7)).toBe(23)
+  expect(move(7,-7)).toBe(29)
+  expect(move(-7,7)).toBe(39)
+  expect(actorMotionFrame('landing',20,0,undefined,false,timing,frame())).toBe(39)
+  expect(actorMotionFrame('landing',180,0,undefined,false,timing,frame())).toBe(43)
+  expect(actorMotionFrame('landing',LANDING_MS,0,undefined,false,timing)).toBe(0)
+  expect(actorMotionFrame('held',300,0,grip,true,timing)).toBe(16)
+  expect(move(0,0,85)).toBe(16)
+  expect(move(0,0,42)).toBe(16)
+  expect(actorMotionFrame('idle',1800,0,undefined,true,timing)).toBe(0)
 })

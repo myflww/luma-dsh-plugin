@@ -1,44 +1,46 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { expect, it } from 'vitest'
 import { SeatedActor } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/OfficeSceneSprites.tsx'
-import { getOfficeAsset } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/assets.ts'
-import { getEmployeeCatalogWithSkin } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/employeeSkins.ts'
-import { deskFrameRegistration } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/deskFrameRegistration.ts'
-import { OFFICE_NAV_HEIGHT, OFFICE_NAV_WIDTH } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/navigation.ts'
-import { officeRearHands } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/officeKeyboardContact.ts'
 import { compileOfficeEmployeeOcclusionPolygons } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/officeSceneGeometry.ts'
+import { officeDeskPlacement, officeDeskShell, officeDeskFrame } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/officeDeskPlacement.ts'
+import { officeKeyboardContact } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/officeKeyboardContact.ts'
+import { OFFICE_WORKSTATION_DIRECTORY } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/workstations.ts'
 
-it('places all rear outfits on the visible private-desk keys through all four exposures', () => {
-  // Endpoints inside the two diagonal key beds, measured on the noon plate.
-  const beds = {
-    'private-upper': {center:[162,465],vector:[8,-5]},
-    'private-lower': {center:[234,656],vector:[9,-7]},
-  } as const
-  for (const id of ['shan','bai-shuangming','lu-mi','claude','jingyuniang','longmama','gemini','grok']) {
+const employees=['shan','bai-shuangming','lu-mi','jingyuniang','longmama','claude','gemini','grok']
+it('registers every outfit on the actual chair, turning toward each private desk and keeping the palms on its keys',()=>{
+  for(const id of employees){
     const outfits=['gemini','grok'].includes(id)?[undefined]:[undefined,'skin.'+id+'.v1']
-    for(const skinId of outfits)for(const workstationId of ['private-upper','private-lower'] as const) {
-      const catalog=getEmployeeCatalogWithSkin(id,skinId)!
-      const art=getOfficeAsset(catalog.typing.back),hand=officeRearHands[art.sha256]!
-      expect(hand).toBeDefined()
-      const {center,vector}=beds[workstationId]
-      for (let frame=0;frame<4;frame++) {
-        const html=renderToStaticMarkup(<SeatedActor employee={{id,name:id,sceneActivity:'idle',availability:'available',activity:'',canDrag:true}}
-          skinId={skinId} workstationId={workstationId} onClick={()=>{}} onContextMenu={()=>{}}
-          review={{employeeId:id,workstationId,mode:'working',frameIndex:frame}}/>)
-        const button=new DOMParser().parseFromString(html,'text/html').querySelector('button')!
-        const anchor=button.style.transformOrigin.split(' ').map(value=>parseFloat(value)/100)
-        const [shiftX,shiftY]=deskFrameRegistration(art.sha256,frame)!
-        const dx=parseFloat(button.style.left)*OFFICE_NAV_WIDTH/100-center[0]
-        const dy=parseFloat(button.style.top)*OFFICE_NAV_HEIGHT/100-center[1]
-        expect(button.dataset.typingFacing).toBe('back')
-        expect(Math.abs(dx)).toBeLessThanOrEqual(vector[0]+.01)
-        expect(dy).toBeCloseTo(dx*vector[1]/vector[0])
-        expect(anchor[0]!*512+shiftX).toBeCloseTo(hand[0])
-        expect(anchor[1]!*860+shiftY).toBeCloseTo(hand[1])
+    for(const skinId of outfits)for(const station of OFFICE_WORKSTATION_DIRECTORY){
+      if(!station.seatPoint)continue
+      const pose=officeDeskPlacement('classic',{id:station.id,seat:station.seatPoint},id,skinId)!
+      const markup=renderToStaticMarkup(<SeatedActor employee={{id,name:id,sceneActivity:'idle',availability:'available',activity:'',canDrag:true}}
+        skinId={skinId} workstationId={station.id} onClick={()=>{}} review={{employeeId:id,workstationId:station.id,mode:'working',frameIndex:0}}/>)
+      const button=new DOMParser().parseFromString(markup,'text/html').querySelector('button')!
+      expect(button.dataset.deskView).toBe(station.zone==='private-office'?'rearLeft':'rear')
+      expect(parseFloat(button.style.left)*16.72).toBeCloseTo(pose.origin[0])
+      expect(parseFloat(button.style.top)*9.41).toBeCloseTo(pose.origin[1])
+      expect(officeDeskShell('classic',station.id)?.length).toBeGreaterThan(0)
+      if(station.zone==='private-office'){
+        const contact=officeKeyboardContact('classic',station.id,pose.palm)!
+        expect(Math.hypot(contact[0]-pose.palm[0],contact[1]-pose.palm[1])).toBeLessThan(5)
       }
+      expect(officeDeskFrame(pose,id,850,false,false)).toBe(0)
+      expect(officeDeskFrame(pose,id,850,true,false)).toBeLessThan(pose.count)
     }
   }
 })
+
+it('uses the front desk only when the actual chair faces the visitor',()=>{
+  for(const id of employees){
+    const desk=officeDeskPlacement('classic',{id:'reception',seat:[838,753],facing:'front'},id)
+    expect(desk?.facing).toBe('front')
+    expect(desk?.palm).toEqual([838,753])
+    const rear=officeDeskPlacement('office.claude.v1',{id:'reception',seat:[1220,568],keyboard:[1249,512],facing:'back'},id)
+    expect(rear?.facing).toBe('rearRight')
+  }
+  expect(officeDeskPlacement('classic',{id:'north-private',seat:[809,378]},'shan','skin.unregistered')).toBeUndefined()
+})
+
 it('keeps the front furniture mask fixed to the same world contact when the seated body rotates', () => {
   const [mask] = compileOfficeEmployeeOcclusionPolygons({
     polygons: [[[130, 200], [130, 210]]], base: {x:130,y:200},

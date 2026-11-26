@@ -34,6 +34,12 @@ const rows: Readonly<Record<string,readonly (KeyRow|null)[]>> = {
 }
 
 /** Select the painted keys nearest a seated actor's reach without shifting desk artwork. */
+export function officeKeyboardCenter(theme:string,station:string):Point|undefined {
+  if(!isOfficeWorkstationId(station))return undefined
+  const row=rows[theme]?.[OFFICE_WORKSTATION_IDS.indexOf(station)]
+  return row?[row[0],row[1]]:undefined
+}
+
 export function officeKeyboardContact(theme:string,station:string,preferred:Point):Point|undefined {
   if(!isOfficeWorkstationId(station))return undefined
   const row=rows[theme]?.[OFFICE_WORKSTATION_IDS.indexOf(station)]

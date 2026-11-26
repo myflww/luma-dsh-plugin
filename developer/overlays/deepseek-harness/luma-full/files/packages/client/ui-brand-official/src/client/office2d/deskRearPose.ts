@@ -5,19 +5,33 @@ export interface DeskView {
   readonly hip:Point
   readonly head:Point
   readonly palms:readonly [Point,Point]
+  readonly forearm:string
+  readonly nearElbow:Point
+  readonly cuffRadius:number
   readonly ankleLine:number
   readonly headHeight:number
   readonly knee:Point
   readonly sole:Point
   readonly soleY:number
 }
+export interface JointDeskView extends DeskView {
+  readonly src:string
+  readonly cell:readonly [number,number]
+  readonly hands:readonly [number,number,number,number]
+  readonly imageSize:readonly [number,number]
+  readonly nightTint:readonly [number,number,number]
+  readonly castors:readonly Point[]
+  readonly rail:Point
+}
 interface DeskRearPose {
+  readonly joints?:Readonly<Record<string,JointDeskView>>
   readonly src:string
   readonly sha256:string
   readonly cell:readonly [number,number]
   readonly count:number
   readonly preferOblique:boolean
   readonly rear:DeskView
+  readonly highOblique?:DeskView & {readonly src:string;readonly sha256:string}
   readonly oblique:DeskView
 }
 

@@ -8910,144 +8910,424 @@
     "sha256": "25044a60f440e87659055d08c20ec375a99fab04e10e7f58ab1d5a1e86a18a49"
   },
   {
-    "path": "luma-office/luma-plugin-art/actor-poses/bai-shuangming-base.c0fca273f9e4.png",
-    "sha256": "c0fca273f9e471470a80e3231bd7e3f1be409f303587add227d64ade5614c002",
-    "bytes": 1370650
+    "path": "luma-office/luma-plugin-art/actor-poses/bai-shuangming-base.d19bc6cd1fcf.png",
+    "sha256": "d19bc6cd1fcfd3606ee69fc145490bbacd861b116be0cc4dbdeac4d3b7adcede",
+    "bytes": 2370287
   },
   {
-    "path": "luma-office/luma-plugin-art/actor-poses/bai-shuangming-v1.f1a9ae9cbdd3.png",
-    "sha256": "f1a9ae9cbdd3304965ac9047b47d9e0e83662316492e2c0a58e17bf2f6569176",
-    "bytes": 1433636
+    "path": "luma-office/luma-plugin-art/actor-poses/bai-shuangming-v1.e3feadb9ca55.png",
+    "sha256": "e3feadb9ca557e9e8aac32387f81eb8bfba9e2faed6df2fff5ee8cd31e1acfc4",
+    "bytes": 2588601
   },
   {
-    "path": "luma-office/luma-plugin-art/actor-poses/claude-base.cff06c210d26.png",
-    "sha256": "cff06c210d2680147acb5047b6955aa228ddba200b36d2f1553f1f0acd0f5743",
-    "bytes": 1383934
+    "path": "luma-office/luma-plugin-art/actor-poses/claude-base.d064f0087bad.png",
+    "sha256": "d064f0087badcfb347d401eadffa74ae812ac0734b0261dd0650d90a66b289a7",
+    "bytes": 2458364
   },
   {
-    "path": "luma-office/luma-plugin-art/actor-poses/claude-v1.f468b50a296b.png",
-    "sha256": "f468b50a296bc4f5c688fd98d2ba4257bc295846991506fe41907d8f8e997511",
-    "bytes": 1460721
+    "path": "luma-office/luma-plugin-art/actor-poses/claude-v1.ceb7629b32e9.png",
+    "sha256": "ceb7629b32e9b65a4e3632169d4e55c4bcd845a8966c81282979604f43582b4a",
+    "bytes": 2574426
   },
   {
-    "path": "luma-office/luma-plugin-art/actor-poses/gemini-v1.feec4b0641a4.png",
-    "sha256": "feec4b0641a4082920f3958c6de0b17215b301238d5c297c8502afa62ac7b86a",
-    "bytes": 1355784
+    "path": "luma-office/luma-plugin-art/actor-poses/gemini-v1.6cf3694de7bb.png",
+    "sha256": "6cf3694de7bb0be32f49ae24a953a0055a58b1742bf2cc2586f4f689bdb0c3c7",
+    "bytes": 2392834
   },
   {
-    "path": "luma-office/luma-plugin-art/actor-poses/grok-v1.af294555dd4f.png",
-    "sha256": "af294555dd4f86cc1a6c4ce3b24daca8a3c99e5abbe67147f5912780c052bc83",
-    "bytes": 1417285
+    "path": "luma-office/luma-plugin-art/actor-poses/grok-v1.56fcd171a3a9.png",
+    "sha256": "56fcd171a3a97df278ab6d6ffcf6e580cfa684fc9e54926b4b51d2796e506c4d",
+    "bytes": 2463311
   },
   {
-    "path": "luma-office/luma-plugin-art/actor-poses/jingyuniang-base.8f21d70e33d6.png",
-    "sha256": "8f21d70e33d667388f301c0659a1faecc496a33c9831d6b27a5fc124e04893f5",
-    "bytes": 1234864
+    "path": "luma-office/luma-plugin-art/actor-poses/jingyuniang-base.610aa3a3fcb1.png",
+    "sha256": "610aa3a3fcb17d4a18d968339305becd47ab28d2c4da418096004b9befe186b4",
+    "bytes": 2043138
   },
   {
-    "path": "luma-office/luma-plugin-art/actor-poses/jingyuniang-v1.f07fa18406b1.png",
-    "sha256": "f07fa18406b1efa6f32b4f994dd7fd5b63dc8f01181c497b2332b8179b7f55f4",
-    "bytes": 1311934
+    "path": "luma-office/luma-plugin-art/actor-poses/jingyuniang-v1.d6466050286b.png",
+    "sha256": "d6466050286b4eb7aa22e070c74deb999a42ef2be2bae50e9840de870259905f",
+    "bytes": 2294013
   },
   {
-    "path": "luma-office/luma-plugin-art/actor-poses/longmama-base.0dc5cacdccd3.png",
-    "sha256": "0dc5cacdccd3e74b322bd6eb3ad9cf06ee8a784e01ceaac95a928cecc6a4273a",
-    "bytes": 1309469
+    "path": "luma-office/luma-plugin-art/actor-poses/longmama-base.96f160667429.png",
+    "sha256": "96f16066742966b6d53880f692339f4aa8b7a39bb04aed049405464d0d36cc58",
+    "bytes": 2286532
   },
   {
-    "path": "luma-office/luma-plugin-art/actor-poses/longmama-v1.fdba9b10864b.png",
-    "sha256": "fdba9b10864bd32059f0f6b98a50e253fe5429b0390a5d5e104bccc1d2d1d29b",
-    "bytes": 1253317
+    "path": "luma-office/luma-plugin-art/actor-poses/longmama-v1.00e371e95a69.png",
+    "sha256": "00e371e95a6923eea934c549b1127c128f844ba62db1820d77d91d2535ef47fd",
+    "bytes": 2130680
   },
   {
-    "path": "luma-office/luma-plugin-art/actor-poses/lu-mi-base.561aca7253d7.png",
-    "sha256": "561aca7253d7c4debde8bd5886f5a400f20d6b94fcec90205838757d04eeac78",
-    "bytes": 1277639
+    "path": "luma-office/luma-plugin-art/actor-poses/lu-mi-base.0e5dfa930533.png",
+    "sha256": "0e5dfa930533840821dfe82f7ed702b731d5d7106f67e984e64a389b944e921e",
+    "bytes": 2204206
   },
   {
-    "path": "luma-office/luma-plugin-art/actor-poses/lu-mi-v1.9b52f887af28.png",
-    "sha256": "9b52f887af2883f13bed7bd948163ba472a5191a9db5c1ab5ad509fe7de3bafc",
-    "bytes": 1095620
+    "path": "luma-office/luma-plugin-art/actor-poses/lu-mi-v1.e577b4ddd5d7.png",
+    "sha256": "e577b4ddd5d760715fbcb110872e4a2aa07eca649300081eabe0348f37e49d1b",
+    "bytes": 1831611
   },
   {
-    "path": "luma-office/luma-plugin-art/actor-poses/shan-base.00df7477c000.png",
-    "sha256": "00df7477c000d7c9c27226f843c5c589a33dc1d76be034ebbf966ca75b20b1f5",
-    "bytes": 1442924
+    "path": "luma-office/luma-plugin-art/actor-poses/shan-base.ca2134cb47b8.png",
+    "sha256": "ca2134cb47b831ccac07db5d821b20f49adc2cd2cea3818264ea89057ced0bda",
+    "bytes": 2475806
   },
   {
-    "path": "luma-office/luma-plugin-art/actor-poses/shan-v1.98a541e390ae.png",
-    "sha256": "98a541e390aecaab22c43cac9db3af29f5d2cba4b82e6c158675a64cb846c87f",
-    "bytes": 1269264
+    "path": "luma-office/luma-plugin-art/actor-poses/shan-v1.e2e0be7a92d1.png",
+    "sha256": "e2e0be7a92d1fea7cced3a1478181fb5c89289ebe057a2d0feed5e0d0a3b44be",
+    "bytes": 2129124
   },
   {
-    "path": "luma-office/luma-plugin-art/rear-desk/bai-shuangming-base.1f15ec3c5478.webp",
-    "bytes": 525428,
-    "sha256": "1f15ec3c5478b46d6fd74045ed3f6457576270ceaff5e91b455a8001671184bd"
+    "path": "luma-office/luma-plugin-art/office-reception/bai-shuangming-base.5fb2133da137.webp",
+    "bytes": 393618,
+    "sha256": "5fb2133da1379aa4a1cc8e454f3f78ffedddd03e4fe03e2f91d86a25f8bd4432"
   },
   {
-    "path": "luma-office/luma-plugin-art/rear-desk/bai-shuangming-v1.48fd9e480d0f.webp",
-    "bytes": 538958,
-    "sha256": "48fd9e480d0f9dd7cc804b4642c0b2e4a03523849fe260b9a639b4cb30333156"
+    "path": "luma-office/luma-plugin-art/office-reception/bai-shuangming-v1.6eddc07d8199.webp",
+    "bytes": 455924,
+    "sha256": "6eddc07d81995c865bf40b1ba362efeadbf8ee08739a9f33f0da5fe48b9485e1"
   },
   {
-    "path": "luma-office/luma-plugin-art/rear-desk/claude-base.9c425493179d.webp",
-    "bytes": 535206,
-    "sha256": "9c425493179d793833be521693ac240f6cff52566cc0ab24dd7052ee0582a7f3"
+    "path": "luma-office/luma-plugin-art/office-reception/claude-base.00df35803e5c.webp",
+    "bytes": 434022,
+    "sha256": "00df35803e5ccd67c9f6ea181ee1d527a294e4588b31e9c301c3c7bd3aa6c066"
   },
   {
-    "path": "luma-office/luma-plugin-art/rear-desk/claude-v1.24d739de042c.webp",
-    "bytes": 623368,
-    "sha256": "24d739de042c560965b7f0ef59247574f61b2a26b9971605acb0a125ec31cab0"
+    "path": "luma-office/luma-plugin-art/office-reception/claude-v1.6ee869e9ff53.webp",
+    "bytes": 393058,
+    "sha256": "6ee869e9ff53a6512e2f7fd2376fb6b2008224aa829a9ced181f0fc06505fdb7"
   },
   {
-    "path": "luma-office/luma-plugin-art/rear-desk/gemini-v1.8e9abad64496.webp",
-    "bytes": 875620,
-    "sha256": "8e9abad6449669ce1a742d235893bcfae99a7fc20eb87251cdb9ae4e6aeadf02"
+    "path": "luma-office/luma-plugin-art/office-reception/gemini-v1.1029cca80863.webp",
+    "bytes": 555820,
+    "sha256": "1029cca80863cca4b169ef6b72f5423efab6992b4f5df3cc0f78f94087491739"
   },
   {
-    "path": "luma-office/luma-plugin-art/rear-desk/grok-v1.bd7e5d4dcef0.webp",
-    "bytes": 674466,
-    "sha256": "bd7e5d4dcef0b4661b59624b3820cb795803a802a3f9f7ddbb20a7bbe2c0fdf1"
+    "path": "luma-office/luma-plugin-art/office-reception/grok-v1.80bfe59fdee9.webp",
+    "bytes": 473698,
+    "sha256": "80bfe59fdee990e3dfd52efeccba03c18d04f624fbd43bfc4fcb771c62ac6a2a"
   },
   {
-    "path": "luma-office/luma-plugin-art/rear-desk/jingyuniang-base.7aa014a6ca61.webp",
-    "bytes": 587084,
-    "sha256": "7aa014a6ca6128d525f516b38820b26a89cf86035ad8065b59f23e7c32116fce"
+    "path": "luma-office/luma-plugin-art/office-reception/jingyuniang-base.3b5c69bb6685.webp",
+    "bytes": 414300,
+    "sha256": "3b5c69bb6685a9bc8015a2404756abe4e6e58134e4ee7010b826be37a23e7ae8"
   },
   {
-    "path": "luma-office/luma-plugin-art/rear-desk/jingyuniang-v1.cc92b9d5f2ea.webp",
-    "bytes": 549408,
-    "sha256": "cc92b9d5f2ea4ed12ec98ebc8211602cf8b917394b9ff220da5aded8630e03b4"
+    "path": "luma-office/luma-plugin-art/office-reception/jingyuniang-v1.5f4cd541c157.webp",
+    "bytes": 443222,
+    "sha256": "5f4cd541c1578dc80b23f8220f2b08258d8502f0a75a41f38ee51b99b3b53347"
   },
   {
-    "path": "luma-office/luma-plugin-art/rear-desk/longmama-base.9f90f42c8748.webp",
-    "bytes": 737280,
-    "sha256": "9f90f42c8748358581da3a940de47c045f427f537c0398950222902a9d1c40cb"
+    "path": "luma-office/luma-plugin-art/office-reception/longmama-base.6e41b21cad02.webp",
+    "bytes": 475738,
+    "sha256": "6e41b21cad029417ee3b80f23fffa45ce07c110d747101130c59189d209d888d"
   },
   {
-    "path": "luma-office/luma-plugin-art/rear-desk/longmama-v1.3468ec86dd5e.webp",
-    "bytes": 739818,
-    "sha256": "3468ec86dd5e2d423709a15c6f6c26f115818a572e08254f44af118bd2ca927b"
+    "path": "luma-office/luma-plugin-art/office-reception/longmama-v1.6028ba527005.webp",
+    "bytes": 560962,
+    "sha256": "6028ba5270053136c45148a44e6b24de36a5af3c743255f902775a57f282c5db"
   },
   {
-    "path": "luma-office/luma-plugin-art/rear-desk/lu-mi-base.9b54f8540903.webp",
-    "bytes": 632928,
-    "sha256": "9b54f8540903431ea9f8e83c24a60b76b5d12fad2352e2d1a0b4a03c6fa4b898"
+    "path": "luma-office/luma-plugin-art/office-reception/lu-mi-base.4aa8f72b0e23.webp",
+    "bytes": 337188,
+    "sha256": "4aa8f72b0e2397c83a0b65d6d53ca0f933b9206bebd52ae7a5da94a7ac7744f4"
   },
   {
-    "path": "luma-office/luma-plugin-art/rear-desk/lu-mi-v1.096b20dc2398.webp",
-    "bytes": 455542,
-    "sha256": "096b20dc239897d495eea352f9d39e21f1b96bc4f16aeb9e66c121fc3f997301"
+    "path": "luma-office/luma-plugin-art/office-reception/lu-mi-v1.71d6b45d674d.webp",
+    "bytes": 332688,
+    "sha256": "71d6b45d674dcfc2c4b162c128f9a4441dbd9b1ef9d1c9161cc912ae4461411a"
   },
   {
-    "path": "luma-office/luma-plugin-art/rear-desk/shan-base.92c8480227c8.webp",
-    "bytes": 607120,
-    "sha256": "92c8480227c8a8b6a1f8a32efd5b9b67c3cbb742b782efe436e54203d2b11d8e"
+    "path": "luma-office/luma-plugin-art/office-reception/shan-base.b0964223b94c.webp",
+    "bytes": 385574,
+    "sha256": "b0964223b94c53506a818bfe09397616cc92173214ff8f8014b12c35fe601059"
   },
   {
-    "path": "luma-office/luma-plugin-art/rear-desk/shan-v1.b221f5055012.webp",
-    "bytes": 541978,
-    "sha256": "b221f5055012d16eaab0cb517d6564a44c9d2f7fd0fd68bc87bdfb88163f85ac"
+    "path": "luma-office/luma-plugin-art/office-reception/shan-v1.be435dcaeb36.webp",
+    "bytes": 391626,
+    "sha256": "be435dcaeb3602bf106c03437ab29fc3808f3602de5a42ca3450aa66d8c06505"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/bai-shuangming-base.17cd590e8813.webp",
+    "bytes": 525490,
+    "sha256": "17cd590e8813394d3f0448f1f5dbfbfb0f444195187586b66dd7a5a0db6d3f6d"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/bai-shuangming-base-high.1c18b1579ffa.webp",
+    "bytes": 130464,
+    "sha256": "1c18b1579ffaef275bea5e4eac8929f4924d978e6fb3f00feea8a156ccc1051a"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/bai-shuangming-v1.b3e0c9177ea0.webp",
+    "bytes": 539610,
+    "sha256": "b3e0c9177ea0ef6db778f14cb50df6e9d355ce16f3420bcfaaff7666cb689251"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/bai-shuangming-v1-high.b37568c8769b.webp",
+    "bytes": 113144,
+    "sha256": "b37568c8769bad8c6cb435c56e8c0a642ff0c6eae43478a1c9c500c1c3d69b22"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/claude-base.bbdf25291633.webp",
+    "bytes": 537006,
+    "sha256": "bbdf25291633180224c7c05fdc7551d31e8982eb5b6b34318cb45f4ecd74072b"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/claude-base-high.23ac6e3e88b3.webp",
+    "bytes": 139488,
+    "sha256": "23ac6e3e88b369ff806a0bc19f54ae0168317ecf895deca248153d5f7fb9b0f8"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/claude-v1.9d3e1599896d.webp",
+    "bytes": 622662,
+    "sha256": "9d3e1599896dd596a1de68aef451f83f07ac6aa15784e6f0c60b64db3bf60ebe"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/claude-v1-high.cebb72cf7109.webp",
+    "bytes": 111734,
+    "sha256": "cebb72cf710948651aaf40e4f4035886ef757716e504e155b2ae6d4091f6d8d7"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/gemini-v1.712919732f3f.webp",
+    "bytes": 874274,
+    "sha256": "712919732f3f2b2c46b8d7092e87c47bbc531f01946ec47c114240cd3a271807"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/gemini-v1-high.44341ee2ad96.webp",
+    "bytes": 135328,
+    "sha256": "44341ee2ad965749b238c57cbc5b3fc4637b7bcde5723590bc58e0c329db46aa"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/grok-v1.6d1181e91480.webp",
+    "bytes": 673940,
+    "sha256": "6d1181e91480cf42975eb1bee1c39093ae7a5827b91e4fe1ec745915d63406e9"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/grok-v1-high.81095f783b48.webp",
+    "bytes": 123704,
+    "sha256": "81095f783b488d3a5200382ccc1f0b2fb641a6508543bbe9fd383eed63b21fb1"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/jingyuniang-base.8c2ec7fc13b5.webp",
+    "bytes": 585308,
+    "sha256": "8c2ec7fc13b56acfac0fece0865e8e9ac83fab7a2b2bc31231622c0bd6af9914"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/jingyuniang-base-high.eb9b9d2731b1.webp",
+    "bytes": 121696,
+    "sha256": "eb9b9d2731b115481ac81121d9cb310c9cb871fff853abe30c00bd6a4417679c"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/jingyuniang-v1.108068a69778.webp",
+    "bytes": 551186,
+    "sha256": "108068a6977818d594cd17b9b8418f6cb746926749e2b6d32c4660ce4a8510f2"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/jingyuniang-v1-high.5784ff09505d.webp",
+    "bytes": 135476,
+    "sha256": "5784ff09505d6c7571f47203e0bb48452fcfb56d2f00a381b307a50890ce298d"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/longmama-base.47debb0f7c19.webp",
+    "bytes": 735240,
+    "sha256": "47debb0f7c19b00258c2406dc53c90f77fff2614ba890c089a99d28989bee2c0"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/longmama-base-high.855d12365a28.webp",
+    "bytes": 148716,
+    "sha256": "855d12365a28fa5a0b13605c4a52d81229ecd83d4072988a5bc21dfd0369f9ad"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/longmama-v1.962c62406ba5.webp",
+    "bytes": 739812,
+    "sha256": "962c62406ba5da70e27500dfe62124d1ac4cfd0cc39a5787c40ec542ddc402c1"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/longmama-v1-high.77155250b6cf.webp",
+    "bytes": 132066,
+    "sha256": "77155250b6cfadd6b58d6bd67806a8be6b42a17a353d2b488d52200bb810f4a1"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/lu-mi-base.4bea79fa7e62.webp",
+    "bytes": 635468,
+    "sha256": "4bea79fa7e6256392eec32cd6985b9ff3e3d8714ff55ff01f2c7e362d344e25b"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/lu-mi-base-high.341b219f4422.webp",
+    "bytes": 127372,
+    "sha256": "341b219f442229a2b6e71214c023bf87defdd276615b9e17db9a491bd982822b"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/lu-mi-v1.90f26dbe1609.webp",
+    "bytes": 457086,
+    "sha256": "90f26dbe1609e5d3c0d01839b4092cedfce1abcd44ea811668d4b10508d400da"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/lu-mi-v1-high.281f3ca577b2.webp",
+    "bytes": 124838,
+    "sha256": "281f3ca577b20d716cda9b62dda40a97ebaffde682a2d46fecc474ba84418c02"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/shan-base.e5533ef116be.webp",
+    "bytes": 609836,
+    "sha256": "e5533ef116be525c2b5b8a6b2cd3aeff200b85ac84b83b4a33ff049131a6e522"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/shan-base-high.c9b44f4bb669.webp",
+    "bytes": 108520,
+    "sha256": "c9b44f4bb6694b576cfb2dc817654d15797aa954b80abb53e0524f86858bfa3f"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/shan-v1.00e23a99857a.webp",
+    "bytes": 543312,
+    "sha256": "00e23a99857adb757564d3b0c975bc65912a695e539102a45f268ada90df27b4"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/shan-v1-high.8117965dca45.webp",
+    "bytes": 97208,
+    "sha256": "8117965dca45182c5634cb70746c746648fa94a0f08cd7fe202d57fbbf3e652b"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/rose-shan-base-joint.618e178a9d37.webp",
+    "bytes": 131280,
+    "sha256": "618e178a9d37b254575ecac9b008a0164487e593f2adf5f88f53082a2569d145"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/alpine-jingyuniang-base-joint.fd5b70075af9.webp",
+    "bytes": 127322,
+    "sha256": "fd5b70075af9059d80f163c1ff1abb02b3c3c4bad7eb2a09073b3298fd6597ef"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/alpine-bai-shuangming-base-joint.d971a9f57a8c.webp",
+    "bytes": 135474,
+    "sha256": "d971a9f57a8c6451dae420f5b520925fefcc76de569ff7ba3b9b5c46dba3b230"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/alpine-lu-mi-base-joint.de65da1eed35.webp",
+    "bytes": 124064,
+    "sha256": "de65da1eed35d464372e072840fa651312f2fe325bf3c8119c957f20bd1db445"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/alpine-lu-mi-v1-joint.5ed1cc6d0b41.webp",
+    "bytes": 134594,
+    "sha256": "5ed1cc6d0b41c241ba93a48ec72f1a2a0ad671d68699bfaafca7f49b8baad2a2"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/rose-bai-shuangming-base-joint.11fe80ee75b5.webp",
+    "bytes": 121052,
+    "sha256": "11fe80ee75b5482ff41565b69b5720525fd9305eaf938b55f059e541d4f041a0"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/rose-jingyuniang-base-joint.a1e6cb8a54a6.webp",
+    "bytes": 146934,
+    "sha256": "a1e6cb8a54a6a6e1ade0a43300526f10ebac27202d06f08eef52c09829e8719f"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/rose-lu-mi-base-joint.bc9b8da253c5.webp",
+    "bytes": 120914,
+    "sha256": "bc9b8da253c5dfcc31e6d9cb989cdc8211bbb36c96466dff6d4f17a80aa31308"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/rose-lu-mi-v1-joint.4aab0109ab69.webp",
+    "bytes": 132860,
+    "sha256": "4aab0109ab6968c6849858de667e7cd9a4c538b856d2f0143e5771499cb8da8f"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/rose-shan-v1-joint.e0bb8b2730f9.webp",
+    "bytes": 133524,
+    "sha256": "e0bb8b2730f9846fe14af000819b81bb0af51650ba9524f2694001cd0db05584"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/alpine-bai-shuangming-v1-joint.caa39a5ac8e4.webp",
+    "bytes": 135946,
+    "sha256": "caa39a5ac8e4b0e22d7a70aaec1db1354b7969e7e1eb69bc5a8838c5e631dcfe"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/alpine-jingyuniang-v1-joint.35d2aca34efe.webp",
+    "bytes": 117334,
+    "sha256": "35d2aca34efed5a3f8f889712c7a511080cd9a9bed5ad21ff6177bd650b1696e"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/alpine-longmama-base-joint.d4ff8de32fb1.webp",
+    "bytes": 141330,
+    "sha256": "d4ff8de32fb150c8091c63efb51c99bf516f29558241c6c35283e500ff46d85b"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/alpine-longmama-v1-joint.226fc0ef1ce1.webp",
+    "bytes": 163574,
+    "sha256": "226fc0ef1ce102dd50cea767d98c4de22e951bc5e7120dba554ea035215617f7"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/rose-bai-shuangming-v1-joint.45741a1b346e.webp",
+    "bytes": 122544,
+    "sha256": "45741a1b346e61c73ae5018bcc2bf60bfb7e25a4305894d3350cd6d45cf26eb6"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/rose-jingyuniang-v1-joint.5be52f1b37d5.webp",
+    "bytes": 144458,
+    "sha256": "5be52f1b37d5bffc0613811d887a183bb75d94fa2f478ec79f1b2172d928c32b"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/rose-longmama-base-joint.1643de686a58.webp",
+    "bytes": 125778,
+    "sha256": "1643de686a58eb7bccde882d65231fe5342fe8f0586e29705b2df83307b24c19"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/alpine-claude-base-joint.00d84ef51d0a.webp",
+    "bytes": 144866,
+    "sha256": "00d84ef51d0ac048185b62fa461bf5af357802d4211504390992b6f5671982aa"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/alpine-claude-v1-joint.f9ba77949f86.webp",
+    "bytes": 132898,
+    "sha256": "f9ba77949f86918c2842ce7054fcf6e066a6faf8df7dd41c23711df11c8191e9"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/alpine-gemini-v1-joint.25cebccf9048.webp",
+    "bytes": 171076,
+    "sha256": "25cebccf9048f62eb6cbf7e3ea739a90b731fd20bfb6d80e32f68a92149f84de"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/alpine-grok-v1-joint.706f80573ec5.webp",
+    "bytes": 151960,
+    "sha256": "706f80573ec534462ed9c4c53e53322f745af59f4f017857cbaaf68d2c0657d1"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/alpine-shan-base-joint.aee62ca16c4d.webp",
+    "bytes": 136788,
+    "sha256": "aee62ca16c4da15a47903158f0e47b37bdd6c0f03a5480ab520dbcfc1cbf77e6"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/alpine-shan-v1-joint.3563dde22660.webp",
+    "bytes": 111894,
+    "sha256": "3563dde22660f1dcb493a870db4ded2f1fb0ecb30f918305011bca60834e2ce8"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/rose-claude-base-joint.37f4c0b141ff.webp",
+    "bytes": 127244,
+    "sha256": "37f4c0b141ff448e3192b1da077ff69ff2fb6eec9b420316d0700fce5eb0f384"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/rose-claude-v1-joint.54a2e5becca3.webp",
+    "bytes": 120988,
+    "sha256": "54a2e5becca395771758cd48827d7257fe2060c806b26abd914745ef754b21d2"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/rose-gemini-v1-joint.f1abef9c41a0.webp",
+    "bytes": 139460,
+    "sha256": "f1abef9c41a0a0996e4ce45b1916ddbfa42d34829114611b1de547af5e2d408d"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/rose-grok-v1-joint.3f864c5fd933.webp",
+    "bytes": 133464,
+    "sha256": "3f864c5fd933e7d53fd4b71f21ec663727ab679b4484a2ff313482dd03750067"
+  },
+  {
+    "path": "luma-office/luma-plugin-art/rear-desk/rose-longmama-v1-joint.cc1d24409775.webp",
+    "bytes": 126978,
+    "sha256": "cc1d24409775fc496d96bad4a7524edb3e9c063fa2b1d1d644a914ffc5b394b4"
   },
   {
     "path": "luma-office/luma-plugin-art/gait-0622a4645c7a.8cf71f933ea7.png",
@@ -9065,9 +9345,9 @@
     "bytes": 303892
   },
   {
-    "path": "luma-office/luma-plugin-art/gait-0e96bed177d8.039ad3a9a110.png",
-    "sha256": "039ad3a9a110bb6821613d1b410891258561b1ef703b6b55b340408e4ee4c751",
-    "bytes": 1462048
+    "path": "luma-office/luma-plugin-art/gait-0e96bed177d8.535cd3ca2f3e.png",
+    "sha256": "535cd3ca2f3e74cde5dbd1b1ff9b2cc58ba56af91c9d0367275b984e4c0b5af1",
+    "bytes": 309518
   },
   {
     "path": "luma-office/luma-plugin-art/gait-1aa5b67a8766.afbf74e33562.png",
@@ -9080,9 +9360,9 @@
     "bytes": 355142
   },
   {
-    "path": "luma-office/luma-plugin-art/gait-2361df10513f.3f78421e49d2.png",
-    "sha256": "3f78421e49d218e3c1a8134af0e994e6365849f091069fbabc56a2a4df6aaa88",
-    "bytes": 1976242
+    "path": "luma-office/luma-plugin-art/gait-2361df10513f.1340c1a5a8ee.png",
+    "sha256": "1340c1a5a8ee511d11ec6fce0419767f1e344a1c4c425a08289ab70363af5763",
+    "bytes": 343544
   },
   {
     "path": "luma-office/luma-plugin-art/gait-236c7b79b610.39b5fb3cfcb3.png",
@@ -9110,9 +9390,9 @@
     "bytes": 329696
   },
   {
-    "path": "luma-office/luma-plugin-art/gait-39899911a285.bd10b619e32c.png",
-    "sha256": "bd10b619e32c31f4a7a7612d7539876910624ada53c8a7d1826aa019ae94889b",
-    "bytes": 2431176
+    "path": "luma-office/luma-plugin-art/gait-39899911a285.064703dee3ab.png",
+    "sha256": "064703dee3ab166e01649b6e74ba1215f6fbfe933fa8cc57412cc5219c9f8cee",
+    "bytes": 319758
   },
   {
     "path": "luma-office/luma-plugin-art/gait-3ebbf5642f8b.42c19437427e.png",
@@ -9195,14 +9475,14 @@
     "bytes": 275882
   },
   {
-    "path": "luma-office/luma-plugin-art/gait-8ac9e268df69.a8eb84fb2118.png",
-    "sha256": "a8eb84fb2118b2f29d9dc7de2ad6d6ae4884f61f9feef22d5caa3282a13f6d93",
-    "bytes": 2993160
+    "path": "luma-office/luma-plugin-art/gait-8ac9e268df69.f33fef01b0e4.png",
+    "sha256": "f33fef01b0e4e21352e6bc0f9fd41889e85f41444dc91b25d473d3c207871fe8",
+    "bytes": 286890
   },
   {
-    "path": "luma-office/luma-plugin-art/gait-91a28afb5d64.456fe9cd379c.png",
-    "sha256": "456fe9cd379cf839f4ac876fde86fc368c80b5411638caaa733fa961389573ef",
-    "bytes": 1674405
+    "path": "luma-office/luma-plugin-art/gait-91a28afb5d64.723d3bc47cd0.png",
+    "sha256": "723d3bc47cd0d4a33834333ba51b46d74e4d35bf9b40b1da56b10818f286648c",
+    "bytes": 297466
   },
   {
     "path": "luma-office/luma-plugin-art/gait-94d6c43f633d.89852ab70331.png",
@@ -9210,9 +9490,9 @@
     "bytes": 367396
   },
   {
-    "path": "luma-office/luma-plugin-art/gait-9e59c9d7878d.bf3738a34a5b.png",
-    "sha256": "bf3738a34a5bdee193e9b84128664969cce2e2bb40f6933e8af58b9091c433dd",
-    "bytes": 1488500
+    "path": "luma-office/luma-plugin-art/gait-9e59c9d7878d.d64126d489a0.png",
+    "sha256": "d64126d489a069b9a8b37b076de78b4fd01042790c1e013459be0d683d5fecd0",
+    "bytes": 303071
   },
   {
     "path": "luma-office/luma-plugin-art/gait-a30c6aeac5eb.9dd86f8682b7.png",
@@ -9220,9 +9500,9 @@
     "bytes": 371811
   },
   {
-    "path": "luma-office/luma-plugin-art/gait-a3d8b48b0862.6c56bcfa98e9.png",
-    "sha256": "6c56bcfa98e9870260952dd93c74ce08c2085990c9c973e8f8030f555c61e4cd",
-    "bytes": 2388687
+    "path": "luma-office/luma-plugin-art/gait-a3d8b48b0862.03fe31194ff4.png",
+    "sha256": "03fe31194ff44ccf9fd9e6620ca9f4fb2d8d60ec901d7da9da99af7f502000b4",
+    "bytes": 312523
   },
   {
     "path": "luma-office/luma-plugin-art/gait-a9d2e4d71d82.16754616e521.png",
@@ -9240,14 +9520,14 @@
     "bytes": 347841
   },
   {
-    "path": "luma-office/luma-plugin-art/gait-b175000f5474.7848d3bf6b40.png",
-    "sha256": "7848d3bf6b4074973d8394df94cb13937c1c2aa5b7c98d647f9e26a0f9fc876d",
-    "bytes": 1468459
+    "path": "luma-office/luma-plugin-art/gait-b175000f5474.b57ad49c527c.png",
+    "sha256": "b57ad49c527c2e66ff5e204f9e7e50cee034963be36702311873dbb8d0df6406",
+    "bytes": 282570
   },
   {
-    "path": "luma-office/luma-plugin-art/gait-b2719c4c9d28.a1f85b705a0a.png",
-    "sha256": "a1f85b705a0a0b64dd99a5eb04b854b3daad5cdcd0c32b1824cb59be05f6819e",
-    "bytes": 3220269
+    "path": "luma-office/luma-plugin-art/gait-b2719c4c9d28.8fe1193f5085.png",
+    "sha256": "8fe1193f5085e191d41e8f9aa8a3eee345e0cb51e26e5b935ea45380f2c9fc40",
+    "bytes": 304145
   },
   {
     "path": "luma-office/luma-plugin-art/gait-b2f73d8fbc7f.8cbf1fefb0c6.png",
@@ -9305,14 +9585,14 @@
     "bytes": 299212
   },
   {
-    "path": "luma-office/luma-plugin-art/gait-e394724fcf22.95d05788d3b9.png",
-    "sha256": "95d05788d3b907bffce86cab63b7400df92396a7d10e62fa50d8b585015cc118",
-    "bytes": 3138287
+    "path": "luma-office/luma-plugin-art/gait-e394724fcf22.566e453ef133.png",
+    "sha256": "566e453ef133ba3142b2d59bbca0cc63c1594a7520060d836eb2a8d32eb27fea",
+    "bytes": 297210
   },
   {
-    "path": "luma-office/luma-plugin-art/gait-e9053015f369.84a41d25a6a5.png",
-    "sha256": "84a41d25a6a58f5594c6f21ff2c50f873c7c4c4cc6449a57bcdd21d68c070d01",
-    "bytes": 3013866
+    "path": "luma-office/luma-plugin-art/gait-e9053015f369.1102d8754ee4.png",
+    "sha256": "1102d8754ee4595f23a2d404c861394c3e7ab7d008d0fc57c3efde35247db7f5",
+    "bytes": 290592
   },
   {
     "path": "luma-office/luma-plugin-art/gait-f2b70830c55a.fa41d3b951fa.png",
@@ -9325,8 +9605,8 @@
     "bytes": 321438
   },
   {
-    "path": "luma-office/luma-plugin-art/gait-fce91bb3a6f8.ab2bc946766b.png",
-    "sha256": "ab2bc946766b2fd233a794e32fd25ecd045119116ac5a6ec370196c1c9186f66",
-    "bytes": 1232877
+    "path": "luma-office/luma-plugin-art/gait-fce91bb3a6f8.84e82982fa78.png",
+    "sha256": "84e82982fa78e614ab185d30a47aa05aaac9b02ee76ae00cc4d37c2075b6ef97",
+    "bytes": 289421
   }
 ]

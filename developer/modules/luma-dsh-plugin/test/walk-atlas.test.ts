@@ -6,7 +6,7 @@ import { getWalkAtlas, sampleWalkAtlas } from '../../../overlays/deepseek-harnes
 import { OFFICE_SILHOUETTES } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/officeSilhouettes.generated.ts'
 import { BEDROOM_FLOORS, bedroomFootAt, bedroomTravelAt, createBedroomRoutine } from '../src/client/bedroom-routine.ts'
 
-it('gives every owned character and outfit four distinct draw cells per painted exposure in all directions', () => {
+it('uses four individually painted walking poses for every outfit and direction', () => {
   const ids = ['shan','lu-mi','bai-shuangming','jingyuniang','longmama','claude','gemini','grok']
   for (const id of ids) for (const skin of [undefined,'skin.'+id+'.v1']) {
     const catalog = getEmployeeCatalogWithSkin(id,skin)!
@@ -14,34 +14,20 @@ it('gives every owned character and outfit four distinct draw cells per painted 
       const atlas = getWalkAtlas(asset)!
       const strip = getOfficeAsset(asset).frameStrip!
       const timeline = createOfficeFrameTimeline(strip)
-      if (atlas.frameDurationsMs) {
-        expect(atlas.count).toBe(4)
-        expect(atlas.frameDurationsMs).toHaveLength(4)
-        let phase=0
-        for (let i=0;i<4;i++) {
-          const duration=atlas.frameDurationsMs[i]!
-          const frame=sampleWalkAtlas(atlas,strip,phase+duration/2)
-          expect(frame.index).toBe(i)
-          expect(frame.rect).toEqual([i*atlas.cell[0]!,0,atlas.cell[0],atlas.cell[1]])
-          phase+=duration
-        }
-        expect(phase).toBeCloseTo(timeline.cycleMs,5)
-        expect(sampleWalkAtlas(atlas,strip,phase).index).toBe(0)
-        expect(sampleWalkAtlas(atlas,strip,phase,false).index).toBe(3)
-        continue
+      expect(atlas.count).toBe(4)
+      expect(atlas.frameDurationsMs).toHaveLength(4)
+      let phase=0
+      for (let i=0;i<4;i++) {
+        const duration=atlas.frameDurationsMs![i]!
+        const frame=sampleWalkAtlas(atlas,strip,phase+duration/2)
+        expect(frame.index).toBe(i)
+        expect(frame.rect).toEqual([i*atlas.cell[0]!,0,atlas.cell[0],atlas.cell[1]])
+        phase+=duration
       }
-      expect(atlas.count).toBe(timeline.order.length*4)
-      for (let i=0;i<timeline.order.length;i++) {
-        const phase = timeline.starts[i]!, exposure = timeline.durations[i]!
-        for(const sample of [0,1,2,3]) {
-          const cell = sampleWalkAtlas(atlas,strip,phase+exposure*(sample+.1)/4)
-          expect(cell.index).toBe(i*4+sample)
-          expect(cell.rect[0]+cell.rect[2]).toBeLessThanOrEqual(atlas.columns*atlas.cell[0]!)
-        }
-      }
-      expect(sampleWalkAtlas(atlas,strip,timeline.cycleMs).index).toBe(0)
-      const last = sampleWalkAtlas(atlas, strip, timeline.cycleMs, false)
-      expect(last.index).toBe((timeline.order.length - 1) * 4)
+      expect(phase).toBeCloseTo(timeline.cycleMs,5)
+      expect(sampleWalkAtlas(atlas,strip,phase).index).toBe(0)
+      const last = sampleWalkAtlas(atlas,strip,phase,false)
+      expect(last.index).toBe(3)
       expect(last.nextDelayMs).toBeNull()
     }
   }

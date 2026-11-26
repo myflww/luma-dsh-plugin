@@ -1,0 +1,254 @@
+{
+  "bai-shuangming-base": {
+    "src": "/luma-office/luma-plugin-art/office-reception/bai-shuangming-base.5fb2133da137.webp",
+    "sha256": "5fb2133da1379aa4a1cc8e454f3f78ffedddd03e4fe03e2f91d86a25f8bd4432",
+    "cell": [
+      480,
+      480
+    ],
+    "count": 4,
+    "hip": [
+      240,
+      308
+    ],
+    "headHeight": 116,
+    "palms": [
+      240.0,
+      260.26
+    ]
+  },
+  "bai-shuangming-v1": {
+    "src": "/luma-office/luma-plugin-art/office-reception/bai-shuangming-v1.6eddc07d8199.webp",
+    "sha256": "6eddc07d81995c865bf40b1ba362efeadbf8ee08739a9f33f0da5fe48b9485e1",
+    "cell": [
+      480,
+      480
+    ],
+    "count": 4,
+    "hip": [
+      240,
+      308
+    ],
+    "headHeight": 116,
+    "palms": [
+      240.0,
+      257.32
+    ]
+  },
+  "claude-base": {
+    "src": "/luma-office/luma-plugin-art/office-reception/claude-base.00df35803e5c.webp",
+    "sha256": "00df35803e5ccd67c9f6ea181ee1d527a294e4588b31e9c301c3c7bd3aa6c066",
+    "cell": [
+      480,
+      480
+    ],
+    "count": 4,
+    "hip": [
+      240,
+      308
+    ],
+    "headHeight": 116,
+    "palms": [
+      242.47,
+      253.44
+    ]
+  },
+  "claude-v1": {
+    "src": "/luma-office/luma-plugin-art/office-reception/claude-v1.6ee869e9ff53.webp",
+    "sha256": "6ee869e9ff53a6512e2f7fd2376fb6b2008224aa829a9ced181f0fc06505fdb7",
+    "cell": [
+      480,
+      480
+    ],
+    "count": 4,
+    "hip": [
+      240,
+      308
+    ],
+    "headHeight": 116,
+    "palms": [
+      242.5,
+      269.36
+    ]
+  },
+  "gemini-v1": {
+    "src": "/luma-office/luma-plugin-art/office-reception/gemini-v1.1029cca80863.webp",
+    "sha256": "1029cca80863cca4b169ef6b72f5423efab6992b4f5df3cc0f78f94087491739",
+    "cell": [
+      480,
+      480
+    ],
+    "count": 4,
+    "hip": [
+      240,
+      308
+    ],
+    "headHeight": 116,
+    "palms": [
+      240.0,
+      265.43
+    ]
+  },
+  "grok-v1": {
+    "src": "/luma-office/luma-plugin-art/office-reception/grok-v1.80bfe59fdee9.webp",
+    "sha256": "80bfe59fdee990e3dfd52efeccba03c18d04f624fbd43bfc4fcb771c62ac6a2a",
+    "cell": [
+      480,
+      480
+    ],
+    "count": 4,
+    "hip": [
+      240,
+      308
+    ],
+    "headHeight": 116,
+    "palms": [
+      240.0,
+      263.12
+    ]
+  },
+  "jingyuniang-base": {
+    "src": "/luma-office/luma-plugin-art/office-reception/jingyuniang-base.3b5c69bb6685.webp",
+    "sha256": "3b5c69bb6685a9bc8015a2404756abe4e6e58134e4ee7010b826be37a23e7ae8",
+    "cell": [
+      480,
+      480
+    ],
+    "count": 4,
+    "hip": [
+      240,
+      308
+    ],
+    "headHeight": 116,
+    "palms": [
+      242.21,
+      279.04
+    ]
+  },
+  "jingyuniang-v1": {
+    "src": "/luma-office/luma-plugin-art/office-reception/jingyuniang-v1.5f4cd541c157.webp",
+    "sha256": "5f4cd541c1578dc80b23f8220f2b08258d8502f0a75a41f38ee51b99b3b53347",
+    "cell": [
+      480,
+      480
+    ],
+    "count": 4,
+    "hip": [
+      240,
+      308
+    ],
+    "headHeight": 116,
+    "palms": [
+      242.36,
+      253.7
+    ]
+  },
+  "longmama-base": {
+    "src": "/luma-office/luma-plugin-art/office-reception/longmama-base.6e41b21cad02.webp",
+    "sha256": "6e41b21cad029417ee3b80f23fffa45ce07c110d747101130c59189d209d888d",
+    "cell": [
+      480,
+      480
+    ],
+    "count": 4,
+    "hip": [
+      240,
+      308
+    ],
+    "headHeight": 116,
+    "palms": [
+      240.0,
+      255.64
+    ]
+  },
+  "longmama-v1": {
+    "src": "/luma-office/luma-plugin-art/office-reception/longmama-v1.6028ba527005.webp",
+    "sha256": "6028ba5270053136c45148a44e6b24de36a5af3c743255f902775a57f282c5db",
+    "cell": [
+      480,
+      480
+    ],
+    "count": 4,
+    "hip": [
+      240,
+      308
+    ],
+    "headHeight": 116,
+    "palms": [
+      240.0,
+      248.0
+    ]
+  },
+  "lu-mi-base": {
+    "src": "/luma-office/luma-plugin-art/office-reception/lu-mi-base.4aa8f72b0e23.webp",
+    "sha256": "4aa8f72b0e2397c83a0b65d6d53ca0f933b9206bebd52ae7a5da94a7ac7744f4",
+    "cell": [
+      480,
+      480
+    ],
+    "count": 4,
+    "hip": [
+      240,
+      308
+    ],
+    "headHeight": 116,
+    "palms": [
+      240.0,
+      268.28
+    ]
+  },
+  "lu-mi-v1": {
+    "src": "/luma-office/luma-plugin-art/office-reception/lu-mi-v1.71d6b45d674d.webp",
+    "sha256": "71d6b45d674dcfc2c4b162c128f9a4441dbd9b1ef9d1c9161cc912ae4461411a",
+    "cell": [
+      480,
+      480
+    ],
+    "count": 4,
+    "hip": [
+      240,
+      308
+    ],
+    "headHeight": 116,
+    "palms": [
+      240.0,
+      269.36
+    ]
+  },
+  "shan-base": {
+    "src": "/luma-office/luma-plugin-art/office-reception/shan-base.b0964223b94c.webp",
+    "sha256": "b0964223b94c53506a818bfe09397616cc92173214ff8f8014b12c35fe601059",
+    "cell": [
+      480,
+      480
+    ],
+    "count": 4,
+    "hip": [
+      240,
+      308
+    ],
+    "headHeight": 116,
+    "palms": [
+      240.0,
+      267.08
+    ]
+  },
+  "shan-v1": {
+    "src": "/luma-office/luma-plugin-art/office-reception/shan-v1.be435dcaeb36.webp",
+    "sha256": "be435dcaeb3602bf106c03437ab29fc3808f3602de5a42ca3450aa66d8c06505",
+    "cell": [
+      480,
+      480
+    ],
+    "count": 4,
+    "hip": [
+      240,
+      308
+    ],
+    "headHeight": 116,
+    "palms": [
+      240.0,
+      265.76
+    ]
+  }
+}

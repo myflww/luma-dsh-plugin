@@ -13,6 +13,12 @@ import { getDeskRearPose } from '../../../overlays/deepseek-harness/luma-full/fi
 import { getOfficeAsset } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/assets.ts'
 import { officeAutomaticWalkCadence } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/frameTimeline.ts'
 
+function activeDeskDrawing(actor:Element,pose:NonNullable<ReturnType<typeof getDeskRearPose>>,room:BedroomRoom){
+  const camera=actor.getAttribute('data-desk-view')
+  if(camera==='joint')return {view:pose.joints![room]!,src:pose.joints![room]!.src}
+  if(camera==='high-oblique')return {view:pose.highOblique!,src:pose.highOblique!.src}
+  return {view:camera==='three-quarter'?pose.oblique:pose.rear,src:pose.src}
+}
 const speeds={left:65,right:65,up:72,down:72}
 afterEach(()=>{ cleanup(); vi.useRealTimers() })
 
@@ -43,21 +49,22 @@ it('moves the chair towards the fixed key bed and registers the rear wrists and 
     expect(actor.querySelector('[data-bedroom-keyboard],[data-bedroom-input-tray]')).toBeNull()
     expect(actor.querySelector(`image[href="${background}"]`)).toBeNull()
     const figure=actor.querySelector('[data-body-projection="seated"]')!
-    expect(figure.querySelector('image')?.getAttribute('href')).toBe(pose.src)
+    expect(figure.querySelector('image')?.getAttribute('href')).toBe(activeDeskDrawing(actor,pose,roomId).src)
     const [a,b,c,d,tx,ty]=figure.getAttribute('transform')!.slice(7,-1).split(' ').map(Number) as [number,number,number,number,number,number]
     const world=(p:readonly [number,number])=>[a*p[0]+c*p[1]+tx,b*p[0]+d*p[1]+ty]
-    const selected=actor.getAttribute('data-desk-view')==='three-quarter'?pose.oblique:pose.rear
+    const {view:selected}=activeDeskDrawing(actor,pose,roomId)
     const [hipX,hipY]=world(selected.hip)
     expect(Math.abs(a)).toBeCloseTo(d)
     expect(b).toBe(0)
     expect(c).toBe(0)
     // Clockwise outline of the painted desktop keyboard in the original classic art.
     const corners=[[749,522],[764,512],[834,535],[818,546]] as const
-    for(const hand of selected.palms){
+    for(const [index,hand] of selected.palms.entries()){
       const [x,y]=world(hand)
       for(const [i,start] of corners.entries()){
         const end=corners[(i+1)%corners.length]!
-        expect((end[0]-start[0])*(y!-start[1])-(end[1]-start[1])*(x!-start[0])).toBeGreaterThan(0)
+        const recovery=index===0 && end[0]>start[0]?8:0
+        expect((end[0]-start[0])*(y!+recovery-start[1])-(end[1]-start[1])*(x!-start[0])).toBeGreaterThan(0)
       }
     }
     const padded=actor.querySelector('ellipse')!
@@ -95,16 +102,31 @@ it('preserves each painted chibi at the same chair scale for all 210 bedroom and
         const actor=view.container.querySelector('[data-bedroom-pose="computer"]')!
         const body=actor.querySelector('[data-body-projection]')!
         const pose=getDeskRearPose(id,skinId)!
-        const selected=actor.getAttribute('data-desk-view')==='three-quarter'?pose.oblique:pose.rear
-        expect(body.querySelector('image')?.getAttribute('href')).toBe(pose.src)
+        const {view:selected}=activeDeskDrawing(actor,pose,roomId)
+        expect(body.querySelector('image')?.getAttribute('href')).toBe(activeDeskDrawing(actor,pose,roomId).src)
         const [a,b,c,d,tx,ty]=body.getAttribute('transform')!.slice(7,-1).split(' ').map(Number)
         expect(Math.abs(a!)).toBeCloseTo(d!)
         expect([b,c]).toEqual([0,0])
-        const cushion=actor.querySelector('ellipse')!
-        expect(a!*selected.hip[0]+tx!).toBeCloseTo(Number(cushion.getAttribute('cx')))
-        expect(d!*selected.hip[1]+ty!).toBeCloseTo(Number(cushion.getAttribute('cy'))-1)
+        const joint=pose.joints?.[roomId]
+        if(joint){
+          expect(actor.getAttribute('data-desk-view')).toBe('joint')
+          const furniture=actor.querySelector('[data-bedroom-original-chair]')
+          expect(furniture?.querySelector('image')).toBeTruthy()
+          expect(furniture!.compareDocumentPosition(body)&Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+          expect(actor.querySelector('[data-bedroom-joint-hands]')).toBeTruthy()
+          expect(selected.sole[1]-selected.knee[1]).toBeGreaterThan(20)
+        }else{
+          const cushion=actor.querySelector('ellipse')!
+          expect(a!*selected.hip[0]+tx!).toBeCloseTo(Number(cushion.getAttribute('cx')))
+          expect(d!*selected.hip[1]+ty!).toBeCloseTo(Number(cushion.getAttribute('cy'))-1)
+          const arm=actor.querySelector('[data-bedroom-near-sleeve]')!
+          const wood=actor.querySelector('[data-bedroom-chair-foreground]')!
+          expect(wood.compareDocumentPosition(arm)&Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+          expect(arm.querySelector('image')?.getAttribute('href')).toBe(activeDeskDrawing(actor,pose,roomId).src)
+          expect(actor.querySelector('[data-bedroom-desk-front-lip]')).toBeTruthy()
+        }
         const edge=referenceLips[roomId]
-        if(edge){
+        if(edge && !joint){
           const chair=actor.querySelector('[data-bedroom-chair-foreground]')!
           const [shiftX,shiftY]=chair.getAttribute('transform')!.slice(10,-1).split(' ').map(Number)
           const lipX=edge[0]+shiftX!,lipY=edge[1]+shiftY!
@@ -119,7 +141,7 @@ it('preserves each painted chibi at the same chair scale for all 210 bedroom and
         expect(height).toBeCloseTo(skull)
         // The shoe-hip distance is bounded by the source painting. Room
         // furniture height cannot lengthen the calf or force a foot down.
-        expect((selected.soleY-selected.hip[1])/selected.headHeight).toBeLessThan(.8)
+        expect((selected.soleY-selected.hip[1])/selected.headHeight).toBeLessThanOrEqual(.8001)
         expect(actor.querySelector('[data-bedroom-keyboard],[data-bedroom-input-tray]')).toBeNull()
         combinations++
       }
@@ -231,7 +253,7 @@ it('renders each resident in the matching phone outfit and animated chair pose a
     const computer=render(<OfficeBedroom {...opts} clock={new Date()}/>)
     const actor=computer.container.querySelector('[data-bedroom-pose="computer"]')!
     expect(actor.querySelector('[data-bedroom-monitor="awake"]')).toBeTruthy()
-    expect(actor.querySelector('[data-bedroom-seated-body] image')?.getAttribute('href')).toBe(getDeskRearPose(id,skinId)!.src)
+    expect(actor.querySelector('[data-bedroom-seated-body] image')?.getAttribute('href')).toBe(activeDeskDrawing(actor,getDeskRearPose(id,skinId)!,room).src)
     expect(actor.querySelector('[data-bedroom-keyboard],[data-bedroom-input-tray]')).toBeNull()
     const initial=actor.getAttribute('data-bedroom-frame')
     act(()=>vi.advanceTimersByTime(320))

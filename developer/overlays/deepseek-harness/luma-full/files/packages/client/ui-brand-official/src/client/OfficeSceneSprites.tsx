@@ -27,6 +27,8 @@ import {
   getOfficeWorkstation
 } from './office2d/workstations.ts'
 import { seatedFigureScale } from './office2d/officeFigureScale.ts'
+import { classicOfficeDeskPlacement, officeDeskShell } from './office2d/officeDeskPlacement.ts'
+import { OfficeDeskCanvas } from './OfficeDeskCanvas.tsx'
 import { getWalkAtlas, sampleWalkAtlas, drawWalkAtlas } from './office2d/walkAtlas.ts'
 import { sampleDeskRhythm } from './office2d/deskRhythm.ts'
 import { compileOfficeEmployeeOcclusionPolygons, compileOfficeEmployeeVisibleClipPath, getWorkstationTypingFrameAnchor } from './officeSceneGeometry.ts'
@@ -300,7 +302,32 @@ export function SeatedActor({ employee, workstationId, command, onClick, onConte
   const catalog = getEmployeeCatalogWithSkin(employee.id, skinId)
   const workstation = getOfficeWorkstation(workstationId)
   const [frameIndex, setFrameIndex] = useState(review?.frameIndex ?? (paused || !command ? 3 : 0))
-  if (!catalog || !workstation) return null
+  if (!workstation) return null
+  const ambientTyping = !command && employee.ambientDesk === true
+  const sessionWorking = Boolean(command || employee.sceneActivity === 'working')
+  const animateTyping = !employee.deskOnHold && Boolean(sessionWorking || ambientTyping || review?.mode === 'working')
+  const painted=classicOfficeDeskPlacement(workstation,employee.id,skinId)
+  if(painted){
+    // The counter rises in front of the lap. Extend the old mask's *upper* edge
+    // beyond hats/halos, retaining its measured lower rim against the hands.
+    const visible=workstation.employeeVisiblePolygon?.map(([x,y])=>[x,y===685?550:y] as const)
+    return <button type="button" className="lumaOfficeEmployee lumaOfficeEmployeeWorking"
+      onClick={onClick} onContextMenu={onContextMenu} onPointerDown={onPointerDown} onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp} onPointerCancel={onPointerCancel}
+      {...officeEmployeeAction(employee.name,employeeDestination,employee.canDrag&&!sessionWorking,paperPlane)}
+      data-employee-id={employee.id} data-skin-id={skinId} data-workstation-id={workstationId}
+      data-typing-facing={workstation.typingFacing} data-desk-view={painted.facing}
+      data-scene-activity={sessionWorking?'task':ambientTyping?'desk-practice':'desk-break'}
+      data-presence-label={sessionWorking?'工作中':ambientTyping?'整理资料':'在席待命'}
+      data-scene-command-id={command?.commandId} data-task-id={command?.taskId}
+      style={{left:painted.origin[0]/OFFICE_NAV_WIDTH*100+'%',top:painted.origin[1]/OFFICE_NAV_HEIGHT*100+'%',
+        width:painted.cell[0]*painted.scale/OFFICE_NAV_WIDTH*100+'%',height:painted.cell[1]*painted.scale/OFFICE_NAV_HEIGHT*100+'%',
+        transform:'none',zIndex:Math.round(workstation.y*OFFICE_NAV_HEIGHT)}}>
+      <OfficeDeskCanvas pose={painted} actor={employee.id} working={animateTyping} ambient={ambientTyping}
+        paused={paused} fixed={review?.frameIndex} cover={officeDeskShell('classic',workstationId)} visible={visible} />
+    </button>
+  }
+  if (!catalog) return null
   const profile = getEmployeeTypingProfileWithSkin(employee.id, workstation.typingFacing, skinId)
   if (!profile) return null
   const assetId = catalog.typing[workstation.typingFacing]
@@ -323,9 +350,6 @@ export function SeatedActor({ employee, workstationId, command, onClick, onConte
   ]) : undefined
   const contactProfile = keys && hand ? { ...profile, seatAnchor: hand } : profile
   const anchor = getWorkstationTypingFrameAnchor(contactProfile, workstation, frameIndex, sourceSha)
-  const ambientTyping = !command && employee.ambientDesk === true
-  const sessionWorking = Boolean(command || employee.sceneActivity === 'working')
-  const animateTyping = !employee.deskOnHold && Boolean(sessionWorking || ambientTyping || review?.mode === 'working')
   const base = keys ? { x: keys[0], y: keys[1] } : workstation.seatPoint
     ? { x: workstation.seatPoint[0], y: workstation.seatPoint[1] }
     : {

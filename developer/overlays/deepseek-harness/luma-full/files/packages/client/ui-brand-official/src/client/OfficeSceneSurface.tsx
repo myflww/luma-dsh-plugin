@@ -33,6 +33,7 @@ import {
   type OfficeAutonomyState
 } from './office2d/autonomyController.ts'
 import { OFFICE_CHAIR_FOREGROUND_LAYERS } from './office2d/chairForegroundLayers.ts'
+import { classicOfficeDeskPlacement } from './office2d/officeDeskPlacement.ts'
 import {
   EMPLOYEE_IDS
 } from './office2d/employeeCatalog.ts'
@@ -370,9 +371,13 @@ function ClassicOfficeSceneSurface({
   const floorFootpoints = classicFloorFootpoints(actors,presentEmployeeIds)
   const visibleEmployees = seatReview ? [] : employees.filter(employee => presentEmployeeIds.has(employee.id))
   const integratedChairStationIds = new Set<OfficeWorkstationId>()
+  const ownsChair=(station:NonNullable<ReturnType<typeof getOfficeWorkstation>>,id:string)=>{
+    const drawn=classicOfficeDeskPlacement(station,id,employeeSkins[id])
+    return drawn?drawn.facing==='front':getEmployeeTypingProfileWithSkin(id,station.typingFacing,employeeSkins[id])?.integratedChair
+  }
   if (seatReview) {
     const station = getOfficeWorkstation(seatReview.workstationId)
-    if (station && getEmployeeTypingProfileWithSkin(seatReview.employeeId, station.typingFacing, employeeSkins[seatReview.employeeId])?.integratedChair) {
+    if (station && ownsChair(station,seatReview.employeeId)) {
       integratedChairStationIds.add(seatReview.workstationId)
     }
   } else {
@@ -381,7 +386,7 @@ function ClassicOfficeSceneSurface({
       if (!actor || manualActions[employee.id] || (actor.mode !== 'working' && actor.mode !== 'desk-break')
         || actor.targetWorkstationId === null) continue
       const station = getOfficeWorkstation(actor.targetWorkstationId)
-      if (station && getEmployeeTypingProfileWithSkin(employee.id, station.typingFacing, employeeSkins[employee.id])?.integratedChair) {
+      if (station && ownsChair(station,employee.id)) {
         integratedChairStationIds.add(actor.targetWorkstationId)
       }
     }
@@ -396,6 +401,7 @@ function ClassicOfficeSceneSurface({
           ? actor.targetWorkstationId : null
       })()
   const luMiChairForeground = luMiSeatedStationId === null
+      || classicOfficeDeskPlacement(getOfficeWorkstation(luMiSeatedStationId)!,EMPLOYEE_IDS.LU_MI,employeeSkins[EMPLOYEE_IDS.LU_MI])
       || integratedChairStationIds.has(luMiSeatedStationId)
       || !['west-studio', 'south-left', 'south-right', 'private-upper', 'private-lower'].includes(luMiSeatedStationId)
     ? null
@@ -607,7 +613,7 @@ function ClassicOfficeSceneSurface({
                 >
                   {pose && motion ? <ActorMotionLayer atlas={pose} id={employee.id} motion={motion}
                     landingStartedAt={actor.landedAt}
-                    footX={foot.x} bodyHeight={bodyHeight} paused={drawingPaused || reducedMotion}
+                    footX={foot.x} footY={foot.y} bodyHeight={bodyHeight} paused={drawingPaused || reducedMotion}
                     asCanvas className="lumaOfficeArticulatedPose"
                     onError={() => setMissingPoses(current => new Set([...current, pose.src]))}/> : <SpriteStripCanvas
                       key={`${skinId ?? 'default'}:${manual ? `manual:${manual.revision}` : 'automatic'}`}

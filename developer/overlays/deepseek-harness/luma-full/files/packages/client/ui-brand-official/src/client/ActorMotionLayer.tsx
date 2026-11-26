@@ -8,6 +8,7 @@ type Props = {
   motion: ActorMotion
   landingStartedAt?: number | undefined
   footX: number
+  footY: number
   bodyHeight: number
   paused: boolean
   asCanvas?: boolean
@@ -16,18 +17,19 @@ type Props = {
 
 /** Draw one full articulated exposure. Only the source rectangle changes,
  * so the floor point and event target remain stable throughout a gesture. */
-export function ActorMotionLayer({atlas, id, motion, landingStartedAt, footX, bodyHeight, paused, asCanvas, onError, ...viewport}: Props) {
+export function ActorMotionLayer({atlas, id, motion, landingStartedAt, footX, footY, bodyHeight, paused, asCanvas, onError, ...viewport}: Props) {
   const picture = useRef<SVGSVGElement>(null)
   const canvas = useRef<HTMLCanvasElement>(null)
   const reportFailure = useRef(onError)
   reportFailure.current = onError
-  const pointer = useRef({footX, bodyHeight})
-  pointer.current = {footX, bodyHeight}
+  const pointer = useRef({footX,footY,bodyHeight})
+  pointer.current = {footX,footY,bodyHeight}
+  const releasedPose=useRef<number|undefined>(undefined)
   const [width, height] = atlas.cell
   const phase = motionPhase(id)
   const landingStart = motion === 'landing' ? landingStartedAt : undefined
   const initial = actorMotionFrame(motion, landingStart === undefined ? 0 : performance.now()-landingStart,
-    phase, 0, paused, atlas.idleDurationsMs)
+    phase, undefined, paused, atlas.idleDurationsMs, releasedPose.current)
   const rect = (index: number) => `${index % atlas.columns * width} ${Math.floor(index / atlas.columns) * height} ${width} ${height}`
   useEffect(() => {
     const target = canvas.current ?? picture.current
@@ -40,9 +42,11 @@ export function ActorMotionLayer({atlas, id, motion, landingStartedAt, footX, bo
       if (document.hidden) return
       elapsed += last === undefined ? 0 : Math.max(0, now - last)
       last = now
-      if (motion === 'held') lag = sampleGripLag(lag, pointer.current.footX, now, pointer.current.bodyHeight)
+      if (motion === 'held') lag = sampleGripLag(lag, pointer.current.footX,pointer.current.footY,now,pointer.current.bodyHeight)
       const index = actorMotionFrame(motion, landingStart === undefined ? elapsed : now-landingStart,
-        phase, lag?.lag, paused, atlas.idleDurationsMs)
+        phase, lag, paused, atlas.idleDurationsMs, releasedPose.current)
+      if(motion==='held') releasedPose.current=index
+      if(motion==='idle') releasedPose.current=undefined
       if (frame !== index) {
         frame = index
         if (sheet && context) {
