@@ -1,4 +1,12 @@
-# 0.6.1 场景与角色验收
+# 场景与角色验收
+
+## 0.6.2 开发版
+
+- **卧室书桌**　键盘画在桌面上。伙伴就座时，整把椅子向电脑靠近，角色从后方可见，双手对准键列。[相同机位的空椅与工作坐姿](images/desk-chair-placement.jpg) · [经典房间的 14 套造型](images/bedroom-seating-062.jpg)
+- **房间互动**　提起伙伴时可以看到悬摆，松手后会落地站稳。床边的手机按钮移到床脚，角色的答复出现在另一侧。[拖放演示](images/bedroom-drag.gif) · [床边实拍](images/bedroom-interaction-062.jpg)
+- **行走与桌宠**　八位伙伴的 14 套造型使用 56 个四向步态图集。原生桌宠有呼吸、视线跟随和四边探头，可以点击或拖回屏幕内。[四向行走](images/walk-preview.gif) · [Windows 桌宠](images/desktop-pet-motion.gif)
+
+## 0.6.1 验收记录
 
 本次验收使用 Windows x64 的 DeepSeek Harness Desktop、独立测试档案和最终发行文件。八位伙伴共用 14 套实际可选衣装。办公室与卧室按角色、衣装、房间和姿态分别检查，原生桌宠另在 Windows 窗口中验证。
 

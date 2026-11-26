@@ -187,6 +187,8 @@ export function useOfficeSceneInteractions({ canvasRef, scrollerRef, actorRef, s
   const finishActorDrag = useCallback((event: Pick<ReactPointerEvent<HTMLElement>, 'pointerId' | 'clientX' | 'clientY' | 'stopPropagation' | 'type'> & {screenX?:number; screenY?:number}) => {
     const drag = actorDragRef.current
     if (!drag || drag.pointerId !== event.pointerId) return
+    // Captured pointers can report a new position only with the release.
+    if (event.type === 'pointerup' && !drag.cancelled) moveActorDrag(event)
     event.stopPropagation()
     clearHold()
     actorDragRef.current = null
@@ -228,7 +230,7 @@ export function useOfficeSceneInteractions({ canvasRef, scrollerRef, actorRef, s
       ...actorRef.current,
       [drag.employeeId]: approach ? {
         ...actor,
-        position: {x:approach[0],y:approach[1]},
+        position: {x:approach[0],y:approach[1]}, landedAt: performance.now(),
         mode: 'idle' as const,
         targetWorkstationId: null,
         nextAmbientAt: Number.POSITIVE_INFINITY,
@@ -237,7 +239,7 @@ export function useOfficeSceneInteractions({ canvasRef, scrollerRef, actorRef, s
       } : position ? {
         ...drag.startRuntime, position:{x:position[0],y:position[1]}, mode: 'idle' as const,
         route:null, waypointIndex:0, targetWorkstationId:null, trafficYield:null, waitStreak:0,
-        placedUntil:performance.now()+9000,
+        landedAt:performance.now(), placedUntil:performance.now()+9000,
       } : drag.startRuntime,
     }
     actorRef.current = next
@@ -259,7 +261,7 @@ export function useOfficeSceneInteractions({ canvasRef, scrollerRef, actorRef, s
         if(result===false) restore()
       },restore)
     } else if(freePlacement) onFloorDrop?.(drag.employeeId,!!position)
-  }, [onBindWorkstation, onDesktopPet, onFloorDrop, employeeDestination, registerActorTap])
+  }, [moveActorDrag, onBindWorkstation, onDesktopPet, onFloorDrop, employeeDestination, registerActorTap])
 
   const startPan = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
     if (!presentationActiveRef.current || event.button !== 0 || (event.target instanceof Element && event.target.closest('button:not(.lumaOfficeEmployee)'))) return

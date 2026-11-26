@@ -1,0 +1,107 @@
+{
+  "classic": {
+    "cell": 0,
+    "x": 659,
+    "y": 526,
+    "w": 193,
+    "h": 181
+  },
+  "shan": {
+    "cell": 1,
+    "x": 440,
+    "y": 655,
+    "w": 147,
+    "h": 179
+  },
+  "bai-shuangming": {
+    "cell": 2,
+    "x": 1243,
+    "y": 309,
+    "w": 139,
+    "h": 152
+  },
+  "lu-mi": {
+    "cell": 3,
+    "x": 1062,
+    "y": 538,
+    "w": 173,
+    "h": 209
+  },
+  "jingyuniang": {
+    "cell": 4,
+    "x": 1092,
+    "y": 346,
+    "w": 141,
+    "h": 175
+  },
+  "longmama": {
+    "cell": 5,
+    "x": 1112,
+    "y": 355,
+    "w": 129,
+    "h": 188
+  },
+  "claude": {
+    "cell": 6,
+    "x": 1184,
+    "y": 511,
+    "w": 151,
+    "h": 197
+  },
+  "gemini": {
+    "cell": 7,
+    "x": 1101,
+    "y": 421,
+    "w": 153,
+    "h": 199
+  },
+  "grok": {
+    "cell": 8,
+    "x": 1061,
+    "y": 383,
+    "w": 163,
+    "h": 201
+  },
+  "bedroom.shop.rose-sketchbook.v1": {
+    "cell": 9,
+    "x": 1098,
+    "y": 446,
+    "w": 185,
+    "h": 253
+  },
+  "bedroom.shop.sapphire-music.v1": {
+    "cell": 10,
+    "x": 1077,
+    "y": 386,
+    "w": 171,
+    "h": 216
+  },
+  "bedroom.shop.alpine-library.v1": {
+    "cell": 11,
+    "x": 1052,
+    "y": 438,
+    "w": 197,
+    "h": 234
+  },
+  "bedroom.shop.camellia-pavilion.v1": {
+    "cell": 12,
+    "x": 1146,
+    "y": 355,
+    "w": 129,
+    "h": 172
+  },
+  "bedroom.shop.blue-rose-gallery.v1": {
+    "cell": 13,
+    "x": 1090,
+    "y": 379,
+    "w": 153,
+    "h": 198
+  },
+  "bedroom.shop.frostwing-glasshouse.v1": {
+    "cell": 14,
+    "x": 1151,
+    "y": 412,
+    "w": 143,
+    "h": 177
+  }
+}

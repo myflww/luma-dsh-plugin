@@ -12,7 +12,7 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 $repo = 'myflww/luma-dsh-plugin'
 $patchName = 'Luma-DSH-@VERSION@-Update.zip'
 $patchDigest = '@PATCH_SHA256@'
-$compatibleBaseVersions = @('0.6.0','0.5.4','0.5.3','0.5.2','0.5.1','0.5.0','0.4.3')
+$compatibleBaseVersions = @('0.6.1','0.6.0','0.5.4','0.5.3','0.5.2','0.5.1','0.5.0','0.4.3')
 $oldZip = 'Luma-DSH-0.4.3-Windows.zip'
 $oldDigest = 'e949d369a89da2bf6ce01c2eabef4b8a3a95ced38db5ab625ea90c2bb0549c81'
 $root = [IO.Directory]::CreateDirectory([IO.Path]::GetFullPath($Directory)).FullName

@@ -1,898 +1,1010 @@
 {
   "employee.jingyuniang.walk.right.v1": {
-    "src": "/luma-office/luma-plugin-art/gait-b2719c4c9d28.358fb33dc058.webp",
-    "sha256": "358fb33dc058a24e9366a49a1e74043dcbc45befafa608000d033dc76d6f5846",
+    "src": "/luma-office/luma-plugin-art/gait-b2719c4c9d28.a1f85b705a0a.png",
+    "sha256": "a1f85b705a0a0b64dd99a5eb04b854b3daad5cdcd0c32b1824cb59be05f6819e",
     "bounds": [
-      39,
-      44,
-      500,
-      664
+      -66.7131,
+      15.9344,
+      725.4262,
+      720.1311
     ],
     "cell": [
-      193,
-      256
+      274,
+      272
     ],
+    "figureHeight": 244,
+    "sole": 258,
     "columns": 7,
-    "count": 36
+    "count": 48
   },
   "employee.jingyuniang.walk.left.v1": {
-    "src": "/luma-office/luma-plugin-art/gait-e394724fcf22.4634a0657d5c.webp",
-    "sha256": "4634a0657d5c5d095c82ff5949be4d520c21cc3ecfa33bfbf016f499334d70f4",
+    "src": "/luma-office/luma-plugin-art/gait-e394724fcf22.95d05788d3b9.png",
+    "sha256": "95d05788d3b907bffce86cab63b7400df92396a7d10e62fa50d8b585015cc118",
     "bounds": [
-      46,
-      45,
-      501,
-      661
+      -51.8525,
+      19.1066,
+      695.7049,
+      716.7869
     ],
     "cell": [
-      194,
-      256
+      264,
+      272
     ],
-    "columns": 7,
-    "count": 36
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 8,
+    "count": 48
   },
   "employee.jingyuniang.walk.up.v1": {
-    "src": "/luma-office/luma-plugin-art/gait-b175000f5474.c154153b2166.webp",
-    "sha256": "c154153b2166ea8c611367a34c0781050cd6f3717cadc62df0b539e396223fd7",
+    "src": "/luma-office/luma-plugin-art/gait-b175000f5474.7848d3bf6b40.png",
+    "sha256": "7848d3bf6b4074973d8394df94cb13937c1c2aa5b7c98d647f9e26a0f9fc876d",
     "bounds": [
-      103,
-      157,
-      397,
-      547
+      -13.1598,
+      133.3033,
+      618.3197,
+      596.3934
     ],
     "cell": [
-      186,
-      256
+      282,
+      272
     ],
+    "figureHeight": 244,
+    "sole": 258,
     "columns": 5,
-    "count": 18
+    "count": 24
   },
   "employee.jingyuniang.walk.down.v1": {
-    "src": "/luma-office/luma-plugin-art/gait-91a28afb5d64.3611c0e7ec9f.webp",
-    "sha256": "3611c0e7ec9fc4e25fed1ed6786642ea44c2b9d6d551b4b345cca8a45e0a0c0e",
+    "src": "/luma-office/luma-plugin-art/gait-91a28afb5d64.456fe9cd379c.png",
+    "sha256": "456fe9cd379cf839f4ac876fde86fc368c80b5411638caaa733fa961389573ef",
     "bounds": [
-      86,
-      138,
-      420,
-      566
+      -19.5984,
+      112.2131,
+      631.1967,
+      617.5738
     ],
     "cell": [
-      190,
-      256
+      278,
+      272
     ],
+    "figureHeight": 244,
+    "sole": 258,
     "columns": 5,
-    "count": 18
+    "count": 24
   },
   "employee.jingyuniang.skin.v1.walk.left": {
-    "src": "/luma-office/luma-plugin-art/gait-39899911a285.6885c3080ab5.webp",
-    "sha256": "6885c3080ab5ba9bc9767a02ab224d45a6a2c27c25edbcdd86b60d3fb64069b4",
+    "src": "/luma-office/luma-plugin-art/gait-39899911a285.bd10b619e32c.png",
+    "sha256": "bd10b619e32c31f4a7a7612d7539876910624ada53c8a7d1826aa019ae94889b",
     "bounds": [
-      50,
-      52,
-      474,
-      627
+      -115.2213,
+      63.0656,
+      710.4426,
+      639.8689
     ],
     "cell": [
-      194,
-      256
+      302,
+      272
     ],
+    "figureHeight": 244,
+    "sole": 258,
     "columns": 6,
-    "count": 24
+    "count": 32
   },
   "employee.jingyuniang.skin.v1.walk.right": {
-    "src": "/luma-office/luma-plugin-art/gait-a3d8b48b0862.469a5e0e9462.webp",
-    "sha256": "469a5e0e9462ae1776f52bdd24a819e22bae5b9527674a1853efe1855e8f8bcd",
+    "src": "/luma-office/luma-plugin-art/gait-a3d8b48b0862.6c56bcfa98e9.png",
+    "sha256": "6c56bcfa98e9870260952dd93c74ce08c2085990c9c973e8f8030f555c61e4cd",
     "bounds": [
-      66,
-      89,
-      470,
-      608
+      30.0492,
+      67.2049,
+      675.9016,
+      656.5902
     ],
     "cell": [
-      198,
-      256
+      280,
+      272
     ],
+    "figureHeight": 244,
+    "sole": 258,
     "columns": 6,
-    "count": 24
+    "count": 32
   },
   "employee.jingyuniang.skin.v1.walk.up": {
-    "src": "/luma-office/luma-plugin-art/gait-0e96bed177d8.fec6b1ce7767.webp",
-    "sha256": "fec6b1ce776713079a812b9735976851c232a165478cf1e9df22faa2f9b8513e",
+    "src": "/luma-office/luma-plugin-art/gait-0e96bed177d8.039ad3a9a110.png",
+    "sha256": "039ad3a9a110bb6821613d1b410891258561b1ef703b6b55b340408e4ee4c751",
     "bounds": [
-      72,
-      82,
-      422,
-      607
-    ],
-    "cell": [
-      178,
-      256
-    ],
-    "columns": 6,
-    "count": 18
-  },
-  "employee.jingyuniang.skin.v1.walk.down": {
-    "src": "/luma-office/luma-plugin-art/gait-2361df10513f.d925c42ecc68.webp",
-    "sha256": "d925c42ecc681feda64efe57d3f44917e9f02e0faf8e995a949662673f123f1b",
-    "bounds": [
-      18,
-      96,
-      548,
-      612
-    ],
-    "cell": [
-      229,
-      256
-    ],
-    "columns": 5,
-    "count": 18
-  },
-  "employee.longmama.walk.right.v1": {
-    "src": "/luma-office/luma-plugin-art/gait-4edcaa1248f6.a3785d9934b5.webp",
-    "sha256": "a3785d9934b5f1df8a4b1902f8120f066094f81596d481e8d95386c6d0a8cab6",
-    "bounds": [
-      195,
-      447,
-      205,
-      257
-    ],
-    "cell": [
-      204,
-      256
-    ],
-    "columns": 7,
-    "count": 36
-  },
-  "employee.longmama.walk.left.v1": {
-    "src": "/luma-office/luma-plugin-art/gait-4c5a8bc8484f.efc2cc263c34.webp",
-    "sha256": "efc2cc263c342db333ca1cd0d8a78c345b880d38242fec1339e0972e8fc86759",
-    "bounds": [
-      216,
-      509,
-      157,
-      195
-    ],
-    "cell": [
-      157,
-      195
-    ],
-    "columns": 7,
-    "count": 36
-  },
-  "employee.longmama.walk.up.v1": {
-    "src": "/luma-office/luma-plugin-art/gait-a30c6aeac5eb.9af153ffd67e.webp",
-    "sha256": "9af153ffd67ec5b1c232373f400301da0e0c65b4a2ef4496e7e0367116bfeb16",
-    "bounds": [
-      180,
-      395,
-      229,
-      309
-    ],
-    "cell": [
-      190,
-      256
-    ],
-    "columns": 5,
-    "count": 18
-  },
-  "employee.longmama.walk.down.v1": {
-    "src": "/luma-office/luma-plugin-art/gait-4fe0b5ba060d.4e4d077af40f.webp",
-    "sha256": "4e4d077af40f4cd7180cb44e8854ed5ff1270de34d6cf4f4ae706503b7229049",
-    "bounds": [
-      137,
-      297,
-      316,
-      407
-    ],
-    "cell": [
-      199,
-      256
-    ],
-    "columns": 5,
-    "count": 18
-  },
-  "employee.longmama.skin.v1.walk.left": {
-    "src": "/luma-office/luma-plugin-art/gait-c5e2842f295d.045f3b543d00.webp",
-    "sha256": "045f3b543d00dcaddc379a7758600c55b42cf184c118aada196d65d7239a03bb",
-    "bounds": [
-      208,
-      490,
-      178,
-      213
-    ],
-    "cell": [
-      178,
-      213
-    ],
-    "columns": 7,
-    "count": 36
-  },
-  "employee.longmama.skin.v1.walk.right": {
-    "src": "/luma-office/luma-plugin-art/gait-fc850ad64e14.d5d28289dc06.webp",
-    "sha256": "d5d28289dc06f6f24c99493743c428c77458be046bd94010c2e23ee4c34c9291",
-    "bounds": [
-      209,
-      425,
-      218,
-      260
-    ],
-    "cell": [
-      215,
-      256
-    ],
-    "columns": 7,
-    "count": 36
-  },
-  "employee.longmama.skin.v1.walk.up": {
-    "src": "/luma-office/luma-plugin-art/gait-326123eebaf9.b742dc2aa606.webp",
-    "sha256": "b742dc2aa606d03a48cdae9278f27b25c6ccd4d7605df4236305687dcb248791",
-    "bounds": [
-      192,
-      390,
-      218,
-      310
-    ],
-    "cell": [
-      180,
-      256
-    ],
-    "columns": 6,
-    "count": 18
-  },
-  "employee.longmama.skin.v1.walk.down": {
-    "src": "/luma-office/luma-plugin-art/gait-20e0366651bb.3950ffbd99f4.webp",
-    "sha256": "3950ffbd99f440fe103d0ac9dcaa1b994a671a536f9a7344a7f39747c36fd2d2",
-    "bounds": [
-      136,
-      294,
-      325,
-      405
-    ],
-    "cell": [
-      205,
-      256
-    ],
-    "columns": 5,
-    "count": 18
-  },
-  "employee.claude.walk.right.v1": {
-    "src": "/luma-office/luma-plugin-art/gait-236c7b79b610.0e79926211a2.webp",
-    "sha256": "0e79926211a205c5ef549592e8114dae80b5b595ff3f3f66a2d39e6bc41467f3",
-    "bounds": [
-      204,
-      482,
-      187,
-      222
-    ],
-    "cell": [
-      187,
-      222
-    ],
-    "columns": 7,
-    "count": 36
-  },
-  "employee.claude.walk.left.v1": {
-    "src": "/luma-office/luma-plugin-art/gait-271b9d6075e7.07a0cb674383.webp",
-    "sha256": "07a0cb67438329f9ff77aec50a0b2ac112898fafe89dfa6c8890987368c591a6",
-    "bounds": [
-      182,
-      437,
-      222,
-      267
-    ],
-    "cell": [
-      213,
-      256
-    ],
-    "columns": 7,
-    "count": 36
-  },
-  "employee.claude.walk.up.v1": {
-    "src": "/luma-office/luma-plugin-art/gait-0622a4645c7a.6f6da398601a.webp",
-    "sha256": "6f6da398601ac48d715d8af784074e6467ea434ab2f4fb0118002ccfd2d0dd63",
-    "bounds": [
-      159,
-      341,
-      273,
-      364
-    ],
-    "cell": [
-      192,
-      256
-    ],
-    "columns": 5,
-    "count": 18
-  },
-  "employee.claude.walk.down.v1": {
-    "src": "/luma-office/luma-plugin-art/gait-94d6c43f633d.46a43bf69d59.webp",
-    "sha256": "46a43bf69d59a8626cfc3d105b82ecbb8d3a81f6d77ceb5cfc17cc81f33842ff",
-    "bounds": [
-      22,
-      77,
-      544,
-      628
-    ],
-    "cell": [
-      222,
-      256
-    ],
-    "columns": 5,
-    "count": 18
-  },
-  "employee.claude.skin.v1.walk.left": {
-    "src": "/luma-office/luma-plugin-art/gait-6b5f382de318.3dc7181c650d.webp",
-    "sha256": "3dc7181c650d2d8e3af7b8af1b0690b25a32583371484e9258d8b9847d7b2bd3",
-    "bounds": [
-      179,
-      432,
-      239,
-      264
-    ],
-    "cell": [
-      232,
-      256
-    ],
-    "columns": 7,
-    "count": 36
-  },
-  "employee.claude.skin.v1.walk.right": {
-    "src": "/luma-office/luma-plugin-art/gait-3fd810465e0f.341ced021e4c.webp",
-    "sha256": "341ced021e4c3ca32b5db6c601b117fccf2cabc5bac40248cf6a590333984b69",
-    "bounds": [
-      202,
-      475,
-      184,
-      225
-    ],
-    "cell": [
-      184,
-      225
-    ],
-    "columns": 7,
-    "count": 36
-  },
-  "employee.claude.skin.v1.walk.up": {
-    "src": "/luma-office/luma-plugin-art/gait-7b55652993cb.157645cb7a0b.webp",
-    "sha256": "157645cb7a0b84b08c3f67de9688454f2f2dfcadddb67db8088598a340eaec4e",
-    "bounds": [
-      148,
-      351,
-      293,
-      344
-    ],
-    "cell": [
-      218,
-      256
-    ],
-    "columns": 5,
-    "count": 18
-  },
-  "employee.claude.skin.v1.walk.down": {
-    "src": "/luma-office/luma-plugin-art/gait-556dafa2234f.82f4b05135da.webp",
-    "sha256": "82f4b05135dac29454872cab5f41319867532c2ae7a416fbcf34bc291fb0dfd1",
-    "bounds": [
-      94,
-      246,
-      404,
-      449
+      44.8115,
+      62.377,
+      552.377,
+      653.2459
     ],
     "cell": [
       230,
-      256
+      272
     ],
-    "columns": 5,
-    "count": 18
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 6,
+    "count": 24
   },
-  "employee.gemini.skin.v1.walk.left": {
-    "src": "/luma-office/luma-plugin-art/gait-2e445d3ab2ad.0b2dbcd82535.webp",
-    "sha256": "0b2dbcd82535dfb16c956aaa3b408eedcd015b86c1c86c881dc39b793984dcec",
+  "employee.jingyuniang.skin.v1.walk.down": {
+    "src": "/luma-office/luma-plugin-art/gait-2361df10513f.3f78421e49d2.png",
+    "sha256": "3f78421e49d218e3c1a8134af0e994e6365849f091069fbabc56a2a4df6aaa88",
     "bounds": [
-      101,
-      71,
-      440,
-      612
+      26.2295,
+      84.6066,
+      591.541,
+      648.7869
     ],
     "cell": [
-      184,
-      256
+      248,
+      272
     ],
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 6,
+    "count": 24
+  },
+  "employee.longmama.walk.right.v1": {
+    "src": "/luma-office/luma-plugin-art/gait-4edcaa1248f6.16b762af3b8c.png",
+    "sha256": "16b762af3b8c3fb944c8741f5f6cf3f836162fb3f97ee8a5143cea83f97b4b49",
+    "bounds": [
+      173.0,
+      438.8852,
+      246.0,
+      274.2295
+    ],
+    "cell": [
+      244,
+      272
+    ],
+    "figureHeight": 244,
+    "sole": 258,
     "columns": 8,
-    "count": 36
+    "count": 48
   },
-  "employee.gemini.skin.v1.walk.right": {
-    "src": "/luma-office/luma-plugin-art/gait-26042ba5b764.09cd5ac92027.webp",
-    "sha256": "09cd5ac92027ba813401b9c150881182309729d5e7ed6ad7f76f3f654b2c376f",
+  "employee.longmama.walk.left.v1": {
+    "src": "/luma-office/luma-plugin-art/gait-4c5a8bc8484f.24f05ae48618.png",
+    "sha256": "24f05ae486185fcb52c080eb3d0268021bb56248c0093c27968500434d8c3f60",
     "bounds": [
-      61,
-      94,
-      456,
-      592
+      191.1803,
+      504.4426,
+      209.6393,
+      205.1148
     ],
     "cell": [
-      197,
-      256
+      278,
+      272
     ],
+    "figureHeight": 244,
+    "sole": 258,
     "columns": 7,
-    "count": 36
+    "count": 48
   },
-  "employee.gemini.skin.v1.walk.up": {
-    "src": "/luma-office/luma-plugin-art/gait-3f337f7fcd89.c1b2067699d8.webp",
-    "sha256": "c1b2067699d8408cca6a083b3186e5da48607f59c3cba91488d01c356454785e",
+  "employee.longmama.walk.up.v1": {
+    "src": "/luma-office/luma-plugin-art/gait-a30c6aeac5eb.96da9bf66b0d.png",
+    "sha256": "96da9bf66b0dff8f0251ba77eee29a6fc5bf6877d4f04288d81b69548fe4da15",
     "bounds": [
-      83,
-      89,
-      433,
-      594
-    ],
-    "cell": [
-      187,
-      256
-    ],
-    "columns": 5,
-    "count": 18
-  },
-  "employee.gemini.skin.v1.walk.down": {
-    "src": "/luma-office/luma-plugin-art/gait-dd349936ef98.83b3f3f63417.webp",
-    "sha256": "83b3f3f63417e362905fd96a05e9cac124f39078ecb475a2fb842e9502126a0a",
-    "bounds": [
-      60,
-      57,
-      479,
-      632
+      177.1352,
+      382.8443,
+      237.7295,
+      333.3115
     ],
     "cell": [
       194,
-      256
+      272
     ],
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 6,
+    "count": 24
+  },
+  "employee.longmama.walk.down.v1": {
+    "src": "/luma-office/luma-plugin-art/gait-4fe0b5ba060d.ecf456ef8e93.png",
+    "sha256": "ecf456ef8e93e516d55f9e4436ba05b7e1bc6d46d2576a5e76f86059466f8fde",
+    "bounds": [
+      71.5492,
+      282.3934,
+      448.9016,
+      439.2131
+    ],
+    "cell": [
+      278,
+      272
+    ],
+    "figureHeight": 244,
+    "sole": 258,
     "columns": 5,
-    "count": 18
+    "count": 24
   },
-  "employee.grok.skin.v1.walk.left": {
-    "src": "/luma-office/luma-plugin-art/gait-410e61a0e2aa.5cf92ffee4c3.webp",
-    "sha256": "5cf92ffee4c3c43809b6effe10f3b78545b34eeee8cdb3fe7adb1c981d7402fc",
+  "employee.longmama.skin.v1.walk.left": {
+    "src": "/luma-office/luma-plugin-art/gait-c5e2842f295d.c5f2c6fbe771.png",
+    "sha256": "c5f2c6fbe77127f212f80cef0df655fac1307d2b612fd6c366be457b4e50d457",
     "bounds": [
-      150,
-      114,
-      311,
-      548
+      178.6721,
+      504.4426,
+      212.6557,
+      205.1148
     ],
     "cell": [
-      145,
-      256
+      282,
+      272
     ],
-    "columns": 8,
-    "count": 36
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 7,
+    "count": 48
   },
-  "employee.grok.skin.v1.walk.right": {
-    "src": "/luma-office/luma-plugin-art/gait-080a617f59ea.c225bcb2835c.webp",
-    "sha256": "c225bcb2835c5b765e5739a00f3ae171dbeb3adbf74b352e2afaab1846ebb53e",
+  "employee.longmama.skin.v1.walk.right": {
+    "src": "/luma-office/luma-plugin-art/gait-fc850ad64e14.22673122bcab.png",
+    "sha256": "22673122bcab98f64d538ada494a00b4e794571852900f02b229368a9d72892a",
     "bounds": [
-      62,
-      40,
-      471,
-      650
+      161.6557,
+      419.8852,
+      330.6885,
+      274.2295
     ],
     "cell": [
-      186,
-      256
+      328,
+      272
     ],
-    "columns": 8,
-    "count": 36
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 7,
+    "count": 48
   },
-  "employee.grok.skin.v1.walk.up": {
-    "src": "/luma-office/luma-plugin-art/gait-c4430ef8bca6.40f45df6bcee.webp",
-    "sha256": "40f45df6bcee7b2777538e666bf8ec5ca2e7b000c1c9c9f7d6d5117e691e08be",
+  "employee.longmama.skin.v1.walk.up": {
+    "src": "/luma-office/luma-plugin-art/gait-326123eebaf9.82759e5c7065.png",
+    "sha256": "82759e5c706560fc76fd58e827cab43e234b4b7545e8a51a6d9d132021983a54",
     "bounds": [
-      65,
-      52,
-      468,
-      625
+      148.123,
+      378.9016,
+      329.7541,
+      332.1967
     ],
     "cell": [
-      192,
-      256
+      270,
+      272
     ],
+    "figureHeight": 244,
+    "sole": 258,
     "columns": 5,
-    "count": 18
+    "count": 24
   },
-  "employee.grok.skin.v1.walk.down": {
-    "src": "/luma-office/luma-plugin-art/gait-3ebbf5642f8b.b7c827d3b9c2.webp",
-    "sha256": "b7c827d3b9c27f56d1b892fc6f3b471c01a3aa3f790e3f56a1363ff832e21512",
+  "employee.longmama.skin.v1.walk.down": {
+    "src": "/luma-office/luma-plugin-art/gait-20e0366651bb.42b844b160a4.png",
+    "sha256": "42b844b160a4666f37cede4feafd6281941d5514b265c12d57ad671c56d2eb4b",
     "bounds": [
-      55,
-      18,
-      487,
-      668
+      63.3197,
+      277.3934,
+      455.3607,
+      439.2131
     ],
     "cell": [
-      187,
-      256
+      282,
+      272
     ],
+    "figureHeight": 244,
+    "sole": 258,
     "columns": 5,
-    "count": 18
+    "count": 24
   },
-  "employee.duanmu-yan.walk.right.v3": {
-    "src": "/luma-office/luma-plugin-art/gait-8ac9e268df69.e7d35059a8e6.webp",
-    "sha256": "e7d35059a8e6595a7fae3a54ac2eccaa9346f2b690b905c6591e9e7a67b40f47",
+  "employee.claude.walk.right.v1": {
+    "src": "/luma-office/luma-plugin-art/gait-236c7b79b610.d30f9dba234e.png",
+    "sha256": "d30f9dba234efca7166caf6a79e6e3d30eaa4113b7b9fa8f061f57c5c411cfd6",
     "bounds": [
-      45,
-      75,
-      411,
-      622
+      189.6352,
+      475.8934,
+      212.7295,
+      235.2131
     ],
     "cell": [
-      169,
-      256
+      246,
+      272
     ],
+    "figureHeight": 244,
+    "sole": 258,
     "columns": 8,
-    "count": 36
+    "count": 48
   },
-  "employee.duanmu-yan.walk.left.v3": {
-    "src": "/luma-office/luma-plugin-art/gait-e9053015f369.c485f5a85aad.webp",
-    "sha256": "c485f5a85aad86c594b80b03e551fac4dcb4f180f822df186bd606fcd25108a4",
+  "employee.claude.walk.left.v1": {
+    "src": "/luma-office/luma-plugin-art/gait-271b9d6075e7.139807c15727.png",
+    "sha256": "139807c1572729b4e18b0f3392f0aff5b190930bd0a4bb59f7a6ee680551b703",
     "bounds": [
-      138,
-      75,
-      423,
-      622
+      153.7049,
+      436.7705,
+      284.5902,
+      276.459
     ],
     "cell": [
-      174,
-      256
+      280,
+      272
     ],
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 7,
+    "count": 48
+  },
+  "employee.claude.walk.up.v1": {
+    "src": "/luma-office/luma-plugin-art/gait-0622a4645c7a.e57e8665f554.png",
+    "sha256": "e57e8665f554fa721ac352be64f669ca69865be5053a3c519ce5d820cc5c21e6",
+    "bounds": [
+      149.5328,
+      345.8361,
+      292.9344,
+      372.3279
+    ],
+    "cell": [
+      214,
+      272
+    ],
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 6,
+    "count": 24
+  },
+  "employee.claude.walk.down.v1": {
+    "src": "/luma-office/luma-plugin-art/gait-94d6c43f633d.8da9fa851b0a.png",
+    "sha256": "8da9fa851b0a2a67b65fc0cae015695a272466d67936c13f5ac641b12469da30",
+    "bounds": [
+      -10.0,
+      51.8852,
+      612.0,
+      682.2295
+    ],
+    "cell": [
+      244,
+      272
+    ],
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 6,
+    "count": 24
+  },
+  "employee.claude.skin.v1.walk.left": {
+    "src": "/luma-office/luma-plugin-art/gait-6b5f382de318.e69ff30db45e.png",
+    "sha256": "e69ff30db45eefdf954ea5e844008fb7d5472866b8e86046bf5b8ae6395ab3e3",
+    "bounds": [
+      119.6885,
+      427.7705,
+      286.623,
+      276.459
+    ],
+    "cell": [
+      282,
+      272
+    ],
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 7,
+    "count": 48
+  },
+  "employee.claude.skin.v1.walk.right": {
+    "src": "/luma-office/luma-plugin-art/gait-3fd810465e0f.5000a600a842.png",
+    "sha256": "5000a600a842325004a3b65d9b2409efce88cac8f4ad42e25cedd5f477f0f198",
+    "bounds": [
+      184.2295,
+      472.9508,
+      237.541,
+      234.0984
+    ],
+    "cell": [
+      276,
+      272
+    ],
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 7,
+    "count": 48
+  },
+  "employee.claude.skin.v1.walk.up": {
+    "src": "/luma-office/luma-plugin-art/gait-7b55652993cb.98837b429580.png",
+    "sha256": "98837b4295805627691b012747608e1ebf1464be491e0c7ac4ed8df92b65e95b",
+    "bounds": [
+      93.6639,
+      337.8934,
+      376.6721,
+      371.2131
+    ],
+    "cell": [
+      276,
+      272
+    ],
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 5,
+    "count": 24
+  },
+  "employee.claude.skin.v1.walk.down": {
+    "src": "/luma-office/luma-plugin-art/gait-556dafa2234f.6d335c433385.png",
+    "sha256": "6d335c43338547b6f6bbcf046d623d7c0f7ca64116bb89caf9ae4e5d13f0ee40",
+    "bounds": [
+      60.1066,
+      230.041,
+      477.7869,
+      484.918
+    ],
+    "cell": [
+      268,
+      272
+    ],
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 5,
+    "count": 24
+  },
+  "employee.gemini.skin.v1.walk.left": {
+    "src": "/luma-office/luma-plugin-art/gait-2e445d3ab2ad.2c660169a2c3.png",
+    "sha256": "2c660169a2c3d392c48740b763f076f7f911b3e6aaef70f391e0ff05dc1c7ede",
+    "bounds": [
+      -17.0,
+      77.6393,
+      564.0,
+      628.7213
+    ],
+    "cell": [
+      244,
+      272
+    ],
+    "figureHeight": 244,
+    "sole": 258,
     "columns": 8,
-    "count": 36
+    "count": 48
   },
-  "employee.duanmu-yan.walk.up.v2": {
-    "src": "/luma-office/luma-plugin-art/gait-fce91bb3a6f8.9f1bb6d1d083.webp",
-    "sha256": "9f1bb6d1d083412b2ee492ace5d80ed8ea740ebbfa84af66932981c6c17b0af1",
+  "employee.gemini.skin.v1.walk.right": {
+    "src": "/luma-office/luma-plugin-art/gait-26042ba5b764.adc5ed0a7771.png",
+    "sha256": "adc5ed0a777105524584ccddbabd5f1415b498e72abc1ed8121bee13643ac46a",
     "bounds": [
-      113,
-      82,
-      366,
-      616
+      23.5738,
+      84.7541,
+      598.8525,
+      626.4918
     ],
     "cell": [
-      152,
-      256
+      260,
+      272
     ],
-    "columns": 6,
-    "count": 18
-  },
-  "employee.duanmu-yan.walk.down.v2": {
-    "src": "/luma-office/luma-plugin-art/gait-9e59c9d7878d.512307e86615.webp",
-    "sha256": "512307e866157248ff58f6c67daf271c297cd4b6c72e1536e3d6fb4eade31922",
-    "bounds": [
-      113,
-      77,
-      369,
-      620
-    ],
-    "cell": [
-      152,
-      256
-    ],
-    "columns": 6,
-    "count": 18
-  },
-  "employee.shan.skin.v1.walk.left": {
-    "src": "/luma-office/luma-plugin-art/gait-ae4c567be0e7.6c9bdba1d859.webp",
-    "sha256": "6c9bdba1d859a09f3c9904c4e7bd09c615b37e7e6c914cdf984607bbcf351491",
-    "bounds": [
-      39,
-      17,
-      503,
-      678
-    ],
-    "cell": [
-      190,
-      256
-    ],
-    "columns": 7,
-    "count": 36
-  },
-  "employee.shan.skin.v1.walk.right": {
-    "src": "/luma-office/luma-plugin-art/gait-0d45f5259e05.2ca8d2e9b592.webp",
-    "sha256": "2ca8d2e9b592d784d1590f462188ac03a06bfd99cc33547e96d59e59f72c5792",
-    "bounds": [
-      27,
-      22,
-      527,
-      678
-    ],
-    "cell": [
-      199,
-      256
-    ],
-    "columns": 7,
-    "count": 36
-  },
-  "employee.shan.skin.v1.walk.up": {
-    "src": "/luma-office/luma-plugin-art/gait-b2f73d8fbc7f.c9723483724d.webp",
-    "sha256": "c9723483724d124436553e0d66afd8e89925d59ba052efc27b7e93062b24c29a",
-    "bounds": [
-      92,
-      15,
-      403,
-      681
-    ],
-    "cell": [
-      151,
-      256
-    ],
-    "columns": 6,
-    "count": 18
-  },
-  "employee.shan.skin.v1.walk.down": {
-    "src": "/luma-office/luma-plugin-art/gait-518606e83407.f71de12a5bf5.webp",
-    "sha256": "f71de12a5bf52d3d8346b4f3acd5aaffde59cb813cc7093d9e457995c5a2c224",
-    "bounds": [
-      61,
-      12,
-      464,
-      683
-    ],
-    "cell": [
-      174,
-      256
-    ],
-    "columns": 6,
-    "count": 18
-  },
-  "employee.bai-shuangming.walk.right.v4": {
-    "src": "/luma-office/luma-plugin-art/gait-bf444f398981.81b46f942cf8.webp",
-    "sha256": "81b46f942cf8523f6100a991d1534f4770dfe54aed2af8a1d60ef4a7c75f74f2",
-    "bounds": [
-      52,
-      46,
-      469,
-      661
-    ],
-    "cell": [
-      182,
-      256
-    ],
+    "figureHeight": 244,
+    "sole": 258,
     "columns": 8,
-    "count": 36
+    "count": 48
   },
-  "employee.bai-shuangming.walk.left.v5-low-clearance": {
-    "src": "/luma-office/luma-plugin-art/gait-aef9f368f495.a8dfee15adc1.webp",
-    "sha256": "a8dfee15adc1e3d15564bfb166ceebebb6cf390c79d10208690f719b9974f8e2",
+  "employee.gemini.skin.v1.walk.up": {
+    "src": "/luma-office/luma-plugin-art/gait-3f337f7fcd89.1789dd87c941.png",
+    "sha256": "1789dd87c941dfc6879c6c25d41b87362dd7f33b74cde19b2e0aa4263aab70f2",
     "bounds": [
-      61,
-      73,
-      467,
-      633
+      47.5082,
+      73.1803,
+      496.9836,
+      637.6393
     ],
     "cell": [
-      189,
-      256
+      212,
+      272
     ],
-    "columns": 7,
-    "count": 33
-  },
-  "employee.bai-shuangming.walk.up.v2": {
-    "src": "/luma-office/luma-plugin-art/gait-c2208beb48a7.3bd0e6d590d0.webp",
-    "sha256": "3bd0e6d590d01cd47a15e11f7c7bae8b886bb9d3d12e712fe32a3ceda2533547",
-    "bounds": [
-      121,
-      96,
-      355,
-      604
-    ],
-    "cell": [
-      150,
-      256
-    ],
+    "figureHeight": 244,
+    "sole": 258,
     "columns": 6,
-    "count": 18
+    "count": 24
   },
-  "employee.bai-shuangming.walk.down.v2": {
-    "src": "/luma-office/luma-plugin-art/gait-771a359acf06.8cfc4c271a67.webp",
-    "sha256": "8cfc4c271a67d5d13bdd293fdd9291c3476813b2ef424df787c1430c24507071",
+  "employee.gemini.skin.v1.walk.down": {
+    "src": "/luma-office/luma-plugin-art/gait-dd349936ef98.c6dda84b2080.png",
+    "sha256": "c6dda84b2080f8b8baecb489df11e94aaac4c9a10ba9147579df807d6b35c715",
     "bounds": [
-      113,
-      51,
-      368,
-      650
-    ],
-    "cell": [
-      145,
-      256
-    ],
-    "columns": 6,
-    "count": 18
-  },
-  "employee.bai-shuangming.skin.v1.walk.left": {
-    "src": "/luma-office/luma-plugin-art/gait-f2b70830c55a.7e0f709f59bf.webp",
-    "sha256": "7e0f709f59bf1fa95a4d387cc101d1a32e82cb52a4b13a049d7c9fc2066c9797",
-    "bounds": [
-      44,
-      82,
-      516,
-      634
-    ],
-    "cell": [
-      208,
-      256
-    ],
-    "columns": 7,
-    "count": 36
-  },
-  "employee.bai-shuangming.skin.v1.walk.right": {
-    "src": "/luma-office/luma-plugin-art/gait-a9d2e4d71d82.b7f738736561.webp",
-    "sha256": "b7f738736561b3133b9d58f4b74d3dced08b62ba469ab615edeb9a21fc12022b",
-    "bounds": [
-      38,
-      68,
-      487,
-      635
+      49.1967,
+      36.8852,
+      491.6066,
+      682.2295
     ],
     "cell": [
       196,
-      256
+      272
     ],
-    "columns": 7,
-    "count": 36
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 6,
+    "count": 24
   },
-  "employee.bai-shuangming.skin.v1.walk.up": {
-    "src": "/luma-office/luma-plugin-art/gait-1aa5b67a8766.e63afb51f4db.webp",
-    "sha256": "e63afb51f4dbf2ec6ba0b3de7d8d44a009fb9ffe9bab03e3e517c00d5fd74e7f",
+  "employee.grok.skin.v1.walk.left": {
+    "src": "/luma-office/luma-plugin-art/gait-410e61a0e2aa.5ce31eca44bb.png",
+    "sha256": "5ce31eca44bb59b7e8370792c03dec42a2311eb0bf0639c53f6786a17f2bcb09",
     "bounds": [
-      116,
-      55,
-      360,
-      641
+      89.4344,
+      91.3033,
+      377.1311,
+      596.3934
     ],
     "cell": [
-      144,
-      256
+      172,
+      272
     ],
-    "columns": 5,
-    "count": 12
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 9,
+    "count": 48
   },
-  "employee.bai-shuangming.skin.v1.walk.down": {
-    "src": "/luma-office/luma-plugin-art/gait-41ba42a20564.a417014cba0b.webp",
-    "sha256": "a417014cba0b67cc7b3015a0a59f8789398cd274f6bf8d4d38087bc53ed58c80",
+  "employee.grok.skin.v1.walk.right": {
+    "src": "/luma-office/luma-plugin-art/gait-080a617f59ea.45f9cc96e309.png",
+    "sha256": "45f9cc96e309b2410fdb24070e9d46e4447f5f0053224e7ff15b0700ca7dc9ac",
     "bounds": [
-      15,
-      86,
-      565,
-      616
-    ],
-    "cell": [
-      235,
-      256
-    ],
-    "columns": 5,
-    "count": 18
-  },
-  "employee.lu-mi.walk.right.v3": {
-    "src": "/luma-office/luma-plugin-art/gait-c626e4e953e1.357de6dcfea5.webp",
-    "sha256": "357de6dcfea56674a3e1452cda521397cd3c5e5af634da278fa95161c4ca6b18",
-    "bounds": [
-      52,
-      92,
-      527,
-      612
+      18.2951,
+      30.6557,
+      555.4098,
+      686.6885
     ],
     "cell": [
       220,
-      256
+      272
     ],
-    "columns": 7,
-    "count": 36
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 8,
+    "count": 48
   },
-  "employee.lu-mi.walk.left.v4-low-front-f4": {
-    "src": "/luma-office/luma-plugin-art/gait-da3e6f0e4169.72abe5422284.webp",
-    "sha256": "72abe54222847474dd29596a248f7fad24d53f0200bf130b462d5adcca2a9eb9",
+  "employee.grok.skin.v1.walk.up": {
+    "src": "/luma-office/luma-plugin-art/gait-c4430ef8bca6.49ce13d30eec.png",
+    "sha256": "49ce13d30eec4976fc055e4fee1d4e814a0141768cb7291eb444ff4ab9ff3464",
     "bounds": [
-      38,
-      113,
-      547,
-      592
+      42.9262,
+      34.4016,
+      504.1475,
+      672.1967
     ],
     "cell": [
-      237,
-      256
+      204,
+      272
     ],
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 6,
+    "count": 24
+  },
+  "employee.grok.skin.v1.walk.down": {
+    "src": "/luma-office/luma-plugin-art/gait-3ebbf5642f8b.32a36f7d6caf.png",
+    "sha256": "32a36f7d6caf6bad93c6965b95758bf973822ecd70d519df3f6a0c47306287cb",
+    "bounds": [
+      37.5738,
+      5.2787,
+      508.8525,
+      713.4426
+    ],
+    "cell": [
+      194,
+      272
+    ],
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 6,
+    "count": 24
+  },
+  "employee.duanmu-yan.walk.right.v3": {
+    "src": "/luma-office/luma-plugin-art/gait-8ac9e268df69.a8eb84fb2118.png",
+    "sha256": "a8eb84fb2118b2f29d9dc7de2ad6d6ae4884f61f9feef22d5caa3282a13f6d93",
+    "bounds": [
+      40.1885,
+      49.2295,
+      511.623,
+      675.541
+    ],
+    "cell": [
+      206,
+      272
+    ],
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 8,
+    "count": 48
+  },
+  "employee.duanmu-yan.walk.left.v3": {
+    "src": "/luma-office/luma-plugin-art/gait-e9053015f369.84a41d25a6a5.png",
+    "sha256": "84a41d25a6a58f5594c6f21ff2c50f873c7c4c4cc6449a57bcdd21d68c070d01",
+    "bounds": [
+      27.7705,
+      49.2295,
+      536.459,
+      675.541
+    ],
+    "cell": [
+      216,
+      272
+    ],
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 8,
+    "count": 48
+  },
+  "employee.duanmu-yan.walk.up.v2": {
+    "src": "/luma-office/luma-plugin-art/gait-fce91bb3a6f8.ab2bc946766b.png",
+    "sha256": "ab2bc946766b2fd233a794e32fd25ecd045119116ac5a6ec370196c1c9186f66",
+    "bounds": [
+      107.2459,
+      53.2295,
+      377.5082,
+      675.541
+    ],
+    "cell": [
+      152,
+      272
+    ],
+    "figureHeight": 244,
+    "sole": 258,
     "columns": 7,
-    "count": 36
+    "count": 24
+  },
+  "employee.duanmu-yan.walk.down.v2": {
+    "src": "/luma-office/luma-plugin-art/gait-9e59c9d7878d.bf3738a34a5b.png",
+    "sha256": "bf3738a34a5bdee193e9b84128664969cce2e2bb40f6933e8af58b9091c433dd",
+    "bounds": [
+      100.4426,
+      53.3443,
+      391.1148,
+      673.3115
+    ],
+    "cell": [
+      158,
+      272
+    ],
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 7,
+    "count": 24
+  },
+  "employee.shan.skin.v1.walk.left": {
+    "src": "/luma-office/luma-plugin-art/gait-ae4c567be0e7.52860e58fedb.png",
+    "sha256": "52860e58fedbd7f34b0de387682a195437d8c0c4c9cdd63af03183218cea2ad9",
+    "bounds": [
+      -111.6066,
+      -1.2951,
+      767.2131,
+      724.5902
+    ],
+    "cell": [
+      288,
+      272
+    ],
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 7,
+    "count": 48
+  },
+  "employee.shan.skin.v1.walk.right": {
+    "src": "/luma-office/luma-plugin-art/gait-0d45f5259e05.9592b8dadc2b.png",
+    "sha256": "9592b8dadc2b23a2936b2ce9f6a92f4da3a2cffe5d4f3bf460c41211d6e7334e",
+    "bounds": [
+      27.8607,
+      -7.9836,
+      678.2787,
+      737.9672
+    ],
+    "cell": [
+      250,
+      272
+    ],
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 8,
+    "count": 48
+  },
+  "employee.shan.skin.v1.walk.up": {
+    "src": "/luma-office/luma-plugin-art/gait-b2f73d8fbc7f.e690b16b7503.png",
+    "sha256": "e690b16b7503d5b8926347f7e4fd1c3c4cbe0f39efece0a06a7e1d98477c6000",
+    "bounds": [
+      24.6967,
+      -9.9836,
+      580.6066,
+      737.9672
+    ],
+    "cell": [
+      214,
+      272
+    ],
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 6,
+    "count": 24
+  },
+  "employee.shan.skin.v1.walk.down": {
+    "src": "/luma-office/luma-plugin-art/gait-518606e83407.7e00be61ea2d.png",
+    "sha256": "7e00be61ea2d671d4a277c562534bceb2b4bedee584d7eaa148ef07f4a8e051d",
+    "bounds": [
+      44.1148,
+      -10.9836,
+      531.7705,
+      737.9672
+    ],
+    "cell": [
+      196,
+      272
+    ],
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 6,
+    "count": 24
+  },
+  "employee.bai-shuangming.walk.right.v4": {
+    "src": "/luma-office/luma-plugin-art/gait-bf444f398981.8da544c19320.png",
+    "sha256": "8da544c1932051cbd0f0a0d42ac519bb3dea54a2b94a222ab5cf680920bae2f4",
+    "bounds": [
+      60.4508,
+      47.541,
+      471.0984,
+      688.918
+    ],
+    "cell": [
+      186,
+      272
+    ],
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 9,
+    "count": 48
+  },
+  "employee.bai-shuangming.walk.left.v5-low-clearance": {
+    "src": "/luma-office/luma-plugin-art/gait-aef9f368f495.26731715a485.png",
+    "sha256": "26731715a485556b2f6637bb7630c438e45bb07fdba77b2442db86e7c06578dd",
+    "bounds": [
+      0.623,
+      49.6557,
+      590.7541,
+      686.6885
+    ],
+    "cell": [
+      234,
+      272
+    ],
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 8,
+    "count": 44
+  },
+  "employee.bai-shuangming.walk.up.v2": {
+    "src": "/luma-office/luma-plugin-art/gait-c2208beb48a7.8d3af2fc46d0.png",
+    "sha256": "8d3af2fc46d02a7e6d0701612dd26ff1ed8d3233aec819c73ab0c914dc9bb9eb",
+    "bounds": [
+      108.6721,
+      75.377,
+      374.6557,
+      653.2459
+    ],
+    "cell": [
+      156,
+      272
+    ],
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 7,
+    "count": 24
+  },
+  "employee.bai-shuangming.walk.down.v2": {
+    "src": "/luma-office/luma-plugin-art/gait-771a359acf06.8a3246d3ade2.png",
+    "sha256": "8a3246d3ade2fced872151173172c4e232f212c16f991624679f0e6465d22e92",
+    "bounds": [
+      102.5082,
+      21.3934,
+      386.9836,
+      711.2131
+    ],
+    "cell": [
+      148,
+      272
+    ],
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 7,
+    "count": 24
+  },
+  "employee.bai-shuangming.skin.v1.walk.left": {
+    "src": "/luma-office/luma-plugin-art/gait-f2b70830c55a.a1551fe21901.png",
+    "sha256": "a1551fe21901a01ddd4239fa1dc43cc4a860417673d7c6c3c6c8b267250445d0",
+    "bounds": [
+      -75.0164,
+      58.8852,
+      622.0328,
+      682.2295
+    ],
+    "cell": [
+      248,
+      272
+    ],
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 8,
+    "count": 48
+  },
+  "employee.bai-shuangming.skin.v1.walk.right": {
+    "src": "/luma-office/luma-plugin-art/gait-a9d2e4d71d82.2e28606c79d1.png",
+    "sha256": "2e28606c79d12bc6c9185df42d0fdcc4379aec8506f3f5ea1172cee96c90fd22",
+    "bounds": [
+      67.4672,
+      42.541,
+      623.0656,
+      688.918
+    ],
+    "cell": [
+      246,
+      272
+    ],
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 8,
+    "count": 48
+  },
+  "employee.bai-shuangming.skin.v1.walk.up": {
+    "src": "/luma-office/luma-plugin-art/gait-1aa5b67a8766.edeadeb73142.png",
+    "sha256": "edeadeb73142f906b8bd7d99903008aecb9ea707aef95bdffb8a3778f4a5002e",
+    "bounds": [
+      112.082,
+      30.1967,
+      393.8361,
+      695.6066
+    ],
+    "cell": [
+      154,
+      272
+    ],
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 6,
+    "count": 16
+  },
+  "employee.bai-shuangming.skin.v1.walk.down": {
+    "src": "/luma-office/luma-plugin-art/gait-41ba42a20564.fa8de07727d6.png",
+    "sha256": "fa8de07727d6c2b458f87032af7f5b18b4221a9fe6bc5b95973d0a1d60cb3b87",
+    "bounds": [
+      -21.4672,
+      57.459,
+      606.9344,
+      671.082
+    ],
+    "cell": [
+      246,
+      272
+    ],
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 6,
+    "count": 24
+  },
+  "employee.lu-mi.walk.right.v3": {
+    "src": "/luma-office/luma-plugin-art/gait-c626e4e953e1.ad7e36a54dd0.png",
+    "sha256": "ad7e36a54dd0338c81a7fa718ef48b927fa3da6bf002baea9fd9de984ec76dd5",
+    "bounds": [
+      -7.2787,
+      73.0328,
+      606.5574,
+      659.9344
+    ],
+    "cell": [
+      250,
+      272
+    ],
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 8,
+    "count": 48
+  },
+  "employee.lu-mi.walk.left.v4-low-front-f4": {
+    "src": "/luma-office/luma-plugin-art/gait-da3e6f0e4169.e7c9001edaed.png",
+    "sha256": "e7c9001edaed9a029e593ac2e2abcf93264da22088badabdf14cd4dc55eb9a54",
+    "bounds": [
+      -52.2213,
+      87.8361,
+      696.4426,
+      644.3279
+    ],
+    "cell": [
+      294,
+      272
+    ],
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 7,
+    "count": 48
   },
   "employee.lu-mi.walk.up.v1": {
-    "src": "/luma-office/luma-plugin-art/gait-dee8ac599679.65eac21c5115.webp",
-    "sha256": "65eac21c5115562d6caeaf954b39030b72f70f16865be4772c11320ee3453fa7",
+    "src": "/luma-office/luma-plugin-art/gait-dee8ac599679.a8867f852193.png",
+    "sha256": "a8867f8521932204ee187b9e86cc066cac769ef318126a96304b40c6b4d1e7d3",
     "bounds": [
-      135,
-      21,
-      322,
-      699
+      129.1557,
+      -13.5902,
+      333.6885,
+      769.1803
     ],
     "cell": [
       118,
-      256
+      272
     ],
-    "columns": 7,
-    "count": 18
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 8,
+    "count": 24
   },
   "employee.lu-mi.walk.down.v2": {
-    "src": "/luma-office/luma-plugin-art/gait-5cef2e4611ef.5df2ad764706.webp",
-    "sha256": "5df2ad764706f8711d9fdd4934fea865573b14995fef58d5679b117a3f55390d",
+    "src": "/luma-office/luma-plugin-art/gait-5cef2e4611ef.8c0b15189ffc.png",
+    "sha256": "8c0b15189ffc9e043456cd2bf02ccc177d84ac7a8ac05c51fa1658769ba0cfca",
     "bounds": [
-      102,
-      21,
-      390,
-      701
+      86.7377,
+      -12.5902,
+      418.5246,
+      769.1803
     ],
     "cell": [
-      142,
-      256
+      148,
+      272
     ],
-    "columns": 6,
-    "count": 18
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 7,
+    "count": 24
   },
   "employee.lu-mi.skin.v1.walk.left": {
-    "src": "/luma-office/luma-plugin-art/gait-7f6e9d6199c8.f77111563311.webp",
-    "sha256": "f7711156331121d2e88d7f366ed03ef1549a0fbcf2ab3760f72e10fd86323c5f",
+    "src": "/luma-office/luma-plugin-art/gait-7f6e9d6199c8.0eae02141e07.png",
+    "sha256": "0eae02141e07d98ac26d6801bbcf089c1abc4639a8b50c29acdb5919dbe603f8",
     "bounds": [
-      64,
-      16,
-      479,
-      683
+      -115.0082,
+      -8.9262,
+      726.0164,
+      736.8525
     ],
     "cell": [
-      180,
-      256
+      268,
+      272
     ],
-    "columns": 8,
-    "count": 36
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 7,
+    "count": 48
   },
   "employee.lu-mi.skin.v1.walk.right": {
-    "src": "/luma-office/luma-plugin-art/gait-befc44738fec.2d5a4b8cefcd.webp",
-    "sha256": "2d5a4b8cefcd0fb1face1782358b4c96889515753fd4d669bd6a35cfa8cff982",
+    "src": "/luma-office/luma-plugin-art/gait-befc44738fec.c01a584358ba.png",
+    "sha256": "c01a584358bab589e53f9bea5070311edf00b0a340498e5d0558219a3062b29d",
     "bounds": [
-      74,
-      10,
-      457,
-      681
+      41.3525,
+      -8.2951,
+      687.2951,
+      724.5902
     ],
     "cell": [
-      172,
-      256
+      258,
+      272
     ],
+    "figureHeight": 244,
+    "sole": 258,
     "columns": 8,
-    "count": 36
+    "count": 48
   },
   "employee.lu-mi.skin.v1.walk.up": {
-    "src": "/luma-office/luma-plugin-art/gait-de9dd32a823b.80b15191e1e5.webp",
-    "sha256": "80b15191e1e5dc46c57279d3fb15be94b4beb50e1b99ad806da7ed6c1c7f9db2",
+    "src": "/luma-office/luma-plugin-art/gait-de9dd32a823b.4b8b441a2468.png",
+    "sha256": "4b8b441a2468233d0aa28e4a288f91cceb2daf301277da55d1509fc54b0f5881",
     "bounds": [
-      79,
-      11,
-      438,
-      684
+      13.3607,
+      -7.7541,
+      593.2787,
+      733.5082
     ],
     "cell": [
-      164,
-      256
+      220,
+      272
     ],
+    "figureHeight": 244,
+    "sole": 258,
     "columns": 6,
-    "count": 18
+    "count": 24
   },
   "employee.lu-mi.skin.v1.walk.down": {
-    "src": "/luma-office/luma-plugin-art/gait-70fe69338fae.c27247227f31.webp",
-    "sha256": "c27247227f314922d64a5034f403dec7c4844bbc25319fffc507f5f430c3b3eb",
+    "src": "/luma-office/luma-plugin-art/gait-70fe69338fae.3023d56fe6af.png",
+    "sha256": "3023d56fe6af8774091a07ff3bd416bd6acce05790927dd24122adb0db62dca0",
     "bounds": [
-      62,
-      17,
-      456,
-      680
+      86.0738,
+      -13.2131,
+      485.8525,
+      742.4262
     ],
     "cell": [
-      172,
-      256
+      178,
+      272
     ],
-    "columns": 6,
-    "count": 18
+    "figureHeight": 244,
+    "sole": 258,
+    "columns": 7,
+    "count": 24
   }
 }

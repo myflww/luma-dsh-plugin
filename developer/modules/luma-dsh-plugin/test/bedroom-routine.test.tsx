@@ -8,7 +8,8 @@ import { OfficeBedroom, type ResidentId } from '../src/client/OfficeBedroom.tsx'
 import { BEDROOM_ART, getBedroomArt } from '../src/client/bedroom-art.generated.ts'
 import { BEDROOM_WALKABLE, bedroomFloorContains, type BedroomRoom } from '../src/client/bedroom-floor.ts'
 import { OfficeActionMenu } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/OfficeActionMenu.tsx'
-import { getEmployeeCatalogWithSkin, getEmployeeTypingProfileWithSkin, getEmployeeSkinPack } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/employeeSkins.ts'
+import { getEmployeeCatalogWithSkin } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/employeeSkins.ts'
+import { getDeskRearPose } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/deskRearPose.ts'
 import { getOfficeAsset } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/assets.ts'
 import { officeAutomaticWalkCadence } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/frameTimeline.ts'
 
@@ -32,22 +33,31 @@ it('keeps reclining figures on the pillow at a consistent size across different 
   expect(Math.max(...lengths)/Math.min(...lengths)).toBeLessThan(1.08)
 })
 
-it('seats the short-reach outfit on the cushion even when the painted keyboard is too far away',()=>{
-  const roomId='bedroom.shop.frostwing-glasshouse.v1',room=getBedroomArt(roomId)
-  const id='claude',skinId='skin.claude.v1',catalog=getEmployeeCatalogWithSkin(id,skinId)!
-  const asset=getOfficeAsset(catalog.typing.backRight),strip=asset.frameStrip!
-  const landmark=getEmployeeSkinPack(id,skinId)!.typingProfiles.backRight.landmarks.hip
-  const view=render(<svg><BedroomDeskPose {...{id,skinId,roomId,room}} background={room.day}
-    approach={BEDROOM_FLOORS[roomId].desk} seated={1} elapsed={0} animate/></svg>)
-  const actor=view.container.querySelector('[data-bedroom-pose="computer"]')!
-  expect(actor.querySelector('[data-bedroom-input-tray]')).toBeTruthy()
-  const figure=actor.querySelector('svg')!
-  const x=Number(figure.getAttribute('x'))+Number(figure.getAttribute('width'))*landmark.x
-  const y=Number(figure.getAttribute('y'))+Number(figure.getAttribute('height'))*landmark.y
-  const [seatX,upperBodyY]=bedroomSeatedCenter(roomId)
-  expect(Number(figure.getAttribute('width'))/strip.frameWidth).toBeGreaterThan(0)
-  expect(x).toBeCloseTo(seatX,3)
-  expect(y).toBeCloseTo(upperBodyY+48,3)
+it('moves the chair towards the fixed key bed and registers the rear wrists and pelvis in either lighting',()=>{
+  const roomId='classic',room=getBedroomArt(roomId),id='shan',approach=BEDROOM_FLOORS[roomId].desk
+  const pose=getDeskRearPose(id)!
+  for(const background of [room.day,room.night]){
+    const view=render(<svg><BedroomDeskPose {...{id,roomId,room,background,approach}}
+      seated={1} elapsed={0} animate/></svg>)
+    const actor=view.container.querySelector('[data-bedroom-pose="computer"]')!
+    expect(actor.querySelector('[data-bedroom-keyboard],[data-bedroom-input-tray]')).toBeNull()
+    expect(actor.querySelector(`image[href="${background}"]`)).toBeNull()
+    const figure=actor.querySelector('[data-body-projection="seated"]')!
+    expect(figure.querySelector('image')?.getAttribute('href')).toBe(pose.src)
+    const [a,b,c,d,tx,ty]=figure.getAttribute('transform')!.slice(7,-1).split(' ').map(Number) as [number,number,number,number,number,number]
+    const world=(p:readonly [number,number])=>[a*p[0]+c*p[1]+tx,b*p[0]+d*p[1]+ty]
+    const [palmX,palmY]=world(pose.hand), [hipX,hipY]=world(pose.hip)
+    expect(palmX!).toBeGreaterThanOrEqual(766)
+    expect(palmX!).toBeLessThanOrEqual(804)
+    expect(palmY!).toBeCloseTo(525+(palmX!-766)*11/38)
+    expect(hipX!).toBeCloseTo(757)
+    expect(hipY!).toBeCloseTo(593)
+    expect(actor.querySelector('g[transform="translate(34 -20)"] svg')).toBeTruthy()
+    const hit=bedroomSeatedCenter(roomId,id,undefined,approach)
+    expect(hit[1]).toBeLessThan(hipY!)
+    expect(Math.abs(hit[0]-hipX!)).toBeLessThan(55)
+    view.unmount()
+  }
 })
 
 it('uses continuous floor routes in every room, with sleep and attendance transitions at the correct landmarks',()=>{
@@ -138,10 +148,8 @@ it('renders each resident in the matching phone outfit and animated chair pose a
     const computer=render(<OfficeBedroom {...opts} clock={new Date()}/>)
     const actor=computer.container.querySelector('[data-bedroom-pose="computer"]')!
     expect(actor.querySelector('[data-bedroom-monitor="awake"]')).toBeTruthy()
-    const left=actor.getAttribute('data-desk-facing')==='backLeft'
-    const nativeLeft=left && !getEmployeeTypingProfileWithSkin(id,'backLeft',skinId)?.integratedChair
-    expect(actor.querySelector('svg image')?.getAttribute('href')).toContain(getOfficeAsset(catalog.typing[nativeLeft?'backLeft':'backRight']).sha256.slice(0,12))
-    expect(Boolean(actor.querySelector('svg image')?.getAttribute('transform'))).toBe(left && !nativeLeft)
+    expect(actor.querySelector('[data-bedroom-seated-body] image')?.getAttribute('href')).toBe(getDeskRearPose(id,skinId)!.src)
+    expect(actor.querySelector('[data-bedroom-keyboard],[data-bedroom-input-tray]')).toBeNull()
     const initial=actor.getAttribute('data-bedroom-frame')
     act(()=>vi.advanceTimersByTime(320))
     expect(actor.getAttribute('data-bedroom-frame')).not.toBe(initial)
@@ -193,13 +201,26 @@ it('drags the bedroom resident onto the floor, cancels a second gesture, then ca
     Object.defineProperties(e,{pointerId:{value:1},isPrimary:{value:true}})
     fireEvent(target,e)
   }
-  pointer('pointerdown',600,500);pointer('pointermove',750,600);pointer('pointerup',750,600)
+  pointer('pointerdown',600,500);pointer('pointermove',750,600)
+  expect(view.container.querySelector('[data-actor-motion="held"]')).toBeTruthy()
+  pointer('pointerup',750,600)
+  expect(view.container.querySelector('[data-actor-motion="landing"]')).toBeTruthy()
   expect(view.getByText('在这里歇一会儿')).toBeTruthy()
   const pose=target.ownerSVGElement!.querySelector('[data-bedroom-pose]')?.getAttribute('transform')
   pointer('pointerdown',750,600);pointer('pointermove',700,550);pointer('pointercancel',700,550)
   expect(target.ownerSVGElement!.querySelector('[data-bedroom-pose]')?.getAttribute('transform')).toBe(pose)
+  const [, ,sceneWidth,sceneHeight]=target.ownerSVGElement!.getAttribute('viewBox')!.split(' ').map(Number)
+  for(const state of [{bedtime:true,taskIdle:true},{bedtime:false,taskIdle:false}]){
+    view.rerender(<OfficeBedroom {...config} {...state}/>)
+    const centerX=Number(target.getAttribute('cx')),centerY=Number(target.getAttribute('cy'))
+    pointer('pointerdown',300,350);pointer('pointermove',320,360)
+    expect(Number(target.getAttribute('cx'))).toBeCloseTo(centerX+20*sceneWidth!/1672)
+    expect(Number(target.getAttribute('cy'))).toBeCloseTo(centerY+10*sceneHeight!/941)
+    pointer('pointercancel',320,360)
+  }
   view.rerender(<OfficeBedroom {...config} bedtime/>)
-  pointer('pointerdown',300,350);pointer('pointermove',-120,100);pointer('pointerup',-120,100)
+  // A fast desktop handoff can arrive with no intervening pointermove.
+  pointer('pointerdown',300,350);pointer('pointerup',-120,100)
   expect(onDesktopPet).toHaveBeenCalledExactlyOnceWith('jingyuniang',{screenX:-120,screenY:100})
   expect(onChat).not.toHaveBeenCalled()
   expect(target.ownerSVGElement!.querySelector('[data-bedroom-pose="sleep"]')).toBeTruthy()

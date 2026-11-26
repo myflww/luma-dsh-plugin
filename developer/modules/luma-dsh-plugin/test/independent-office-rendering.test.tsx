@@ -38,7 +38,7 @@ beforeEach(() => {
   vi.spyOn(performance, 'now').mockImplementation(() => now)
   vi.spyOn(HTMLCanvasElement.prototype, 'getBoundingClientRect').mockReturnValue({ left: 0, top: 0, width: 100, height: 100 } as DOMRect)
   vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({ clearRect: vi.fn(), fillRect: vi.fn(), drawImage: draw,
-    save: vi.fn(), restore: vi.fn(), beginPath: vi.fn(), moveTo: vi.fn(), lineTo: vi.fn(), closePath: vi.fn(), clip,
+    save: vi.fn(), restore: vi.fn(), transform: vi.fn(), beginPath: vi.fn(), moveTo: vi.fn(), lineTo: vi.fn(), closePath: vi.fn(), clip,
     getImageData: () => ({ data: new Uint8ClampedArray([0, 0, 0, 255]) }),
   } as unknown as CanvasRenderingContext2D)
   vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => { frames.set(++ordinal, callback); return ordinal })
@@ -139,6 +139,19 @@ it('opens a themed office employee on one tap or accessible button activation an
   expect(open.mock.calls).toEqual([['lu-mi']])
   fireEvent.click(view.getByRole('button', { name: '打开陆弥的工作台', exact: true }), { detail: 0 })
   expect(open.mock.calls).toEqual([['lu-mi'], ['lu-mi']])
+})
+
+it('uses a distant release to place a themed employee when all pointer moves were coalesced',async()=>{
+  const {props}=fixture(), bind=vi.fn(), open=vi.fn()
+  selected.space.layout.stations.push({...selected.space.layout.stations[0],id:'south-left',seat:[80,80],approach:[80,80]})
+  const view=await mounted({...props,onBindWorkstation:bind,onCharacterClick:open,employeeDestination:'contact'})
+  paint()
+  const canvas=view.getByLabelText('主题办公室')
+  Object.assign(canvas,{setPointerCapture(){}})
+  pointAt(canvas,'pointerdown',15,25)
+  pointAt(canvas,'pointerup',80,80)
+  expect(bind).toHaveBeenCalledExactlyOnceWith('lu-mi','south-left')
+  expect(open).not.toHaveBeenCalled()
 })
 
 it.each(['own chair', 'other desk', 'readback blocked'])('targets the visible employee through %s with real scene coordinates', async scenario => {

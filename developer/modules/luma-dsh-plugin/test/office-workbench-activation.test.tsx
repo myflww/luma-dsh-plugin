@@ -44,18 +44,19 @@ it('restores the pre-drag character when an asynchronous seat write fails',async
   canvas.remove()
 })
 
-it('settles at the final pointerup coordinates when the browser coalesces the last move',()=>{
-  const {employee,view,canvas,pointer,actorRef}=fixture(false,'contact')
+it.each([true,false])('settles at pointerup even when moves are coalesced (intermediate move=%s)',intermediate=>{
+  const {employee,view,canvas,pointer,actorRef,open}=fixture(false,'contact')
   const start=actorRef.current.shan.position
   const stops=OFFICE_NAV_ACTION_POINTS.filter(p=>!isOfficeFootAnchorBlocked([p.x,p.y]) && !OFFICE_SEAT_BOXES.some(b=>p.x>=b.x && p.x<=b.x+b.width && p.y>=b.y && p.y<=b.y+b.height))
   const first=stops[0]!, last=stops.at(-1)!
   expect(first.id).not.toEqual(last.id)
   act(()=>{
     view.result.current.startActorDrag(pointer(start.x,start.y,'pointerdown'),employee)
-    view.result.current.moveActorDrag(pointer(first.x,first.y,'pointermove'))
+    if(intermediate)view.result.current.moveActorDrag(pointer(first.x,first.y,'pointermove'))
     view.result.current.finishActorDrag(pointer(last.x,last.y,'pointerup'))
   })
   expect(actorRef.current.shan.position).toEqual({x:last.x,y:last.y})
+  expect(open).not.toHaveBeenCalled()
   canvas.remove()
 })
 

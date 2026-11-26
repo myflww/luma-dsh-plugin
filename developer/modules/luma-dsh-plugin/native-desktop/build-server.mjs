@@ -49,7 +49,7 @@ for (const preset of Object.keys(employees)) {
     const points=pack?.sleep.contactUVs
     const sleeper=points?{url:resolveOfficeAssetUrl(pack.assets.sleep),head:[points.backOfHead.x,points.backOfHead.y],feet:[points.feetCenter.x,points.feetCenter.y]}:BEDROOM_SLEEP[role]
     const dx=sleeper.feet[0]-sleeper.head[0],dy=sleeper.feet[1]-sleeper.head[1]
-    const strips=Object.fromEntries(['down','left','right'].map(direction => {
+    const strips=Object.fromEntries(['down','up','left','right'].map(direction => {
       const asset = getOfficeAsset(employee.walk[direction])
       const {frameWidth,frameHeight,frameCount,frameDurationsMs} = asset.frameStrip
       const gait=gaits[asset.id]
@@ -60,7 +60,7 @@ for (const preset of Object.keys(employees)) {
         return Math.round((n+1)*t/steps)-Math.round(n*t/steps)
       })
       return [direction,{path:resolveOfficeAssetUrl(asset.id).slice(1),frameWidth,frameHeight,frameCount,frameDurationsMs,
-        gaitPath:gait.src.slice(1),cell:gait.cell,columns:gait.columns,durations}]
+        gaitPath:gait.src.slice(1),cell:gait.cell,columns:gait.columns,durations,figureHeight:gait.figureHeight,sole:gait.sole}]
     }))
     petArt[role + '-' + variant]={strips,sleep:sleeper.url.slice(1),sleepMirror:dx<0,sleepAngle:13-Math.atan2(dy,Math.abs(dx))*180/Math.PI}
   }

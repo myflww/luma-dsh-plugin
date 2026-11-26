@@ -1,3 +1,5 @@
+import { ActorMotionLayer } from './ActorMotionLayer.tsx'
+import { LANDING_MS } from './office2d/actorMotion.ts'
 import { getOfficeAsset } from './office2d/assets.ts'
 import { OfficeSkinSelectionNotices } from './OfficeSkinSelectionNotices.tsx'
 import { normalizeOfficeSkinSelections } from './office2d/skinSelectionAvailability.ts'
@@ -576,7 +578,7 @@ function ClassicOfficeSceneSurface({
                   ...(framePresentation.anchor
                     ? { transform: `translate(${-framePresentation.anchor.x * 100}%, ${-framePresentation.anchor.y * 100}%)` }
                     : {}),
-                  zIndex: Math.round(foot.y),
+                  zIndex: actor.mode==='drag' ? OFFICE_NAV_HEIGHT+1 : Math.round(foot.y),
                 } satisfies CSSProperties}
                 onClick={event => { handleActorClick(event, employee.id) }}
                 onContextMenu={event => openActionMenu(event, employee)}
@@ -590,18 +592,23 @@ function ClassicOfficeSceneSurface({
                     ? { transform: `translateY(-${walkRest.liftPercent ?? 0}%) scale(${walkRest.scale ?? 1})` }
                     : undefined}
                 >
-                  <SpriteStripCanvas
-                    key={`${skinId ?? 'default'}:${manual ? `manual:${manual.revision}` : 'automatic'}`}
-                    assetId={manual?.asset ?? walkRest?.asset ?? catalog.walk[direction]}
-                    className="lumaOfficeEmployeeWalkCanvas"
-                    {...manual?.mode === 'hold' || manual?.id === 'stand-front' ? { fixedFrameIndex: manual.holdFrame }
-                      : automaticFrame !== undefined ? { fixedFrameIndex: automaticFrame }
-                      : walkRest === undefined ? {} : { fixedFrameIndex: walkRest.frameIndex }}
-                    {...manual ? { loopOverride: manual.mode === 'loop' } : {}}
-                    {...automaticFrame !== undefined && automaticTimeline ? { walkElapsedMs: (actor.walkPhase ?? 0) * automaticTimeline.cycleMs } : {}}
-                    playbackRate={manual ? 1 : automaticCadence?.playbackRate ?? 1}
-                    paused={!moving || drawingPaused || reducedMotion}
-                  />
+                  <ActorMotionLayer id={employee.id} anchor={framePresentation.anchor} motion={drawingPaused || reducedMotion ? undefined
+                    : actor.mode === 'drag' ? 'held'
+                    : actor.landedAt !== undefined && performance.now()-actor.landedAt < LANDING_MS ? 'landing'
+                    : !moving && (!manual || manual.id==='stand-front') ? 'idle' : undefined}>
+                    <SpriteStripCanvas
+                      key={`${skinId ?? 'default'}:${manual ? `manual:${manual.revision}` : 'automatic'}`}
+                      assetId={manual?.asset ?? walkRest?.asset ?? catalog.walk[direction]}
+                      className="lumaOfficeEmployeeWalkCanvas"
+                      {...manual?.mode === 'hold' || manual?.id === 'stand-front' ? { fixedFrameIndex: manual.holdFrame }
+                        : automaticFrame !== undefined ? { fixedFrameIndex: automaticFrame }
+                        : walkRest === undefined ? {} : { fixedFrameIndex: walkRest.frameIndex }}
+                      {...manual ? { loopOverride: manual.mode === 'loop' } : {}}
+                      {...automaticFrame !== undefined && automaticTimeline ? { walkElapsedMs: (actor.walkPhase ?? 0) * automaticTimeline.cycleMs } : {}}
+                      playbackRate={manual ? 1 : automaticCadence?.playbackRate ?? 1}
+                      paused={!moving || drawingPaused || reducedMotion}
+                    />
+                  </ActorMotionLayer>
                 </span>
               </button>
             )

@@ -14,7 +14,7 @@ export function desktopPetPeriod(date=new Date(), calendar:DesktopPetCalendar={}
 export const desktopPetBedtime=(date=new Date())=>desktopPetPeriod(date)==='night'
 type PetMode = 'field'|'peeking'|'hidden-edge'
 type PetActivity = 'awake'|'greeting'|'lunch'|'sleepy'|'settling'|'dozing'
-type PetState = {roleId:string;skinId:string|null;mode:PetMode;side:'left'|'right'|null;activity:PetActivity}
+type PetState = {roleId:string;skinId:string|null;mode:PetMode;side:'left'|'right'|'top'|'bottom'|null;activity:PetActivity}
 interface Pet {process:ChildProcessWithoutNullStreams;state:PetState;closed:Promise<void>;slot:number;windowId?:number;reduceMotion:boolean;requestedSkin:string|null;retrySkinAt:number}
 
 export function desktopPets(directory:string, unlocked:()=>readonly string[], skin:(role:string)=>string|undefined, readCalendar:()=>DesktopPetCalendar=()=>({})) {
@@ -83,7 +83,7 @@ export function desktopPets(directory:string, unlocked:()=>readonly string[], sk
           try {
             const event=JSON.parse(line.replace(/^\uFEFF/, ''))
             if(!['field','peeking','hidden-edge'].includes(event.mode))return
-            pet.state={...pet.state,mode:event.mode,side:['left','right'].includes(event.side)?event.side:null,
+            pet.state={...pet.state,mode:event.mode,side:['left','right','top','bottom'].includes(event.side)?event.side:null,
               skinId:event.skinId===null||event.skinId===pet.requestedSkin?event.skinId:pet.state.skinId,
               activity:['greeting','lunch','sleepy','settling','dozing'].includes(event.activity)?event.activity:'awake'}
             if(Number.isSafeInteger(event.windowId)&&event.windowId>0&&event.windowId!==pet.windowId) {

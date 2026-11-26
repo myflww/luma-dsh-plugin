@@ -1,3 +1,4 @@
+import { actorPose, LANDING_MS, motionPhase, type ActorMotion } from './office2d/actorMotion.ts'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { OfficeScenePreview } from './OfficeScenePreview.tsx'
 import { seatMatte, seatedBodyLayer } from './office2d/sceneChairMatte.ts'
@@ -8,7 +9,7 @@ import type { OfficeSceneSurfaceProps, OfficeSceneEmployee } from './OfficeScene
 import { useIndependentOfficeSpace } from './office2d/useIndependentOfficeSpace.ts'
 import { assertIndependentOfficeSpaceBindings, type AdmittedIndependentOfficeSpace } from './office2d/independentOfficeSpaceAdmission.ts'
 import { SceneBitmapBatch } from './office2d/SceneBitmapBatch.ts'
-import { getOfficeAsset, resolveOfficeAssetUrl, type OfficeAssetId } from './office2d/assets.ts'
+import { getOfficeAsset, resolveOfficeAssetUrl, type OfficeAssetId, type OfficeFrameStrip } from './office2d/assets.ts'
 import { getEmployeeCatalogWithSkin, getEmployeeSkinWalkProfile } from './office2d/employeeSkins.ts'
 import { getIndependentOfficeWalkBodyProfile, independentFrameRect as officeFrameRect } from './office2d/independentMovementPresentation.ts'
 import { advanceOfficeActorPortraitTap, officeEmployeeAction, type OfficeActorPortraitTap } from './office2d/actorPortraitActivation.ts'
@@ -29,7 +30,7 @@ import { OFFICE_MONITOR_PANELS } from './office2d/officeMonitorPanels.ts'
 import { fittedDeskPose, floorSpriteProfile, officeBodyHit, officeFigureCenter, standingFigureHeight } from './office2d/officeFigureScale.ts'
 import { sampleDeskRhythm } from './office2d/deskRhythm.ts'
 import { deskFrameRegistration } from './office2d/deskFrameRegistration.ts'
-import { getWalkAtlas, sampleWalkAtlas, drawWalkAtlas, walkAtlasBounds } from './office2d/walkAtlas.ts'
+import { getWalkAtlas, sampleWalkAtlas, drawWalkAtlas } from './office2d/walkAtlas.ts'
 import { createOfficeFrameTimeline } from './office2d/frameTimeline.ts'
 import { OfficeSeatFeedback, useOfficeSeatFeedback, type SeatPreview } from './OfficeSeatFeedback.tsx'
 
@@ -38,7 +39,7 @@ type Slot = { id: string; seat: Point; keyboard?: Point; approach: Point; height
 type Binding = { anatomicalSourcePixels?: { hand: Point }; employeeId: string; skinId: string; stationId: string; browserSrc: string; sourceSha256: string; frameSize: Point; frameCount: number; frameOrder: readonly number[]; frameDurationsMs: readonly number[]; restFrame: number; origin: Point; uniformScale: number; visualReviewed: boolean; integratedChair?: IndependentIntegratedChair; sourceForegroundPolygons?: readonly (readonly Point[])[]; sourceForegroundOccluderPolygons?: readonly (readonly Point[])[]; sourceForegroundSemantics?: { coordinateSpace: string; sourceSHA256: string; kind: string }; actorFurnitureOwnership?: { actor: string; sourceHasChair: boolean } }
 type Space = { layout: { kind: 'office'; theme: string; size: Point; stations: readonly Slot[]; renderBindings: readonly Binding[]; navigation: { entry: Point; floorGraph?: unknown }; sceneOccluders?: readonly IndependentSceneOccluder[] }; phases: Record<string, { src: string; sha256: string; authoredPhase?: string }> }
 type WalkPaint = { atlas: NonNullable<ReturnType<typeof getWalkAtlas>>; bitmap: ImageBitmap; rect: ReturnType<typeof sampleWalkAtlas>['rect'] }
-type Paint = { gait?: WalkPaint | undefined; employee: OfficeSceneEmployee; image: ImageBitmap; bodyLayer?: HTMLCanvasElement | undefined; frame: number; sourceOrigin: Point; size: Point; origin: Point; scale: number; station: Slot | undefined; depthY: number; roaming: boolean; manual: boolean; chair?: IndependentIntegratedChair | undefined; animated?: boolean; arrivalKey?: string; arrivalPaint?: 'binding' | 'floor' | 'report-finished'; sourceForegroundPolygons?: readonly (readonly Point[])[] | undefined; sourceForegroundOccluderPolygons?: readonly (readonly Point[])[] | undefined; maskOrigin?: Point; foot?: Point; reportNote?: readonly [x: number, y: number, height: number]; reportComplete?: boolean }
+type Paint = { still?: boolean; motion?: ActorMotion; matrix?: readonly [number,number,number,number,number,number]; gait?: WalkPaint | undefined; employee: OfficeSceneEmployee; image: ImageBitmap; bodyLayer?: HTMLCanvasElement | undefined; frame: number; sourceOrigin: Point; size: Point; origin: Point; scale: number; station: Slot | undefined; depthY: number; roaming: boolean; manual: boolean; chair?: IndependentIntegratedChair | undefined; animated?: boolean; arrivalKey?: string; arrivalPaint?: 'binding' | 'floor' | 'report-finished'; sourceForegroundPolygons?: readonly (readonly Point[])[] | undefined; sourceForegroundOccluderPolygons?: readonly (readonly Point[])[] | undefined; maskOrigin?: Point; foot?: Point; reportNote?: readonly [x: number, y: number, height: number]; reportComplete?: boolean }
 
 export function independentPointInPolygon(point: Point, polygon: readonly Point[]): boolean {
   let inside = false
@@ -211,10 +212,16 @@ function IndependentOfficeSceneContent(props: OfficeSceneSurfaceProps & {retry()
     }).catch(() => { /* The complete painted source remains available. */ })
     return undefined
   }
+  const walkPaint = (id: OfficeAssetId, strip: OfficeFrameStrip, time: number, loop = true): WalkPaint | undefined => {
+    const atlas = getWalkAtlas(id)
+    const bitmap = atlas && walkingBitmap(atlas)
+    return atlas && bitmap ? { atlas, bitmap, rect: sampleWalkAtlas(atlas, strip, time, loop).rect } : undefined
+  }
   useEffect(() => () => {
     for(const batch of walkingImages.current.values()) batch.release()
     walkingImages.current.clear()
   }, [space?.layout.theme])
+  const landed = useRef(new Map<string,number>())
   const clock = useRef(0)
   const [ready, setReady] = useState(false)
   const [error, setError] = useState('')
@@ -225,7 +232,7 @@ function IndependentOfficeSceneContent(props: OfficeSceneSurfaceProps & {retry()
   const [manual, setManual] = useState<Record<string, OfficeManualAction>>({})
   const manualRevision = useRef(0)
   const manualRef = useRef(manual); manualRef.current = manual
-  const gesture = useRef<{ id: string; pointerId: number; start: Point; origin: Point; startClient: Point; pressedAt: number; latest: Point; moved: boolean; dragging: boolean; cancelled: boolean; arrivalKey: string; arrivalBefore: IndependentArrivalState | undefined } | null>(null)
+  const gesture = useRef<{ id: string; pointerId: number; start: Point; origin: Point; startClient: Point; liftedAt?: number; pressedAt: number; latest: Point; moved: boolean; dragging: boolean; cancelled: boolean; arrivalKey: string; arrivalBefore: IndependentArrivalState | undefined } | null>(null)
   const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pendingTap = useRef<OfficeActorPortraitTap | null>(null)
   const clearHold = () => { if (holdTimer.current !== null) clearTimeout(holdTimer.current); holdTimer.current = null }
@@ -411,7 +418,7 @@ function IndependentOfficeSceneContent(props: OfficeSceneSurfaceProps & {retry()
             continue
           }
           const action = resolveOfficeManualAction(employee.id, manualRef.current[employee.id], skin)
-          const dragged = gesture.current?.id === employee.id && gesture.current.dragging && gesture.current.moved
+          const dragged = gesture.current?.id === employee.id && gesture.current.dragging
           if (action || dragged || !binding) {
             const catalog = getEmployeeCatalogWithSkin(employee.id, skin), assetId = action?.asset ?? catalog?.walk.down
             if (!assetId) continue
@@ -425,7 +432,9 @@ function IndependentOfficeSceneContent(props: OfficeSceneSurfaceProps & {retry()
             const exposure = !action || action.id === 'stand-front' || action.mode === 'hold' || !active || current.reduceMotion ? action?.holdFrame ?? order.at(-1)! : physicalFrame(manualElapsed, durations, order, action.mode === 'loop')
             const animated = !!action && action.id !== 'stand-front' && action.mode !== 'hold' && strip.frameCount > 1 && (action.mode === 'loop' || manualElapsed < durations.reduce((sum, value) => sum + value, 0))
             const rect = officeFrameRect(strip, exposure)
-            rows.push({ employee, image, frame: exposure, sourceOrigin: [rect[0], rect[1]], size: [strip.frameWidth, strip.frameHeight], origin: [position[0] - anchor.x * strip.frameWidth * scale, position[1] - anchor.y * strip.frameHeight * scale], scale, station, depthY: station?.seat[1] ?? position[1], roaming: !station, manual: true, animated })
+            const gait = action && action.id !== 'stand-front' && action.mode !== 'hold' && active && !current.reduceMotion
+              ? walkPaint(assetId, strip, manualElapsed, action.mode === 'loop') : undefined
+            rows.push({ employee, image, gait, frame: exposure, sourceOrigin: [rect[0], rect[1]], size: [strip.frameWidth, strip.frameHeight], origin: [position[0] - anchor.x * strip.frameWidth * scale, position[1] - anchor.y * strip.frameHeight * scale], scale, station: dragged ? undefined : station, depthY: dragged ? space.layout.size[1]+1 : station?.seat[1] ?? position[1], roaming: !!dragged || !station, manual: true, still: !action || action.id==='stand-front', animated })
           } else {
             const image = images.current.get(binding.browserSrc); if (!image) continue
             const working = employee.sceneActivity === 'working' && command?.type !== 'stop-task'
@@ -433,7 +442,8 @@ function IndependentOfficeSceneContent(props: OfficeSceneSurfaceProps & {retry()
             if (working) { workingKeys.add(workingKey); if (!workingStarted.current.has(workingKey)) workingStarted.current.set(workingKey, clock.current) }
             const exposure = working && active && !current.reduceMotion ? deskFrame(binding, employee, clock.current - workingStarted.current.get(workingKey)!) : binding.restFrame
             const chair = independentChairForBinding(binding, { officeTheme: space.layout.theme, phase: policy.phase, backgroundSha256: phase.sha256, size: space.layout.size })
-            rows.push({ employee, image, bodyLayer:seatedBodyLayer(image,images.current.get(seatMatte(binding)?.path??'')), frame: exposure, sourceOrigin: [exposure * binding.frameSize[0], 0], size: binding.frameSize, ...registeredDeskOrigin(binding, exposure, binding.origin, binding.uniformScale), scale: binding.uniformScale, station, depthY: station?.seat[1] ?? binding.origin[1], roaming: !station, manual: false, chair, sourceForegroundPolygons: binding.sourceForegroundPolygons, sourceForegroundOccluderPolygons: binding.sourceForegroundOccluderPolygons, animated: binding.frameCount > 1 && working })
+            const behindMonitor = space.layout.theme === 'office.jingyuniang.v1' && station?.id === 'reception'
+          rows.push({ employee, image, bodyLayer:seatedBodyLayer(image,images.current.get(seatMatte(binding)?.path??'')), frame: exposure, sourceOrigin: [exposure * binding.frameSize[0], 0], size: binding.frameSize, ...registeredDeskOrigin(binding, exposure, binding.origin, binding.uniformScale), scale: binding.uniformScale, station, depthY: station?.seat[1] ?? binding.origin[1], roaming: !station, manual: false, chair, sourceForegroundPolygons: behindMonitor ? undefined : binding.sourceForegroundPolygons, sourceForegroundOccluderPolygons: binding.sourceForegroundOccluderPolygons, animated: binding.frameCount > 1 && working })
           }
           continue
         }
@@ -447,7 +457,7 @@ function IndependentOfficeSceneContent(props: OfficeSceneSurfaceProps & {retry()
           // A no-command restored whole pose stays seated. A newly introduced task starts on this room's entry.
           arrival = createIndependentArrivalState(entry?.point ?? (restoredStationId ? station!.approach : space.layout.navigation.entry), entry?.bodyCoreHeightPx ?? (station?.height ?? 260) * .48, restoredStationId)
         }
-        const dragged = gesture.current?.id === employee.id && gesture.current.moved
+        const dragged = gesture.current?.id === employee.id && gesture.current.dragging
         if (dragged) arrival = interruptIndependentTaskArrival(arrival, gesture.current!.latest)
         const requestedAction = resolveOfficeManualAction(employee.id, manualRef.current[employee.id], skin)
         const projectedWork = !command && employee.sceneActivity === 'working' && station !== undefined
@@ -506,11 +516,9 @@ function IndependentOfficeSceneContent(props: OfficeSceneSurfaceProps & {retry()
           const scale = arrival.bodyCoreHeightPx / measured.coreHeightPx * selection.scale
           const exposure = selection.frame
           const rect = officeFrameRect(strip, exposure)
-          const atlas = moving && !current.reduceMotion ? getWalkAtlas(walkId) : undefined
-          const bitmap = atlas && walkingBitmap(atlas)
-          const gait = atlas && bitmap ? { atlas, bitmap, rect: sampleWalkAtlas(atlas, walk, gaitTime).rect } : undefined
+          const gait = moving && !current.reduceMotion ? walkPaint(walkId, walk, gaitTime) : undefined
           const position = floorGraph?independentFloorLanePosition(arrival,floorGraph,{id:employee.id,peers}):arrival.position
-          rows.push({ employee, image, gait, frame: exposure, sourceOrigin: [rect[0], rect[1]], size: [strip.frameWidth, strip.frameHeight], origin: [position[0] - measured.anchor.x * strip.frameWidth * scale, position[1] - measured.anchor.y * strip.frameHeight * scale - selection.liftPercent / 100 * strip.frameHeight * scale], scale, station: undefined, depthY: position[1], foot: position, roaming: true, manual: true, animated: moving, arrivalKey, arrivalPaint: 'floor' })
+          rows.push({ employee, image, gait, frame: exposure, sourceOrigin: [rect[0], rect[1]], size: [strip.frameWidth, strip.frameHeight], origin: [position[0] - measured.anchor.x * strip.frameWidth * scale, position[1] - measured.anchor.y * strip.frameHeight * scale - selection.liftPercent / 100 * strip.frameHeight * scale], scale, station: undefined, depthY: dragged ? space.layout.size[1]+1 : position[1], foot: position, roaming: true, manual: true, still: !moving, animated: moving, arrivalKey, arrivalPaint: 'floor' })
           continue
         }
         if (action || dragged || !binding) {
@@ -529,7 +537,9 @@ function IndependentOfficeSceneContent(props: OfficeSceneSurfaceProps & {retry()
           const exposure = !action || action.id === 'stand-front' || action.mode === 'hold' || !active || current.reduceMotion ? action?.holdFrame ?? order.at(-1)! : physicalFrame(manualElapsed, durations, order, action.mode === 'loop')
           const animated = !!action && action.id !== 'stand-front' && action.mode !== 'hold' && strip.frameCount > 1 && (action.mode === 'loop' || manualElapsed < durations.reduce((sum, value) => sum + value, 0))
           const rect = officeFrameRect(strip, exposure)
-          rows.push({ employee, image, frame: exposure, sourceOrigin: [rect[0], rect[1]], size: [strip.frameWidth, strip.frameHeight], origin: [position[0] - anchor.x * strip.frameWidth * scale, position[1] - anchor.y * strip.frameHeight * scale], scale, station: controlled ? undefined : station, depthY: independentSceneActorDepth(controlled ? undefined : station, position, !!dragged), roaming: controlled || !!dragged || !station, manual: true, animated, ...(controlled ? { arrivalKey } : {}) })
+          const gait = action && action.id !== 'stand-front' && action.mode !== 'hold' && active && !current.reduceMotion
+            ? walkPaint(assetId, strip, manualElapsed, action.mode === 'loop') : undefined
+          rows.push({ employee, image, gait, frame: exposure, sourceOrigin: [rect[0], rect[1]], size: [strip.frameWidth, strip.frameHeight], origin: [position[0] - anchor.x * strip.frameWidth * scale, position[1] - anchor.y * strip.frameHeight * scale], scale, station: controlled ? undefined : station, depthY: independentSceneActorDepth(controlled ? undefined : station, position, !!dragged), roaming: controlled || !!dragged || !station, manual: true, still: !action || action.id==='stand-front', animated, ...(controlled ? { arrivalKey } : {}) })
         } else {
           const image = images.current.get(binding.browserSrc); if (!image) continue
           const working = !arrival.failure && (employee.sceneActivity === 'working' || employee.ambientDesk === true) && command?.type !== 'stop-task'
@@ -537,19 +547,35 @@ function IndependentOfficeSceneContent(props: OfficeSceneSurfaceProps & {retry()
           if (working) { workingKeys.add(workingKey); if (!workingStarted.current.has(workingKey)) workingStarted.current.set(workingKey, clock.current) }
           const exposure = working && active && !current.reduceMotion ? deskFrame(binding, employee, clock.current - workingStarted.current.get(workingKey)!) : binding.restFrame
           const chair = independentChairForBinding(binding, { officeTheme: space.layout.theme, phase: policy.phase, backgroundSha256: phase.sha256, size: space.layout.size })
-          const pose = station ? fittedDeskPose(binding, station) : { origin: binding.origin, scale: binding.uniformScale }
-          rows.push({ employee, image, bodyLayer:seatedBodyLayer(image,images.current.get(seatMatte(binding)?.path??'')), frame: exposure, sourceOrigin: [exposure * binding.frameSize[0], 0], size: binding.frameSize, ...registeredDeskOrigin(binding, exposure, pose.origin, pose.scale), scale: pose.scale, station, depthY: independentSceneActorDepth(station, binding.origin), roaming: !station, manual: false, chair, ...(controlled ? { arrivalKey, arrivalPaint: 'binding' as const } : {}), sourceForegroundPolygons: binding.sourceForegroundPolygons, sourceForegroundOccluderPolygons: binding.sourceForegroundOccluderPolygons, animated: binding.frameCount > 1 && working })
+          const pose = station ? fittedDeskPose(binding, station, space.layout.theme) : { origin: binding.origin, scale: binding.uniformScale }
+          const behindMonitor = space.layout.theme === 'office.jingyuniang.v1' && station?.id === 'reception'
+          rows.push({ employee, image, bodyLayer:seatedBodyLayer(image,images.current.get(seatMatte(binding)?.path??'')), frame: exposure, sourceOrigin: [exposure * binding.frameSize[0], 0], size: binding.frameSize, ...registeredDeskOrigin(binding, exposure, pose.origin, pose.scale), scale: pose.scale, station, depthY: independentSceneActorDepth(station, binding.origin), roaming: !station, manual: false, chair, ...(controlled ? { arrivalKey, arrivalPaint: 'binding' as const } : {}), sourceForegroundPolygons: behindMonitor ? undefined : binding.sourceForegroundPolygons, sourceForegroundOccluderPolygons: binding.sourceForegroundOccluderPolygons, animated: binding.frameCount > 1 && working })
         }
       }
       for (const key of workingStarted.current.keys()) if (!workingKeys.has(key)) workingStarted.current.delete(key)
       for (const key of manualStarted.current.keys()) if (!manualKeys.has(key)) manualStarted.current.delete(key)
+      for (const [key,start] of landed.current) if(clock.current-start>=LANDING_MS) landed.current.delete(key)
+      if(active && !current.reduceMotion) for(const row of rows) {
+        const hold=gesture.current?.id===row.employee.id && gesture.current.dragging ? gesture.current : undefined
+        const landing=landed.current.get(JSON.stringify([space.layout.theme,row.employee.id]))
+        const motion=hold?'held':landing!==undefined && row.roaming?'landing':row.still?'idle':undefined
+        if(!motion) continue
+        row.motion=motion
+        const elapsed=hold ? clock.current-(hold.liftedAt??clock.current) : landing!==undefined ? clock.current-landing : clock.current
+        const pose=actorPose(motion,elapsed,motionPhase(row.employee.id))
+        const height=row.size[1]*row.scale
+        const [x,y]=row.foot??[row.origin[0]+row.size[0]*row.scale*.5,row.origin[1]+height*.97]
+        const angle=pose.radians, a=Math.cos(angle)*pose.sx, b=Math.sin(angle)*pose.sx
+        const c=-Math.sin(angle)*pose.sy, d=Math.cos(angle)*pose.sy
+        row.matrix=[a,b,c,d,x-a*x-c*y+height*pose.x,y-b*x-d*y-height*pose.lift]
+      }
       rows.sort((a, b) => a.depthY - b.depthY)
       const occluders = sceneOccluders.current, drawn: Paint[] = []
       const actorLight = policy.phase === 'closed' || policy.phase === 'night'
         ? 'brightness(.84) saturate(.94) contrast(1.015)' : policy.phase === 'dusk'
           ? 'brightness(.9) saturate(1.015) sepia(.065)' : 'saturate(1.025)'
       const drawActor = (row: Paint) => {
-        if (!row.manual || row.arrivalKey) {
+        if (!row.manual || row.arrivalKey || row.matrix) {
           context.save()
           try {
             const actor = row.arrivalKey && arrivals.current.get(row.arrivalKey)
@@ -560,6 +586,7 @@ function IndependentOfficeSceneContent(props: OfficeSceneSurfaceProps & {retry()
               context.ellipse(foot[0], foot[1], actor.bodyCoreHeightPx * .15, actor.bodyCoreHeightPx * .032, 0, 0, Math.PI * 2)
               context.fill()
             }
+            if(row.matrix) context.transform(...row.matrix)
             context.filter = actorLight
             // Whole illustrated poses need area filtering when reduced to office size.
             context.imageSmoothingEnabled = true
@@ -671,7 +698,7 @@ function IndependentOfficeSceneContent(props: OfficeSceneSurfaceProps & {retry()
       lastCompletePaint.current = composition
       if(canvas.current) canvas.current.dataset.officeActors = JSON.stringify(painted.current.map(row=>{
         const actor=row.arrivalKey?arrivals.current.get(row.arrivalKey):undefined
-        return {id:row.employee.id,mode:actor?.mode??(row.roaming?'floor':'seated'),position:actor?.position??row.origin,direction:actor?.direction,frame:row.frame,moving:row.roaming&&!!row.animated,station:row.station?.id,activity:row.station && row.employee.ambientDesk ? 'desk-practice' : row.employee.sceneActivity,source:row.image.width}
+        return {id:row.employee.id,mode:actor?.mode??(row.roaming?'floor':'seated'),position:actor?.position??row.origin,direction:actor?.direction,frame:row.frame,motion:row.motion,moving:row.roaming&&!!row.animated,station:row.station?.id,activity:row.station && row.employee.ambientDesk ? 'desk-practice' : row.employee.sceneActivity,source:row.image.width}
       }))
       paintedSceneOccluders.current = occluders
       // No arrival event is inferred from a timer or a selected binding: confirm its actual complete paint.
@@ -708,7 +735,7 @@ function IndependentOfficeSceneContent(props: OfficeSceneSurfaceProps & {retry()
         return !!row && (command.type === 'stop-task' ? !row.manual : row.reportComplete !== undefined)
       })
       const unfinishedCommand = legacyUnfinishedCommand || rows.some(row => !!row.arrivalKey && (row.animated || arrivals.current.get(row.arrivalKey)?.mode === 'seat-pending'))
-      if (independentNeedsAnimation(active, !!current.reduceMotion, rows.map(row => !!row.animated), unfinishedCommand)
+      if (independentNeedsAnimation(active, !!current.reduceMotion, rows.map(row => !!row.animated || !!row.motion), unfinishedCommand)
         || !!floorGraph&&active&&!current.reduceMotion&&policy.charactersPresent&&policy.autonomy.allowRoaming&&current.employees.length>0) requestPaint.current()
       } catch (reason) { restoreOriginal(); setReady(false); setError(reason instanceof Error ? reason.message : String(reason)) }
     }
@@ -732,7 +759,12 @@ function IndependentOfficeSceneContent(props: OfficeSceneSurfaceProps & {retry()
     let nearest: OfficeSceneEmployee | undefined
     let ambiguous = false
     for (const row of [...painted.current].reverse()) {
-      const local: Point = [(point[0] - row.origin[0]) / row.scale, (point[1] - row.origin[1]) / row.scale]
+      let sourcePoint=point
+      if(row.matrix) {
+        const [a,b,c,d,tx,ty]=row.matrix, det=a*d-b*c, x=point[0]-tx, y=point[1]-ty
+        sourcePoint=[(d*x-c*y)/det,(a*y-b*x)/det]
+      }
+      const local: Point = [(sourcePoint[0] - row.origin[0]) / row.scale, (sourcePoint[1] - row.origin[1]) / row.scale]
       const pad = margin / row.scale
       if (local[0] < -pad || local[1] < -pad || local[0] >= row.size[0] + pad || local[1] >= row.size[1] + pad) continue
       if (independentSceneOccluderCovers(paintedSceneOccluders.current, row.depthY, point)) continue
@@ -749,7 +781,7 @@ function IndependentOfficeSceneContent(props: OfficeSceneSurfaceProps & {retry()
         try {
           context.clearRect(0, 0, 1, 1)
           if (row.gait) {
-            const {atlas,bitmap,rect} = row.gait, [x,y,w,h] = walkAtlasBounds(atlas, rect)
+            const {atlas,bitmap,rect} = row.gait, [x,y,w,h] = atlas.bounds
             const u = (local[0]-x!)/w!, v = (local[1]-y!)/h!
             if (u>=0 && v>=0 && u<1 && v<1) context.drawImage(bitmap,
               rect[0]+Math.floor(u*rect[2]),rect[1]+Math.floor(v*rect[3]),1,1,0,0,1,1)
@@ -774,6 +806,27 @@ function IndependentOfficeSceneContent(props: OfficeSceneSurfaceProps & {retry()
     <OfficeScenePreview theme={props.officeTheme} phase={policy.phase} waiting={!failed}/>
     {failed && retryNotice}
   </div>
+  const sampleDrag = (event: ReactPointerEvent<HTMLCanvasElement>) => {
+    const value = gesture.current
+    if (!value || value.cancelled || value.pointerId !== event.pointerId) return
+    if (!value.dragging) {
+      if (Math.hypot(event.clientX - value.startClient[0], event.clientY - value.startClient[1]) <= 8) return
+      clearHold(); pendingTap.current = null
+      if (props.employeeDestination !== 'contact') { value.cancelled = true; return }
+      value.liftedAt=clock.current
+      value.dragging = true
+    }
+    const employee = live.current.employees.find(item => item.id === value.id)
+    if (!employee || props.employeeDestination !== 'contact' && (!employee.canDrag || employee.availability === 'working' || employee.sceneActivity === 'working')) { cancelGesture(); return }
+    const point = pointFor(event)
+    value.latest = [value.origin[0] + point[0] - value.start[0], value.origin[1] + point[1] - value.start[1]]
+    value.moved ||= Math.hypot(point[0] - value.start[0], point[1] - value.start[1]) > 5
+    if(value.moved && props.employeeDestination==='contact'){
+      const workstationId=(deskDropTarget(space.layout.stations,point)?.id ?? null) as OfficeWorkstationId|null
+      setSeatPreview(previous=>previous?.employeeId===value.id && previous.workstationId===workstationId?previous:{employeeId:value.id,workstationId})
+    }
+    requestPaint.current()
+  }
   const missingFinalPoses = missingIndependentFinalPoses(spaces, {
     presentationActive: props.presentationActive !== false, officeTheme: space.layout.theme, phase: policy.phase,
     employees: props.employees.filter(employee => !!props.employeeSkins?.[employee.id]).map(employee => ({
@@ -795,7 +848,7 @@ function IndependentOfficeSceneContent(props: OfficeSceneSurfaceProps & {retry()
         clearHold()
         const arrival = arrivals.current.get(JSON.stringify([space.layout.theme, employee.id]))
         const origin = arrival?.position ?? point
-        const value = { id: employee.id, pointerId: event.pointerId, start: point, origin,
+        const value: NonNullable<typeof gesture.current> = { id: employee.id, pointerId: event.pointerId, start: point, origin,
           startClient: [event.clientX, event.clientY] as Point, pressedAt: performance.now(), latest: origin, moved: false, dragging: false, cancelled: false,
           arrivalKey: JSON.stringify([space.layout.theme, employee.id]), arrivalBefore: arrival }
         gesture.current = value
@@ -812,31 +865,13 @@ function IndependentOfficeSceneContent(props: OfficeSceneSurfaceProps & {retry()
             if (!captureTarget?.isConnected) { value.cancelled = true; return }
             try { captureTarget.setPointerCapture(value.pointerId) }
             catch { value.cancelled = true; return }
-            value.dragging = true; pendingTap.current = null; requestPaint.current()
+            value.liftedAt=clock.current; value.dragging = true; pendingTap.current = null; requestPaint.current()
           }, 500)
         }
       }}
-      onPointerMove={event => {
-        const value = gesture.current
-        if (!value || value.pointerId !== event.pointerId) return
-        if (!value.dragging) {
-          if (Math.hypot(event.clientX - value.startClient[0], event.clientY - value.startClient[1]) <= 8) return
-          clearHold(); pendingTap.current = null
-          if (props.employeeDestination !== 'contact') { value.cancelled = true; return }
-          value.dragging = true
-        }
-        const employee = live.current.employees.find(item => item.id === value.id)
-        if (!employee || props.employeeDestination !== 'contact' && (!employee.canDrag || employee.availability === 'working' || employee.sceneActivity === 'working')) { cancelGesture(); return }
-        const point = pointFor(event)
-        value.latest = [value.origin[0] + point[0] - value.start[0], value.origin[1] + point[1] - value.start[1]]
-        value.moved ||= Math.hypot(point[0] - value.start[0], point[1] - value.start[1]) > 5
-        if(value.moved && props.employeeDestination==='contact'){
-          const workstationId=(deskDropTarget(space.layout.stations,point)?.id ?? null) as OfficeWorkstationId|null
-          setSeatPreview(previous=>previous?.employeeId===value.id && previous.workstationId===workstationId?previous:{employeeId:value.id,workstationId})
-        }
-        requestPaint.current()
-      }}
+      onPointerMove={sampleDrag}
       onPointerUp={event => {
+        sampleDrag(event)
         const value = gesture.current; if (!value || value.pointerId !== event.pointerId) return
         clearHold(); gesture.current = null; setSeatPreview(null)
         if (value?.arrivalBefore && arrivals.current.get(value.arrivalKey)?.lastCommandId === value.arrivalBefore.lastCommandId) arrivals.current.set(value.arrivalKey, value.arrivalBefore)
@@ -864,6 +899,7 @@ function IndependentOfficeSceneContent(props: OfficeSceneSurfaceProps & {retry()
               arrivals.current.set(value.arrivalKey,{...interruptIndependentTaskArrival(prior,approach.point),bodyCoreHeightPx:approach.bodyCoreHeightPx})
               ambientStates.current.set(value.arrivalKey,{...initialIndependentAmbient(value.id,clock.current),nextAt:clock.current})
             }
+            landed.current.set(value.arrivalKey,clock.current)
             const revision=dragRevision.current
             void seatFeedback.bind(value.id,station.id as OfficeWorkstationId).then(ok=>{
               if(!ok && prior && revision===dragRevision.current && arrivals.current.get(value.arrivalKey)?.lastCommandId===prior.lastCommandId){
@@ -889,6 +925,7 @@ function IndependentOfficeSceneContent(props: OfficeSceneSurfaceProps & {retry()
                 relocated.mode='approaching'; relocated.command=prior.command
                 relocated.route=independentFloorRoute(graph,position,graph.targets[prior.command.workstationId]!.approachNode)
               }
+              landed.current.set(value.arrivalKey,clock.current)
               arrivals.current.set(value.arrivalKey,relocated)
               const state=initialIndependentAmbient(value.id,clock.current)
               ambientStates.current.set(value.arrivalKey,{...state,nextAt:clock.current+9000})

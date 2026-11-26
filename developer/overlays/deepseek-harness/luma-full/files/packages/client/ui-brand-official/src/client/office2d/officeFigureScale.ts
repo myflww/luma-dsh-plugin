@@ -1,4 +1,5 @@
 import { OFFICE_SILHOUETTES } from './officeSilhouettes.generated.ts'
+import { officeKeyboardContact, officeRearHands } from './officeKeyboardContact.ts'
 
 type Point = readonly [number, number]
 
@@ -42,9 +43,10 @@ export function seatedFigureScale(sourceSha: string, floorY: number, fallbackSca
 
 export function fittedDeskPose(
   binding: { sourceSha256: string; uniformScale: number; origin: Point; anatomicalSourcePixels?: { hand: Point; hip?:Point } },
-  station: { seat: Point; keyboard?: Point; keyboardSurface?:readonly Point[] },
+  station: { id?:string; seat: Point; keyboard?: Point; keyboardSurface?:readonly Point[] },
+  theme?:string,
 ): { scale: number; origin: Point } {
-  const hand = binding.anatomicalSourcePixels?.hand
+  const hand = (theme ? officeRearHands[binding.sourceSha256] : undefined) ?? binding.anatomicalSourcePixels?.hand
   if (!hand || !station.keyboard || !OFFICE_SILHOUETTES[binding.sourceSha256]) {
     return { scale: binding.uniformScale, origin: binding.origin }
   }
@@ -52,7 +54,12 @@ export function fittedDeskPose(
   const hip = binding.anatomicalSourcePixels?.hip
   const keys = station.keyboardSurface
   let x = station.keyboard[0], y = station.keyboard[1]
-  if (hip && keys && keys.length >= 3) {
+  const preferred:Point=hip
+    ? [station.seat[0]+scale*(hand[0]-hip[0]), station.seat[1]+scale*(hand[1]-hip[1])]
+    : station.keyboard
+  const painted=theme && station.id ? officeKeyboardContact(theme,station.id,preferred) : undefined
+  if(painted) [x,y]=painted
+  else if (hip && keys && keys.length >= 3) {
     // A palm may land across the key bed. Move towards the cushion while retaining
     // a margin inside its measured key surface; never stretch or rotate the artwork.
     const idealX=station.seat[0]+scale*(hand[0]-hip[0]),idealY=station.seat[1]+scale*(hand[1]-hip[1])

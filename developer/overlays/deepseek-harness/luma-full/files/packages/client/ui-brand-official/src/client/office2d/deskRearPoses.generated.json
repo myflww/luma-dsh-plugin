@@ -1,0 +1,310 @@
+{
+  "shan-base": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/shan-base.cf7ae1b38bb0.png",
+    "sha256": "cf7ae1b38bb0c2615cbc4ee68ca115bdf4542831b5fc2c90eb39eedd2443a86c",
+    "cell": [
+      352,
+      320
+    ],
+    "count": 4,
+    "hip": [
+      176,
+      254
+    ],
+    "hand": [
+      176,
+      134
+    ],
+    "head": [
+      176,
+      73
+    ],
+    "bodyHeight": 238
+  },
+  "shan-v1": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/shan-v1.2e6a9c5fabc0.png",
+    "sha256": "2e6a9c5fabc0ef7312457327759920515c1c97ec8bbbe59d7aa25b144d8d44e2",
+    "cell": [
+      352,
+      320
+    ],
+    "count": 4,
+    "hip": [
+      176,
+      254
+    ],
+    "hand": [
+      176,
+      134
+    ],
+    "head": [
+      176,
+      73
+    ],
+    "bodyHeight": 238
+  },
+  "bai-shuangming-base": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/bai-shuangming-base.7bab3ad69a34.png",
+    "sha256": "7bab3ad69a34b83ee88579b2954cb460a53b79c46e08b0e3b7150e5cbc0670ee",
+    "cell": [
+      352,
+      320
+    ],
+    "count": 4,
+    "hip": [
+      176,
+      254
+    ],
+    "hand": [
+      176,
+      107
+    ],
+    "head": [
+      176,
+      74
+    ],
+    "bodyHeight": 238
+  },
+  "bai-shuangming-v1": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/bai-shuangming-v1.dea9eec6f2fd.png",
+    "sha256": "dea9eec6f2fde337d4e78a40a2f722fb64b07e6ac98fd9cd1ac9148032325256",
+    "cell": [
+      352,
+      320
+    ],
+    "count": 4,
+    "hip": [
+      176,
+      254
+    ],
+    "hand": [
+      176,
+      142
+    ],
+    "head": [
+      176,
+      72
+    ],
+    "bodyHeight": 238
+  },
+  "lu-mi-base": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/lu-mi-base.68f526e80618.png",
+    "sha256": "68f526e80618052a07457befd814f024063ce75616ff7e70d8d2e427b6952806",
+    "cell": [
+      352,
+      320
+    ],
+    "count": 4,
+    "hip": [
+      176,
+      254
+    ],
+    "hand": [
+      176,
+      140
+    ],
+    "head": [
+      176,
+      73
+    ],
+    "bodyHeight": 238
+  },
+  "lu-mi-v1": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/lu-mi-v1.0351ef1b9dc0.png",
+    "sha256": "0351ef1b9dc0715496110420ad9103e73e122cd2be9cfacbc742463a9b926517",
+    "cell": [
+      352,
+      320
+    ],
+    "count": 4,
+    "hip": [
+      176,
+      254
+    ],
+    "hand": [
+      176,
+      135
+    ],
+    "head": [
+      176,
+      73
+    ],
+    "bodyHeight": 238
+  },
+  "jingyuniang-base": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/jingyuniang-base.18b6a7753d37.png",
+    "sha256": "18b6a7753d37175b04be42f881fdaa7c01cddb481953da18cda1b64d4e6266c1",
+    "cell": [
+      352,
+      320
+    ],
+    "count": 4,
+    "hip": [
+      176,
+      254
+    ],
+    "hand": [
+      176,
+      158
+    ],
+    "head": [
+      176,
+      73
+    ],
+    "bodyHeight": 238
+  },
+  "jingyuniang-v1": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/jingyuniang-v1.cbf511d5cd15.png",
+    "sha256": "cbf511d5cd1503add1331744f83aa8930d6c564c145db98cfc2bb13aa92d3f79",
+    "cell": [
+      352,
+      320
+    ],
+    "count": 4,
+    "hip": [
+      176,
+      254
+    ],
+    "hand": [
+      176,
+      157
+    ],
+    "head": [
+      176,
+      73
+    ],
+    "bodyHeight": 238
+  },
+  "longmama-base": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/longmama-base.4195ca719a0d.png",
+    "sha256": "4195ca719a0d039a414eebaa03a8378bfd9af75d38a86da9961eb5e0b2f19772",
+    "cell": [
+      352,
+      320
+    ],
+    "count": 4,
+    "hip": [
+      176,
+      254
+    ],
+    "hand": [
+      176,
+      138
+    ],
+    "head": [
+      176,
+      72
+    ],
+    "bodyHeight": 238
+  },
+  "longmama-v1": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/longmama-v1.26fb50bdaf51.png",
+    "sha256": "26fb50bdaf518b8013ad3f02c90cf841e5dadfb5755d26a4bf7d2c820aa59a56",
+    "cell": [
+      352,
+      320
+    ],
+    "count": 4,
+    "hip": [
+      176,
+      254
+    ],
+    "hand": [
+      176,
+      138
+    ],
+    "head": [
+      176,
+      72
+    ],
+    "bodyHeight": 238
+  },
+  "claude-base": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/claude-base.ae1d90df5d62.png",
+    "sha256": "ae1d90df5d6256aeeac8ec5faceab92a2ae4e36b5f4265d069b5da3b01440c12",
+    "cell": [
+      352,
+      320
+    ],
+    "count": 4,
+    "hip": [
+      176,
+      254
+    ],
+    "hand": [
+      176,
+      125
+    ],
+    "head": [
+      176,
+      73
+    ],
+    "bodyHeight": 238
+  },
+  "claude-v1": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/claude-v1.2de5efcb3abf.png",
+    "sha256": "2de5efcb3abf58073a647b70ad407025bb500ff60b0c6345f936527c4867d0d2",
+    "cell": [
+      352,
+      320
+    ],
+    "count": 4,
+    "hip": [
+      176,
+      254
+    ],
+    "hand": [
+      176,
+      124
+    ],
+    "head": [
+      176,
+      73
+    ],
+    "bodyHeight": 238
+  },
+  "gemini-v1": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/gemini-v1.909155f07d67.png",
+    "sha256": "909155f07d67b2b7b96b6114f74d61c74cb2f51d0feba1e91de25adc9a0d991f",
+    "cell": [
+      352,
+      320
+    ],
+    "count": 4,
+    "hip": [
+      176,
+      254
+    ],
+    "hand": [
+      176,
+      148
+    ],
+    "head": [
+      176,
+      73
+    ],
+    "bodyHeight": 238
+  },
+  "grok-v1": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/grok-v1.6deace6b6764.png",
+    "sha256": "6deace6b676427f61ecb5fa78dd31a58a586226c949fe9fc88d39a672ad5e7b5",
+    "cell": [
+      352,
+      320
+    ],
+    "count": 4,
+    "hip": [
+      176,
+      254
+    ],
+    "hand": [
+      176,
+      150
+    ],
+    "head": [
+      176,
+      73
+    ],
+    "bodyHeight": 238
+  }
+}

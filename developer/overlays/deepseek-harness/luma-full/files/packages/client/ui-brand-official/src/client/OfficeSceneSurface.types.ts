@@ -84,6 +84,7 @@ export interface ActorRuntime {
   readonly route: OfficeRoute | null
   readonly waypointIndex: number
   readonly targetWorkstationId: OfficeWorkstationId | null
+  readonly landedAt?: number
   readonly placedUntil?: number
   readonly nextAmbientAt: number
   readonly roamOrdinal: number
