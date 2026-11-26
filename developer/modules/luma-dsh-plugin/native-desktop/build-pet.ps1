@@ -3,9 +3,10 @@ $ErrorActionPreference = 'Stop'
 $compiler = Join-Path $env:SystemRoot 'Microsoft.NET\Framework\v4.0.30319\csc.exe'
 $source = Join-Path $PSScriptRoot 'DesktopPet.cs'
 $face = Join-Path $PSScriptRoot 'PetFace.cs'
+$poses = Join-Path $PSScriptRoot 'PetPoseAtlas.cs'
 $exe = Join-Path $OutputDirectory 'DesktopPet.exe'
 $wpf = Join-Path (Split-Path $compiler) 'WPF'
-& $compiler /nologo /codepage:65001 /target:exe /optimize+ /r:System.Windows.Forms.dll /r:System.Drawing.dll /r:System.Web.Extensions.dll /r:System.Xaml.dll "/r:$wpf\PresentationCore.dll" "/r:$wpf\WindowsBase.dll" "/out:$exe" $source $face
+& $compiler /nologo /codepage:65001 /target:exe /optimize+ /r:System.Windows.Forms.dll /r:System.Drawing.dll /r:System.Web.Extensions.dll /r:System.Xaml.dll "/r:$wpf\PresentationCore.dll" "/r:$wpf\WindowsBase.dll" "/out:$exe" $source $face $poses
 if ($LASTEXITCODE -ne 0) { throw "Desktop companion compilation failed: $LASTEXITCODE" }
 
 # Framework csc predates /deterministic. Canonicalize the PE date and CLR module GUID.

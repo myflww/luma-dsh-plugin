@@ -12,17 +12,25 @@ interface WalkAtlas {
   readonly figureHeight: number
   readonly columns: number
   readonly count: number
+  readonly frameDurationsMs?: readonly number[]
 }
 const atlases: Readonly<Record<string, WalkAtlas>> = catalog
-const timelines = new WeakMap<OfficeFrameStrip, ReturnType<typeof createOfficeFrameTimeline>>()
+const timelines = new WeakMap<object, ReturnType<typeof createOfficeFrameTimeline>>()
 
 export function getWalkAtlas(assetId: string) {
   return atlases[assetId]
 }
 
 export function sampleWalkAtlas(atlas: WalkAtlas, strip: OfficeFrameStrip, elapsedMs: number, loop = true) {
-  let timeline = timelines.get(strip)
-  if (!timeline) { timeline = createOfficeFrameTimeline(strip); timelines.set(strip, timeline) }
+  const timingSource = atlas.frameDurationsMs ? atlas : strip
+  let timeline = timelines.get(timingSource)
+  if (!timeline) {
+    timeline = atlas.frameDurationsMs
+      ? createOfficeFrameTimeline({...strip,frameCount:atlas.count,
+          frameOrder:atlas.frameDurationsMs.map((_,i)=>i),frameDurationsMs:atlas.frameDurationsMs})
+      : createOfficeFrameTimeline(strip)
+    timelines.set(timingSource,timeline)
+  }
   const elapsed = Math.max(0, elapsedMs)
   const lastStart = timeline.starts[timeline.order.length - 1]!
   const phase = loop ? elapsed % timeline.cycleMs : Math.min(elapsed, lastStart)

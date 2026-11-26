@@ -1,0 +1,1042 @@
+{
+  "bai-shuangming-base": {
+    "src": "/luma-office/luma-plugin-art/actor-poses/bai-shuangming-base.c0fca273f9e4.png",
+    "sha256": "c0fca273f9e471470a80e3231bd7e3f1be409f303587add227d64ade5614c002",
+    "cell": [
+      384,
+      336
+    ],
+    "columns": 8,
+    "count": 48,
+    "figureHeight": 256,
+    "foot": [
+      192,
+      300
+    ],
+    "grip": [
+      192,
+      60
+    ],
+    "eyes": [
+      [
+        170,
+        122,
+        9,
+        8
+      ],
+      [
+        204,
+        127,
+        9,
+        8
+      ]
+    ],
+    "idleDurationsMs": [
+      650,
+      400,
+      420,
+      120,
+      135,
+      265,
+      570,
+      640
+    ],
+    "faceOffsets": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "bai-shuangming-v1": {
+    "src": "/luma-office/luma-plugin-art/actor-poses/bai-shuangming-v1.f1a9ae9cbdd3.png",
+    "sha256": "f1a9ae9cbdd3304965ac9047b47d9e0e83662316492e2c0a58e17bf2f6569176",
+    "cell": [
+      384,
+      336
+    ],
+    "columns": 8,
+    "count": 48,
+    "figureHeight": 256,
+    "foot": [
+      192,
+      300
+    ],
+    "grip": [
+      192,
+      60
+    ],
+    "eyes": [
+      [
+        178,
+        121,
+        9,
+        8
+      ],
+      [
+        212,
+        114,
+        9,
+        8
+      ]
+    ],
+    "idleDurationsMs": [
+      650,
+      400,
+      420,
+      120,
+      135,
+      265,
+      570,
+      640
+    ],
+    "faceOffsets": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "claude-base": {
+    "src": "/luma-office/luma-plugin-art/actor-poses/claude-base.cff06c210d26.png",
+    "sha256": "cff06c210d2680147acb5047b6955aa228ddba200b36d2f1553f1f0acd0f5743",
+    "cell": [
+      384,
+      336
+    ],
+    "columns": 8,
+    "count": 48,
+    "figureHeight": 256,
+    "foot": [
+      192,
+      300
+    ],
+    "grip": [
+      192,
+      60
+    ],
+    "eyes": [],
+    "idleDurationsMs": [
+      650,
+      400,
+      420,
+      120,
+      135,
+      265,
+      570,
+      640
+    ],
+    "faceOffsets": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "claude-v1": {
+    "src": "/luma-office/luma-plugin-art/actor-poses/claude-v1.f468b50a296b.png",
+    "sha256": "f468b50a296bc4f5c688fd98d2ba4257bc295846991506fe41907d8f8e997511",
+    "cell": [
+      384,
+      336
+    ],
+    "columns": 8,
+    "count": 48,
+    "figureHeight": 256,
+    "foot": [
+      192,
+      300
+    ],
+    "grip": [
+      192,
+      60
+    ],
+    "eyes": [
+      [
+        177,
+        114,
+        9,
+        8
+      ],
+      [
+        213,
+        107,
+        9,
+        8
+      ]
+    ],
+    "idleDurationsMs": [
+      650,
+      400,
+      420,
+      120,
+      135,
+      265,
+      570,
+      640
+    ],
+    "faceOffsets": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "gemini-v1": {
+    "src": "/luma-office/luma-plugin-art/actor-poses/gemini-v1.feec4b0641a4.png",
+    "sha256": "feec4b0641a4082920f3958c6de0b17215b301238d5c297c8502afa62ac7b86a",
+    "cell": [
+      384,
+      336
+    ],
+    "columns": 8,
+    "count": 48,
+    "figureHeight": 256,
+    "foot": [
+      192,
+      300
+    ],
+    "grip": [
+      192,
+      60
+    ],
+    "eyes": [],
+    "idleDurationsMs": [
+      650,
+      400,
+      420,
+      120,
+      135,
+      265,
+      570,
+      640
+    ],
+    "faceOffsets": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "grok-v1": {
+    "src": "/luma-office/luma-plugin-art/actor-poses/grok-v1.af294555dd4f.png",
+    "sha256": "af294555dd4f86cc1a6c4ce3b24daca8a3c99e5abbe67147f5912780c052bc83",
+    "cell": [
+      384,
+      336
+    ],
+    "columns": 8,
+    "count": 48,
+    "figureHeight": 256,
+    "foot": [
+      192,
+      300
+    ],
+    "grip": [
+      192,
+      60
+    ],
+    "eyes": [
+      [
+        178,
+        121,
+        9,
+        8
+      ],
+      [
+        211,
+        125,
+        9,
+        8
+      ]
+    ],
+    "idleDurationsMs": [
+      650,
+      400,
+      420,
+      120,
+      135,
+      265,
+      570,
+      640
+    ],
+    "faceOffsets": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "jingyuniang-base": {
+    "src": "/luma-office/luma-plugin-art/actor-poses/jingyuniang-base.8f21d70e33d6.png",
+    "sha256": "8f21d70e33d667388f301c0659a1faecc496a33c9831d6b27a5fc124e04893f5",
+    "cell": [
+      384,
+      336
+    ],
+    "columns": 8,
+    "count": 48,
+    "figureHeight": 256,
+    "foot": [
+      192,
+      300
+    ],
+    "grip": [
+      192,
+      60
+    ],
+    "eyes": [
+      [
+        180,
+        137,
+        9,
+        8
+      ],
+      [
+        214,
+        132,
+        9,
+        8
+      ]
+    ],
+    "idleDurationsMs": [
+      650,
+      400,
+      420,
+      120,
+      135,
+      265,
+      570,
+      640
+    ],
+    "faceOffsets": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "jingyuniang-v1": {
+    "src": "/luma-office/luma-plugin-art/actor-poses/jingyuniang-v1.f07fa18406b1.png",
+    "sha256": "f07fa18406b1efa6f32b4f994dd7fd5b63dc8f01181c497b2332b8179b7f55f4",
+    "cell": [
+      384,
+      336
+    ],
+    "columns": 8,
+    "count": 48,
+    "figureHeight": 256,
+    "foot": [
+      192,
+      300
+    ],
+    "grip": [
+      192,
+      60
+    ],
+    "eyes": [
+      [
+        178,
+        121,
+        9,
+        8
+      ],
+      [
+        210,
+        115,
+        9,
+        8
+      ]
+    ],
+    "idleDurationsMs": [
+      650,
+      400,
+      420,
+      120,
+      135,
+      265,
+      570,
+      640
+    ],
+    "faceOffsets": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "longmama-base": {
+    "src": "/luma-office/luma-plugin-art/actor-poses/longmama-base.0dc5cacdccd3.png",
+    "sha256": "0dc5cacdccd3e74b322bd6eb3ad9cf06ee8a784e01ceaac95a928cecc6a4273a",
+    "cell": [
+      384,
+      336
+    ],
+    "columns": 8,
+    "count": 48,
+    "figureHeight": 256,
+    "foot": [
+      192,
+      300
+    ],
+    "grip": [
+      192,
+      60
+    ],
+    "eyes": [
+      [
+        208,
+        125,
+        9,
+        8
+      ]
+    ],
+    "idleDurationsMs": [
+      650,
+      400,
+      420,
+      120,
+      135,
+      265,
+      570,
+      640
+    ],
+    "faceOffsets": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "longmama-v1": {
+    "src": "/luma-office/luma-plugin-art/actor-poses/longmama-v1.fdba9b10864b.png",
+    "sha256": "fdba9b10864bd32059f0f6b98a50e253fe5429b0390a5d5e104bccc1d2d1d29b",
+    "cell": [
+      384,
+      336
+    ],
+    "columns": 8,
+    "count": 48,
+    "figureHeight": 256,
+    "foot": [
+      192,
+      300
+    ],
+    "grip": [
+      192,
+      60
+    ],
+    "eyes": [
+      [
+        210,
+        123,
+        9,
+        8
+      ]
+    ],
+    "idleDurationsMs": [
+      650,
+      400,
+      420,
+      120,
+      135,
+      265,
+      570,
+      640
+    ],
+    "faceOffsets": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "lu-mi-base": {
+    "src": "/luma-office/luma-plugin-art/actor-poses/lu-mi-base.561aca7253d7.png",
+    "sha256": "561aca7253d7c4debde8bd5886f5a400f20d6b94fcec90205838757d04eeac78",
+    "cell": [
+      384,
+      336
+    ],
+    "columns": 8,
+    "count": 48,
+    "figureHeight": 256,
+    "foot": [
+      192,
+      300
+    ],
+    "grip": [
+      192,
+      60
+    ],
+    "eyes": [
+      [
+        181,
+        130,
+        9,
+        8
+      ],
+      [
+        214,
+        127,
+        9,
+        8
+      ]
+    ],
+    "idleDurationsMs": [
+      650,
+      400,
+      420,
+      120,
+      135,
+      265,
+      570,
+      640
+    ],
+    "faceOffsets": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "lu-mi-v1": {
+    "src": "/luma-office/luma-plugin-art/actor-poses/lu-mi-v1.9b52f887af28.png",
+    "sha256": "9b52f887af2883f13bed7bd948163ba472a5191a9db5c1ab5ad509fe7de3bafc",
+    "cell": [
+      384,
+      336
+    ],
+    "columns": 8,
+    "count": 48,
+    "figureHeight": 256,
+    "foot": [
+      192,
+      300
+    ],
+    "grip": [
+      192,
+      60
+    ],
+    "eyes": [
+      [
+        178,
+        119,
+        9,
+        8
+      ],
+      [
+        210,
+        125,
+        9,
+        8
+      ]
+    ],
+    "idleDurationsMs": [
+      650,
+      400,
+      420,
+      120,
+      135,
+      265,
+      570,
+      640
+    ],
+    "faceOffsets": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "shan-base": {
+    "src": "/luma-office/luma-plugin-art/actor-poses/shan-base.00df7477c000.png",
+    "sha256": "00df7477c000d7c9c27226f843c5c589a33dc1d76be034ebbf966ca75b20b1f5",
+    "cell": [
+      384,
+      336
+    ],
+    "columns": 8,
+    "count": 48,
+    "figureHeight": 256,
+    "foot": [
+      192,
+      300
+    ],
+    "grip": [
+      192,
+      60
+    ],
+    "eyes": [
+      [
+        174,
+        125,
+        9,
+        8
+      ],
+      [
+        211,
+        134,
+        9,
+        8
+      ]
+    ],
+    "idleDurationsMs": [
+      650,
+      400,
+      420,
+      120,
+      135,
+      265,
+      570,
+      640
+    ],
+    "faceOffsets": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "shan-v1": {
+    "src": "/luma-office/luma-plugin-art/actor-poses/shan-v1.98a541e390ae.png",
+    "sha256": "98a541e390aecaab22c43cac9db3af29f5d2cba4b82e6c158675a64cb846c87f",
+    "cell": [
+      384,
+      336
+    ],
+    "columns": 8,
+    "count": 48,
+    "figureHeight": 256,
+    "foot": [
+      192,
+      300
+    ],
+    "grip": [
+      192,
+      60
+    ],
+    "eyes": [
+      [
+        177,
+        120,
+        9,
+        8
+      ],
+      [
+        212,
+        126,
+        9,
+        8
+      ]
+    ],
+    "idleDurationsMs": [
+      650,
+      400,
+      420,
+      120,
+      135,
+      265,
+      570,
+      640
+    ],
+    "faceOffsets": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  }
+}

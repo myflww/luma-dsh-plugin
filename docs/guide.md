@@ -4,7 +4,7 @@ Luma 在 DeepSeek Harness Desktop 内提供办公室、伙伴卧室和联系人�
 
 ## 安装与升级
 
-拿到 0.6.2 开发版完整包后，将 `Luma-DSH-0.6.2-Windows.zip` 解压到长期保留的位置。在 DSH 的「插件 → 添加插件 → 安装第三方插件」中选择含有 `package.json` 的 `DesktopPlugin-0.6.2` 文件夹，然后重新打开 DSH。完整包已包含角色和场景美术。
+拿到 0.6.3 开发版完整包后，将 `Luma-DSH-0.6.3-Windows.zip` 解压到长期保留的位置。在 DSH 的「插件 → 添加插件 → 安装第三方插件」中选择含有 `package.json` 的 `DesktopPlugin-0.6.3` 文件夹，然后重新打开 DSH。完整包已包含角色和场景美术。
 
 先安装并启动一次 Windows 版 DeepSeek Harness。下载 **Luma-DSH-0.6.1-Installer.zip**，完整解压并双击 **Install-Luma-DSH.cmd**。安装器会自动寻找本机旧版资源并校验每个文件。首次安装需要下载约 1.87 GB 基础美术及本版更新，建议预留 6 GiB 空间。[下载正式版](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.6.1)
 

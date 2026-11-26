@@ -109,6 +109,7 @@ export function SpriteStripCanvas({
     let lastClock = performance.now()
     const walkAtlas = getWalkAtlas(assetId)
     const walkImage = walkAtlas ? new Image() : undefined
+    let walkLoadFailed = false
     let paintedGait = -1
     let paintedFrame = -1
     let paintedPolygons = ''
@@ -125,13 +126,16 @@ export function SpriteStripCanvas({
       canvas.dataset.spriteReady = 'error'
     }
     const paint = (frameIndex: number) => {
+      // Keep the last complete sprite while the replacement costume decodes.
+      if (walkAtlas?.frameDurationsMs && !walkImage?.naturalWidth && !walkLoadFailed) return
       const occlusionPolygons = controlsRef.current.resolveOcclusionPolygons?.(frameIndex) ?? []
       const signature = JSON.stringify(occlusionPolygons)
       const controls = controlsRef.current
       const manualPlayback = loopOverride !== undefined && controls.fixedFrameIndex == null && !controls.paused
       const gaitTime = controls.walkElapsedMs ?? (manualPlayback ? elapsedMs : undefined)
-      const gait = walkAtlas && walkImage?.complete && walkImage.naturalWidth && gaitTime !== undefined && !media?.matches
-        ? sampleWalkAtlas(walkAtlas, strip, gaitTime, loop) : undefined
+      const useGait = walkAtlas?.frameDurationsMs || (gaitTime !== undefined && !media?.matches)
+      const gait = walkAtlas && walkImage?.complete && walkImage.naturalWidth && useGait
+        ? sampleWalkAtlas(walkAtlas, strip, media?.matches ? 0 : gaitTime ?? elapsedMs, loop) : undefined
       if (paintedFrame === frameIndex && paintedPolygons === signature && paintedGait === (gait?.index ?? -1)) return
       // Compose the entire frame offscreen first. A failed preparation never
       // clears the previously visible complete character.
@@ -247,12 +251,16 @@ export function SpriteStripCanvas({
     image.addEventListener('error', fail)
     media?.addEventListener?.('change', synchronize)
     document.addEventListener('visibilitychange', synchronize)
-    if (walkAtlas && walkImage) { walkImage.onload = synchronize; walkImage.src = walkAtlas.src }
+    if (walkAtlas && walkImage) {
+      walkImage.onload = synchronize
+      walkImage.onerror = () => { walkLoadFailed = true; synchronize() }
+      walkImage.src = walkAtlas.src
+    }
     image.src = resolveOfficeAssetUrl(assetId)
     if (image.complete && image.naturalWidth > 0) loaded()
     return () => {
       disposed = true
-      if (walkImage) walkImage.onload = null
+      if (walkImage) { walkImage.onload = null; walkImage.onerror = null }
       if (playing && loop) {
         elapsedMs += Math.max(0, performance.now() - lastClock) * previousRate
         loopPhaseRef.current = (elapsedMs % cycleDurationMs) / cycleDurationMs

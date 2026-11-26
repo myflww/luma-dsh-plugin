@@ -45,11 +45,11 @@
 
 在「员工列表」点伙伴进入她的卧室，旁边可以换装或召唤桌宠。空闲伙伴会坐回自己的工位，行走时在狭路和交叉口让行。卧室中的等待确认、自由活动和睡眠按任务与本机作息切换。
 
-本分支的 0.6.2 开发版更新了八位伙伴的动作。在卧室用电脑时，椅子会带着伙伴向桌边靠近，伙伴坐在椅垫上，面朝显示器操作桌上的键盘。[空椅与入座对照](docs/images/desk-chair-placement.jpg) · [14 套造型实拍](docs/images/bedroom-seating-062.jpg)
+0.6.3 开发版给八位伙伴的 14 套造型重新绘制了 Q 版坐姿。每间卧室都按自己的椅垫、桌沿和键盘摆放人物。伙伴会面朝电脑交替落键，短腿自然弯在椅子前方。[15 种卧室实拍](docs/images/bedroom-desks-15-rooms.jpg) · [坐姿打字动图](docs/images/bedroom-computer-motion.gif) · [逐房查看全部造型](docs/scene-verification.md)
 
-在场景里提起伙伴，她会随手悬摆，放回地面时屈身站稳。四个方向的走路动作按同一脚底基线绘制。[场景拖放演示](docs/images/bedroom-drag.gif) · [八位伙伴的四向步态](docs/images/walk-preview.gif)
+陆弥、吉米等 11 套造型重绘了正面、背面与两侧的行走原画。可以逐帧对照从迈步到入座的头身比例，也可以看鞋与扶手、坐垫、桌沿的实际遮挡。[四向步态前后对比](docs/images/walk-proportions.gif) · [走近书桌与入座](docs/images/bedroom-q-scale.jpg) · [四间房的脚与椅子](docs/images/bedroom-chair-feet.jpg)
 
-桌宠待机时会呼吸，眼神随鼠标轻轻转动。把伙伴拖到屏幕任一边缘松手，她会留在边缘探头，点击或拖回即可返回。[桌宠待机、拖动与探头演示](docs/images/desktop-pet-motion.gif)
+提起伙伴时，她会抬手、屈膝，松手后双脚着地再站稳。把桌宠停在空中，她会保持悬挂，快速换向时四肢会随惯性改变方向。平时双脚站定，视线会随鼠标移动。把她拖到屏幕边缘松手即可探头，点击或拖回都能返回。[八位伙伴动作](docs/images/actor-poses-063.gif) · [Windows 桌宠实录](docs/images/desktop-pet-motion.gif) · [卧室拖放](docs/images/bedroom-drag.gif)
 
 白天轻点桌宠可以打招呼。午休时她会小憩，夜间召唤会先回应，再靠到屏幕底边打盹。工作室保留角色记忆、群聊、卡包收藏及六款可购买的通用卧室。[场景、动作与验收实拍](docs/scene-verification.md) · [工作室指南](docs/studio.md)
 

@@ -57,7 +57,7 @@ export function hitOfficeActorAtPoint(root: HTMLElement, x: number, y: number): 
   for (const { button } of buttons) {
     if (!insideClip(button, root, x, y)) continue
     for (const canvas of [...button.querySelectorAll<HTMLCanvasElement>('canvas')].reverse()) {
-      if (!canvas.dataset.displayedAssetId || !canvas.width || !canvas.height) continue
+      if (!(canvas.dataset.displayedAssetId || canvas.dataset.displayedPoseSrc) || !canvas.width || !canvas.height) continue
       const point = localPoint(canvas, root, x, y)
       if (!point || point.x < 0 || point.y < 0 || point.x >= canvas.offsetWidth || point.y >= canvas.offsetHeight) continue
       const clip = canvas.closest<HTMLElement>('.lumaOfficeEmployeeTypingClip')

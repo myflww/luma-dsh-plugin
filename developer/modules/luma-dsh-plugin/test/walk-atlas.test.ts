@@ -14,6 +14,22 @@ it('gives every owned character and outfit four distinct draw cells per painted 
       const atlas = getWalkAtlas(asset)!
       const strip = getOfficeAsset(asset).frameStrip!
       const timeline = createOfficeFrameTimeline(strip)
+      if (atlas.frameDurationsMs) {
+        expect(atlas.count).toBe(4)
+        expect(atlas.frameDurationsMs).toHaveLength(4)
+        let phase=0
+        for (let i=0;i<4;i++) {
+          const duration=atlas.frameDurationsMs[i]!
+          const frame=sampleWalkAtlas(atlas,strip,phase+duration/2)
+          expect(frame.index).toBe(i)
+          expect(frame.rect).toEqual([i*atlas.cell[0]!,0,atlas.cell[0],atlas.cell[1]])
+          phase+=duration
+        }
+        expect(phase).toBeCloseTo(timeline.cycleMs,5)
+        expect(sampleWalkAtlas(atlas,strip,phase).index).toBe(0)
+        expect(sampleWalkAtlas(atlas,strip,phase,false).index).toBe(3)
+        continue
+      }
       expect(atlas.count).toBe(timeline.order.length*4)
       for (let i=0;i<timeline.order.length;i++) {
         const phase = timeline.starts[i]!, exposure = timeline.durations[i]!

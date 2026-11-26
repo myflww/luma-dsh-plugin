@@ -40,9 +40,11 @@ for (const id of (await readdir(join(plugin,'presets'))).filter(id => /^luma-[a-
 if (Object.keys(employees).length !== 8) throw Error('Expected eight Luma employee presets.')
 const petArt = {}
 const gaits=JSON.parse(await readFile(join(repo,'overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/walkAtlas.generated.json'),'utf8'))
+const poses=JSON.parse(await readFile(join(repo,'overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/actorPoseAtlas.generated.json'),'utf8'))
 for (const preset of Object.keys(employees)) {
   const role = preset === 'luma-duanmu-yan' ? 'shan' : preset.slice('luma-'.length)
   for (const variant of ['base', 'v1']) {
+    if (variant==='base' && (role==='gemini'||role==='grok')) continue
     const employee = getEmployeeCatalogWithSkin(role, variant === 'base' ? undefined : 'skin.' + role + '.v1')
     if (!employee) throw Error('Missing desktop companion art for ' + role)
     const pack=getEmployeeSkinPack(role,variant==='base'?getBrowserOfficeDefaultSkinId(role):'skin.'+role+'.v1')
@@ -55,14 +57,22 @@ for (const preset of Object.keys(employees)) {
       const gait=gaits[asset.id]
       if(!gait)throw Error('Missing authored gait: '+asset.id)
       const timing=createOfficeFrameTimeline(asset.frameStrip), steps=gait.count/timing.order.length
-      const durations=Array.from({length:gait.count},(_,i)=>{
+      let nativeClock=0
+      const durations=gait.frameDurationsMs?.map(value=>{
+        const start=Math.round(nativeClock)
+        nativeClock+=value
+        return Math.round(nativeClock)-start
+      }) ?? Array.from({length:gait.count},(_,i)=>{
         const t=timing.durations[Math.floor(i/steps)],n=i%steps
         return Math.round((n+1)*t/steps)-Math.round(n*t/steps)
       })
       return [direction,{path:resolveOfficeAssetUrl(asset.id).slice(1),frameWidth,frameHeight,frameCount,frameDurationsMs,
         gaitPath:gait.src.slice(1),cell:gait.cell,columns:gait.columns,durations,figureHeight:gait.figureHeight,sole:gait.sole}]
     }))
-    petArt[role + '-' + variant]={strips,sleep:sleeper.url.slice(1),sleepMirror:dx<0,sleepAngle:13-Math.atan2(dy,Math.abs(dx))*180/Math.PI}
+    const key=role+'-'+variant
+    const pose=poses[key]
+    if (!pose || pose.count!==48 || pose.columns!==8) throw Error('Missing desktop pose artwork for '+key)
+    petArt[key]={strips,poses:{...pose,path:pose.src.slice(1)},sleep:sleeper.url.slice(1),sleepMirror:dx<0,sleepAngle:13-Math.atan2(dy,Math.abs(dx))*180/Math.PI}
   }
 }
 await build({

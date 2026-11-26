@@ -1,10 +1,25 @@
 # 场景与角色验收
 
-## 0.6.2 开发版
+## 0.6.3 开发版
 
-- **卧室书桌**　键盘画在桌面上。伙伴就座时，整把椅子向电脑靠近，角色从后方可见，双手对准键列。[相同机位的空椅与工作坐姿](images/desk-chair-placement.jpg) · [经典房间的 14 套造型](images/bedroom-seating-062.jpg)
-- **房间互动**　提起伙伴时可以看到悬摆，松手后会落地站稳。床边的手机按钮移到床脚，角色的答复出现在另一侧。[拖放演示](images/bedroom-drag.gif) · [床边实拍](images/bedroom-interaction-062.jpg)
-- **行走与桌宠**　八位伙伴的 14 套造型使用 56 个四向步态图集。原生桌宠有呼吸、视线跟随和四边探头，可以点击或拖回屏幕内。[四向行走](images/walk-preview.gif) · [Windows 桌宠](images/desktop-pet-motion.gif)
+八位伙伴共有 14 套可选造型。站立、刚被提起、悬空和屈膝落地各有独立姿势。拖动换向时，悬空的膝盖与衣袖随手势改变方向。停手后会稳住。深色与浅色桌面均用 Windows 原生窗口检查脸颊和轮廓。[八位伙伴的动作](images/actor-poses-063.gif) · [原生桌宠实录](images/desktop-pet-motion.gif) · [卧室拖放](images/bedroom-drag.gif) · [14 套造型在黑白桌面的实录对照](images/desktop-pet-backgrounds-063.png)
+
+卧室电脑前的角色使用等比缩放的完整 Q 版坐姿，各房分别对齐椅垫、原画桌沿与原键盘。头、髋和屈膝后的鞋保持同一比例。下表中每张图都有该房间的全部 14 套造型。[15 房间对照](images/bedroom-desks-15-rooms.jpg) · [走近与坐定时的比例](images/bedroom-q-scale.jpg) · [电脑前打字动图](images/bedroom-computer-motion.gif)
+
+| 普通与专属卧室 | 专属卧室 | 商店卧室 |
+| --- | --- | --- |
+| [经典卧室](images/bedroom-desk-looks/classic.jpg) | [鲸鱼娘](images/bedroom-desk-looks/jingyuniang.jpg) | [蔷薇画房](images/bedroom-desk-looks/rose-sketchbook.jpg) |
+| [端木嫣](images/bedroom-desk-looks/shan.jpg) | [龙妈妈](images/bedroom-desk-looks/longmama.jpg) | [宝蓝琴房](images/bedroom-desk-looks/sapphire-music.jpg) |
+| [白霜命](images/bedroom-desk-looks/bai-shuangming.jpg) | [克劳德](images/bedroom-desk-looks/claude.jpg) | [雪原书斋](images/bedroom-desk-looks/alpine-library.jpg) |
+| [陆弥](images/bedroom-desk-looks/lu-mi.jpg) | [吉米](images/bedroom-desk-looks/gemini.jpg) | [山茶花亭](images/bedroom-desk-looks/camellia-pavilion.jpg) |
+| | [绯洛](images/bedroom-desk-looks/grok.jpg) | [蓝晶蔷薇廊](images/bedroom-desk-looks/blue-rose-gallery.jpg) |
+| | | [霜羽玻璃花房](images/bedroom-desk-looks/frostwing-glasshouse.jpg) |
+
+雪原书斋、克劳德的卧室、宝蓝琴房和龙妈妈的卧室都保留了同角度的修改前后实拍。近侧扶手挡住大腿根，膝盖伸到坐垫前缘，鞋从边缘垂下。核验覆盖 210 组房间与造型搭配，并在日夜画面分别检查双手与键盘的接触。[四间房的脚与椅子](images/bedroom-chair-feet.jpg)
+
+八位伙伴共有 56 个方向图集。陆弥两套衣装、吉米以及另外八套造型重绘了四向步态。每套用十六格原画区分支撑脚和迈步脚。鲸鱼娘的两套外观与端木嫣原装沿用已校准的步态。在 Windows 原生桌宠、卧室和办公室中使用同一套图集。[四向修改前后动图](images/walk-proportions.gif) · [八位伙伴走路](images/walk-preview.gif)
+
+床边的手机按钮位于床脚，角色的答复出现在另一侧。[床边实拍](images/bedroom-interaction-062.jpg)
 
 ## 0.6.1 验收记录
 

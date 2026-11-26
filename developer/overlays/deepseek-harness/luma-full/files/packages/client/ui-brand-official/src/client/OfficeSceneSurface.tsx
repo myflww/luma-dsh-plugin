@@ -1,5 +1,7 @@
 import { ActorMotionLayer } from './ActorMotionLayer.tsx'
 import { LANDING_MS } from './office2d/actorMotion.ts'
+import { getActorPoseAtlas } from './office2d/actorPoseAtlas.ts'
+import { standingFigureHeight } from './office2d/officeFigureScale.ts'
 import { getOfficeAsset } from './office2d/assets.ts'
 import { OfficeSkinSelectionNotices } from './OfficeSkinSelectionNotices.tsx'
 import { normalizeOfficeSkinSelections } from './office2d/skinSelectionAvailability.ts'
@@ -117,6 +119,7 @@ function ClassicOfficeSceneSurface({
   }, [presentationActive])
   const canvasRef = useRef<HTMLDivElement | null>(null)
   const [actionTarget, setActionTarget] = useState<OfficeActionMenuTarget | null>(null)
+  const [missingPoses, setMissingPoses] = useState<ReadonlySet<string>>(() => new Set())
   const [manualActions, setManualActions] = useState<Readonly<Record<string, OfficeManualAction>>>({})
   const manualActionsRef = useRef(manualActions)
   manualActionsRef.current = manualActions
@@ -435,6 +438,8 @@ function ClassicOfficeSceneSurface({
         const button = canvas && hitOfficeActorAtPoint(canvas, event.clientX, event.clientY)
         const employee = employees.find(item => item.id === button?.dataset.employeeId)
         if (!employee) return
+        const pose = getActorPoseAtlas(employee.id,employeeSkins[employee.id])
+        if (pose) { const image=new Image(); image.src=pose.src; void image.decode?.().catch(()=>{}) }
         startActorDrag(event, { ...employee, canDrag: employeeDestination === 'contact' || employee.canDrag && !manualActions[employee.id] })
       }}
       onClickCapture={event => {
@@ -554,6 +559,14 @@ function ClassicOfficeSceneSurface({
             const restCandidate = catalog.walkRest?.[direction]
             const walkRest = moving || manual || (restCandidate && unavailableAssetIds.includes(restCandidate.asset)) ? undefined : restCandidate
             const framePresentation = officeActorFramePresentation(employee.id, actor.position.y, direction, skinId, walkRest)
+            const motion = actor.mode === 'drag' ? 'held'
+              : actor.landedAt !== undefined && performance.now()-actor.landedAt < LANDING_MS ? 'landing'
+              : !moving && (!manual || manual.id === 'stand-front') ? 'idle' : undefined
+            const authored = motion && getActorPoseAtlas(employee.id, skinId)
+            const pose = authored && !missingPoses.has(authored.src) ? authored : undefined
+            const bodyHeight = standingFigureHeight(foot.y)
+            const width = pose ? bodyHeight * pose.cell[0] / pose.figureHeight : framePresentation.width
+            const anchor = pose ? {x:pose.foot[0]/pose.cell[0], y:pose.foot[1]/pose.cell[1]} : framePresentation.anchor
             const autonomyActivity = getOfficeAutonomyActivity(
               autonomyStateRef.current[employee.id],
               actor.mode === 'report' ? 'task' : actor.mode,
@@ -574,9 +587,9 @@ function ClassicOfficeSceneSurface({
                 style={{
                   left: `${foot.x / OFFICE_NAV_WIDTH * 100}%`,
                   top: `${foot.y / OFFICE_NAV_HEIGHT * 100}%`,
-                  width: `${framePresentation.width / OFFICE_NAV_WIDTH * 100}%`,
-                  ...(framePresentation.anchor
-                    ? { transform: `translate(${-framePresentation.anchor.x * 100}%, ${-framePresentation.anchor.y * 100}%)` }
+                  width: `${width / OFFICE_NAV_WIDTH * 100}%`,
+                  ...(anchor
+                    ? { transform: `translate(${-anchor.x * 100}%, ${-anchor.y * 100}%)` }
                     : {}),
                   zIndex: actor.mode==='drag' ? OFFICE_NAV_HEIGHT+1 : Math.round(foot.y),
                 } satisfies CSSProperties}
@@ -588,15 +601,15 @@ function ClassicOfficeSceneSurface({
               >
                 <span
                   className="lumaOfficeEmployeeSprite"
-                  style={walkRest?.scale || walkRest?.liftPercent
+                  style={!pose && (walkRest?.scale || walkRest?.liftPercent)
                     ? { transform: `translateY(-${walkRest.liftPercent ?? 0}%) scale(${walkRest.scale ?? 1})` }
                     : undefined}
                 >
-                  <ActorMotionLayer id={employee.id} anchor={framePresentation.anchor} motion={drawingPaused || reducedMotion ? undefined
-                    : actor.mode === 'drag' ? 'held'
-                    : actor.landedAt !== undefined && performance.now()-actor.landedAt < LANDING_MS ? 'landing'
-                    : !moving && (!manual || manual.id==='stand-front') ? 'idle' : undefined}>
-                    <SpriteStripCanvas
+                  {pose && motion ? <ActorMotionLayer atlas={pose} id={employee.id} motion={motion}
+                    landingStartedAt={actor.landedAt}
+                    footX={foot.x} bodyHeight={bodyHeight} paused={drawingPaused || reducedMotion}
+                    asCanvas className="lumaOfficeArticulatedPose"
+                    onError={() => setMissingPoses(current => new Set([...current, pose.src]))}/> : <SpriteStripCanvas
                       key={`${skinId ?? 'default'}:${manual ? `manual:${manual.revision}` : 'automatic'}`}
                       assetId={manual?.asset ?? walkRest?.asset ?? catalog.walk[direction]}
                       className="lumaOfficeEmployeeWalkCanvas"
@@ -607,8 +620,7 @@ function ClassicOfficeSceneSurface({
                       {...automaticFrame !== undefined && automaticTimeline ? { walkElapsedMs: (actor.walkPhase ?? 0) * automaticTimeline.cycleMs } : {}}
                       playbackRate={manual ? 1 : automaticCadence?.playbackRate ?? 1}
                       paused={!moving || drawingPaused || reducedMotion}
-                    />
-                  </ActorMotionLayer>
+                    />}
                 </span>
               </button>
             )

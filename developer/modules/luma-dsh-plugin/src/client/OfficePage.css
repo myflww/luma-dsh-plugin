@@ -55,7 +55,7 @@
 .lumaBedroomArt { position:relative; overflow:hidden; border-radius:14px; background:#464345; border:1px solid #a996803d; }
 .lumaBedroomArt>img, .lumaBedroomResidentLayer { width:100%; height:100%; display:block; position:absolute; inset:0; }
 .lumaBedroomResidentLayer { pointer-events:none; overflow:visible; }
-.lumaBedroomArt[data-bedroom-light="lamplight"] :is([data-bedroom-pose="sleep"],[data-bedroom-pose="phone"],[data-bedroom-pose="walking"],[data-bedroom-pose="awake"],[data-bedroom-pose="computer"]>svg) {
+.lumaBedroomArt[data-bedroom-light="lamplight"] :is([data-bedroom-pose="sleep"],[data-bedroom-pose="phone"],[data-bedroom-pose="walking"],[data-bedroom-pose="awake"],[data-bedroom-seated-body]) {
   filter:brightness(.85) saturate(.9) sepia(.05);
 }
 .lumaBedroomArt .lumaBedroomInvite {

@@ -1,6 +1,6 @@
 {
   "name": "@luma/dsh-plugin",
-  "version": "0.6.2-web.1",
+  "version": "0.6.3-web.1",
   "private": true,
   "description": "Luma: themed offices, character conversations, local card packs and albums for DSH",
   "type": "module",

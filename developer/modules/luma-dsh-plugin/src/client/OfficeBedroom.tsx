@@ -1,6 +1,8 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { ActorMotionLayer } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/ActorMotionLayer.tsx'
-import type { ActorMotion } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/actorMotion.ts'
+import { landingStartForRelease, type ActorMotion } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/actorMotion.ts'
+import { getActorPoseAtlas } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/actorPoseAtlas.ts'
+import { standingFigureHeight } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/officeFigureScale.ts'
 import { PERSONAL_BEDROOMS } from './bedroom-personal-layouts.ts'
 import { createPortal } from 'react-dom'
 import { ListTodo, MessageCircle, Monitor, Smartphone } from 'lucide-react'
@@ -87,33 +89,41 @@ function walkingArt(id: ResidentId, skinId?:string) {
   return {catalog,durations,speeds}
 }
 
-function BedroomWalker({id,skinId,walk,point,direction,moving,elapsed,scale,resting,stretch,motion}:{
+function BedroomWalker({id,skinId,walk,point,direction,moving,elapsed,scale,paused,motion,landingStartedAt}:{
   id:ResidentId; skinId?:string | undefined; walk: ReturnType<typeof walkingArt>; point:Pair
-  direction:OfficeWalkDirection; moving:boolean; elapsed:number; scale:number; resting:boolean; stretch:boolean; motion?:ActorMotion | undefined
+  direction:OfficeWalkDirection; moving:boolean; elapsed:number; scale:number; paused:boolean; motion?:ActorMotion | undefined
+  landingStartedAt?:number | undefined
 }) {
-  const still=moving?undefined:walk.catalog.walkRest?.[direction]
+  const directionId=walk.catalog.walk[direction]
+  const directionAtlas=getWalkAtlas(directionId)
+  const still=moving || directionAtlas?.frameDurationsMs?undefined:walk.catalog.walkRest?.[direction]
   const record=getOfficeAsset(still?.asset ?? walk.catalog.walk[direction])
   const strip=record.frameStrip!
   const frame=moving ? walk.durations[direction].frameAt(elapsed,true) : still?.frameIndex ?? 0
   const rect=officeFrameRect(strip,frame)
   const [failedAtlas,setFailedAtlas]=useState<string>()
-  const atlas=moving && failedAtlas!==record.id?getWalkAtlas(record.id):undefined
-  const gait=atlas && sampleWalkAtlas(atlas,strip,elapsed)
+  const [failedPose,setFailedPose]=useState<string>()
+  const pose=motion && getActorPoseAtlas(id,skinId)
+  const atlas=(moving || directionAtlas?.frameDurationsMs) && failedAtlas!==record.id?directionAtlas:undefined
+  const gait=atlas && sampleWalkAtlas(atlas,strip,moving?elapsed:0)
   const bounds=atlas && gait && atlas.bounds
   const figure=officeActorFramePresentation(id,point[1],direction,skinId,still)
   const width=figure.width*scale, height=width*strip.frameHeight/strip.frameWidth
+  const bodyHeight=standingFigureHeight(point[1])*scale
+  const poseScale=pose ? bodyHeight/pose.figureHeight : 1
   return <g data-bedroom-pose={moving?'walking':'awake'} data-bedroom-direction={direction} data-bedroom-frame={frame} data-gait-frame={gait?.index}
       transform={`translate(${point[0]} ${point[1]})`}>
-    <ellipse cx={0} cy={1} rx={width*.14} ry={width*.035} fill="#392f3b" opacity=".19"/>
-    <ActorMotionLayer height={height} id={id} motion={motion}><g>{resting && !motion && (stretch
-      ? <animateTransform attributeName="transform" type="scale" values="1 1;1 1;1.012 .988;.993 1.018;1 1;1 1" keyTimes="0;.16;.32;.52;.78;1" dur="5.9s" repeatCount="indefinite"/>
-      : <animateTransform attributeName="transform" type="rotate" values="0;0;-.9;-.5;0;0" keyTimes="0;.25;.43;.55;.75;1" dur="6.4s" repeatCount="indefinite"/>)}
-    <svg x={-width*figure.anchor.x} y={-height*figure.anchor.y} width={width} height={height} viewBox={atlas?'0 0 '+strip.frameWidth+' '+strip.frameHeight:rect.join(' ')} overflow="hidden">
+    <ellipse cx={0} cy={1} rx={width*(motion==='held'?.11:.14)} ry={width*.03} fill="#392f3b" opacity={motion==='held'?.1:.19}/>
+    {pose && failedPose!==pose.src && motion ? <ActorMotionLayer atlas={pose} id={id} motion={motion}
+      footX={point[0]} bodyHeight={bodyHeight} paused={paused} landingStartedAt={landingStartedAt}
+      x={-pose.foot[0]*poseScale} y={-pose.foot[1]*poseScale}
+      width={pose.cell[0]*poseScale} height={pose.cell[1]*poseScale}
+      onError={()=>setFailedPose(pose.src)}/> : <svg x={-width*figure.anchor.x} y={-height*figure.anchor.y} width={width} height={height} viewBox={atlas?'0 0 '+strip.frameWidth+' '+strip.frameHeight:rect.join(' ')} overflow="hidden">
       {atlas && gait && bounds ? <svg x={bounds[0]} y={bounds[1]} width={bounds[2]} height={bounds[3]}
         viewBox={gait.rect.join(' ')} preserveAspectRatio="none" overflow="hidden">
         <image href={atlas.src} onError={()=>setFailedAtlas(record.id)} width={atlas.columns*atlas.cell[0]!} height={Math.ceil(atlas.count/atlas.columns)*atlas.cell[1]!}/>
       </svg> : <image href={resolveOfficeAssetUrl(record.id)} width={record.dimensions.width} height={record.dimensions.height}/>}
-    </svg></g></ActorMotionLayer>
+    </svg>}
   </g>
 }
 
@@ -133,6 +143,13 @@ export function OfficeBedroom({id,name,skinId,themeOwner,roomLayout,phase,bedtim
   const asleep = bedtime && taskIdle
   const walk=useMemo(()=>walkingArt(id,skinId),[id,skinId])
   const atHome=location==='bedroom' && !onDesktop
+  useEffect(()=>{
+    const pose=getActorPoseAtlas(id,skinId)
+    if (!pose || !atHome || !active) return
+    const image=new Image()
+    image.src=pose.src
+    void image.decode?.().catch(()=>{})
+  },[id,skinId,active,atHome])
   // Decode the four compact walk directions while this resident is awake so a
   // doorway turn never blanks the previous frame waiting for a new image.
   useEffect(()=>{
@@ -155,8 +172,8 @@ export function OfficeBedroom({id,name,skinId,themeOwner,roomLayout,phase,bedtim
   const canInvite=atHome && active && taskIdle && !bedtime
   const visit=canInvite?invitation:null
   const [held,setHeld]=useState<Pair|null>(null)
-  const grab=useRef<{pointer:number; start:Pair; foot:Pair; facing:OfficeWalkDirection; moved:boolean}|null>(null)
-  const droppedFacing=useRef<OfficeWalkDirection>('down')
+  const grab=useRef<{pointer:number; start:Pair; foot:Pair; facing:OfficeWalkDirection; liftedAt?:number}|null>(null)
+  const lastDrop=useRef<{facing:OfficeWalkDirection; landingStartedAt?:number}>({facing:'down'})
   const layer=useRef<SVGSVGElement>(null)
   const cancelGrab=()=>{grab.current=null;setHeld(null)}
   useEffect(()=>{cancelGrab();setJourney(null);setInvitation(null)},[id,roomId])
@@ -220,7 +237,7 @@ export function OfficeBedroom({id,name,skinId,themeOwner,roomLayout,phase,bedtim
   const bed=bedroomBedContacts(room,floor.bed)
   const point=held ?? detour?.point ?? (!taskIdle ? floor.desk : reduceMotion ? step.from : bedroomFootAt(step,sample))
   const facing=(held && grab.current) ? grab.current.facing
-    : detour && !detour.moving && journey && returnTrip===journey ? droppedFacing.current
+    : detour && !detour.moving && journey && returnTrip===journey ? lastDrop.current.facing
     : detour?.facing ?? bedroomRestFacing(step,sample)
   const distanceWalked=(step.strideStart ?? 0)+bedroomTravelAt(step,sample)
   const gaitTime=(detour?.distance ?? distanceWalked)/OFFICE_WALK_SPEED*walk.durations[facing].cycleMs
@@ -266,8 +283,9 @@ export function OfficeBedroom({id,name,skinId,themeOwner,roomLayout,phase,bedtim
         {asleep && !held ? sleepingPose(bed,id,animate,skinId) : <g data-bedroom-action={pose}>
           {(!onBed && !atDesk || weight<1) && <g opacity={onBed || atDesk?1-weight:1}>
             <BedroomWalker id={id} skinId={skinId} walk={walk} point={point}
-              motion={animate ? held ? 'held' : detour && !detour.moving && returnTrip===journey ? 'landing' : undefined : undefined}
-              direction={facing} elapsed={gaitTime} moving={pose==='walk' && animate} resting={pose==='idle' && animate && !held} stretch={step.activity==='在房间里伸展休息'} scale={1}/>
+              motion={held ? 'held' : detour && !detour.moving && returnTrip===journey ? 'landing' : pose==='idle' ? 'idle' : undefined}
+              landingStartedAt={lastDrop.current.landingStartedAt}
+              direction={facing} elapsed={gaitTime} moving={pose==='walk' && animate} paused={!animate} scale={1}/>
           </g>}
           {(onBed || atDesk) && weight>0 && <g opacity={weight}>
             {onBed ? <BedroomPhonePose id={id} skinId={skinId} room={bed} approach={floor.bed} reclined={contact}
@@ -285,13 +303,16 @@ export function OfficeBedroom({id,name,skinId,themeOwner,roomLayout,phase,bedtim
             if(!active || event.button!==0 || event.isPrimary===false || grab.current) return
             event.stopPropagation()
             try {event.currentTarget.setPointerCapture(event.pointerId)} catch {return}
-            grab.current={pointer:event.pointerId,start:[event.clientX,event.clientY],foot:grabFoot,facing:asleep || onBed || atDesk ? 'down' : facing,moved:false}
+            grab.current={pointer:event.pointerId,start:[event.clientX,event.clientY],foot:grabFoot,facing:asleep || onBed || atDesk ? 'down' : facing}
           }}
           onPointerMove={event=>{
             const grip=grab.current
             if(!grip || grip.pointer!==event.pointerId) return
-            if(!grip.moved && Math.hypot(event.clientX-grip.start[0],event.clientY-grip.start[1])<7) return
-            grip.moved=true; setHeld(draggedFoot(event,grip))
+            if(grip.liftedAt===undefined) {
+              if(Math.hypot(event.clientX-grip.start[0],event.clientY-grip.start[1])<7) return
+              grip.liftedAt=performance.now()
+            }
+            setHeld(draggedFoot(event,grip))
           }}
           onPointerUp={event=>{
             const grip=grab.current
@@ -299,12 +320,12 @@ export function OfficeBedroom({id,name,skinId,themeOwner,roomLayout,phase,bedtim
             const foot=draggedFoot(event,grip), box=layer.current!.getBoundingClientRect()
             cancelGrab()
             if(event.currentTarget.hasPointerCapture?.(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId)
-            if(!grip.moved && Math.hypot(event.clientX-grip.start[0],event.clientY-grip.start[1])<7) {onChat();return}
+            if(grip.liftedAt===undefined && Math.hypot(event.clientX-grip.start[0],event.clientY-grip.start[1])<7) {onChat();return}
             const desktop=onDesktopPet && desktopDropPoint(event)
             if(desktop){onDesktopPet?.(id,desktop);return}
             if(bedtime || !taskIdle || event.clientX<box.left || event.clientX>box.right || event.clientY<box.top || event.clientY>box.bottom) return
             const timestamp=Date.now()
-            droppedFacing.current=grip.facing
+            lastDrop.current={facing:grip.facing,landingStartedAt:landingStartForRelease(performance.now(),grip.liftedAt)}
             setInvitation(null);setJourney(bedroomDropJourney(roomId,foot,routine,timestamp));setSample(timestamp)
           }}
           onPointerCancel={cancelGrab} onLostPointerCapture={cancelGrab}/>

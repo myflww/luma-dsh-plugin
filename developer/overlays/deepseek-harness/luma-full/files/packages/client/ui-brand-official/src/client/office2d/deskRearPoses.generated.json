@@ -1,310 +1,1010 @@
 {
-  "shan-base": {
-    "src": "/luma-office/luma-plugin-art/rear-desk/shan-base.cf7ae1b38bb0.png",
-    "sha256": "cf7ae1b38bb0c2615cbc4ee68ca115bdf4542831b5fc2c90eb39eedd2443a86c",
-    "cell": [
-      352,
-      320
-    ],
-    "count": 4,
-    "hip": [
-      176,
-      254
-    ],
-    "hand": [
-      176,
-      134
-    ],
-    "head": [
-      176,
-      73
-    ],
-    "bodyHeight": 238
-  },
-  "shan-v1": {
-    "src": "/luma-office/luma-plugin-art/rear-desk/shan-v1.2e6a9c5fabc0.png",
-    "sha256": "2e6a9c5fabc0ef7312457327759920515c1c97ec8bbbe59d7aa25b144d8d44e2",
-    "cell": [
-      352,
-      320
-    ],
-    "count": 4,
-    "hip": [
-      176,
-      254
-    ],
-    "hand": [
-      176,
-      134
-    ],
-    "head": [
-      176,
-      73
-    ],
-    "bodyHeight": 238
-  },
   "bai-shuangming-base": {
-    "src": "/luma-office/luma-plugin-art/rear-desk/bai-shuangming-base.7bab3ad69a34.png",
-    "sha256": "7bab3ad69a34b83ee88579b2954cb460a53b79c46e08b0e3b7150e5cbc0670ee",
+    "src": "/luma-office/luma-plugin-art/rear-desk/bai-shuangming-base.1f15ec3c5478.webp",
+    "sha256": "1f15ec3c5478b46d6fd74045ed3f6457576270ceaff5e91b455a8001671184bd",
     "cell": [
       352,
-      320
+      352
     ],
-    "count": 4,
-    "hip": [
-      176,
-      254
-    ],
-    "hand": [
-      176,
-      107
-    ],
-    "head": [
-      176,
-      74
-    ],
-    "bodyHeight": 238
+    "count": 8,
+    "preferOblique": false,
+    "rear": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        122.91
+      ],
+      "palms": [
+        [
+          217.09,
+          191.0
+        ],
+        [
+          242.38,
+          191.0
+        ]
+      ],
+      "ankleLine": 284,
+      "headHeight": 116,
+      "knee": [
+        190.22,
+        264.13
+      ],
+      "sole": [
+        190.22,
+        301.96
+      ],
+      "soleY": 301.96
+    },
+    "oblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        124.36
+      ],
+      "palms": [
+        [
+          223.89,
+          187.3
+        ],
+        [
+          249.55,
+          189.77
+        ]
+      ],
+      "ankleLine": 279,
+      "headHeight": 116,
+      "knee": [
+        230.73,
+        241.6
+      ],
+      "sole": [
+        227.31,
+        295.89
+      ],
+      "soleY": 295.89
+    }
   },
   "bai-shuangming-v1": {
-    "src": "/luma-office/luma-plugin-art/rear-desk/bai-shuangming-v1.dea9eec6f2fd.png",
-    "sha256": "dea9eec6f2fde337d4e78a40a2f722fb64b07e6ac98fd9cd1ac9148032325256",
+    "src": "/luma-office/luma-plugin-art/rear-desk/bai-shuangming-v1.48fd9e480d0f.webp",
+    "sha256": "48fd9e480d0f9dd7cc804b4642c0b2e4a03523849fe260b9a639b4cb30333156",
     "cell": [
       352,
-      320
+      352
     ],
-    "count": 4,
-    "hip": [
-      176,
-      254
-    ],
-    "hand": [
-      176,
-      142
-    ],
-    "head": [
-      176,
-      72
-    ],
-    "bodyHeight": 238
-  },
-  "lu-mi-base": {
-    "src": "/luma-office/luma-plugin-art/rear-desk/lu-mi-base.68f526e80618.png",
-    "sha256": "68f526e80618052a07457befd814f024063ce75616ff7e70d8d2e427b6952806",
-    "cell": [
-      352,
-      320
-    ],
-    "count": 4,
-    "hip": [
-      176,
-      254
-    ],
-    "hand": [
-      176,
-      140
-    ],
-    "head": [
-      176,
-      73
-    ],
-    "bodyHeight": 238
-  },
-  "lu-mi-v1": {
-    "src": "/luma-office/luma-plugin-art/rear-desk/lu-mi-v1.0351ef1b9dc0.png",
-    "sha256": "0351ef1b9dc0715496110420ad9103e73e122cd2be9cfacbc742463a9b926517",
-    "cell": [
-      352,
-      320
-    ],
-    "count": 4,
-    "hip": [
-      176,
-      254
-    ],
-    "hand": [
-      176,
-      135
-    ],
-    "head": [
-      176,
-      73
-    ],
-    "bodyHeight": 238
-  },
-  "jingyuniang-base": {
-    "src": "/luma-office/luma-plugin-art/rear-desk/jingyuniang-base.18b6a7753d37.png",
-    "sha256": "18b6a7753d37175b04be42f881fdaa7c01cddb481953da18cda1b64d4e6266c1",
-    "cell": [
-      352,
-      320
-    ],
-    "count": 4,
-    "hip": [
-      176,
-      254
-    ],
-    "hand": [
-      176,
-      158
-    ],
-    "head": [
-      176,
-      73
-    ],
-    "bodyHeight": 238
-  },
-  "jingyuniang-v1": {
-    "src": "/luma-office/luma-plugin-art/rear-desk/jingyuniang-v1.cbf511d5cd15.png",
-    "sha256": "cbf511d5cd1503add1331744f83aa8930d6c564c145db98cfc2bb13aa92d3f79",
-    "cell": [
-      352,
-      320
-    ],
-    "count": 4,
-    "hip": [
-      176,
-      254
-    ],
-    "hand": [
-      176,
-      157
-    ],
-    "head": [
-      176,
-      73
-    ],
-    "bodyHeight": 238
-  },
-  "longmama-base": {
-    "src": "/luma-office/luma-plugin-art/rear-desk/longmama-base.4195ca719a0d.png",
-    "sha256": "4195ca719a0d039a414eebaa03a8378bfd9af75d38a86da9961eb5e0b2f19772",
-    "cell": [
-      352,
-      320
-    ],
-    "count": 4,
-    "hip": [
-      176,
-      254
-    ],
-    "hand": [
-      176,
-      138
-    ],
-    "head": [
-      176,
-      72
-    ],
-    "bodyHeight": 238
-  },
-  "longmama-v1": {
-    "src": "/luma-office/luma-plugin-art/rear-desk/longmama-v1.26fb50bdaf51.png",
-    "sha256": "26fb50bdaf518b8013ad3f02c90cf841e5dadfb5755d26a4bf7d2c820aa59a56",
-    "cell": [
-      352,
-      320
-    ],
-    "count": 4,
-    "hip": [
-      176,
-      254
-    ],
-    "hand": [
-      176,
-      138
-    ],
-    "head": [
-      176,
-      72
-    ],
-    "bodyHeight": 238
+    "count": 8,
+    "preferOblique": false,
+    "rear": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        115.47
+      ],
+      "palms": [
+        [
+          214.04,
+          195.05
+        ],
+        [
+          242.94,
+          195.05
+        ]
+      ],
+      "ankleLine": 279,
+      "headHeight": 116,
+      "knee": [
+        186.65,
+        267.88
+      ],
+      "sole": [
+        189.69,
+        300.26
+      ],
+      "soleY": 300.26
+    },
+    "oblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        110.9
+      ],
+      "palms": [
+        [
+          227.37,
+          168.9
+        ],
+        [
+          253.94,
+          177.19
+        ]
+      ],
+      "ankleLine": 263,
+      "headHeight": 116,
+      "knee": [
+        245.08,
+        226.9
+      ],
+      "sole": [
+        243.31,
+        279.38
+      ],
+      "soleY": 279.38
+    }
   },
   "claude-base": {
-    "src": "/luma-office/luma-plugin-art/rear-desk/claude-base.ae1d90df5d62.png",
-    "sha256": "ae1d90df5d6256aeeac8ec5faceab92a2ae4e36b5f4265d069b5da3b01440c12",
+    "src": "/luma-office/luma-plugin-art/rear-desk/claude-base.9c425493179d.webp",
+    "sha256": "9c425493179d793833be521693ac240f6cff52566cc0ab24dd7052ee0582a7f3",
     "cell": [
       352,
-      320
+      352
     ],
-    "count": 4,
-    "hip": [
-      176,
-      254
-    ],
-    "hand": [
-      176,
-      125
-    ],
-    "head": [
-      176,
-      73
-    ],
-    "bodyHeight": 238
+    "count": 8,
+    "preferOblique": false,
+    "rear": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        110.3
+      ],
+      "palms": [
+        [
+          225.98,
+          160.74
+        ],
+        [
+          248.56,
+          160.74
+        ]
+      ],
+      "ankleLine": 282,
+      "headHeight": 116,
+      "knee": [
+        188.9,
+        264.13
+      ],
+      "sole": [
+        185.67,
+        296.91
+      ],
+      "soleY": 296.91
+    },
+    "oblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        109.55
+      ],
+      "palms": [
+        [
+          222.39,
+          165.09
+        ],
+        [
+          249.15,
+          167.55
+        ]
+      ],
+      "ankleLine": 274,
+      "headHeight": 116,
+      "knee": [
+        225.96,
+        239.13
+      ],
+      "sole": [
+        229.52,
+        290.96
+      ],
+      "soleY": 290.96
+    }
   },
   "claude-v1": {
-    "src": "/luma-office/luma-plugin-art/rear-desk/claude-v1.2de5efcb3abf.png",
-    "sha256": "2de5efcb3abf58073a647b70ad407025bb500ff60b0c6345f936527c4867d0d2",
+    "src": "/luma-office/luma-plugin-art/rear-desk/claude-v1.24d739de042c.webp",
+    "sha256": "24d739de042c560965b7f0ef59247574f61b2a26b9971605acb0a125ec31cab0",
     "cell": [
       352,
-      320
+      352
     ],
-    "count": 4,
-    "hip": [
-      176,
-      254
-    ],
-    "hand": [
-      176,
-      124
-    ],
-    "head": [
-      176,
-      73
-    ],
-    "bodyHeight": 238
+    "count": 8,
+    "preferOblique": false,
+    "rear": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        111.09
+      ],
+      "palms": [
+        [
+          147.28,
+          176.82
+        ],
+        [
+          213.55,
+          176.82
+        ]
+      ],
+      "ankleLine": 280,
+      "headHeight": 116,
+      "knee": [
+        193.67,
+        256.73
+      ],
+      "sole": [
+        191.46,
+        303.13
+      ],
+      "soleY": 303.13
+    },
+    "oblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        110.3
+      ],
+      "palms": [
+        [
+          230.52,
+          165.78
+        ],
+        [
+          257.78,
+          170.83
+        ]
+      ],
+      "ankleLine": 277,
+      "headHeight": 116,
+      "knee": [
+        232.47,
+        231.35
+      ],
+      "sole": [
+        220.79,
+        296.91
+      ],
+      "soleY": 296.91
+    }
   },
   "gemini-v1": {
-    "src": "/luma-office/luma-plugin-art/rear-desk/gemini-v1.909155f07d67.png",
-    "sha256": "909155f07d67b2b7b96b6114f74d61c74cb2f51d0feba1e91de25adc9a0d991f",
+    "src": "/luma-office/luma-plugin-art/rear-desk/gemini-v1.8e9abad64496.webp",
+    "sha256": "8e9abad6449669ce1a742d235893bcfae99a7fc20eb87251cdb9ae4e6aeadf02",
     "cell": [
       352,
-      320
+      352
     ],
-    "count": 4,
-    "hip": [
-      176,
-      254
-    ],
-    "hand": [
-      176,
-      148
-    ],
-    "head": [
-      176,
-      73
-    ],
-    "bodyHeight": 238
+    "count": 8,
+    "preferOblique": false,
+    "rear": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        115.6
+      ],
+      "palms": [
+        [
+          154.99,
+          191.0
+        ],
+        [
+          207.52,
+          188.1
+        ]
+      ],
+      "ankleLine": 281,
+      "headHeight": 116,
+      "knee": [
+        192.81,
+        266.4
+      ],
+      "sole": [
+        192.81,
+        307.0
+      ],
+      "soleY": 307.0
+    },
+    "oblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        110.69
+      ],
+      "palms": [
+        [
+          236.05,
+          168.69
+        ],
+        [
+          265.04,
+          171.67
+        ]
+      ],
+      "ankleLine": 261,
+      "headHeight": 116,
+      "knee": [
+        252.62,
+        222.23
+      ],
+      "sole": [
+        256.76,
+        278.74
+      ],
+      "soleY": 278.74
+    }
   },
   "grok-v1": {
-    "src": "/luma-office/luma-plugin-art/rear-desk/grok-v1.6deace6b6764.png",
-    "sha256": "6deace6b676427f61ecb5fa78dd31a58a586226c949fe9fc88d39a672ad5e7b5",
+    "src": "/luma-office/luma-plugin-art/rear-desk/grok-v1.bd7e5d4dcef0.webp",
+    "sha256": "bd7e5d4dcef0b4661b59624b3820cb795803a802a3f9f7ddbb20a7bbe2c0fdf1",
     "cell": [
       352,
-      320
+      352
     ],
-    "count": 4,
-    "hip": [
-      176,
-      254
+    "count": 8,
+    "preferOblique": false,
+    "rear": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        115.6
+      ],
+      "palms": [
+        [
+          142.68,
+          182.3
+        ],
+        [
+          211.4,
+          182.3
+        ]
+      ],
+      "ankleLine": 284,
+      "headHeight": 116,
+      "knee": [
+        192.66,
+        266.4
+      ],
+      "sole": [
+        194.74,
+        309.9
+      ],
+      "soleY": 309.9
+    },
+    "oblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        109.8
+      ],
+      "palms": [
+        [
+          231.96,
+          182.3
+        ],
+        [
+          250.01,
+          170.7
+        ]
+      ],
+      "ankleLine": 278,
+      "headHeight": 116,
+      "knee": [
+        246.4,
+        237.4
+      ],
+      "sole": [
+        239.18,
+        301.2
+      ],
+      "soleY": 301.2
+    }
+  },
+  "jingyuniang-base": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/jingyuniang-base.7aa014a6ca61.webp",
+    "sha256": "7aa014a6ca6128d525f516b38820b26a89cf86035ad8065b59f23e7c32116fce",
+    "cell": [
+      352,
+      352
     ],
-    "hand": [
-      176,
-      150
+    "count": 8,
+    "preferOblique": true,
+    "rear": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        117.44
+      ],
+      "palms": [
+        [
+          135.34,
+          192.41
+        ],
+        [
+          208.53,
+          192.41
+        ]
+      ],
+      "ankleLine": 291,
+      "headHeight": 116,
+      "knee": [
+        189.01,
+        271.63
+      ],
+      "sole": [
+        187.38,
+        308.41
+      ],
+      "soleY": 308.41
+    },
+    "oblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        114.61
+      ],
+      "palms": [
+        [
+          225.86,
+          166.95
+        ],
+        [
+          249.87,
+          175.44
+        ]
+      ],
+      "ankleLine": 283,
+      "headHeight": 116,
+      "knee": [
+        224.02,
+        246.17
+      ],
+      "sole": [
+        214.78,
+        302.76
+      ],
+      "soleY": 302.76
+    }
+  },
+  "jingyuniang-v1": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/jingyuniang-v1.cc92b9d5f2ea.webp",
+    "sha256": "cc92b9d5f2ea4ed12ec98ebc8211602cf8b917394b9ff220da5aded8630e03b4",
+    "cell": [
+      352,
+      352
     ],
-    "head": [
-      176,
-      73
+    "count": 8,
+    "preferOblique": false,
+    "rear": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        117.44
+      ],
+      "palms": [
+        [
+          226.97,
+          172.61
+        ],
+        [
+          253.33,
+          175.44
+        ]
+      ],
+      "ankleLine": 289,
+      "headHeight": 116,
+      "knee": [
+        197.09,
+        265.98
+      ],
+      "sole": [
+        198.85,
+        299.93
+      ],
+      "soleY": 299.93
+    },
+    "oblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        114.61
+      ],
+      "palms": [
+        [
+          221.3,
+          164.12
+        ],
+        [
+          250.29,
+          172.61
+        ]
+      ],
+      "ankleLine": 277,
+      "headHeight": 116,
+      "knee": [
+        228.54,
+        229.2
+      ],
+      "sole": [
+        224.92,
+        291.44
+      ],
+      "soleY": 291.44
+    }
+  },
+  "longmama-base": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/longmama-base.9f90f42c8748.webp",
+    "sha256": "9f90f42c8748358581da3a940de47c045f427f537c0398950222902a9d1c40cb",
+    "cell": [
+      352,
+      352
     ],
-    "bodyHeight": 238
+    "count": 8,
+    "preferOblique": false,
+    "rear": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        112.7
+      ],
+      "palms": [
+        [
+          243.0,
+          182.3
+        ],
+        [
+          263.94,
+          193.9
+        ]
+      ],
+      "ankleLine": 287,
+      "headHeight": 116,
+      "knee": [
+        243.0,
+        249.0
+      ],
+      "sole": [
+        236.72,
+        307.0
+      ],
+      "soleY": 307.0
+    },
+    "oblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        109.8
+      ],
+      "palms": [
+        [
+          232.36,
+          179.4
+        ],
+        [
+          264.88,
+          185.2
+        ]
+      ],
+      "ankleLine": 281,
+      "headHeight": 116,
+      "knee": [
+        236.7,
+        246.1
+      ],
+      "sole": [
+        230.19,
+        304.1
+      ],
+      "soleY": 304.1
+    }
+  },
+  "longmama-v1": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/longmama-v1.3468ec86dd5e.webp",
+    "sha256": "3468ec86dd5e2d423709a15c6f6c26f115818a572e08254f44af118bd2ca927b",
+    "cell": [
+      352,
+      352
+    ],
+    "count": 8,
+    "preferOblique": false,
+    "rear": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        104.0
+      ],
+      "palms": [
+        [
+          237.55,
+          164.9
+        ],
+        [
+          264.22,
+          167.8
+        ]
+      ],
+      "ankleLine": 284,
+      "headHeight": 116,
+      "knee": [
+        190.36,
+        266.4
+      ],
+      "sole": [
+        190.36,
+        301.2
+      ],
+      "soleY": 301.2
+    },
+    "oblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        101.1
+      ],
+      "palms": [
+        [
+          236.33,
+          164.9
+        ],
+        [
+          264.34,
+          164.9
+        ]
+      ],
+      "ankleLine": 278,
+      "headHeight": 116,
+      "knee": [
+        251.41,
+        237.4
+      ],
+      "sole": [
+        247.1,
+        295.4
+      ],
+      "soleY": 295.4
+    }
+  },
+  "lu-mi-base": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/lu-mi-base.9b54f8540903.webp",
+    "sha256": "9b54f8540903431ea9f8e83c24a60b76b5d12fad2352e2d1a0b4a03c6fa4b898",
+    "cell": [
+      352,
+      352
+    ],
+    "count": 8,
+    "preferOblique": true,
+    "rear": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        114.61
+      ],
+      "palms": [
+        [
+          151.59,
+          175.44
+        ],
+        [
+          210.58,
+          178.27
+        ]
+      ],
+      "ankleLine": 289,
+      "headHeight": 116,
+      "knee": [
+        190.24,
+        260.32
+      ],
+      "sole": [
+        190.24,
+        305.59
+      ],
+      "soleY": 305.59
+    },
+    "oblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        106.12
+      ],
+      "palms": [
+        [
+          236.49,
+          178.27
+        ],
+        [
+          263.6,
+          178.27
+        ]
+      ],
+      "ankleLine": 277,
+      "headHeight": 116,
+      "knee": [
+        249.0,
+        234.85
+      ],
+      "sole": [
+        246.92,
+        294.27
+      ],
+      "soleY": 294.27
+    }
+  },
+  "lu-mi-v1": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/lu-mi-v1.096b20dc2398.webp",
+    "sha256": "096b20dc239897d495eea352f9d39e21f1b96bc4f16aeb9e66c121fc3f997301",
+    "cell": [
+      352,
+      352
+    ],
+    "count": 8,
+    "preferOblique": false,
+    "rear": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        118.16
+      ],
+      "palms": [
+        [
+          232.52,
+          168.07
+        ],
+        [
+          258.89,
+          173.47
+        ]
+      ],
+      "ankleLine": 284,
+      "headHeight": 116,
+      "knee": [
+        191.07,
+        265.19
+      ],
+      "sole": [
+        191.07,
+        302.95
+      ],
+      "soleY": 302.95
+    },
+    "oblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        108.14
+      ],
+      "palms": [
+        [
+          230.05,
+          166.14
+        ],
+        [
+          257.07,
+          171.67
+        ]
+      ],
+      "ankleLine": 279,
+      "headHeight": 116,
+      "knee": [
+        231.98,
+        240.71
+      ],
+      "sole": [
+        222.33,
+        295.95
+      ],
+      "soleY": 295.95
+    }
+  },
+  "shan-base": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/shan-base.92c8480227c8.webp",
+    "sha256": "92c8480227c8a8b6a1f8a32efd5b9b67c3cbb742b782efe436e54203d2b11d8e",
+    "cell": [
+      352,
+      352
+    ],
+    "count": 8,
+    "preferOblique": false,
+    "rear": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        120.27
+      ],
+      "palms": [
+        [
+          137.19,
+          186.76
+        ],
+        [
+          219.13,
+          186.76
+        ]
+      ],
+      "ankleLine": 283,
+      "headHeight": 116,
+      "knee": [
+        188.94,
+        263.15
+      ],
+      "sole": [
+        188.94,
+        305.59
+      ],
+      "soleY": 305.59
+    },
+    "oblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        107.72
+      ],
+      "palms": [
+        [
+          235.04,
+          162.74
+        ],
+        [
+          262.45,
+          162.74
+        ]
+      ],
+      "ankleLine": 285,
+      "headHeight": 116,
+      "knee": [
+        235.04,
+        237.1
+      ],
+      "sole": [
+        232.93,
+        302.54
+      ],
+      "soleY": 302.54
+    }
+  },
+  "shan-v1": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/shan-v1.b221f5055012.webp",
+    "sha256": "b221f5055012d16eaab0cb517d6564a44c9d2f7fd0fd68bc87bdfb88163f85ac",
+    "cell": [
+      352,
+      352
+    ],
+    "count": 8,
+    "preferOblique": false,
+    "rear": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        121.95
+      ],
+      "palms": [
+        [
+          131.57,
+          185.48
+        ],
+        [
+          252.42,
+          185.48
+        ]
+      ],
+      "ankleLine": 282,
+      "headHeight": 116,
+      "knee": [
+        190.22,
+        265.57
+      ],
+      "sole": [
+        190.22,
+        304.24
+      ],
+      "soleY": 304.24
+    },
+    "oblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        111.78
+      ],
+      "palms": [
+        [
+          228.23,
+          172.61
+        ],
+        [
+          256.2,
+          178.27
+        ]
+      ],
+      "ankleLine": 280,
+      "headHeight": 116,
+      "knee": [
+        237.55,
+        234.85
+      ],
+      "sole": [
+        230.09,
+        297.1
+      ],
+      "soleY": 297.1
+    }
   }
 }

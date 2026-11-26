@@ -128,20 +128,24 @@ function DeskScreen({id,surface,tint,elapsed}: {id:ResidentId;surface:Screen;tin
     <path d={`M26 45h${line}`} stroke={tint} strokeWidth="2.2"/>
   </g>
 }
-// Usable span of each keyboard's near row, measured in background pixels.
-// The two endpoints stay on the painted keys in both lighting variants.
-type KeyRow = readonly [Point,Point]
-const keyRows: Record<BedroomRoom,KeyRow> = {
-  classic:[[766,525],[804,536]], shan:[[404,677],[443,667]],
-  'bai-shuangming':[[1253,319],[1291,308]], 'lu-mi':[[1192,546],[1226,556]],
-  jingyuniang:[[1195,361],[1233,371]], longmama:[[1215,400],[1248,409]],
-  claude:[[1286,530],[1327,543]], gemini:[[1217,460],[1254,471]], grok:[[1186,404],[1226,412]],
-  'bedroom.shop.rose-sketchbook.v1':[[1241,473],[1284,485]],
-  'bedroom.shop.sapphire-music.v1':[[1196,404],[1241,415]],
-  'bedroom.shop.alpine-library.v1':[[1182,471],[1225,484]],
-  'bedroom.shop.camellia-pavilion.v1':[[1233,366],[1268,375]],
-  'bedroom.shop.blue-rose-gallery.v1':[[1184,395],[1227,407]],
-  'bedroom.shop.frostwing-glasshouse.v1':[[1238,425],[1277,431]],
+// The physical keycaps in each background, clockwise from the left corner.
+// Two hand contacts are fitted inside this quadrilateral in the room's view.
+const keyBeds:Record<BedroomRoom,readonly [Point,Point,Point,Point]>={
+  'classic':[[749,522],[764,512],[834,535],[818,546]],
+  'shan':[[348,678],[421,652],[451,668],[374,698]],
+  'bai-shuangming':[[1234,314],[1304,294],[1324,306],[1252,326]],
+  'lu-mi':[[1178,542],[1205,528],[1279,557],[1253,573]],
+  'jingyuniang':[[1172,358],[1186,350],[1246,366],[1232,374]],
+  'longmama':[[1207,402],[1220,396],[1268,409],[1255,418]],
+  'claude':[[1265,524],[1285,514],[1344,533],[1327,544]],
+  'gemini':[[1194,457],[1209,450],[1274,466],[1256,475]],
+  'grok':[[1160,400],[1174,392],[1236,408],[1221,417]],
+  'bedroom.shop.rose-sketchbook.v1':[[1236,472],[1261,458],[1338,486],[1311,499]],
+  'bedroom.shop.sapphire-music.v1':[[1178,402],[1197,392],[1270,413],[1253,422]],
+  'bedroom.shop.alpine-library.v1':[[1168,468],[1190,459],[1251,476],[1230,489]],
+  'bedroom.shop.camellia-pavilion.v1':[[1224,367],[1242,356],[1298,370],[1280,382]],
+  'bedroom.shop.blue-rose-gallery.v1':[[1170,395],[1186,386],[1249,403],[1228,412]],
+  'bedroom.shop.frostwing-glasshouse.v1':[[1224,422],[1240,413],[1304,427],[1287,438]],
 }
 
 // First cell restores the space underneath the unoccupied chair; the adjoining
@@ -154,36 +158,154 @@ function ChairLayer({roomId,night,underlay=false}:{roomId:BedroomRoom;night:bool
   </svg>
 }
 
+// Projected left-to-right span of the actual upholstered cushion. Measure at
+// the seat plane, independently of the arms, tall backs, casters and shadows.
+const cushionWidth:Record<BedroomRoom,number>={
+  classic:104,shan:105,'bai-shuangming':92,'lu-mi':116,jingyuniang:96,longmama:85,
+  claude:111,gemini:97,grok:109,
+  'bedroom.shop.rose-sketchbook.v1':132,'bedroom.shop.sapphire-music.v1':105,
+  'bedroom.shop.alpine-library.v1':124,'bedroom.shop.camellia-pavilion.v1':82,
+  'bedroom.shop.blue-rose-gallery.v1':103,'bedroom.shop.frostwing-glasshouse.v1':90,
+}
+// Coordinates in each chair plate before sliding it into the desk. The rim is
+// where the forward top surface ends under a bent knee. Exposed armrests and
+// the visible side of the upholstery sit in front of a thigh tucked behind
+// them. The forward face of the seat stays behind the overhanging calf.
+type ChairProfile={rim:Point; nearSide:string}
+const chairProfile:Record<BedroomRoom,ChairProfile>={
+  classic:{rim:[111,86],nearSide:'M73 82 Q74 78 83 76L111 65Q117 63 119 68L119 71 87 86Q78 90 73 86Z M101 79L105 77 106 109 102 113Z'},
+  shan:{rim:[24,79],nearSide:'M24 56Q27 55 33 60L68 75 69 80 64 81 27 64 23 64Z M20 63L24 63 24 88 20 88Z'},
+  'bai-shuangming':{rim:[24,53],nearSide:'M19 55Q31 62 54 67L58 76 54 80Q32 75 20 66Z'},
+  'lu-mi':{rim:[142,88],nearSide:'M55 67Q62 78 77 100Q84 111 95 112L118 108 122 112Q114 122 94 126L72 124 58 105Z'},
+  jingyuniang:{rim:[115,73],nearSide:'M77 65Q87 65 100 58L115 50 119 51 119 55 101 64 80 72Z M113 54L118 53 115 77 110 78Z'},
+  longmama:{rim:[101,93],nearSide:'M72 84Q78 82 90 78L101 73 105 73 105 77 75 90Z M101 76L105 75 105 97 101 98Z M18 86Q42 97 72 98L78 104 72 111 44 110 16 100Z'},
+  claude:{rim:[131,85],nearSide:'M88 71Q99 69 110 63L126 55Q132 52 134 57L134 61 109 73 91 78Z M124 63L129 61 129 91 124 95Z'},
+  gemini:{rim:[130,101],nearSide:'M65 94Q83 89 97 83L127 74 131 74 130 78Q105 85 91 92L69 102Z M124 79L128 78 124 103 121 107Z'},
+  grok:{rim:[137,88],nearSide:'M80 64Q91 67 106 63L123 59 130 62 130 67 127 72 128 98Q115 105 98 108L84 108Z'},
+  'bedroom.shop.rose-sketchbook.v1':{rim:[156,119],nearSide:'M88 93Q106 92 121 88L145 81Q153 80 156 84L156 89 127 95 95 100 88 99Z M142 92L148 90 147 135 142 138Z'},
+  'bedroom.shop.sapphire-music.v1':{rim:[145,90],nearSide:'M79 71Q84 82 98 91Q107 96 127 94L134 94 133 104Q119 113 102 113L83 107Z M32 71Q53 83 76 89Q95 102 118 99L134 95 133 106Q114 118 91 119L46 110 32 102Z'},
+  'bedroom.shop.alpine-library.v1':{rim:[165,107],nearSide:'M91 99Q98 91 106 91L139 84Q146 84 149 91L148 128Q134 134 108 137L90 133Z'},
+  'bedroom.shop.camellia-pavilion.v1':{rim:[107,69],nearSide:'M63 64Q68 76 79 77L92 75 95 77 94 85Q80 93 63 92L56 84Z'},
+  'bedroom.shop.blue-rose-gallery.v1':{rim:[124,75],nearSide:'M86 61Q92 71 100 75Q108 77 115 75L119 75 118 91Q106 97 94 97L85 91Z'},
+  'bedroom.shop.frostwing-glasshouse.v1':{rim:[113,66],nearSide:'M93 59Q101 56 114 49L119 46 122 48 122 52 112 57 96 64Z M118 52L121 51 120 70 115 74Z'},
+}
+// Fixed cabinet fronts and projecting desk legs. They occlude the legs only;
+// the hands and sleeves stay above the top and the movable chair stays in front.
+const deskFront:Partial<Record<BedroomRoom,string>>={
+  shan:'M238 690 L334 709 421 688 423 711 414 715 414 824 238 854Z',
+  'bai-shuangming':'M1114 321 L1191 342 1229 331 1229 447 1191 463 1114 437Z',
+  'lu-mi':'M1245 586 L1333 613 1369 601 1369 724 1327 739 1243 704Z',
+  jingyuniang:'M1276 397 L1324 410 1363 392 1363 473 1322 489 1274 474Z',
+  longmama:'M1270 426 L1331 445 1378 428 1378 508 1329 526 1269 505Z',
+  claude:'M1360 552 L1437 578 1460 567 1460 664 1438 673 1360 651Z',
+  grok:'M1239 442 L1293 459 1346 439 1345 528 1293 548 1238 531Z',
+  'bedroom.shop.rose-sketchbook.v1':'M1305 516 L1386 542 1411 531 1411 677 1305 644Z',
+  'bedroom.shop.sapphire-music.v1':'M1287 433 L1367 456 1397 443 1397 567 1287 545Z',
+  'bedroom.shop.alpine-library.v1':'M1266 501 L1338 523 1360 513 1360 639 1264 612Z',
+  'bedroom.shop.camellia-pavilion.v1':'M1284 388 L1350 406 1380 397 1380 525 1284 504Z',
+  'bedroom.shop.blue-rose-gallery.v1':'M1249 424 L1310 442 1369 419 1369 534 1311 551 1248 534Z',
+  'bedroom.shop.frostwing-glasshouse.v1':'M1320 459 L1380 473 1422 453 1422 556 1320 546Z',
+}
+
 type RearPose=NonNullable<ReturnType<typeof getDeskRearPose>>
 
+// Clip the range of possible cushion centres by each physical key-bed edge.
+// This solves both fingertip contacts by sliding the chair under the seated
+// character. The entire character, including the short bent legs, stays rigid.
+function intersectHalfPlane(points:Point[],origin:Point,edge:Point):Point[]{
+  const cross=(p:Point)=>edge[0]*(p[1]-origin[1])-edge[1]*(p[0]-origin[0])
+  const kept:Point[]=[]
+  for(const [i,q] of points.entries()){
+    const p=points[(i+points.length-1)%points.length]!,u=cross(p),v=cross(q)
+    if((u>=0)!==(v>=0)){
+      const t=u/(u-v)
+      kept.push([blend(p[0],q[0],t),blend(p[1],q[1],t)])
+    }
+    if(v>=0)kept.push(q)
+  }
+  return kept
+}
+
+function closestInPolygon(poly:Point[],target:Point):Point {
+  let best=poly[0]!,min=Infinity,inside=true
+  for(const [i,a] of poly.entries()){
+    const b=poly[(i+1)%poly.length]!,dx=b[0]-a[0],dy=b[1]-a[1]
+    const vx=target[0]-a[0],vy=target[1]-a[1]
+    if(dx*vy-dy*vx<0)inside=false
+    const t=Math.max(0,Math.min(1,(vx*dx+vy*dy)/(dx*dx+dy*dy||1)))
+    const p:Point=[a[0]+dx*t,a[1]+dy*t],dist=(p[0]-target[0])**2+(p[1]-target[1])**2
+    if(dist<min){best=p;min=dist}
+  }
+  return inside?target:best
+}
+
+function deskViewFit(room:BedroomRoom,pose:RearPose,footY:number,oblique:boolean){
+  const [center,preferred]=chairTravel[room],monitor=bedroomMonitorCenter(room)
+  const dx=monitor[0]-preferred[0]
+  const view=oblique?pose.oblique:pose.rear
+  const side=dx<0?-1:1
+  // Room perspective changes the size of the chair. The head occupies the
+  // same fraction of its real cushion for every resident and skin.
+  // A deeply upholstered armchair has a wide seat without bringing its
+  // occupant closer to the camera. Cap its apparent skull size against the
+  // normal walker at this same point on the floor.
+  const scale=Math.min(cushionWidth[room]*.61,standingFigureHeight(footY)*.38)/view.headHeight
+  const plate=chairGeometry[room],profile=chairProfile[room]
+  const rim:Point=[plate.x+profile.rim[0],plate.y+profile.rim[1]]
+  // Put the knee over the forward lip. The whole chair can slide beneath a
+  // character with shorter thighs without relocating the desk or its keys.
+  const open:Point=[rim[0]+side*2-side*scale*(view.knee[0]-view.hip[0]),
+    rim[1]-3-scale*(view.knee[1]-view.hip[1])]
+  const offsets=view.palms.map(([x,y])=>[side*(x-view.hip[0])*scale,(y-view.hip[1])*scale] as Point)
+  const keys=keyBeds[room]
+  const mid:Point=[keys.reduce((n,p)=>n+p[0],0)/4,keys.reduce((n,p)=>n+p[1],0)/4]
+  // Keep the fingertips a little inside the original keycaps for each stroke.
+  const caps=keys.map(p=>[blend(p[0],mid[0],.075),blend(p[1],mid[1],.075)] as Point)
+  let possible:Point[]=[[0,0],[2000,0],[2000,1200],[0,1200]]
+  for(const offset of offsets){
+    for(const [i,p] of caps.entries()){
+      const q=caps[(i+1)%4]!
+      possible=intersectHalfPlane(possible,[p[0]-offset[0],p[1]-offset[1]],[q[0]-p[0],q[1]-p[1]])
+    }
+  }
+  // In an almost edge-on view one hand may overlap the other, or the
+  // foreshortened key row may be narrower than their depth separation.
+  const fallback:Point=[mid[0]-(offsets[0]![0]+offsets[1]![0])/2,mid[1]-(offsets[0]![1]+offsets[1]![1])/2]
+  const working=possible.length?closestInPolygon(possible,preferred):fallback
+  const thigh=(view.knee[0]-view.hip[0])*scale
+  const deepEnough=thigh>=Math.max(13,Math.abs(rim[0]-center[0])*.36)
+  return {open,working,oblique,view,side,scale,deepEnough,reachable:possible.length>0}
+}
+
+function fitDesk(room:BedroomRoom,pose:RearPose,footY:number){
+  const seat=chairTravel[room][1],screen=bedroomMonitorCenter(room)
+  const dx=screen[0]-seat[0],dy=screen[1]-seat[1]
+  const oblique=pose.preferOblique || Math.abs(dx/Math.hypot(dx,dy))>.34
+  const first=deskViewFit(room,pose,footY,oblique)
+  if((first.reachable && first.deepEnough) || pose.preferOblique)return first
+  // A broad straight rear pose can spread the hands wider than a narrow
+  // angled keyboard. Use the outfit's second original view in that room.
+  const other=deskViewFit(room,pose,footY,!oblique)
+  return other.reachable && other.deepEnough?other:first
+}
+
+type DeskFit=ReturnType<typeof fitDesk>
+const deskFits=new WeakMap<RearPose,Map<BedroomRoom,DeskFit>>()
 function deskPlacement(room:BedroomRoom,pose:RearPose,approach:Point,seated:number){
-  const [open,working]=chairTravel[room], [left,right]=keyRows[room]
-  const monitor=bedroomMonitorCenter(room)
-  const dx=monitor[0]-working[0],dy=monitor[1]-working[1]
-  const yaw=dx/Math.hypot(dx,dy)
-  const t=Math.max(0,Math.min(1,(seated-.32)/.68))
-  const advance=t*t*(3-2*t)
+  let rooms=deskFits.get(pose)
+  if(!rooms){rooms=new Map();deskFits.set(pose,rooms)}
+  let fit=rooms.get(room)
+  if(!fit){fit=fitDesk(room,pose,approach[1]);rooms.set(room,fit)}
+  const {open,working,side,scale,view}=fit
+  const t=Math.max(0,Math.min(1,(seated-.32)/.68)),advance=t*t*(3-2*t)
   const seat:Point=[blend(open[0],working[0],advance),blend(open[1],working[1],advance)]
-  const chairTransform=`translate(${seat[0]-open[0]} ${seat[1]-open[1]})`
-  const scale=standingFigureHeight(approach[1])*.84/pose.bodyHeight
-  const a=scale*(1-.18*Math.abs(yaw)),b=a*(right[1]-left[1])/(right[0]-left[0])
-  const aimX=working[0]+yaw*scale*(pose.hip[1]-pose.hand[1])*.46
-  const q=Math.max(.20,Math.min(.80,(aimX-left[0])/(right[0]-left[0])))
-  const key:Point=[blend(left[0],right[0],q),blend(left[1],right[1],q)]
-  const hx=pose.hand[0]-pose.hip[0],hy=pose.hand[1]-pose.hip[1]
-  const c=(key[0]-working[0]-a*hx)/hy,d=(key[1]-working[1]-b*hx)/hy
-  const hipX=blend(approach[0],seat[0],seated),hipY=blend(approach[1]-41,seat[1],seated)
-  const tx=hipX-a*pose.hip[0]-c*pose.hip[1],ty=hipY-b*pose.hip[0]-d*pose.hip[1]
-  const headLean=-scale*yaw*.19
-  // Both projections meet at the wrists. The seated torso bridges the real
-  // cushion and key bed while the head retains its original proportions.
-  const ux=tx+(c-headLean)*pose.hand[1],uy=ty+(d-scale)*pose.hand[1]
-  const headX=a*pose.head[0]+headLean*pose.head[1]+ux
-  const headY=b*pose.head[0]+scale*pose.head[1]+uy
-  return {side:yaw<0?'backLeft':'backRight',advance,seat,chairTransform,
-    lower:`matrix(${a} ${b} ${c} ${d} ${tx} ${ty})`,
-    upper:`matrix(${a} ${b} ${headLean} ${scale} ${ux} ${uy})`,
-    center:[blend(hipX,headX,.58),blend(hipY,headY,.58)] as Point}
+  const hip:Point=[blend(approach[0],seat[0],seated),blend(approach[1]-41,seat[1],seated)]
+  const tx=hip[0]-side*scale*view.hip[0],ty=hip[1]-scale*view.hip[1]
+  const head:Point=[side*scale*view.head[0]+tx,scale*view.head[1]+ty]
+  return {...fit,advance,seat,
+    chairTransform:`translate(${seat[0]-open[0]} ${seat[1]-open[1]})`,
+    body:`matrix(${side*scale} 0 0 ${scale} ${tx} ${ty})`,
+    center:[blend(hip[0],head[0],.58),blend(hip[1],head[1],.58)] as Point}
 }
 
 export function BedroomDeskPose({id,skinId,roomId,background,approach,seated,elapsed,animate,waiting=false}:{
@@ -194,31 +316,37 @@ export function BedroomDeskPose({id,skinId,roomId,background,approach,seated,ela
   const pose=getDeskRearPose(id,skinId)
   if(!pose)return null
   const layout=deskPlacement(roomId,pose,approach,seated)
-  const {side,advance,seat,chairTransform,lower,upper}=layout
+  const {side,advance,seat,chairTransform,body,oblique,view}=layout
   const slot=phoneRoles.indexOf(id),beat=elapsed%(4200+slot*137)
-  const frame=animate && beat<2750?Math.floor(beat/(191+slot*6))%pose.count:0
+  const frame=animate && beat<2750?Math.floor(beat/(111+slot*3))%pose.count:0
   const [width,height]=pose.cell,night=background.includes('-night.')
-  return <g data-bedroom-pose="computer" data-bedroom-frame={frame} data-desk-facing={side}
-    data-desk-action={waiting?'waiting':animate && beat>=2750?'reading':'typing'}>
+  const ankleBeat=(elapsed+slot*370)%(6700+slot*160)
+  const ankle=animate && ankleBeat<860?[0,1,3,5,0][Math.min(4,Math.floor(ankleBeat/172))]!:0
+  const row=oblique?height:0
+  const legClip=clipId+'-desk',front=deskFront[roomId]
+  const plate=chairGeometry[roomId],profile=chairProfile[roomId]
+  return <g data-bedroom-pose="computer" data-bedroom-frame={frame} data-desk-facing={side<0?'backLeft':'backRight'}
+    data-desk-view={oblique?'three-quarter':'rear'} data-desk-action={waiting?'waiting':animate && beat>=2750?'reading':'typing'}>
     {advance>0 && <><ChairLayer roomId={roomId} night={night} underlay/>
       <g transform={chairTransform}><ChairLayer roomId={roomId} night={night}/></g></>}
     {seated>.6 && <DeskScreen id={id} surface={screens[roomId]} tint={['#88c9da','#ccbae3','#efb888','#9fc1ff','#d9b77d','#f2c4ce','#a8dbea','#aeace6'][slot]!} elapsed={animate?elapsed:0}/>}
-    <ellipse cx={seat[0]} cy={seat[1]+1} rx="23" ry="5" fill="#211d19" opacity={.19*seated}/>
-    <g data-bedroom-seated-body="">
-      <g transform={lower} data-body-projection="seated">
-        <svg y={pose.hand[1]} width={width} height={height-pose.hand[1]}
-          viewBox={`${frame*width} ${pose.hand[1]} ${width} ${height-pose.hand[1]}`} overflow="hidden">
-          <image href={pose.src} width={width*pose.count} height={height}/>
+    <ellipse cx={seat[0]} cy={seat[1]+1} rx={cushionWidth[roomId]*.22} ry="4.5" fill="#211d19" opacity={.19*seated}/>
+    {front && <defs><clipPath id={legClip}><path d={'M0 0H2000V1200H0Z '+front} clipRule="evenodd"/></clipPath></defs>}
+    <g clipPath={front?`url(#${legClip})`:undefined} data-bedroom-seated-body="">
+      <g transform={body} data-body-projection="seated">
+        <svg width={width} height={view.ankleLine+.25} viewBox={`${frame*width} ${row} ${width} ${view.ankleLine+.25}`} overflow="hidden">
+          <image href={pose.src} width={width*pose.count} height={height*2}/>
         </svg>
-      </g>
-      <g transform={upper}>
-        <svg width={width} height={pose.hand[1]+.4} viewBox={`${frame*width} 0 ${width} ${pose.hand[1]+.4}`} overflow="hidden">
-          <image href={pose.src} width={width*pose.count} height={height}/>
+        <svg y={view.ankleLine} width={width} height={height-view.ankleLine}
+          data-bedroom-seated-legs="" data-ankle-frame={ankle} viewBox={`${ankle*width} ${row+view.ankleLine} ${width} ${height-view.ankleLine}`} overflow="hidden">
+          <image href={pose.src} width={width*pose.count} height={height*2}/>
         </svg>
       </g>
     </g>
-    <defs><clipPath id={clipId}><path d={chairBack[roomId]}/></clipPath></defs>
-    <g transform={chairTransform}><g clipPath={`url(#${clipId})`}>
+    <defs><clipPath id={clipId}><path d={chairBack[roomId]}/>
+      <path data-bedroom-chair-near-side="" transform={`translate(${plate.x} ${plate.y})`} d={profile.nearSide}/>
+    </clipPath></defs>
+    <g data-bedroom-chair-foreground="" transform={chairTransform}><g clipPath={`url(#${clipId})`}>
       <ChairLayer roomId={roomId} night={night}/>
     </g></g>
   </g>

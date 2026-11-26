@@ -1,41 +1,80 @@
-import { useEffect, useRef, type ReactNode } from 'react'
-import { actorPose, LANDING_MS, motionPhase, type ActorMotion } from './office2d/actorMotion.ts'
+import { useEffect, useRef, type SVGProps } from 'react'
+import { actorMotionFrame, motionPhase, sampleGripLag, type ActorMotion } from './office2d/actorMotion.ts'
+import type { ActorPoseAtlas } from './office2d/actorPoseAtlas.ts'
 
-/** Animate the picture inside its stable hit target. Each draw surface uses the
- * same foot-relative poses, including when it switches from a desk to a floor. */
-export function ActorMotionLayer({motion, id, height, anchor, children}:{
-  motion:ActorMotion|undefined; id:string; height?:number; anchor?:{x:number;y:number}|undefined; children:ReactNode
-}) {
-  const node=useRef<Element|null>(null)
-  const sceneHeight=useRef(height)
-  sceneHeight.current=height
-  useEffect(()=>{
-    const target=node.current
-    if(!target || !motion || !target.animate) return
-    const height=sceneHeight.current
-    let current:Animation
-    const play=(kind:ActorMotion,start:number,duration:number,loop:boolean)=>{
-      const count=Math.ceil(duration/32)
-      const frames=Array.from({length:count+1},(_,i)=>{
-        const pose=actorPose(kind,start+duration*i/count,kind==='idle'?motionPhase(id):0)
-        // The SVG group lives at the foot. Its bounding box can include
-        // clipped cells of the underlying sheet, so use explicit scene units.
-        const offset=height===undefined ? `${pose.x*120}%,${-100*pose.lift}%`
-          : `${pose.x*height}px,${-pose.lift*height}px`
-        return {transform:`translate(${offset}) rotate(${pose.angle}deg) scale(${pose.sx},${pose.sy})`}
-      })
-      current=target.animate(frames,{duration,iterations:loop?Infinity:1,fill:'both'})
+type Props = {
+  atlas: ActorPoseAtlas
+  id: string
+  motion: ActorMotion
+  landingStartedAt?: number | undefined
+  footX: number
+  bodyHeight: number
+  paused: boolean
+  asCanvas?: boolean
+  onError: () => void
+} & Pick<SVGProps<SVGSVGElement>, 'x' | 'y' | 'width' | 'height' | 'className' | 'style'>
+
+/** Draw one full articulated exposure. Only the source rectangle changes,
+ * so the floor point and event target remain stable throughout a gesture. */
+export function ActorMotionLayer({atlas, id, motion, landingStartedAt, footX, bodyHeight, paused, asCanvas, onError, ...viewport}: Props) {
+  const picture = useRef<SVGSVGElement>(null)
+  const canvas = useRef<HTMLCanvasElement>(null)
+  const reportFailure = useRef(onError)
+  reportFailure.current = onError
+  const pointer = useRef({footX, bodyHeight})
+  pointer.current = {footX, bodyHeight}
+  const [width, height] = atlas.cell
+  const phase = motionPhase(id)
+  const landingStart = motion === 'landing' ? landingStartedAt : undefined
+  const initial = actorMotionFrame(motion, landingStart === undefined ? 0 : performance.now()-landingStart,
+    phase, 0, paused, atlas.idleDurationsMs)
+  const rect = (index: number) => `${index % atlas.columns * width} ${Math.floor(index / atlas.columns) * height} ${width} ${height}`
+  useEffect(() => {
+    const target = canvas.current ?? picture.current
+    if (!target) return
+    const context = canvas.current?.getContext('2d')
+    const sheet = asCanvas ? new Image() : null
+    let token = 0, frame = -1, elapsed = 0, last: number | undefined
+    let lag: ReturnType<typeof sampleGripLag> | undefined
+    const paint = (now: number) => {
+      if (document.hidden) return
+      elapsed += last === undefined ? 0 : Math.max(0, now - last)
+      last = now
+      if (motion === 'held') lag = sampleGripLag(lag, pointer.current.footX, now, pointer.current.bodyHeight)
+      const index = actorMotionFrame(motion, landingStart === undefined ? elapsed : now-landingStart,
+        phase, lag?.lag, paused, atlas.idleDurationsMs)
+      if (frame !== index) {
+        frame = index
+        if (sheet && context) {
+          context.clearRect(0,0,width,height)
+          context.drawImage(sheet,(index % atlas.columns)*width,Math.floor(index/atlas.columns)*height,width,height,0,0,width,height)
+          target.dataset.displayedPoseSrc=atlas.src
+        } else if (!asCanvas) target.setAttribute('viewBox', rect(index))
+        target.dataset.poseFrame = String(index)
+      }
+      if (!paused) token = requestAnimationFrame(paint)
     }
-    if(motion==='held') {
-      play('held',0,300,false)
-      current!.onfinish=()=>{current.cancel();play('held',300,1090,true)}
-    } else if(motion==='landing') {
-      play('landing',0,LANDING_MS,false)
-      current!.onfinish=()=>{current.cancel();play('idle',0,4100,true)}
-    } else play('idle',0,4100,true)
-    return ()=>{current.onfinish=null;current.cancel()}
-  },[motion,id])
-  const style={transformOrigin:anchor ? `${anchor.x*100}% ${anchor.y*100}%` : '50% 100%', transformBox:'fill-box' as const}
-  return height!==undefined ? <g ref={el=>{node.current=el}} data-actor-motion={motion} style={{transformOrigin:'0 0',transformBox:'view-box'}}>{children}</g>
-    : <span ref={el=>{node.current=el}} data-actor-motion={motion} style={{...style,display:'block'}}>{children}</span>
+    const visibility = () => {
+      cancelAnimationFrame(token)
+      last = undefined
+      if (!sheet || sheet.complete && sheet.naturalWidth) paint(performance.now())
+    }
+    if (sheet) {
+      sheet.onload=()=>paint(performance.now())
+      sheet.onerror=()=>reportFailure.current()
+      sheet.src=atlas.src
+    } else paint(performance.now())
+    document.addEventListener('visibilitychange', visibility)
+    return () => {
+      if (sheet) {sheet.onload=null; sheet.onerror=null}
+      cancelAnimationFrame(token)
+      document.removeEventListener('visibilitychange', visibility)
+    }
+  }, [atlas, id, motion, landingStart, paused, phase, asCanvas])
+  if (asCanvas) return <canvas ref={canvas} className={viewport.className} width={width} height={height}
+    data-actor-motion={motion} data-pose-frame={initial} aria-hidden="true"/>
+  return <svg {...viewport} ref={picture} data-actor-motion={motion} data-pose-frame={initial}
+    viewBox={rect(initial)} preserveAspectRatio="none" overflow="hidden" aria-hidden="true">
+    <image href={atlas.src} width={atlas.columns * width} height={Math.ceil(atlas.count / atlas.columns) * height} onError={onError}/>
+  </svg>
 }

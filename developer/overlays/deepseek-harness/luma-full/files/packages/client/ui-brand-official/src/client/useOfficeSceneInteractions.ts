@@ -1,6 +1,7 @@
 import type { Dispatch, MutableRefObject, KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent, SetStateAction } from 'react'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { advanceOfficeActorPortraitTap, type OfficeActorPortraitTap, type OfficeEmployeeDestination } from './office2d/actorPortraitActivation.ts'
+import { landingStartForRelease } from './office2d/actorMotion.ts'
 import { desktopDropPoint, type DesktopPetDrop } from './office2d/scenePlacement.ts'
 import { OFFICE_NAV_HEIGHT, OFFICE_NAV_WIDTH, OFFICE_WORKSTATION_APPROACHES, findOfficeDropFloor } from './office2d/navigation.ts'
 import type { OfficeWorkstationId } from './office2d/workstationSeating.ts'
@@ -22,6 +23,7 @@ interface ActorDragState {
   readonly captureTarget: HTMLElement
   readonly employeeId: string
   readonly pressedAt: number
+  liftedAt?: number
   readonly startClientX: number
   readonly startClientY: number
   readonly startPosition: Point
@@ -132,6 +134,7 @@ export function useOfficeSceneInteractions({ canvasRef, scrollerRef, actorRef, s
       try { captureTarget.setPointerCapture(pending.pointerId) }
       catch { pending.cancelled = true; return }
       pending.dragging = true
+      pending.liftedAt = performance.now()
       pendingActorTapRef.current = null
       const next = { ...actorRef.current, [employee.id]: { ...liveActor, mode: 'drag' as const, route: null, trafficYield: null, waitStreak: 0 } }
       actorRef.current = next
@@ -226,11 +229,12 @@ export function useOfficeSceneInteractions({ canvasRef, scrollerRef, actorRef, s
           .filter(other=>other.employeeId!==drag.employeeId && other.mode!=='working' && other.mode!=='desk-break')
           .map(other=>[other.position.x,other.position.y])) : undefined
     const approach = workstationId && OFFICE_WORKSTATION_APPROACHES[workstationId].point
+    const landedAt = landingStartForRelease(performance.now(), drag.liftedAt)
     const next = {
       ...actorRef.current,
       [drag.employeeId]: approach ? {
         ...actor,
-        position: {x:approach[0],y:approach[1]}, landedAt: performance.now(),
+        position: {x:approach[0],y:approach[1]}, landedAt,
         mode: 'idle' as const,
         targetWorkstationId: null,
         nextAmbientAt: Number.POSITIVE_INFINITY,
@@ -239,7 +243,7 @@ export function useOfficeSceneInteractions({ canvasRef, scrollerRef, actorRef, s
       } : position ? {
         ...drag.startRuntime, position:{x:position[0],y:position[1]}, mode: 'idle' as const,
         route:null, waypointIndex:0, targetWorkstationId:null, trafficYield:null, waitStreak:0,
-        landedAt:performance.now(), placedUntil:performance.now()+9000,
+        landedAt, placedUntil:performance.now()+9000,
       } : drag.startRuntime,
     }
     actorRef.current = next

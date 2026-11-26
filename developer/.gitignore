@@ -3,3 +3,4 @@
 /dist/
 /modules/luma-dsh-plugin/public/
 /modules/luma-dsh-plugin/.runtime/
+__pycache__/

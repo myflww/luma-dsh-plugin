@@ -1,33 +1,56 @@
-/** Times are milliseconds, translations are fractions of body height. The foot
- * is the origin. Horizontal counter-travel keeps the shoulders near the grip. */
-type Key = readonly [time: number, lift: number, angle: number, width: number, height: number]
-const idle: Key[] = [[0,0,0,1,1],[1200,0,-.65,1,1.007],[2060,0,-.35,1,1.003],[2940,0,.48,1,1],[4100,0,0,1,1]]
-const pickup: Key[] = [[0,0,0,1,1],[80,.055,-2,.99,1.035],[190,.135,5,.976,1.026],[300,.112,3,.99,1.014]]
-const dangle: Key[] = [[0,.112,3,.99,1.014],[580,.098,-3.4,1,1.009],[1090,.112,3,.99,1.014]]
-const land: Key[] = [[0,.108,2,.99,1.02],[90,.062,1,.986,1.032],[155,0,0,1.044,.952],[226,0,-.6,1.017,.982],[324,.012,.4,.993,1.009],[442,0,0,1,1]]
-export const LANDING_MS = land[land.length - 1]![0]
 export type ActorMotion = 'held' | 'landing' | 'idle'
 
-function track(keys: Key[], elapsed: number) {
-  let i=1
-  while (i<keys.length-1 && elapsed>keys[i]![0]) i++
-  const a=keys[i-1]!, b=keys[i]!
-  const t=Math.max(0,Math.min(1,(elapsed-a[0])/(b[0]-a[0])))
-  const ease=t*t*(3-2*t)
-  const mix=(index:1|2|3|4)=>a[index]+(b[index]-a[index])*ease
-  return {lift:mix(1), angle:mix(2), sx:mix(3), sy:mix(4)}
+export const LANDING_MS = 400
+const PICKUP_MS = 220
+const IDLE_MS = 3200
+
+/** An interrupted lift starts at the matching recovery exposure. All times use
+ * the caller's animation clock, including the independent canvas's paused clock. */
+export function landingStartForRelease(releasedAt: number, liftedAt: number | undefined) {
+  const heldMs = Math.max(0, releasedAt - (liftedAt ?? releasedAt))
+  // Pickup columns 0–1 are planted, 2–5 are caught and 6–7 are hanging.
+  // Landing columns 0–1 hang, 2–5 absorb impact and 6–7 return to standing.
+  const pickupColumn = Math.floor(heldMs * 8 / PICKUP_MS)
+  const landingColumn = pickupColumn < 2 ? 6 : pickupColumn < 6 ? 2 : 0
+  return releasedAt - landingColumn * LANDING_MS / 8
 }
 
-export function motionPhase(id:string) {
-  let hash=0
-  for(const letter of id) hash=(31*hash+letter.charCodeAt(0))>>>0
-  return hash%4100
+export function motionPhase(id: string) {
+  let hash = 0
+  for (const letter of id) hash = (31 * hash + letter.charCodeAt(0)) >>> 0
+  return hash % IDLE_MS
 }
 
-export function actorPose(motion:ActorMotion, elapsed:number, phase=0) {
-  const time=Math.max(0,elapsed)
-  const pose=motion==='held' ? time<300 ? track(pickup,time) : track(dangle,(time-300)%1090)
-    : motion==='landing' ? track(land,time) : track(idle,(time+phase)%4100)
-  const radians=pose.angle*Math.PI/180
-  return {...pose,radians, x:motion==='held' ? -.72*Math.sin(radians) : 0}
+/** A moving grip pulls the shoulders first. Measure displacement in body
+ * heights so zoom and the size of the current room do not change the reaction. */
+export function sampleGripLag(previous: { x: number; time: number; lag: number } | undefined,
+    x: number, time: number, bodyHeight: number) {
+  if (!previous || time < previous.time) return { x, time, lag: 0 }
+  const decay = Math.exp(-Math.max(0, time - previous.time) / 165)
+  const lag = previous.lag * decay - (x - previous.x) / Math.max(1, bodyHeight)
+  return { x, time, lag: Math.min(.85, Math.max(-.85, lag)) }
+}
+
+/** Pickup and landing run on time. Suspended drawings respond to the grip's
+ * displacement and stay on the relaxed posture once it stops. */
+export function actorMotionFrame(motion: ActorMotion, elapsed: number, phase: number, lag: number | undefined,
+    still: boolean, idleDurations: readonly number[]) {
+  const time = Math.max(0, elapsed)
+  if (still) return motion === 'held' ? 16 : 0
+  if (motion === 'landing' && time < LANDING_MS) return 40 + Math.floor(time * 8 / LANDING_MS)
+  if (motion === 'held') {
+    if (time < PICKUP_MS) return 8 + Math.floor(time * 8 / PICKUP_MS)
+    const deflection = lag ?? 0
+    if (Math.abs(deflection) < .095) return 16
+    const row = deflection < 0 ? 3 : 4
+    const intensity = Math.min(7,Math.round((Math.abs(deflection)-.095)*10))
+    return row*8+intensity
+  }
+  const idleTime = time - (motion === 'landing' ? LANDING_MS : 0)
+  let beat = (idleTime + phase) % idleDurations.reduce((total,ms) => total + ms,0)
+  for (let i=0; i<idleDurations.length; i++) {
+    if (beat < idleDurations[i]!) return i
+    beat -= idleDurations[i]!
+  }
+  return 0
 }

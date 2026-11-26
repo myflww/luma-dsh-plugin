@@ -46,18 +46,87 @@ it('moves the chair towards the fixed key bed and registers the rear wrists and 
     expect(figure.querySelector('image')?.getAttribute('href')).toBe(pose.src)
     const [a,b,c,d,tx,ty]=figure.getAttribute('transform')!.slice(7,-1).split(' ').map(Number) as [number,number,number,number,number,number]
     const world=(p:readonly [number,number])=>[a*p[0]+c*p[1]+tx,b*p[0]+d*p[1]+ty]
-    const [palmX,palmY]=world(pose.hand), [hipX,hipY]=world(pose.hip)
-    expect(palmX!).toBeGreaterThanOrEqual(766)
-    expect(palmX!).toBeLessThanOrEqual(804)
-    expect(palmY!).toBeCloseTo(525+(palmX!-766)*11/38)
-    expect(hipX!).toBeCloseTo(757)
-    expect(hipY!).toBeCloseTo(593)
-    expect(actor.querySelector('g[transform="translate(34 -20)"] svg')).toBeTruthy()
+    const selected=actor.getAttribute('data-desk-view')==='three-quarter'?pose.oblique:pose.rear
+    const [hipX,hipY]=world(selected.hip)
+    expect(Math.abs(a)).toBeCloseTo(d)
+    expect(b).toBe(0)
+    expect(c).toBe(0)
+    // Clockwise outline of the painted desktop keyboard in the original classic art.
+    const corners=[[749,522],[764,512],[834,535],[818,546]] as const
+    for(const hand of selected.palms){
+      const [x,y]=world(hand)
+      for(const [i,start] of corners.entries()){
+        const end=corners[(i+1)%corners.length]!
+        expect((end[0]-start[0])*(y!-start[1])-(end[1]-start[1])*(x!-start[0])).toBeGreaterThan(0)
+      }
+    }
+    const padded=actor.querySelector('ellipse')!
+    expect(hipX!).toBeCloseTo(Number(padded.getAttribute('cx')))
+    expect(hipY!).toBeCloseTo(Number(padded.getAttribute('cy'))-1)
+    expect(hipX!).toBeGreaterThan(723)
+    expect(hipY!).toBeLessThan(613)
+    expect((selected.soleY-selected.hip[1])*d).toBeLessThan(.72*selected.headHeight*d)
     const hit=bedroomSeatedCenter(roomId,id,undefined,approach)
     expect(hit[1]).toBeLessThan(hipY!)
     expect(Math.abs(hit[0]-hipX!)).toBeLessThan(55)
     view.unmount()
   }
+})
+
+it('preserves each painted chibi at the same chair scale for all 210 bedroom and outfit pairs',()=>{
+  // Front lip, in the original room painting. These four deep seats had
+  // previously rendered both shoes on the top surface.
+  const referenceLips:Partial<Record<BedroomRoom,readonly [number,number]>>={
+    'bedroom.shop.alpine-library.v1':[1217,545],
+    claude:[1316,597],
+    'bedroom.shop.sapphire-music.v1':[1222,476],
+    longmama:[1213,448],
+  }
+  let combinations=0
+  const view=render(<svg/>)
+  for(const roomId of Object.keys(BEDROOM_FLOORS) as BedroomRoom[]){
+    const room=getBedroomArt(roomId),approach=BEDROOM_FLOORS[roomId].desk
+    let skull:number|undefined
+    for(const id of Object.keys(BEDROOM_ART) as ResidentId[]){
+      const custom='skin.'+id+'.v1'
+      for(const skinId of id==='gemini' || id==='grok'?[custom]:[undefined,custom]){
+        view.rerender(<svg><BedroomDeskPose {...{roomId,room,id,skinId,approach}}
+          background={room.day} seated={1} elapsed={750} animate/></svg>)
+        const actor=view.container.querySelector('[data-bedroom-pose="computer"]')!
+        const body=actor.querySelector('[data-body-projection]')!
+        const pose=getDeskRearPose(id,skinId)!
+        const selected=actor.getAttribute('data-desk-view')==='three-quarter'?pose.oblique:pose.rear
+        expect(body.querySelector('image')?.getAttribute('href')).toBe(pose.src)
+        const [a,b,c,d,tx,ty]=body.getAttribute('transform')!.slice(7,-1).split(' ').map(Number)
+        expect(Math.abs(a!)).toBeCloseTo(d!)
+        expect([b,c]).toEqual([0,0])
+        const cushion=actor.querySelector('ellipse')!
+        expect(a!*selected.hip[0]+tx!).toBeCloseTo(Number(cushion.getAttribute('cx')))
+        expect(d!*selected.hip[1]+ty!).toBeCloseTo(Number(cushion.getAttribute('cy'))-1)
+        const edge=referenceLips[roomId]
+        if(edge){
+          const chair=actor.querySelector('[data-bedroom-chair-foreground]')!
+          const [shiftX,shiftY]=chair.getAttribute('transform')!.slice(10,-1).split(' ').map(Number)
+          const lipX=edge[0]+shiftX!,lipY=edge[1]+shiftY!
+          const forward=Math.sign(a!)
+          expect((a!*selected.knee[0]+tx!-lipX)*forward).toBeGreaterThan(0)
+          expect(Math.abs(d!*selected.knee[1]+ty!-lipY)).toBeLessThan(5)
+          expect(d!*selected.sole[1]+ty!-lipY).toBeGreaterThan(7)
+          expect(actor.querySelector('[data-bedroom-chair-near-side]')?.getAttribute('d')).toMatch(/^M/)
+        }
+        const height=d!*selected.headHeight
+        skull??=height
+        expect(height).toBeCloseTo(skull)
+        // The shoe-hip distance is bounded by the source painting. Room
+        // furniture height cannot lengthen the calf or force a foot down.
+        expect((selected.soleY-selected.hip[1])/selected.headHeight).toBeLessThan(.8)
+        expect(actor.querySelector('[data-bedroom-keyboard],[data-bedroom-input-tray]')).toBeNull()
+        combinations++
+      }
+    }
+  }
+  expect(combinations).toBe(210)
+  view.unmount()
 })
 
 it('uses continuous floor routes in every room, with sleep and attendance transitions at the correct landmarks',()=>{
@@ -122,6 +191,20 @@ it('respects reduced motion and the same authoritative office membership',()=>{
   view.rerender(<OfficeBedroom {...props} clock={new Date()} location="office" officeActivity="正在处理任务"/>)
   expect(view.container.querySelector('.lumaBedroomResidentLayer')).toBeNull()
   expect(view.getByText('在办公室 · 正在处理任务')).toBeTruthy()
+})
+
+it('keeps the redrawn costume in a stationary walking frame with reduced motion',()=>{
+  vi.useFakeTimers()
+  const id='lu-mi', date=new Date(2026,10,22,8)
+  const routine=createBedroomRoutine(id,'classic',date,false,speeds)
+  const step=routine.steps.find(step=>step.pose==='walk')!
+  vi.setSystemTime(step.start+100)
+  const view=render(<OfficeBedroom {...props} id={id} roomLayout="classic" reduceMotion clock={new Date()}/>)
+  const still=view.container.querySelector('[data-bedroom-pose="awake"]')
+  expect(still?.getAttribute('data-gait-frame')).toBe('0')
+  expect(still?.querySelector('image')?.getAttribute('href')).toContain('/gait-')
+  act(()=>vi.advanceTimersByTime(100))
+  expect(still?.getAttribute('data-gait-frame')).toBe('0')
 })
 
 it('renders each resident in the matching phone outfit and animated chair pose at the real routine times',()=>{
@@ -203,8 +286,9 @@ it('drags the bedroom resident onto the floor, cancels a second gesture, then ca
   }
   pointer('pointerdown',600,500);pointer('pointermove',750,600)
   expect(view.container.querySelector('[data-actor-motion="held"]')).toBeTruthy()
+  act(()=>vi.advanceTimersByTime(30))
   pointer('pointerup',750,600)
-  expect(view.container.querySelector('[data-actor-motion="landing"]')).toBeTruthy()
+  expect(view.container.querySelector('[data-actor-motion="landing"]')?.getAttribute('data-pose-frame')).toBe('46')
   expect(view.getByText('在这里歇一会儿')).toBeTruthy()
   const pose=target.ownerSVGElement!.querySelector('[data-bedroom-pose]')?.getAttribute('transform')
   pointer('pointerdown',750,600);pointer('pointermove',700,550);pointer('pointercancel',700,550)
