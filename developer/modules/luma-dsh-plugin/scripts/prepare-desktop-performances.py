@@ -14,10 +14,11 @@ spec=importlib.util.spec_from_file_location('gesture_drawing',ROOT/'scripts/prep
 gesture=importlib.util.module_from_spec(spec)
 spec.loader.exec_module(gesture)
 
-def cut_keys(key):
+def cut_keys(key,pat=False):
     role,variant=key.rsplit('-',1)
     paired=role in ['gemini','grok']
-    board=ART/(('gemini-grok' if paired else role)+'.png')
+    board=(ART/'pat' if pat else ART)/(('gemini-grok' if paired else role)+'.png')
+    columns=2 if pat else 4
     line=int(role=='grok' if paired else variant=='v1')
     im=np.asarray(Image.open(board).convert('RGBA'))
     h,w=im.shape[:2]
@@ -27,8 +28,8 @@ def cut_keys(key):
     ysplit=min(range(centre-h//10,centre+h//10),key=lambda y:int((col_alpha[y]>200).sum())+abs(y-centre)*.04)
     strip=im[0:ysplit] if line==0 else im[ysplit:h]
     cuts=[0]
-    for j in range(1,4):
-        at=w*j//4
+    for j in range(1,columns):
+        at=w*j//columns
         cuts.append(min(range(at-w//16,at+w//16),key=lambda x:int((strip[:,x,3]>210).sum())+abs(x-at)*.04))
     cuts.append(w)
     for x1,x2 in zip(cuts,cuts[1:]):
@@ -46,7 +47,7 @@ def cut_keys(key):
         yield np.asarray(Image.fromarray(cel).crop(Image.fromarray(cel[:,:,3]).getbbox()))
 
 def drawings(key):
-    return [np.asarray(Image.open(PET/n/(key+'.png')).convert('RGBA')) for n in ('greet','drowsy','lunch','ledge')]+list(cut_keys(key))
+    return [np.asarray(Image.open(PET/n/(key+'.png')).convert('RGBA')) for n in ('greet','drowsy','lunch','ledge')]+list(cut_keys(key))+list(cut_keys(key,True))
 
 def place(image,mark):
     # Anchor the painted face and supporting foot independently of horns and head tilt.
@@ -58,12 +59,14 @@ def build():
     output.mkdir(exist_ok=True)
     for key,marks in registrations.items():
         cells=[place(im,mark) for im,mark in zip(drawings(key),marks,strict=True)]
-        present,bite,ready,bow=cells[4:]
+        present,bite,ready,bow,pat_ready,pat_response=cells[4:]
         guide=[192,300]
         frames=cells[:4]+[present,gesture.ease_towards(present,bite,.54,guide),bite,
                          gesture.ease_towards(bite,present,.38,guide), ready,
-                         gesture.ease_towards(ready,bow,.50,guide),bow,gesture.ease_towards(bow,ready,.54,guide)]
-        sheet=Image.new('RGBA',(384*4,336*3))
+                         gesture.ease_towards(ready,bow,.50,guide),bow,gesture.ease_towards(bow,ready,.54,guide),
+                         pat_ready,gesture.ease_towards(pat_ready,pat_response,.48,guide),pat_response,
+                         gesture.ease_towards(pat_response,pat_ready,.45,guide)]
+        sheet=Image.new('RGBA',(384*4,336*4))
         for i,im in enumerate(frames):
             frame=gesture.straight(im)
             area=frame.getchannel('A').getbbox()

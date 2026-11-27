@@ -154,6 +154,16 @@ def main():
     for file in sorted(pet_art.rglob("*.png")):
         try:
             inspect(file, file.read_bytes())
+            if file.parent.name == "performance":
+                with Image.open(file) as sheet:
+                    if sheet.size != (4 * 384, 4 * 336):
+                        raise ValueError("expected four rows, including the head-pat response")
+                    alpha = sheet.getchannel("A")
+                    for y in range(0, sheet.height, 336):
+                        for x in range(0, sheet.width, 384):
+                            box = alpha.crop((x, y, x + 384, y + 336)).getbbox()
+                            if not box or min(box[0], box[1], 384 - box[2], 336 - box[3]) < 2:
+                                raise ValueError(f"empty or clipped performance frame at {x}, {y}")
             counts["desktopPetImages"] += 1
         except (OSError, ValueError) as error:
             errors.append({"file": file.relative_to(package).as_posix(), "error": str(error)})

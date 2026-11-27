@@ -11,7 +11,7 @@ $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $repo = 'myflww/luma-dsh-plugin'
 $patchName = 'Luma-DSH-0.6.6-Update.zip'
-$patchDigest = '1a21301ea232cf65c666feac20280b6ab439e45e1e4e81bf83c4e3b4645ef861'
+$patchDigest = 'a3b782a0c8a388528b10c38e2f3f31d6d8638c17e7f624428076f4cc5421d2c1'
 $compatibleBaseVersions = @('0.6.5', '0.6.4', '0.6.3', '0.6.2','0.6.1','0.6.0','0.5.4','0.5.3','0.5.2','0.5.1','0.5.0','0.4.3')
 $oldZip = 'Luma-DSH-0.4.3-Windows.zip'
 $oldDigest = 'e949d369a89da2bf6ce01c2eabef4b8a3a95ced38db5ab625ea90c2bb0549c81'
