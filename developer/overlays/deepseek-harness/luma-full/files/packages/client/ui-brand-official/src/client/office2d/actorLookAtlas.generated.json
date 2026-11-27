@@ -13,24 +13,24 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/actor-look/bai-shuangming-base.e1f192c744f8.png",
-    "sha256": "e1f192c744f8a1424fea54f8cce95703d25311ab9a73bd185ba3576f0c3363ed",
+    "src": "/luma-office/luma-plugin-art/actor-look/bai-shuangming-base.51901cc05ca0.png",
+    "sha256": "51901cc05ca01c4b816bf7499c57138a18032e40bc94b1dfd99fec59a5d74d6f",
     "columns": 5,
     "count": 25,
     "neutralIndex": 12,
-    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/bai-shuangming-base-eyes.7a882c9699f4.png",
-    "eyesSha256": "7a882c9699f48b3588a84cf31bb27e1ba7c475922c38cc271cd4119eb2e9478a",
+    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/bai-shuangming-base-eyes.d21f76013e1b.png",
+    "eyesSha256": "d21f76013e1be4569ba6e6ac11533cbaf73f917fe20ad0ccac5374d5eb9d27f5",
     "eyeCenter": [
       190.5,
       122.0
     ],
     "eyesOrigin": [
-      160,
-      112
+      162,
+      114
     ],
     "eyesCell": [
-      62,
-      20
+      58,
+      18
     ]
   },
   "bai-shuangming-v1": {
@@ -47,24 +47,24 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/actor-look/bai-shuangming-v1.0125059968ab.png",
-    "sha256": "0125059968ab69aa7e7644e960aa1c4afde5f524ac7fd1152a8c4acb89f79f4b",
+    "src": "/luma-office/luma-plugin-art/actor-look/bai-shuangming-v1.9a3564a57dfe.png",
+    "sha256": "9a3564a57dfedfdd7d60dbf8bf956c7aad9bc59e9bfb1b43b1e103c74a9f241d",
     "columns": 5,
     "count": 25,
     "neutralIndex": 12,
-    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/bai-shuangming-v1-eyes.da2ae87f8199.png",
-    "eyesSha256": "da2ae87f8199ec1e7e0184abe686c42cc2000a15b62f076e4b16cf8c03ef8a9f",
+    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/bai-shuangming-v1-eyes.a0564336c482.png",
+    "eyesSha256": "a0564336c482ecd609cfcba00ac387e60f24e4ab88ab311acb6ef36f33ab2d2e",
     "eyeCenter": [
       191.5,
       125.0
     ],
     "eyesOrigin": [
-      161,
-      115
+      163,
+      117
     ],
     "eyesCell": [
-      61,
-      20
+      58,
+      18
     ]
   },
   "claude-base": {
@@ -81,24 +81,24 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/actor-look/claude-base.564dc6b44ca2.png",
-    "sha256": "564dc6b44ca2aaa308afac31089c6e47f6b9d3a1da9e37417b1eb09a92d0cfe9",
+    "src": "/luma-office/luma-plugin-art/actor-look/claude-base.8eaf8e7a942f.png",
+    "sha256": "8eaf8e7a942fc1758f2ecb27a68703753dea946cfdc5492bb7aed2fc58d7b05a",
     "columns": 5,
     "count": 25,
     "neutralIndex": 12,
-    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/claude-base-eyes.6017c8dac697.png",
-    "eyesSha256": "6017c8dac69747fdcf8ccc9702b6d24efe828fe60f7743652c2f1a82fe1a4837",
+    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/claude-base-eyes.718460822c3f.png",
+    "eyesSha256": "718460822c3fb64e27c563a904bf343a96dc4533c9d5c4263e1389dcadcbfb37",
     "eyeCenter": [
       191.0,
       114.0
     ],
     "eyesOrigin": [
-      160,
-      104
+      161,
+      105
     ],
     "eyesCell": [
-      63,
-      21
+      61,
+      20
     ]
   },
   "claude-v1": {
@@ -115,24 +115,24 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/actor-look/claude-v1.f96d810147e0.png",
-    "sha256": "f96d810147e0f233646088f05918de6d09e7a706d67282ffa7e0b90a04f3aede",
+    "src": "/luma-office/luma-plugin-art/actor-look/claude-v1.140296eea44c.png",
+    "sha256": "140296eea44c2a94d18aabfbf8e18ff47d124eebe7db99d5a442d1a8259099e1",
     "columns": 5,
     "count": 25,
     "neutralIndex": 12,
-    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/claude-v1-eyes.da8aea377196.png",
-    "eyesSha256": "da8aea3771969ca76b81898d8e70505502a4a244bae80d83e3a810561e98a0d4",
+    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/claude-v1-eyes.2f422b585b62.png",
+    "eyesSha256": "2f422b585b62a29adeb267fa40938f1ff1a4936996c77aa1a0b9da16e57d5f5a",
     "eyeCenter": [
       191.5,
       114.0
     ],
     "eyesOrigin": [
-      162,
-      104
+      163,
+      106
     ],
     "eyesCell": [
-      61,
-      20
+      58,
+      18
     ]
   },
   "gemini-v1": {
@@ -149,24 +149,24 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/actor-look/gemini-v1.e27132c96b92.png",
-    "sha256": "e27132c96b9292fe01fc729c089a345e23c9225839a1c1dbddd83e515ab087a0",
+    "src": "/luma-office/luma-plugin-art/actor-look/gemini-v1.e27d58456aaf.png",
+    "sha256": "e27d58456aafb6541ac8dae85f03d749dfa241f457c06065beeb7c7616d385c8",
     "columns": 5,
     "count": 25,
     "neutralIndex": 12,
-    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/gemini-v1-eyes.f7654d3d2dad.png",
-    "eyesSha256": "f7654d3d2dadc5fcea12768c546350ff68ef0eb9dab914a9064a9adccfa83e51",
+    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/gemini-v1-eyes.79b54664319a.png",
+    "eyesSha256": "79b54664319a8a18a61f8d1305737b621228a8fff13ba6b3bcef93d0e1646cfb",
     "eyeCenter": [
       190.5,
       133.0
     ],
     "eyesOrigin": [
-      162,
-      124
+      164,
+      125
     ],
     "eyesCell": [
-      58,
-      19
+      54,
+      18
     ]
   },
   "grok-v1": {
@@ -183,24 +183,24 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/actor-look/grok-v1.b1e3b058205c.png",
-    "sha256": "b1e3b058205ca8daef2cd062e62ddeae30597a265e2036dfce1c854b665dc870",
+    "src": "/luma-office/luma-plugin-art/actor-look/grok-v1.1b52ffda0ba8.png",
+    "sha256": "1b52ffda0ba8109ed6563d30ecf42c4ee23c32a8f207563f16855825605eed4c",
     "columns": 5,
     "count": 25,
     "neutralIndex": 12,
-    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/grok-v1-eyes.10718edde616.png",
-    "eyesSha256": "10718edde616aa591ec43aca91b70a1cf02283fe3cfa389f1c9c448ba932725f",
+    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/grok-v1-eyes.0d10c8b0c682.png",
+    "eyesSha256": "0d10c8b0c6820c85b7ace1c19edeb79c60168c41a4ddb5e2efd95b664b5cf045",
     "eyeCenter": [
       192.5,
       128.0
     ],
     "eyesOrigin": [
-      162,
-      118
+      164,
+      120
     ],
     "eyesCell": [
-      62,
-      20
+      58,
+      18
     ]
   },
   "jingyuniang-base": {
@@ -217,24 +217,24 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/actor-look/jingyuniang-base.ff55f1c26d95.png",
-    "sha256": "ff55f1c26d951e3761e5acec1f9afa51bbcc823d275d32e963ad42a18691a9c1",
+    "src": "/luma-office/luma-plugin-art/actor-look/jingyuniang-base.0ab2856fdd04.png",
+    "sha256": "0ab2856fdd04f37ae60834e418c66910cf98790605496ea6ecbeb134349e3896",
     "columns": 5,
     "count": 25,
     "neutralIndex": 12,
-    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/jingyuniang-base-eyes.ab0a4c952195.png",
-    "eyesSha256": "ab0a4c95219596e4dcf3fb3b746cdd532bb763874c1c8ddfd6f4a7bb026b854c",
+    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/jingyuniang-base-eyes.0ab4360063a8.png",
+    "eyesSha256": "0ab4360063a8fcbd5d0986885e695f510d7b9ae69fd96f2b18519ade5df4daea",
     "eyeCenter": [
       194.5,
       131.0
     ],
     "eyesOrigin": [
-      166,
-      122
+      168,
+      123
     ],
     "eyesCell": [
-      58,
-      19
+      54,
+      18
     ]
   },
   "jingyuniang-v1": {
@@ -251,24 +251,24 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/actor-look/jingyuniang-v1.0ee5477f740c.png",
-    "sha256": "0ee5477f740cdcba546f84835961c040a12a70964d9643313074aeab21f54ceb",
+    "src": "/luma-office/luma-plugin-art/actor-look/jingyuniang-v1.159443c7540d.png",
+    "sha256": "159443c7540d63ee15d603c32d58f5579fb1f9ad17423b051cedfc5582bda6e9",
     "columns": 5,
     "count": 25,
     "neutralIndex": 12,
-    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/jingyuniang-v1-eyes.98a3178c3f69.png",
-    "eyesSha256": "98a3178c3f6994290042ef226173cc526f6996a8f2c97b32694a4c8947bb2fb1",
+    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/jingyuniang-v1-eyes.a800b7597405.png",
+    "eyesSha256": "a800b7597405685d04b77a21150ed8355220ff39ee9d04d9d18c064149a64992",
     "eyeCenter": [
       191.5,
       124.0
     ],
     "eyesOrigin": [
-      163,
-      115
+      165,
+      116
     ],
     "eyesCell": [
-      58,
-      19
+      54,
+      18
     ]
   },
   "longmama-base": {
@@ -285,24 +285,24 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/actor-look/longmama-base.8b372f7ccadc.png",
-    "sha256": "8b372f7ccadc3cbac39ac9b20fbd3631eb4f1f8eafdcc461135fb204c5f784bd",
+    "src": "/luma-office/luma-plugin-art/actor-look/longmama-base.df81ac7ea2be.png",
+    "sha256": "df81ac7ea2befff5928b5c56156610e95bd3dee9198931d6ec9c83bc95f15712",
     "columns": 5,
     "count": 25,
     "neutralIndex": 12,
-    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/longmama-base-eyes.684f2b007fae.png",
-    "eyesSha256": "684f2b007fae9d13bb887113231d1bec532a7cebaea7e7af1185c5ecdd36878d",
+    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/longmama-base-eyes.58f44eafaf4c.png",
+    "eyesSha256": "58f44eafaf4cfa29473ca3edfd41bd1f4aaa79835dfa8aeaeabfeb61db409f0a",
     "eyeCenter": [
       193.0,
       119.0
     ],
     "eyesOrigin": [
-      164,
-      109
+      165,
+      111
     ],
     "eyesCell": [
-      59,
-      20
+      57,
+      18
     ]
   },
   "longmama-v1": {
@@ -319,24 +319,24 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/actor-look/longmama-v1.a634382572cd.png",
-    "sha256": "a634382572cd3e85b910a778c180fcbe4d13a66293e996f65dc396100ebc7632",
+    "src": "/luma-office/luma-plugin-art/actor-look/longmama-v1.d5f50a0db0f8.png",
+    "sha256": "d5f50a0db0f8d712508be666c109a315e487c5bed299496a0b4eedbd53f61f36",
     "columns": 5,
     "count": 25,
     "neutralIndex": 12,
-    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/longmama-v1-eyes.56c19a341183.png",
-    "eyesSha256": "56c19a3411835d46964fdf83b5365de827e01ad277c78e57504b93a34ed7c8e1",
+    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/longmama-v1-eyes.f45ede6e03a0.png",
+    "eyesSha256": "f45ede6e03a06b1c8df2cce78c5c973874bdef93eb24688088531ca6bf3be94f",
     "eyeCenter": [
       193.5,
       119.0
     ],
     "eyesOrigin": [
-      163,
-      109
+      165,
+      111
     ],
     "eyesCell": [
-      62,
-      20
+      58,
+      18
     ]
   },
   "lu-mi-base": {
@@ -353,24 +353,24 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/actor-look/lu-mi-base.b49235556caf.png",
-    "sha256": "b49235556cafbe9021b061142b972cd5fbb091b75b5639154fdb922f54cbfaaa",
+    "src": "/luma-office/luma-plugin-art/actor-look/lu-mi-base.a9ec098c90da.png",
+    "sha256": "a9ec098c90da2ebd168ef84233e55c1db548d3dd146aceb80232af8bf2b9f57c",
     "columns": 5,
     "count": 25,
     "neutralIndex": 12,
-    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/lu-mi-base-eyes.74a8656343e1.png",
-    "eyesSha256": "74a8656343e1d6c02f836026f7f4a2714a8671c38f9ebe7f97cae843bf2c0e91",
+    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/lu-mi-base-eyes.8beb2316db2a.png",
+    "eyesSha256": "8beb2316db2abce2e3ff6b26f2a6f6385f669f8b191b1d9416aee5f3b03eb99b",
     "eyeCenter": [
       192.5,
       129.0
     ],
     "eyesOrigin": [
-      162,
-      119
+      164,
+      121
     ],
     "eyesCell": [
-      62,
-      20
+      58,
+      18
     ]
   },
   "lu-mi-v1": {
@@ -387,24 +387,24 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/actor-look/lu-mi-v1.638aa90c6cac.png",
-    "sha256": "638aa90c6cac4ae097b999c9d67478e7ebd321aa9342aecf933eb0af32bd6c6e",
+    "src": "/luma-office/luma-plugin-art/actor-look/lu-mi-v1.f6a815c82bc2.png",
+    "sha256": "f6a815c82bc2435ffbacbff01b8527d25d9927814343a409df8bfc7543004a43",
     "columns": 5,
     "count": 25,
     "neutralIndex": 12,
-    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/lu-mi-v1-eyes.93ffef5afd32.png",
-    "eyesSha256": "93ffef5afd32dcb159e92bf244d79409052dd9b90b67f295d54d0c8ac80b8353",
+    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/lu-mi-v1-eyes.601ad8d5d3c6.png",
+    "eyesSha256": "601ad8d5d3c692002228dd64bafcfb38ef4ccdf977b19b3076277c3d3246fa64",
     "eyeCenter": [
       193.5,
       126.0
     ],
     "eyesOrigin": [
-      163,
-      116
+      165,
+      118
     ],
     "eyesCell": [
-      62,
-      20
+      58,
+      18
     ]
   },
   "shan-base": {
@@ -421,24 +421,24 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/actor-look/shan-base.5d2e28fd07c2.png",
-    "sha256": "5d2e28fd07c26cdb11cf1d692356ac5e623298a9fbe68c4dd8a1459b759a8a68",
+    "src": "/luma-office/luma-plugin-art/actor-look/shan-base.7cb9d2251654.png",
+    "sha256": "7cb9d22516544862204cc7120f0eebe6b661d83c46b7f636e8af8cd73776dbf0",
     "columns": 5,
     "count": 25,
     "neutralIndex": 12,
-    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/shan-base-eyes.51a477dc251b.png",
-    "eyesSha256": "51a477dc251bf02b5a43024bfad73fef4177dc03c8ef16f7c56713347e14aa53",
+    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/shan-base-eyes.fecab3e65136.png",
+    "eyesSha256": "fecab3e6513620e1d5f2446e3bb1c49e0bfc7c9ab56497b93c1a1004eb3a07fc",
     "eyeCenter": [
       192.5,
       129.0
     ],
     "eyesOrigin": [
-      162,
-      119
+      164,
+      121
     ],
     "eyesCell": [
-      62,
-      20
+      58,
+      18
     ]
   },
   "shan-v1": {
@@ -455,24 +455,24 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/actor-look/shan-v1.bdcecef2e1fe.png",
-    "sha256": "bdcecef2e1fe3fa4e9ed99deaacecda6fb778031f4f88cf68e77e0d5573f9262",
+    "src": "/luma-office/luma-plugin-art/actor-look/shan-v1.83aaa7f38a87.png",
+    "sha256": "83aaa7f38a878469a62e84377c8e3e3e88c921e93db7453ae4b74df4be74c7dd",
     "columns": 5,
     "count": 25,
     "neutralIndex": 12,
-    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/shan-v1-eyes.6ab422ded419.png",
-    "eyesSha256": "6ab422ded419b0d0e4fa5be08af7a92ad5a3a03d8071473bef8d98591ef5d078",
+    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/shan-v1-eyes.0e6b69f5f7e7.png",
+    "eyesSha256": "0e6b69f5f7e78634178434ef771533a1aecbe22c1dd680edfeacdecb527126c8",
     "eyeCenter": [
       193.5,
       130.0
     ],
     "eyesOrigin": [
-      163,
-      120
+      165,
+      122
     ],
     "eyesCell": [
-      61,
-      20
+      58,
+      18
     ]
   }
 }

@@ -138,16 +138,47 @@ internal static class PetMotionCheck {
             }
         }
     }
-    sealed class StandingLandmarks { public int[] mouth {get;set;} }
-    static void CheckLook(string key,PetPoseAtlas atlas,int jaw){
+    sealed class StandingLandmarks { public int[] mouth {get;set;} public int[] chin {get;set;} }
+    static Point LocateMouth(Bitmap neutral,Bitmap turn,Rectangle lips){
+        const int search=5;
+        var original=Pixels(neutral,lips);
+        var region=Rectangle.Inflate(lips,search,search);
+        var target=Pixels(turn,region);
+        long best=long.MaxValue;
+        var offset=Point.Empty;
+        for(int dy=-search;dy<=search;dy++)for(int dx=-search;dx<=search;dx++){
+            long error=0;
+            for(int y=0;y<lips.Height;y++)for(int x=0;x<lips.Width;x++){
+                int source=(y*lips.Width+x)*4, dest=((y+search+dy)*region.Width+x+search+dx)*4;
+                for(int channel=0;channel<3;channel++){
+                    int difference=original[source+channel]-target[dest+channel];
+                    error+=difference*difference;
+                }
+            }
+            if(error<best){best=error;offset=new Point(dx,dy);}
+        }
+        return offset;
+    }
+    static void CheckLook(string key,PetPoseAtlas atlas,StandingLandmarks marks){
         var cell=new Rectangle(Point.Empty,atlas.Frame(0).Size);
         var rest=Pixels(atlas.Frame(0),cell);
         Check(rest.SequenceEqual(Pixels(atlas.LookFrame(12,12),cell)),key+" look moved the neutral artwork");
-        var collarAndClothes=new Rectangle(0,jaw,cell.Width,cell.Height-jaw);
+        int neck=marks.chin[1]+2;
+        var collarAndClothes=new Rectangle(0,neck,cell.Width,cell.Height-neck);
         var fixedPixels=Pixels(atlas.Frame(0),collarAndClothes);
-        for(int index=0;index<25;index++)
+        var lips=new Rectangle(marks.mouth[0]-6,marks.mouth[1]-2,13,5);
+        var neutralLips=Pixels(atlas.Frame(0),lips);
+        for(int index=0;index<25;index++){
             Check(fixedPixels.SequenceEqual(Pixels(atlas.LookFrame(index,24-index),collarAndClothes)),
-                  key+" release gaze moved the jaw base, neck or clothing at "+index);
+                  key+" release gaze moved the neck or clothing at "+index);
+            if(index!=12)Check(!neutralLips.SequenceEqual(Pixels(atlas.LookFrame(index,index),lips)),
+                              key+" mouth did not turn with the rest of the face at "+index);
+        }
+        foreach(var corner in new[]{0,4,20,24}){
+            var offset=LocateMouth(atlas.Frame(0),atlas.LookFrame(corner,corner),lips);
+            Check(offset.X*(corner%5-2)>0 && offset.Y*(corner/5-2)>0,
+                  key+" lips moved away from the indicated diagonal "+corner+": "+offset);
+        }
         foreach(var index in new[]{2,10,14,22}){
             Check(!Pixels(atlas.LookFrame(index,index),cell).SequenceEqual(rest),key+" missing head angle");
             Check(!Pixels(atlas.LookFrame(12,index),cell).SequenceEqual(rest),key+" missing independent eyes");
@@ -163,6 +194,18 @@ internal static class PetMotionCheck {
         Check(glance.Head==0 && glance.Eyes==0,"gaze ignored target reversal");
         for(int t=4040;t<=4920;t+=40)glance.Sample(t,-1,-1);
         Check(glance.Head==12 && glance.Eyes==12 && !glance.Sample(4930,1,1),"gaze did not return to centre");
+        foreach(double initial in new[]{0,.55}){
+            glance.Start(0);
+            int expected=initial==0?12:8;
+            for(int t=0;t<800;t+=40)glance.Sample(t,initial,-initial);
+            for(int t=800;t<2000;t+=40){
+                double noise=(t/80)%2==0?1:-1;
+                glance.Sample(t,.25+noise/(164*.36),-.25-noise/(164*.30));
+                Check(glance.Head==expected && glance.Eyes==expected,"one-pixel pointer jitter switched a gaze cel");
+            }
+            for(int t=2000;t<=2440;t+=40)glance.Sample(t,1,-1);
+            Check(glance.Head==4 && glance.Eyes==4,"gaze threshold prevented a deliberate turn");
+        }
         glance.Start(7000);glance.Stop();Check(!glance.Sample(7040,1,1),"interrupted gaze resumed");
     }
     public static void Main(string[] args){
@@ -175,7 +218,7 @@ internal static class PetMotionCheck {
             using(var atlas=new PetPoseAtlas(pair.Value)){
                 CheckAtlas(pair.Key,atlas);
                 CheckGestures(pair.Key,atlas);
-                CheckLook(pair.Key,atlas,marks[pair.Key].mouth[1]+4);
+                CheckLook(pair.Key,atlas,marks[pair.Key]);
             }
     }
 }
