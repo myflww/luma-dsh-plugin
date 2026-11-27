@@ -77,7 +77,27 @@
 }
 .lumaContacts .lumaPrivateIdentity [data-working=true] { color:var(--luma-accent); font-weight:650; }
 .lumaContacts .lumaContactTools > button:is(:hover:enabled,[aria-expanded=true]),.lumaContacts .lumaMessagesRoster footer button:hover,.lumaContacts .lumaStudioDirectory button:hover:enabled { background:var(--contact-wash); border-color:var(--luma-line); color:var(--luma-accent); }
-.lumaContacts .lumaContactMobile { display:none; }
+.lumaContacts .lumaContactMobile {
+  display:inline-flex; align-items:center; justify-content:center; justify-self:start; gap:5px; flex:none;
+  min-height:36px; white-space:nowrap; border-radius:12px; padding:5px 9px;
+}
+.lumaContacts .lumaContactMobile span { font:inherit; color:inherit; }
+.lumaRoomNavigation { display:flex; align-items:center; gap:5px; justify-self:start; }
+.lumaContactPopup {
+  position:fixed; inset:var(--popup-top) auto auto var(--popup-left); margin:0; box-sizing:border-box;
+  max-width:var(--popup-width); max-height:var(--popup-height); color:var(--contact-ink);
+  border:1px solid var(--contact-border); background:var(--luma-paper); box-shadow:0 12px 42px #1d35452b;
+}
+.lumaContactPopup::backdrop { background:#152f4329; }
+.lumaContacts dialog.lumaMessagesRoster {
+  display:flex; width:min(320px,var(--popup-width)); height:var(--popup-height); max-height:var(--popup-height);
+  border-radius:0 15px 15px 0;
+}
+.lumaContacts dialog.lumaMessagesRoster > header { display:flex; }
+.lumaContacts dialog.lumaMessagesRoster > footer { display:grid; }
+.lumaContacts dialog.lumaMessagesRoster .lumaMessagesCharacters { flex:1; flex-direction:column; }
+.lumaContacts dialog.lumaMessagesRoster .lumaMessagesCharacters button { flex-direction:row; }
+.lumaContacts dialog.lumaMessagesRoster .lumaContactPreview small { display:block; }
 .lumaContacts .lumaMessageHistory { padding:16px clamp(12px,3.2%,38px); scrollbar-width:thin; scroll-behavior:auto; }
 .lumaContacts .lumaMessageHistory:has(> .lumaRoleIntroduction:only-child) { display:grid; align-content:center; }
 .lumaRoleIntroduction { display:flex; align-items:center; gap:clamp(14px,3cqi,26px); width:fit-content; max-width:min(480px,100%); margin:18px auto; }
@@ -178,13 +198,6 @@
   .lumaContacts .lumaComposerDock .lumaRoleWorkShortcut span { display:none; }
   .lumaContacts .lumaComposerDock > button { padding-inline:7px; }
 }
-@container luma-contacts (max-width:650px) {
-  .lumaContacts .lumaContactMobile { display:inline-flex; }
-  .lumaContacts .lumaMessagesRoster { display:none; }
-  .lumaContacts.show-roster .lumaMessagesRoster { display:flex; position:absolute; z-index:6; inset:0; width:100%; max-height:none; }
-  .lumaContacts.show-roster .lumaMessagesRoster > header { display:flex; }
-  .lumaContacts.show-roster .lumaMessagesRoster > footer { display:grid; }
-  .lumaContacts.show-roster .lumaMessagesCharacters { flex:1; flex-direction:column; }
-  .lumaContacts.show-roster .lumaMessagesCharacters button { flex-direction:row; }
-  .lumaContacts.show-roster .lumaContactPreview small { display:block; }
+@container luma-conversation (max-width:689px) {
+  .lumaContacts .lumaContactMobile[data-contact-trigger=directory] span { display:none; }
 }

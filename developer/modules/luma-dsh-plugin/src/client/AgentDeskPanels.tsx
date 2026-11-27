@@ -88,6 +88,8 @@ export function AgentMemoryPanel({ roleId, name, canWrite, refresh, close, house
     {note && <p role="status">{note}</p>}
     <h3>本机记忆记录</h3>{loaded && !entries.length && <p>当前插件尚未保存这位员工的本机记忆。</p>}
     <ol className="lumaAgentMemories">{[...entries].sort((a,b) => b.createdAt - a.createdAt).map(entry => <li key={entry.id}>
-      <time>{new Date(entry.createdAt).toLocaleString('zh-CN')}</time><p>{entry.text}</p></li>)}</ol>
+      <time>{new Date(entry.createdAt).toLocaleString('zh-CN')}</time><p>{entry.text}</p>
+      {entry.reflection && <details><summary>{name}后来想到的事</summary><p>{entry.reflection.thought}</p><small>当时的话 · {entry.reflection.evidence}</small></details>}
+    </li>)}</ol>
   </aside>
 }

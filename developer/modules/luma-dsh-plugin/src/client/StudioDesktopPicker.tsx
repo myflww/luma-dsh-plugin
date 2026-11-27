@@ -1,5 +1,5 @@
 import { useEffect, useId, useState } from 'react'
-import { AppWindow, ArrowRight, ChevronDown, CodeXml, FileSpreadsheet, FileText, FolderOpen, Globe2, Layers, Monitor, RefreshCw, ShieldCheck, SquareTerminal, Type } from 'lucide-react'
+import { AppWindow, ArrowRight, ChevronDown, CodeXml, FileSpreadsheet, FileText, FolderOpen, Globe2, Layers, RefreshCw, ShieldCheck, SquareTerminal, Type } from 'lucide-react'
 import { agentRequest } from './agent-desk-api.ts'
 import { EmployeeFace } from './AgentDeskPanels.tsx'
 import './StudioDesktopPicker.css'
@@ -22,17 +22,15 @@ export function DesktopTargetMark({ target, assigned=false }: {target?:Target|un
 }
 
 export function StudioDesktopPicker({members,value,onChange,disabled}:Props) {
-  const [expanded,setExpanded]=useState(false), [refresh,setRefresh]=useState(0)
+  const [refresh,setRefresh]=useState(0)
   const [targets,setTargets]=useState<Target[]>([]), [problem,setProblem]=useState(''), [loading,setLoading]=useState(false)
   const permissionId=useId()
-  const count=members.filter(member=>value[member.id]).length
   const byWindow=new Map<string,number>()
   for(const member of members){
     const id=value[member.id]
     if(id) byWindow.set(id,(byWindow.get(id) ?? 0)+1)
   }
   useEffect(()=>{
-    if (!expanded) return
     const abort=new AbortController()
     setLoading(true)
     setProblem('')
@@ -41,18 +39,14 @@ export function StudioDesktopPicker({members,value,onChange,disabled}:Props) {
       .catch(error=>{if (!abort.signal.aborted) setProblem(failure(error))})
       .finally(()=>{if (!abort.signal.aborted) setLoading(false)})
     return ()=>abort.abort()
-  },[expanded,refresh])
+  },[refresh])
   function assign(role:string,id:string) {
     const next={...value}
     if (id) next[role]=id
     else delete next[role]
     onChange(next)
   }
-  return <details className="lumaStudioDesktopPicker" onToggle={event=>setExpanded(event.currentTarget.open)}>
-    <summary aria-label={count?'本次电脑操作，'+count+' 位成员已分配窗口':'本次电脑操作'} title="为本轮任务分配窗口">
-      <Monitor size={16} aria-hidden="true"/>本次电脑操作{count>0 && <span className="lumaAssignedCount">{count}</span>}<ChevronDown size={13} className="lumaPickerChevron" aria-hidden="true"/>
-    </summary>
-    {expanded && <div className="lumaStudioDesktopBody">
+  return <div className="lumaStudioDesktopBody">
       <div className="lumaDesktopPermission"><ShieldCheck size={15} aria-hidden="true"/><p id={permissionId}>仅本轮授权。窗口的可访问内容会交给对应角色的模型。</p>
         <button type="button" title="刷新窗口" aria-label="刷新窗口" disabled={loading || disabled} onClick={()=>setRefresh(n=>n+1)}><RefreshCw size={15} aria-hidden="true"/></button></div>
       {loading && <p role="status">正在读取窗口…</p>}
@@ -72,8 +66,7 @@ export function StudioDesktopPicker({members,value,onChange,disabled}:Props) {
           {shared && <span className="lumaSharedTarget" title="共用此窗口的成员将依次操作"><Layers size={12} aria-hidden="true"/>依次操作</span>}
         </label></li>
       })}</ul>
-    </div>}
-  </details>
+  </div>
 }
 
 export function StudioDesktopStatus() {

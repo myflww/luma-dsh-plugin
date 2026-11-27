@@ -18,27 +18,25 @@
 .lumaRoomFaces[data-count="4"] > :nth-child(3) { left:0; }
 .lumaRoomFaces > :nth-child(4) { right:0; bottom:0; }
 .lumaContacts .lumaRoomBack { display:grid; place-items:center; flex:none; width:36px; height:36px; padding:0; border-radius:50%; }
-.lumaStudioMembers { flex:none; color:var(--contact-ink,#193652); background:var(--luma-surface); border-bottom:1px solid var(--contact-border,#d7e3ed); }
-.lumaStudioMembers summary,.lumaStudioDesktopPicker summary { list-style:none; }
-.lumaStudioMembers summary::-webkit-details-marker,.lumaStudioDesktopPicker summary::-webkit-details-marker { display:none; }
-.lumaStudioMembers summary {
-  display:flex; align-items:center; gap:7px; width:fit-content; margin-inline:clamp(12px,2.3%,25px);
-  min-height:34px; font-size:12px; font-weight:650; cursor:pointer;
-}
+.lumaStudioDesktopPicker summary { list-style:none; }
+.lumaStudioDesktopPicker summary::-webkit-details-marker { display:none; }
 .lumaRoomChev { color:var(--contact-faint); }
-.lumaStudioMembers[open] .lumaRoomChev { transform:rotate(180deg); }
+.lumaStudioMembers { width:min(410px,var(--popup-width)); padding:0; border-radius:16px; overflow:auto; scrollbar-width:thin; }
+.lumaStudioMembers header { position:sticky; top:0; display:flex; justify-content:space-between; align-items:center; padding:11px 15px; background:var(--luma-paper); }
+.lumaStudioMembers h2 { margin:0; font-size:15px; }
+.lumaContacts .lumaStudioMembers header button { width:32px; height:32px; padding:0; font-size:18px; border-radius:50%; }
 .lumaStudioMembers ul {
-  display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 20px;
-  list-style:none; padding:0 clamp(12px,2.3%,25px); margin:0; max-height:min(235px,28vh); overflow:auto; scrollbar-width:thin;
+  list-style:none; padding:0 15px 10px; margin:0;
 }
-.lumaStudioMembers li { display:flex; align-items:center; gap:8px; min-width:0; padding:7px 0; border-top:1px solid var(--contact-border); }
+.lumaStudioMembers li { display:grid; grid-template-columns:auto minmax(0,1fr) minmax(auto,40%); align-items:center; gap:5px 8px; padding:10px 0; border-top:1px solid var(--contact-border); }
+.lumaStudioMembers li p { grid-column:2/-1; margin:0; font-size:12px; line-height:1.6; overflow-wrap:anywhere; white-space:pre-wrap; }
 .lumaStudioMembers .lumaMessageAvatar { width:30px; height:30px; flex:none; }
 .lumaStudioMembers li > div { flex:1; min-width:0; display:grid; gap:2px; }
 .lumaStudioMembers li strong { display:flex; align-items:center; gap:4px; font-size:12px; }
 .lumaStudioMembers li strong svg { color:var(--luma-warning); }
 .lumaStudioMembers li > div > span { color:var(--contact-faint); overflow-wrap:anywhere; font-size:11px; }
 .lumaContacts .lumaStudioMembers li button {
-  display:inline-flex; gap:5px; align-items:center; max-width:42%; min-height:30px; padding:3px 8px;
+  display:inline-flex; gap:5px; align-items:center; justify-self:end; max-width:100%; min-width:0; min-height:30px; padding:3px 8px;
   color:var(--contact-accent); background:var(--luma-surface); font-size:11px; border-radius:16px;
 }
 .lumaStudioMembers li button svg { flex:none; }
@@ -92,10 +90,6 @@
   color:var(--contact-ink); border-radius:18px; border:1px solid var(--contact-border); background:var(--luma-surface); font-size:12px;
 }
 .lumaRoomRecipient > span:not(.lumaRoomFaces,.lumaMessageAvatar) { color:var(--contact-faint); }
-.lumaContacts .lumaRoomRecipient select {
-  appearance:none; cursor:pointer; padding:4px 16px 4px 1px; margin-right:-18px; max-width:13em; height:100%; font:inherit; font-weight:650;
-  background:transparent; border:0; color:inherit; border-radius:5px;
-}
 .lumaRoomRecipient > svg:last-child { pointer-events:none; }
 .lumaWindowReviewer { display:inline-flex; align-items:center; align-self:flex-start; gap:5px; min-height:30px; max-width:100%; padding:0 6px 0 9px; border:1px solid var(--contact-border); border-radius:8px; background:var(--contact-paper,#fff); font-size:11px; }
 .lumaWindowReviewer span { white-space:nowrap; color:var(--contact-faint); }
@@ -155,16 +149,14 @@
   .lumaWorkflowChoices label { gap:5px; padding:8px; }
 }
 @container luma-conversation (min-width:1120px) {
-  .lumaStudioMembers ul { grid-template-columns:repeat(4,minmax(0,1fr)); }
 }
 .lumaContacts .lumaRoomConversation .lumaRoomComposer { display:flex; flex-direction:column; min-height:0; max-height:48%; box-sizing:border-box; }
 .lumaContacts .lumaRoomComposer .lumaRoomDispatch { flex:1 1 auto; min-height:0; align-content:flex-start; }
-.lumaRoomDispatch:has(.lumaStudioDesktopPicker[open]) { overflow:auto; scrollbar-width:thin; }
+
 .lumaContacts .lumaRoomComposer .lumaRoomMissing { max-height:55px; overflow:auto; scrollbar-width:thin; }
 .lumaRoomComposer .lumaComposerDock { flex:none; }
 .lumaRoomConversation .lumaMessageHistory { box-sizing:border-box; min-height:min(96px,15vh); }
 @container luma-conversation (max-width:600px) {
-  .lumaStudioMembers ul { grid-template-columns:1fr; max-height:min(112px,15vh); }
 }
 @container luma-conversation (max-width:360px) {
   .lumaWorkflowChoices { grid-template-columns:1fr; gap:5px; }

@@ -1,3 +1,4 @@
+import { contactPersona } from '../shared/contact-profile.ts'
 import { contactDisplayName } from '../messages-settings.ts'
 import { useContactDirectory } from './ContactDirectory.tsx'
 import { useEffect, useRef, useState } from 'react'
@@ -34,7 +35,7 @@ export function CompanionPresence({messages,office,sceneVisible,onContact,onLett
           const profile=state.preferences.profiles[person.id] ?? MESSAGE_CHARACTERS.find(role=>role.id===person.id)?.profile
           return {role:person.id,place:person.location==='office'?'office':'home',
             topic:(person.id===state.roleId ? state.sessionId : undefined) ?? state.preferences.activeTopics[person.id] ?? spatial.projection.employees.find(row=>row.employeeId===person.id)?.sessionId,
-            persona:profile ? profile.name+'。'+profile.personality : undefined}
+            persona:profile ? contactPersona(profile) : undefined}
         })
       pending=true
       try {
@@ -97,11 +98,11 @@ export function CompanionSettingsPanel({ writable = true }: { writable?: boolean
   const p=state?.settings
   return <section className="lumaLifeSettings" aria-label="日常陪伴">
     <h2><MoonStar aria-hidden="true" size={19}/>日常陪伴</h2>
-    <p>伙伴在清醒、空闲时，偶尔会写来一条私信。每天最多三条，晚上八点后安静。</p>
+    <p>每位伙伴初次可以来打个招呼。以后只在最近一天有新的私聊、清醒且空闲时考虑跟进。所有伙伴每天合计最多三封，晚上八点后安静。</p>
     {p && <fieldset disabled={busy || !writable}><label><input type="checkbox" checked={p.proactive} onChange={e=>void change({proactive:e.target.checked})}/>允许伙伴主动来信</label>
       <label><input type="checkbox" checked={p.danmaku} disabled={!p.proactive} onChange={e=>void change({danmaku:e.target.checked})}/>在房间顶端飘过，点击可回复</label>
       <label><input type="checkbox" checked={p.model} disabled={!p.proactive} onChange={e=>void change({model:e.target.checked})}/>使用员工独立 API 写来信</label>
-      <small>默认使用本地角色对白。开启独立 API 后，会把该员工的人设和近期私聊交给其模型，可能使用额度。模型也可以选择沉默。</small>
+      <small>默认用本地角色对白回应近期的好消息或低落心情。开启独立 API 后，伙伴也可以只记下这次经历带来的想法，留到以后聊起。写信和思考使用同一次模型调用，可能使用额度。</small>
       {state?.modelNotice && <small role="status">{state.modelNotice}</small>}
     </fieldset>}
     <details className="lumaAppSharing" open={expanded} onToggle={e=>setExpanded(e.currentTarget.open)}>

@@ -9,6 +9,9 @@ import { chatViewDefinition } from '../../../.luma-cache/deepseek-harness-baseli
 import { ev, plainTurn } from '../../../.luma-cache/deepseek-harness-baseline/141eb6fef83422698aef7a981029e843e8161534/packages/client/runtime/tests/event-script.client.ts'
 import { createMessagesRuntime, characterPrompt, visibleUserMessage, MESSAGE_CHARACTERS } from '../src/client/messages-runtime.ts'
 import { DEFAULT_MESSAGE_PREFERENCES, MESSAGE_ROLE_IDS, MESSAGES_NAMESPACE, type MessagePreferences, type MessageSettings } from '../src/messages-settings.ts'
+import { importContactCard, exportContactCard } from '../src/shared/contact-profile.ts'
+import { decodeMessageSettings } from '../src/messages-settings.ts'
+import { OFFICE_CHARACTER_CARDS } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office-harness/OfficeCharacterCards.ts'
 import type { OfficePageRuntime } from '../src/client/office-runtime.ts'
 import { OFFICE_EMPLOYEE_DEFINITIONS } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office-harness/OfficeRelationships.ts'
 
@@ -84,6 +87,44 @@ async function fixture(options: { writable?: boolean; seed?: boolean; preference
 async function flush() { for (let i = 0; i < 8; i++) await Promise.resolve() }
 
 describe('role messages use actual DSH sessions', () => {
+  it('migrates copied author defaults field by field and keeps old greetings out of relationship context', () => {
+    const card = OFFICE_CHARACTER_CARDS.shan.companionCard.data
+    const role = MESSAGE_CHARACTERS.find(p => p.id === 'shan')!
+    const old = {name:'新备注',personality:card.personality,scenario:'自定义的场景',greeting:'坐一会儿'}
+    const upgraded = decodeMessageSettings({preferences:{...DEFAULT_MESSAGE_PREFERENCES,profiles:{shan:old}}})!.preferences!.profiles.shan!
+    expect(upgraded).toEqual({...role.profile, name:old.name, scenario:old.scenario, greeting:old.greeting})
+    expect(decodeMessageSettings({preferences:{...DEFAULT_MESSAGE_PREFERENCES,profiles:{
+      shan:{...old,personality:'我自己的说话习惯',scenario:card.scenario}}}})!.preferences!.profiles.shan)
+      .toMatchObject({personality:'我自己的说话习惯',scenario:role.profile.scenario})
+    expect(upgraded.addressImpression).not.toContain(old.greeting)
+    const profile = {...upgraded, addressImpression:'叫阿宁，语气放松些。'}
+    expect(importContactCard('shan',exportContactCard(profile))).toEqual(profile)
+    expect(importContactCard('shan',{data:{name:'小林',first_mes:'你好，远道而来的客人。'}}).addressImpression).toBe(role.profile.addressImpression)
+    expect(decodeMessageSettings({preferences:{...DEFAULT_MESSAGE_PREFERENCES,profiles:{shan:{...profile,addressImpression:42}}}})).toBeUndefined()
+  })
+
+  it('sends the current address setting and only the selected voice on each native chat or work turn', async () => {
+    const f = await fixture()
+    const original = f.runtime.getSnapshot().profile
+    expect(original.scenario).toContain('手机')
+    const customized = {...original, personality:'有疑问就直接问。', addressImpression:'叫我阿宁。', greeting:'原来的开场白'}
+    f.set.mockRejectedValueOnce(new Error('保存失败'))
+    expect(await f.runtime.saveProfile(customized)).toBeUndefined()
+    expect(f.runtime.getSnapshot().profile).toEqual(original)
+    await f.runtime.saveProfile(customized)
+    for (const mode of ['chat','task'] as const) {
+      f.runtime.setDraft('今天呢？')
+      await f.runtime.send(mode)
+      const text = (f.prompt.mock.calls.at(-1)![0] as {content:{text:string}[]}).content[0]!.text
+      expect(text).toContain(customized.addressImpression)
+      expect(text.split(customized.personality)).toHaveLength(2)
+      expect(text).not.toContain(original.personality)
+      expect(text).not.toContain(customized.greeting)
+    }
+    await f.runtime.resetProfile()
+    expect(f.runtime.getSnapshot().profile).toEqual(original)
+  })
+
   it('keeps personal contact aliases separate from role identity, rolls back failed writes and restores the original display name',async()=>{
     const f=await fixture(), profile=f.runtime.getSnapshot().profile
     f.set.mockRejectedValueOnce(new Error('保存失败'))

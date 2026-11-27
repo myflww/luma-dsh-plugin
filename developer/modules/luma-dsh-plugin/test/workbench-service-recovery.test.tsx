@@ -1,4 +1,4 @@
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeAll, expect, it, vi } from 'vitest'
 import { MessagesPage } from '../src/client/MessagesPage.tsx'
 import { MESSAGE_CHARACTERS, type MessagesRuntime, type MessagesSnapshot } from '../src/client/messages-runtime.ts'
@@ -183,6 +183,7 @@ it('opens the studio from contacts, binds the chosen characters to a team, dispa
     return Response.json({ok:true,value:{rooms,jobs,roles,memories:{},loveHouse:{available:false,connected:false}}})
   }))
   openDesk(ids)
+  fireEvent.click(button('联系人'))
   fireEvent.click(await screen.findByRole('button',{name:'新建工作室'}))
   fireEvent.change(screen.getByLabelText('工作室名称'),{target:{value:roomName}})
   const other=MESSAGE_CHARACTERS.find(role=>role.id==='lu-mi')!
@@ -190,6 +191,12 @@ it('opens the studio from contacts, binds the chosen characters to a team, dispa
   fireEvent.change(screen.getByLabelText(other.name+'的分工'),{target:{value:'核对坐标'}})
   fireEvent.click(button('创建工作室'))
   await screen.findByRole('heading',{name:roomName})
+  fireEvent.click(button('成员与风格'))
+  expect(screen.getByRole('dialog',{name:'成员与风格'})).toBeTruthy()
+  expect(screen.getByText('核对坐标')).toBeTruthy()
+  expect(screen.getByText(other.profile.personality)).toBeTruthy()
+  fireEvent.keyDown(screen.getByRole('button',{name:'关闭成员与风格'}),{key:'Escape'})
+  expect(screen.queryByRole('dialog',{name:'成员与风格'})).toBeNull()
   expect(calls.find(call=>call.route==='createroom')?.data).toMatchObject({workflow:'studio',roleIds:ids,duties:{'lu-mi':'核对坐标'}})
   fireEvent.click(button('打开角色工作区'))
   fireEvent.change(screen.getByLabelText('本次操作成员'),{target:{value:'lu-mi'}})
@@ -272,6 +279,7 @@ it('keeps room attachments in their own composer and sends them only to the sele
     return Response.json({ok:true,value:{roles,rooms:[room],jobs:[],memories:{},loveHouse:{available:false,connected:false}}})
   }))
   openDesk(room.roleIds)
+  fireEvent.click(button('联系人'))
   const group = await screen.findByRole('button',{name:/周报小组/})
   fireEvent.click(group)
   const file = new File(['会议议程'],'会议.md',{type:'text/markdown'})
@@ -284,13 +292,36 @@ it('keeps room attachments in their own composer and sends them only to the sele
   fireEvent.change(input,{target:{files:[file]}})
   fireEvent.click(button('返回私聊'))
   expect(screen.queryByRole('button',{name:'移除 会议.md'})).toBeNull()
-  fireEvent.click(group)
+  fireEvent.click(button('联系人'))
+  fireEvent.click(await screen.findByRole('button',{name:/周报小组/}))
   expect(button('移除 会议.md')).toBeTruthy()
-  fireEvent.change(screen.getByRole('combobox',{name:'群聊发言对象'}),{target:{value:'lu-mi'}})
+  fireEvent.click(screen.getByRole('button',{name:/^工作室能力，当前/}))
+  fireEvent.click(button('点名聊天'))
+  fireEvent.click(within(screen.getByRole('dialog',{name:'点名聊天'})).getByRole('button',{name:MESSAGE_CHARACTERS.find(role=>role.id==='lu-mi')!.name,exact:true}))
   fireEvent.click(button('发送到群'))
   await vi.waitFor(() => expect(calls).toHaveLength(1))
-  expect(calls[0]).toMatchObject({topic:room.id,roleIds:['lu-mi'],mode:'task',text:''})
+  expect(calls[0]).toMatchObject({topic:room.id,roleIds:['lu-mi'],mode:'chat',text:''})
   expect(Buffer.from(calls[0].attachments[0].data,'base64').toString()).toBe('会议议程')
+})
+
+it('switches directly between two groups through the drawer and restores each unsent draft',async()=>{
+  const ids=['shan','lu-mi']
+  const roles=Object.fromEntries(ids.map(id=>[id,{model:'desk-'+id}]))
+  const rooms=['第一间工作室','第二间工作室'].map((name,i)=>({id:'drawer-draft-'+i,name,roleIds:ids,createdAt:1}))
+  vi.stubGlobal('fetch',vi.fn(async()=>Response.json({ok:true,value:{roles,rooms,jobs:[],memories:{},loveHouse:{available:false,connected:false}}})))
+  openDesk(ids)
+  async function enter(index:number) {
+    fireEvent.click(button('联系人'))
+    fireEvent.click(await screen.findByRole('button',{name:new RegExp(rooms[index]!.name)}))
+    expect(screen.queryByRole('dialog',{name:'联系人与群聊'})).toBeNull()
+    return screen.getByRole<HTMLTextAreaElement>('textbox',{name:'群消息'})
+  }
+  fireEvent.change(await enter(0),{target:{value:'待核对海图'}})
+  const second=await enter(1)
+  expect(second.value).toBe('')
+  fireEvent.change(second,{target:{value:'周五碰面'}})
+  expect((await enter(0)).value).toBe('待核对海图')
+  expect((await enter(1)).value).toBe('周五碰面')
 })
 
 it('opens the bedroom task shortcut on single assignment, and an office visit returns the same employee to normal chat', async () => {
@@ -410,7 +441,13 @@ it('shows recent private messages in the contact list and keeps role settings an
   vi.stubGlobal('fetch', vi.fn(async (url:string) => Response.json({ok:true,value:url.endsWith('/memory') ? {entries:[]} : snapshot})))
   openDesk(['shan'])
   await screen.findByText('晚上见呀', { selector:'.lumaMessageBubble.is-assistant p' })
+  expect(screen.queryByRole('dialog',{name:'联系人与群聊'})).toBeNull()
+  fireEvent.click(button('联系人'))
+  const search=screen.getByRole('searchbox',{name:'搜索联系人或群聊'})
+  expect(document.activeElement).toBe(search)
   expect(screen.getByText('晚上见呀', {selector:'.lumaContactPreview small'})).toBeTruthy()
+  fireEvent.keyDown(search,{key:'Escape'})
+  await vi.waitFor(()=>expect(document.activeElement).toBe(button('联系人')))
   expect(screen.getByText('今晚见', {selector:'.lumaMessageBubble.is-user p'})).toBeTruthy()
   expect(screen.queryByText('白霜命')).toBeNull()
   expect(screen.queryByText('人格设定')).toBeNull()

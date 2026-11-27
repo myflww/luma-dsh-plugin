@@ -29,18 +29,18 @@ py -3 modules/luma-dsh-plugin/scripts/prepare-office-reception.py
 
 ## 还原美术并组装插件
 
-在 [0.4.3 发行页](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.4.3) 下载并运行该版 `Get-Luma-DSH.ps1`，脚本会下载分卷并合成 `Luma-DSH-0.4.3-Windows.zip`。已有完整的 0.4.3、0.5.0 至 0.5.4、0.6.0 至 0.6.4 插件目录时，也可以直接把目录交给构建命令。整版 ZIP 须含对应的 `DesktopPlugin-版本号/` 目录。后续新增或替换的静态美术存放在源码的 `modules/luma-dsh-plugin/art/release-assets/`，与 `public/` 共用相对路径。还原脚本优先读取这些文件，逐项校验后写入 `public/`。卧室手机动作的 WebP 图集由客户端直接导入，构建时随前端一起打包。
+在 [0.4.3 发行页](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.4.3) 下载并运行该版 `Get-Luma-DSH.ps1`，脚本会下载分卷并合成 `Luma-DSH-0.4.3-Windows.zip`。已有完整的 0.4.3、0.5.0 至 0.5.4、0.6.0 至 0.6.7 插件目录时，也可以直接把目录交给构建命令。整版 ZIP 须含对应的 `DesktopPlugin-版本号/` 目录。后续新增或替换的静态美术存放在源码的 `modules/luma-dsh-plugin/art/release-assets/`，与 `public/` 共用相对路径。还原脚本优先读取这些文件，逐项校验后写入 `public/`。卧室手机动作的 WebP 图集由客户端直接导入，构建时随前端一起打包。
 
 ```powershell
 npm run release -- "$env:USERPROFILE\Desktop\Luma-DSH\Luma-DSH-0.4.3-Windows.zip"
 ```
 
-静态资源的相对路径、大小和 SHA-256 存在 `modules/luma-dsh-plugin/lib/asset-manifest.json`。程序校验每项并生成 `dist/DesktopPlugin-0.6.7/`。要另存一份，在美术来源后追加一个新输出目录。
+静态资源的相对路径、大小和 SHA-256 存在 `modules/luma-dsh-plugin/lib/asset-manifest.json`。程序校验每项并生成 `dist/DesktopPlugin-0.6.8/`。要另存一份，在美术来源后追加一个新输出目录。
 
 如需比对独立重建目录和官方更新包中的全部文件，可运行以下命令。
 
 ```powershell
-.\verify-release.ps1 -Package .\dist\DesktopPlugin-0.6.7 -Update "D:\Downloads\Luma-DSH-0.6.7-Update.zip"
+.\verify-release.ps1 -Package .\dist\DesktopPlugin-0.6.8 -Update "D:\Downloads\Luma-DSH-0.6.8-Update.zip"
 ```
 
 ## 生成差分发行包
@@ -48,10 +48,10 @@ npm run release -- "$env:USERPROFILE\Desktop\Luma-DSH\Luma-DSH-0.4.3-Windows.zip
 使用 Python 3.10+。第一个参数必须是已发布、SHA-256 符合记录的 0.4.3 原始 ZIP，第二个参数是通过验证的新版本完整目录。
 
 ```powershell
-py -3 .\build-update.py "D:\Downloads\Luma-DSH-0.4.3-Windows.zip" ".\dist\DesktopPlugin-0.6.7" ".\dist\v0.6.7"
+py -3 .\build-update.py "D:\Downloads\Luma-DSH-0.4.3-Windows.zip" ".\dist\DesktopPlugin-0.6.8" ".\dist\v0.6.8"
 ```
 
-产物包含可双击的小型引导安装包、单独的更新 ZIP、SHA-256 文件和已绑定该 ZIP 摘要的 PowerShell 安装器。更新清单列出全部目标文件，每项带有来源、长度和 SHA-256。只有新增或变更的文件进入更新载荷。用户可以复用完整的 0.6.5、0.6.4、0.6.3、0.6.2、0.6.1、0.6.0、0.5.4、0.5.3、0.5.2、0.5.1、0.5.0、0.4.3 插件目录或已发布的 0.4.3 Windows ZIP。安装器将所需文件复制到临时目录并逐项校验，校验成功后才建立最终的 `DesktopPlugin-0.6.7` 目录。
+产物包含可双击的小型引导安装包、单独的更新 ZIP、SHA-256 文件和已绑定该 ZIP 摘要的 PowerShell 安装器。更新清单列出全部目标文件，每项带有来源、长度和 SHA-256。只有新增或变更的文件进入更新载荷。用户可以复用完整的 0.6.7、0.6.6、0.6.5、0.6.4、0.6.3、0.6.2、0.6.1、0.6.0、0.5.4、0.5.3、0.5.2、0.5.1、0.5.0、0.4.3 插件目录或已发布的 0.4.3 Windows ZIP。安装器将所需文件复制到临时目录并逐项校验，校验成功后才建立最终的 `DesktopPlugin-0.6.8` 目录。
 
 保留旧版完整目录即可回退。在安装器所在目录运行 `.\Get-Luma-DSH.ps1 -Rollback` 会重新注册上次升级前保留的版本，也可用 `-Base` 指定兼容版本的完整目录。重启 DSH 后生效。
 

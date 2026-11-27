@@ -1,6 +1,9 @@
 import type { DatabaseSync } from 'node:sqlite'
 import { statedStyles } from './contact-style.ts'
 import { createAppUsage } from './foreground-apps.ts'
+import { readReflection } from './companion-perspective.ts'
+import { decodeRoleProfile, type RoleProfile } from '../shared/contact-profile.ts'
+import type { OfficeEmployeePresetKey } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/office-employee-presets.ts'
 import { companionVoices, defaultCompanionSettings, feeling, turnTone, followupLines, type CompanionSettings, type LifeLetter } from '../shared/companion-life.ts'
 
 type Options = {
@@ -11,13 +14,15 @@ type Options = {
   record: (letter: LifeLetter) => void
   speechStyle?: (role:string)=>{current:unknown[];withdrawn:unknown[]}
   portrait?: (role:string)=>unknown
-  allowNote?: (role:string,id:string)=>boolean
+  position?: (role:string,query:string)=>unknown
   allowLetter?: (role:string,id:string)=>boolean
   now?: () => number
   usage?: ReturnType<typeof createAppUsage>
 }
-type Candidate = {role: string; place: 'office'|'home'; topic?: string; persona?: string}
+type Candidate = {role: string; place: 'office'|'home'; topic?: string; persona?: string | RoleProfile}
 const minute=60_000
+const dayMs=24*60*minute
+const comparable=(text:string)=>text.normalize('NFKC').replace(/[\p{P}\p{Z}\s]/gu,'').toLowerCase()
 function allowsOutreach(date: Date) {
   const localMinute = date.getHours() * 60 + date.getMinutes()
   return localMinute >= 8 * 60 + 30 && localMinute < 20 * 60
@@ -62,12 +67,12 @@ export function createCompanionLife(db: DatabaseSync, opts:Options) {
     return status()
   }
   function relationship(role:string) {
-    const turns=db.prepare("SELECT user, createdAt FROM employee_private_notes WHERE role=? AND user!='' AND topic!='notes' ORDER BY createdAt DESC,noteOrder DESC LIMIT 12").all(role)
+    const turns=db.prepare("SELECT user, createdAt FROM portrait_recallable_notes WHERE role=? AND chatPosition IS NOT NULL ORDER BY createdAt DESC,noteOrder DESC LIMIT 12").all(role)
     const cue=turns.find(t=>turnTone(String(t.user))!==0)
     return { mood:feeling(cue ? {tone:turnTone(String(cue.user)),at:Number(cue.createdAt)} : undefined,now()),
       familiarity:turns.length>=6 ? '已相处多次，可以接续熟悉的话题' : turns.length ? '正在逐渐熟悉' : '初次相识，先给对方空间' }
   }
-  function privateContext(role:string, allowApps:boolean, includeStyle=true) {
+  function privateContext(role:string, allowApps:boolean, includeStyle=true, query?:string) {
     const settings=preferences()
     const usage=allowApps && settings.collectApps && settings.sharedRoles.includes(role) ? apps.summary() : []
     const previousLetters:string[]=[]
@@ -75,14 +80,15 @@ export function createCompanionLife(db: DatabaseSync, opts:Options) {
       if (!opts.allowLetter || opts.allowLetter(role,String(row.id))) previousLetters.push(String(row.text))
       if (previousLetters.length===2) break
     }
-    return {expression:relationship(role), ...(includeStyle && opts.speechStyle ? {conversationPreferences:opts.speechStyle(role)} : {}), previousLetters, ...(usage.length ? {recentForegroundApps:usage,usageWindowMinutes:15} : {}) }
+    const ownPosition=query ? opts.position?.(role,query) : undefined
+    return {expression:relationship(role), ...(ownPosition ? {ownPosition} : {}), ...(includeStyle && opts.speechStyle ? {conversationPreferences:opts.speechStyle(role)} : {}), previousLetters, ...(usage.length ? {recentForegroundApps:usage,usageWindowMinutes:15} : {}) }
   }
   function history():LifeLetter[] {
     const roles = new Set(opts.unlocked())
     return db.prepare("SELECT CAST(id AS TEXT) AS id,role,topic,text,time,source FROM companion_letters WHERE text!='' ORDER BY time DESC").all()
       .filter(row=>roles.has(String(row.role))).reverse() as unknown as LifeLetter[]
   }
-  function claim(candidates: Candidate[], at:number) {
+  function claim(candidates: Candidate[], at:number, useModel:boolean) {
     const day=new Date(at)
     if(!allowsOutreach(day)) return
     day.setHours(0,0,0,0)
@@ -97,21 +103,24 @@ export function createCompanionLife(db: DatabaseSync, opts:Options) {
       if(hasRecentChat(at)) return
       const latest=db.prepare('SELECT role, MAX(time) AS last FROM companion_letters GROUP BY role').all()
       const stamp=(role:string)=>Number(latest.find(row=>row.role===role)?.last ?? 0)
-      for(const c of [...candidates].sort((a,b)=>stamp(a.role)-stamp(b.role))) {
+      const latestChat=db.prepare('SELECT id,user,createdAt FROM portrait_recallable_notes WHERE role=? AND chatPosition IS NOT NULL AND createdAt>? ORDER BY createdAt DESC,noteOrder DESC LIMIT 1')
+      const opportunities=candidates.map(c=>({c,turn:latestChat.get(c.role,at-dayMs),last:stamp(c.role)}))
+        .filter(({turn,last})=>!last || turn && Number(turn.createdAt)>last)
+        .sort((a,b)=>Number(!!b.turn)-Number(!!a.turn) || a.last-b.last)
+      for(const {c,turn:latestTurn,last} of opportunities) {
         if(opts.busy(c.role))continue
-        const latestTurn=db.prepare("SELECT user, createdAt FROM employee_private_notes WHERE role=? AND user!='' AND topic!='notes' ORDER BY createdAt DESC,noteOrder DESC LIMIT 1").get(c.role)
-        if(latestTurn && at-Number(latestTurn.createdAt)<24*60*minute && /先别找我|别打扰我|想一个人待|让我静静|暂时不要找我/.test(String(latestTurn.user))) continue
-        const mood=relationship(c.role).mood
+        if(latestTurn && /先别找我|别打扰我|想一个人待|让我静静|暂时不要找我/.test(String(latestTurn.user))) continue
+        const mood=feeling(latestTurn ? {tone:turnTone(String(latestTurn.user)),at:Number(latestTurn.createdAt)} : undefined,at)
         const cue=mood==='轻快' ? followupLines[c.role][0] : mood==='沉静' ? followupLines[c.role][1] : undefined
         const choices=companionVoices[c.role][c.place]
         const seen=db.prepare("SELECT text FROM companion_letters WHERE role=? AND time>? AND text!=''").all(c.role,at-3*86400000)
-        const available=cue && !seen.some(row=>row.text===cue) ? [cue] : choices.filter(text=>!seen.some(row=>row.text===text))
-        if(!available.length) continue
-        const text=available[Math.floor(at/86400000)%available.length]
+        const available=cue && !seen.some(row=>row.text===cue) ? [cue] : !last ? choices.filter(text=>!seen.some(row=>row.text===text)) : []
+        if(!available.length && !useModel) continue
+        const text=available.length ? available[Math.floor(at/dayMs)%available.length]! : ''
         const topic=opts.topic(c.role,c.topic)
         const sequence=db.prepare('UPDATE companion_letter_counter SET lastId=MAX(lastId,(SELECT COALESCE(MAX(id),0) FROM companion_letters))+1 WHERE id=1 RETURNING lastId').get()!
         db.prepare('INSERT INTO companion_letters(id,role,topic,time) VALUES(?,?,?,?)').run(sequence.lastId,c.role,topic,at)
-        return {c,letter:{id:String(sequence.lastId),role:c.role,topic,text,time:at,source:'local'} as LifeLetter}
+        return {c,first:!last,triggerId:latestTurn ? String(latestTurn.id) : undefined,letter:{id:String(sequence.lastId),role:c.role,topic,text,time:at,source:'local'} as LifeLetter}
       }
     } catch(error){db.exec('ROLLBACK');rolledBack=true;throw error}
     finally {if(!rolledBack)db.exec('COMMIT')}
@@ -128,22 +137,26 @@ export function createCompanionLife(db: DatabaseSync, opts:Options) {
     for(const c of body.candidates.slice(0,8)) {
       if(!c || typeof c !== 'object' || !allowed.includes(c.role) || !Object.hasOwn(companionVoices,c.role) || !['home','office'].includes(c.place))continue
       candidates.push({role:c.role,place:c.place,topic:validTopic(c.topic) ? c.topic : undefined,
-        persona:typeof c.persona==='string' ? c.persona.slice(0,2200) : undefined})
+        persona:typeof c.persona==='string' ? c.persona.slice(0,2200) : decodeRoleProfile(c.role as OfficeEmployeePresetKey,c.persona)})
     }
     if(!candidates.length) return {danmaku:p.danmaku}
-    const reservation=claim(candidates,now())
+    const reservation=claim(candidates,now(),p.model)
     if(!reservation) return {danmaku:p.danmaku}
-    const {letter,c}=reservation
+    const {letter,c,first,triggerId}=reservation
     const controller=new AbortController()
     pending.add(controller)
+    let reflection:ReturnType<typeof readReflection>
     try {
       if(p.model) {
-        const context=privateContext(c.role,false)
-        const memo=db.prepare("SELECT * FROM employee_private_notes WHERE role=? AND topic!='notes' AND user!='' ORDER BY createdAt DESC,noteOrder DESC LIMIT 100").all(c.role)
-          .filter(r=> (!opts.allowNote || opts.allowNote(c.role,String(r.id))) && !Object.keys(statedStyles(String(r.user))).length).slice(0,2)
-          .map(r=>({user:String(r.user).slice(0,450),reply:String(r.assistant).slice(0,450)}))
-        const brief=JSON.stringify({place:c.place==='home'?'自己的卧室':'办公室',voice:companionVoices[c.role].voice,persona:c.persona,
-          topicIdea:letter.text,context,userPortrait:opts.portrait?.(c.role),recentPrivateConversation:memo})
+        const readBrief=()=>{
+          const memo=db.prepare("SELECT id,user,assistant FROM portrait_recallable_notes WHERE role=? AND chatPosition IS NOT NULL AND createdAt>? ORDER BY createdAt DESC,noteOrder DESC LIMIT 10").all(c.role,letter.time-dayMs)
+            .filter(r=>!Object.keys(statedStyles(String(r.user))).length).slice(0,2)
+            .map(r=>({id:String(r.id),user:String(r.user).slice(0,450),reply:String(r.assistant).slice(0,450)}))
+          const context=privateContext(c.role,false,true,memo[0]?.user)
+          return {place:c.place==='home'?'自己的卧室':'办公室',persona:c.persona || companionVoices[c.role].voice,
+            ...(first && !memo.length ? {topicIdea:letter.text} : {}),triggerId,context,userPortrait:opts.portrait?.(c.role),recentPrivateConversation:memo}
+        }
+        const inputs=readBrief(), brief=JSON.stringify(inputs)
         let answer:string|undefined
         try {
           answer=await opts.makeReply(c.role,brief,controller.signal)
@@ -154,14 +167,31 @@ export function createCompanionLife(db: DatabaseSync, opts:Options) {
         }
         if(answer!==undefined) {
           const text=answer.trim()
-          if(!text || text==='[安静]' || text.length>220) return {danmaku:p.danmaku}
-          letter.text=text;letter.source='model'
-        }
+          if(!text || text==='[安静]') return {danmaku:p.danmaku}
+          if(disposed || controller.signal.aborted || brief!==JSON.stringify(readBrief())) return {danmaku:false}
+          if (/^(?:\{|`{3})/u.test(text)) {
+            reflection=readReflection(text,inputs.recentPrivateConversation.find(row=>row.id===triggerId))
+            if (!reflection) return {danmaku:false}
+          } else {
+            const seen=db.prepare("SELECT text FROM companion_letters WHERE role=? AND text!='' AND time>?").all(c.role,letter.time-3*dayMs)
+            if(seen.some(row=>comparable(String(row.text))===comparable(text))) return {danmaku:p.danmaku}
+            letter.text=text;letter.source='model'
+          }
+        } else if(!letter.text) return {danmaku:p.danmaku}
       }
       if(disposed || controller.signal.aborted || !preferences().proactive || !opts.unlocked().includes(c.role) || opts.busy(c.role)) return {danmaku:false}
       if(p.model) {
         const delivered = new Date(now())
         if(!allowsOutreach(delivered) || delivered.toDateString() !== new Date(letter.time).toDateString() || hasRecentChat(delivered.getTime())) return {danmaku:false}
+      }
+      if (reflection) {
+        // Keep the thought with its original event. No outgoing note, portrait
+        // entry, external upload or second model request is created.
+        db.prepare(`UPDATE notes SET reflection=?,reflectionEvidence=?,reflectionAt=?
+          WHERE id=? AND role=? AND EXISTS(SELECT 1 FROM portrait_recallable_notes WHERE role=? AND id=?)
+          AND EXISTS(SELECT 1 FROM companion_letters WHERE id=? AND role=? AND time=? AND text='')`)
+          .run(reflection.thought,reflection.evidence,now(),reflection.source,c.role,c.role,reflection.source,Number(letter.id),c.role,letter.time)
+        return {danmaku:false}
       }
       db.exec('BEGIN IMMEDIATE')
       try {

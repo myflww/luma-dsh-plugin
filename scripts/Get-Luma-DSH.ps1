@@ -10,17 +10,17 @@ param(
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $repo = 'myflww/luma-dsh-plugin'
-$patchName = 'Luma-DSH-0.6.7-Update.zip'
-$patchDigest = '880c73bc570b10017ee0d63abd63367031e82aab6ed225d795c51e396ed65232'
-$compatibleBaseVersions = @('0.6.6', '0.6.5', '0.6.4', '0.6.3', '0.6.2','0.6.1','0.6.0','0.5.4','0.5.3','0.5.2','0.5.1','0.5.0','0.4.3')
+$patchName = 'Luma-DSH-0.6.8-Update.zip'
+$patchDigest = '5f1ec85e54c1435e560b4c0c5532104c69fb030b3b8e00c7d86adabc9687e3ac'
+$compatibleBaseVersions = @('0.6.7', '0.6.6', '0.6.5', '0.6.4', '0.6.3', '0.6.2','0.6.1','0.6.0','0.5.4','0.5.3','0.5.2','0.5.1','0.5.0','0.4.3')
 $oldZip = 'Luma-DSH-0.4.3-Windows.zip'
 $oldDigest = 'e949d369a89da2bf6ce01c2eabef4b8a3a95ced38db5ab625ea90c2bb0549c81'
 $root = [IO.Directory]::CreateDirectory([IO.Path]::GetFullPath($Directory)).FullName
-$final = Join-Path $root 'DesktopPlugin-0.6.7'
+$final = Join-Path $root 'DesktopPlugin-0.6.8'
 $cache = Join-Path $root 'Downloads'
 $profileHome = if ($env:DSH_HOME) { $env:DSH_HOME } else { Join-Path ([Environment]::GetFolderPath('UserProfile')) '.dsh' }
 $profileDir = Join-Path $profileHome 'profiles\desktop'
-$rollbackPath = Join-Path $root 'previous-0.6.7.json'
+$rollbackPath = Join-Path $root 'previous-0.6.8.json'
 function Extended([string]$absolute) {
     if ($absolute.StartsWith('\\')) { return '\\?\UNC\' + $absolute.Substring(2) }
     return '\\?\' + $absolute
@@ -223,18 +223,18 @@ if (!$Patch) {
     $Patch = Join-Path $PSScriptRoot $patchName
     if (!(Test-Path -LiteralPath $Patch -PathType Leaf)) {
         $Patch = Join-Path $cache $patchName
-        if (!(Test-Path -LiteralPath $Patch -PathType Leaf) -or (Hash-File $Patch) -cne $patchDigest) { Get-ReleaseAsset 'v0.6.7' $patchName $cache $patchDigest }
+        if (!(Test-Path -LiteralPath $Patch -PathType Leaf) -or (Hash-File $Patch) -cne $patchDigest) { Get-ReleaseAsset 'v0.6.8' $patchName $cache $patchDigest }
     }
 }
 $Patch = (Get-Item -LiteralPath $Patch).FullName
-if ((Hash-File $Patch) -cne $patchDigest) { throw "0.6.7 更新包 SHA-256 校验失败：$Patch" }
+if ((Hash-File $Patch) -cne $patchDigest) { throw "0.6.8 更新包 SHA-256 校验失败：$Patch" }
 $delta = [IO.Compression.ZipFile]::OpenRead($Patch)
 $archive = $null
 $stage = $null
 try {
     $reader = [IO.StreamReader]::new($delta.GetEntry('update.json').Open(), [Text.Encoding]::UTF8)
     try { $manifest = $reader.ReadToEnd() | ConvertFrom-Json } finally { $reader.Dispose() }
-    if ($manifest.schema -ne 1 -or $manifest.version -cne '0.6.7' -or $manifest.baseVersion -cne '0.4.3' -or !$manifest.files.Count) { throw '更新清单版本不匹配。' }
+    if ($manifest.schema -ne 1 -or $manifest.version -cne '0.6.8' -or $manifest.baseVersion -cne '0.4.3' -or !$manifest.files.Count) { throw '更新清单版本不匹配。' }
     $existing = [IO.Directory]::Exists($final)
     if (!$existing) {
         $source = Get-BasePackage $manifest.files

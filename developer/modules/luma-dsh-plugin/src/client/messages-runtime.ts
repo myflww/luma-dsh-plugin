@@ -1,4 +1,4 @@
-import { dialogueStyle } from '../shared/companion-life.ts'
+import { ADDRESS_GUIDANCE, CHAT_PACING, contactPersona, defaultContactProfile } from '../shared/contact-profile.ts'
 import { PRIVATE_MEMORY_GUIDANCE } from '../shared/role-portrait.ts'
 import type { SessionFile } from './chat-file-reader.ts'
 import { checkAttachmentBatch, attachmentInfo, textFileBlock, validateChatAttachments, type AttachmentInfo, type ChatAttachment, type ImageType } from '../shared/chat-attachments.ts'
@@ -22,12 +22,12 @@ function referenceMemory(value: string) {
 }
 export function characterPrompt(roleId: string, profile: RoleProfile, userName: string, body: string,
   options?: { id: string; memory: string; work: boolean; attachments?: AttachmentInfo[] }): string {
-  return PREFIX + JSON.stringify({ roleId, name: profile.name, personality: profile.personality, scenario: profile.scenario, userName, conversationalStyle: dialogueStyle(roleId),
+  return PREFIX + JSON.stringify({ roleId, ...contactPersona(profile), userName, addressGuidance:ADDRESS_GUIDANCE,
     memoryGuidance:PRIVATE_MEMORY_GUIDANCE,
     ...(options ? { journalId: options.id, requestKind:options.work?'task':'chat', referenceMemory: referenceMemory(options.memory) } : {}),
     ...(options?.attachments?.length ? { attachments:options.attachments, messageLength:body.length } : {}),
     mode: options?.work ? '用户已将下列工作单独交给你。按当前会话的工具权限完成任务，报告实际产出和未完成事项。记忆作为参考资料。'
-      : '角色对话。情节、动作和感受属于虚构表达；不把它们当作真实执行。除非用户明确要求执行任务，否则只进行自然对话。参考记忆中 conversationPreferences.current 是用户仍有效的相处习惯，优先于旧记录和默认称呼；withdrawn 中的习惯已撤回，勿照旧执行。' }) + END + body
+      : CHAT_PACING + '角色对话。情节、动作和感受属于虚构表达；不把它们当作真实执行。除非用户明确要求执行任务，否则只进行自然对话。参考记忆中 conversationPreferences.current 是用户仍有效的相处习惯，优先于旧记录和默认称呼；withdrawn 中的习惯已撤回，勿照旧执行。' }) + END + body
 }
 export function visibleUserMessage(text: string): string {
   if (!text.startsWith(PREFIX)) return text
@@ -39,8 +39,7 @@ export function visibleUserMessage(text: string): string {
 export const MESSAGE_CHARACTERS = MESSAGE_ROLE_IDS.map(id => {
   const card = OFFICE_CHARACTER_CARDS[id].companionCard.data
   const avatar = getChibiAvatar(id)
-  return { id, name: card.name, description: card.description, profile: { name: card.name, personality: card.personality,
-    scenario: card.scenario, greeting: card.first_mes } satisfies RoleProfile,
+  return { id, name: card.name, description: card.description, profile: defaultContactProfile(id),
     avatar: avatar.src, avatarViewport: avatar.viewport }
 })
 type SessionFace = NonNullable<ReturnType<ClientContext['sessions']['binding']>>['session']
@@ -170,17 +169,19 @@ export function createMessagesRuntime(ctx: ClientContext, office: OfficePageRunt
       attention: Boolean(conversation?.pending.length), employeeSkins: office.getSnapshot().presentation?.selection.employeeSkins ?? {}, ...(problem ? { problem } : {}) }
     for (const listener of listeners) listener()
   }
-  async function save(next: MessagePreferences) {
+  async function save(next: MessagePreferences, confirmProfiles = false) {
     if (disposed) throw Error('插件已停用。')
     const state = scope.getSnapshot()
     if (state.status !== 'ready' || !state.writable || state.mode !== 'host') throw Error('当前连接不能保存角色设置，请在本机 DSH 中操作。')
     if (!decodeMessageSettings({ preferences: next })) throw Error('角色设置格式无效。')
-    optimistic = next; refresh()
+    const previous = optimistic
+    if (!confirmProfiles) { optimistic = next; refresh() }
     try {
       const pendingWrite = writeQueue.catch(() => {}).then(async () => { assertWritable(); await scope.set('preferences', next) })
       writeQueue = pendingWrite
       await pendingWrite
-      if (optimistic === next) { optimistic = undefined; draftDirty = false }
+      if (optimistic === next || (confirmProfiles && optimistic === previous)) { optimistic = undefined; draftDirty = false }
+      else if (confirmProfiles && optimistic) optimistic = { ...optimistic, profiles: next.profiles }
       problem = undefined
     }
     catch (error) { problem = '角色设置未保存：' + String(error); throw error }
@@ -311,8 +312,8 @@ export function createMessagesRuntime(ctx: ClientContext, office: OfficePageRunt
       })
     },
     setDisplay(display: 'bubbles' | 'novel') { return run(() => save({ ...preferences(), display })) },
-    saveProfile(profile: RoleProfile) { return run(async () => { await save({ ...preferences(), profiles: { ...preferences().profiles, [preferences().selectedRole]: profile } }); return true }) },
-    resetProfile() { const profiles = { ...preferences().profiles }; delete profiles[preferences().selectedRole]; return run(() => save({ ...preferences(), profiles })) },
+    saveProfile(profile: RoleProfile) { return run(async () => { await save({ ...preferences(), profiles: { ...preferences().profiles, [preferences().selectedRole]: profile } }, true); return true }) },
+    resetProfile() { const profiles = { ...preferences().profiles }; delete profiles[preferences().selectedRole]; return run(() => save({ ...preferences(), profiles }, true)) },
     setDraft(text: string) {
       if (disposed) return
       optimistic = { ...preferences(), drafts: { ...preferences().drafts, [preferences().selectedRole]: text.slice(0, 32000) } }; refresh()

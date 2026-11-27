@@ -17,7 +17,8 @@ function fixture(t) {
   const db=new DatabaseSync(':memory:')
   db.exec(`CREATE TABLE integration(id TEXT PRIMARY KEY, value TEXT NOT NULL);
     CREATE TABLE notes(role TEXT, user TEXT, assistant TEXT, topic TEXT, createdAt INTEGER);
-    CREATE VIEW employee_private_notes AS SELECT *,rowid AS noteOrder FROM notes;`)
+    CREATE VIEW employee_private_notes AS SELECT *,rowid AS noteOrder FROM notes;
+    CREATE VIEW portrait_recallable_notes AS SELECT *,noteOrder AS id,'' AS chatPosition FROM employee_private_notes;`)
   const clock={at:new Date(2026,10,23,9,0).getTime()}
   const options={unlocked:()=>['jingyuniang'],busy:()=>false,makeReply:async()=>undefined,
     topic:(_,t)=>t?'native:'+t:'native-inbox',record:()=>{},now:()=>clock.at}
@@ -49,12 +50,17 @@ test('outreach uses a real unlocked idle person and one durable conversation acr
   f.get().configure({model:true})
   let request
   f.options.makeReply=async(role,brief)=>{request=JSON.parse(brief);return '我给你留了一张便签。'}
+  assert.equal((await f.pulse()).letter,undefined)
+  assert.equal(request,undefined)
+  const note=f.db.prepare('INSERT INTO notes VALUES(?,?,?,?,?)')
+  note.run('jingyuniang','在试一种新纸','我喜欢纸张的纹理。','main',f.clock.at-25*min)
   let res=await f.pulse()
   assert.equal(res.letter.source,'model')
   assert.equal(request.place,'办公室')
   assert.ok(request.context.previousLetters.includes(sent[0].text))
   assert.equal(request.context.recentForegroundApps,undefined)
   f.clock.at+=91*min
+  note.run('jingyuniang','纸边还要再裁一次','那等你试过。','main',f.clock.at-25*min)
   f.options.makeReply=async()=>'[安静]'
   assert.equal((await f.pulse()).letter,undefined)
   f.clock.at+=91*min
@@ -130,6 +136,54 @@ test('a delayed model letter respects quiet hours, a new local day and a chat op
     assert.equal(f.get().history().length,0,change)
   }
 })
+test('a model can develop a longer thought or stay quiet; a new chat never causes an identical letter to be delivered twice',async t=>{
+  const f=fixture(t)
+  const letter='我还想和你聊聊书里的那张地图。'+ '想展开说说地图边缘的记号，以及它和前一张的关系。'.repeat(12)
+  f.get().configure({model:true})
+  let calls=0
+  f.options.makeReply=async()=>{calls++;return letter}
+  await f.pulse()
+  f.clock.at+=3*min
+  assert.equal((await f.pulse()).letter?.text,letter)
+  f.clock.at+=91*min
+  assert.equal((await f.pulse()).letter,undefined)
+  assert.equal(calls,1)
+  f.db.prepare('INSERT INTO notes VALUES(?,?,?,?,?)').run('jingyuniang','我重新看了那张地图','继续聊吧。','main',f.clock.at-25*min)
+  assert.equal((await f.pulse()).letter,undefined)
+  assert.equal(calls,2)
+  f.clock.at+=91*min
+  assert.equal((await f.pulse()).letter,undefined)
+  assert.equal(calls,2)
+})
+
+test('private chats recover a role’s latest relevant position after restart, from that role’s own non-fictional words only',async t=>{
+  const root=await mkdtemp(join(tmpdir(),'luma-own-position-'))
+  let desk=createAgentWork(root)
+  t.after(async()=>{desk.dispose();await rm(root,{recursive:true,force:true})})
+  const a='jingyuniang', b='shan'
+  const save=(roleId,id,user,assistant,privateChat=true)=>desk.call('record',{roleId,topic:'archive',id,user,assistant,privateChat})
+  const recall=async(roleId,query,privateChat=true)=>JSON.parse((await desk.call('recall',{roleId,query,topic:'new',privateChat})).context).companion.ownPosition
+  await save(a,'one','港口版画配什么纸？','我偏爱港口版画用的米色纸。')
+  await save(a,'two','港口版画的新版试印呢？','我现在更喜欢灰纸，岸线更清晰。')
+  await save(a,'story','给港口版画写一段独白。','我喜欢亮紫色的海面。')
+  await save(a,'work','港口版画的介绍','我偏爱荧光红的外框。',false)
+  await save(a,'unrelated','玉米要怎么吃？','我喜欢烤玉米。')
+  await save(b,'other','这幅港口版画呢？','我喜欢白色的浮雕边。')
+  desk.dispose();desk=createAgentWork(root)
+  assert.equal((await recall(a,'你现在对港口版画怎么看？')).quote,'我现在更喜欢灰纸，岸线更清晰。')
+  assert.equal((await recall(b,'你现在对港口版画怎么看？')).quote,'我喜欢白色的浮雕边。')
+  assert.equal(await recall(a,'群内工作，港口版画',false),undefined)
+  assert.equal(await recall(a,'咖啡豆要烘多久？'),undefined)
+  // The source view controls what can be recalled. Forgetting or deleting the
+  // original material must also remove the derived view from subsequent prompts.
+  const db=new DatabaseSync(join(root,'employees.sqlite3'))
+  try {
+    db.prepare("INSERT INTO portrait_hidden_sources SELECT role,'private',id FROM notes WHERE assistant LIKE '%岸线更清晰%'").run()
+    assert.equal((await recall(a,'港口版画？')).quote,'我偏爱港口版画用的米色纸。')
+    db.prepare('DELETE FROM notes WHERE role=? AND assistant LIKE ?').run(a,'%米色纸%')
+    assert.equal(await recall(a,'港口版画？'),undefined)
+  } finally { db.close() }
+})
 test('application names and dwell only, suspend gaps and invalid paths excluded, samples immediately forgotten on stop',()=>{
   const usage=createAppUsage(()=>0)
   assert.equal(usage.status(),'off')
@@ -142,6 +196,54 @@ test('application names and dwell only, suspend gaps and invalid paths excluded,
   usage.stop()
   assert.deepEqual(usage.summary(360000),[])
   assert.equal(usage.status(),'off')
+})
+
+test('one evidence-backed model reflection stays private, survives a restart and disappears with its source',async t=>{
+  const root=await mkdtemp(join(tmpdir(),'luma-considered-'))
+  let at=new Date(2026,10,23,10).getTime()
+  t.mock.method(Date,'now',()=>at)
+  let desk=createAgentWork(root), calls=0, forged=false
+  const thought='我想给下一张潮汐图留出水退后的痕迹。'
+  const evidence='石阶上留下了一道浅白的线'
+  const server=createServer(async(req,res)=>{
+    let raw=''
+    for await(const part of req) raw+=part
+    const input=JSON.parse(JSON.parse(raw).messages.at(-1).content)
+    calls++
+    const decision={action:'reflect',thought,source:input.triggerId,evidence:forged?'我编的材料':evidence}
+    res.end(JSON.stringify({choices:[{message:{content:JSON.stringify(decision)}}]}))
+  }).listen(0,'127.0.0.1')
+  await once(server,'listening')
+  t.after(async()=>{desk.dispose();server.closeAllConnections();await new Promise(ok=>server.close(ok));await rm(root,{recursive:true,force:true})})
+  const roleId='jingyuniang', topic='sea'
+  const pulse=()=>desk.call('companionpulse',{candidates:[{role:roleId,topic,place:'home'}]})
+  const recall=async(role=roleId)=>JSON.parse((await desk.call('recall',{roleId:role,topic:'elsewhere',privateChat:true,query:'怎么画潮汐图？'})).context)
+  await desk.call('configure',{roleId,baseUrl:'http://127.0.0.1:'+server.address().port,model:'local-test'})
+  await desk.call('companionconfigure',{model:true})
+  await desk.call('record',{roleId,id:'ebb',topic,user:'今天看退潮，'+evidence+'。',assistant:'这回看得真仔细。',privateChat:true})
+  await pulse();at+=25*min
+  assert.equal((await pulse()).letter,undefined)
+  assert.equal(calls,1)
+  at+=91*min;await pulse();assert.equal(calls,1)
+  assert.deepEqual((await desk.call('state',{})).letters,[])
+  desk.dispose();desk=createAgentWork(root)
+  const remembered=await recall()
+  assert.equal(remembered.companion.ownPosition.kind,'reflection')
+  assert.equal(remembered.companion.ownPosition.evidence,evidence)
+  assert.equal(remembered.companion.ownPosition.quote,thought)
+  assert.ok(!JSON.stringify(remembered.userPortrait).includes(thought))
+  assert.equal((await recall('shan')).companion.ownPosition,undefined)
+  forged=true
+  await desk.call('record',{roleId,id:'later',topic,user:'另外还想看看石阶的颜色。',assistant:'好。',privateChat:true})
+  at+=25*min
+  assert.equal((await pulse()).letter,undefined)
+  assert.equal(calls,2)
+  const db=new DatabaseSync(join(root,'employees.sqlite3'))
+  try {
+    assert.equal(db.prepare('SELECT COUNT(*) AS n FROM notes WHERE reflection IS NOT NULL').get().n,1)
+    db.prepare('DELETE FROM notes WHERE id=?').run(remembered.companion.ownPosition.source)
+    assert.equal((await recall()).companion.ownPosition,undefined)
+  } finally {db.close()}
 })
 test('mood returns to baseline; each employee has a distinct voice, lived-in dialogue and contextual memory',async t=>{
   assert.equal(Object.keys(companionVoices).length,8)
