@@ -1,0 +1,83 @@
+{
+  "sourceDirectory": "developer/.luma-cache/pickup-natural/",
+  "batch": "图三同批独立拖动立绘，每个造型一张原尺寸透明 PNG。",
+  "figure3Slot": "红框中从上到下的完整缩略图序号；1 也是左侧大图。null 表示同批、未列入图三八个完整缩略图。",
+  "pending": [
+    "陆弥原装",
+    "陆弥换装"
+  ],
+  "files": [
+    {
+      "file": "jingyuniang-base.png",
+      "costume": "鲸鱼娘原装",
+      "figure3Slot": 1,
+      "sha256": "71bae48332ae83229e543a634cc9c628fe769746b5793e26ee50b9c5c779796a"
+    },
+    {
+      "file": "bai-shuangming-v1.png",
+      "costume": "白霜命换装",
+      "figure3Slot": 2,
+      "sha256": "1e5a27ee942660b7a716166e179d9ae9b1f9b1aca28c7f177d02c0ca62c5e980"
+    },
+    {
+      "file": "longmama-v1.png",
+      "costume": "龙妈妈换装",
+      "figure3Slot": 3,
+      "sha256": "ff30e3642caf6c8d2d6e7a3ec062f3cf3cfc21169a61b75b0b301c8bb6f54c22"
+    },
+    {
+      "file": "claude-base.png",
+      "costume": "克劳德原装",
+      "figure3Slot": 4,
+      "sha256": "c6e1a941b9255563e028431bf01031e11611e773214bfeeb6f460076adedca55"
+    },
+    {
+      "file": "shan-v1.png",
+      "costume": "端木嫣换装",
+      "figure3Slot": 5,
+      "sha256": "0e81bfd35c6fbb84515ff6b7345d3944e3bd2643e635ea4ed760c8d1a4d51664"
+    },
+    {
+      "file": "shan-base.png",
+      "costume": "端木嫣原装",
+      "figure3Slot": 6,
+      "sha256": "1e0a77449893af03de97da9062a41324be2eb8dead6404b2d55426e4682ecec9"
+    },
+    {
+      "file": "bai-shuangming-base.png",
+      "costume": "白霜命原装",
+      "figure3Slot": 7,
+      "sha256": "001343719d702318f6d96cda85fe3ccd4766c4ac185d5c3d28a22e97be6f201e"
+    },
+    {
+      "file": "claude-v1.png",
+      "costume": "克劳德换装",
+      "figure3Slot": 8,
+      "sha256": "28ce063c43bfd5adb6c2f7192bcd8db9997e074bd254efd2e5b54c05ade735bf"
+    },
+    {
+      "file": "jingyuniang-v1.png",
+      "costume": "鲸鱼娘换装",
+      "figure3Slot": null,
+      "sha256": "2d35350c439217f17cbbbfc9e7be7f3e0c23879469cea349e852f1c87916fd3e"
+    },
+    {
+      "file": "longmama-base.png",
+      "costume": "龙妈妈原装",
+      "figure3Slot": null,
+      "sha256": "30858475e61785fcb28690a0f26d7be494b702c2c1db6b687cb8c293c4a47083"
+    },
+    {
+      "file": "gemini-v1.png",
+      "costume": "吉米换装",
+      "figure3Slot": null,
+      "sha256": "6f71d8ce60263f112710b6b6f6401534dd9a671b22171f97d1c0b2c6172ed845"
+    },
+    {
+      "file": "grok-v1.png",
+      "costume": "绯洛换装",
+      "figure3Slot": null,
+      "sha256": "45088fb12c2d048e9e54d3c121aadb024af0cf555acbde469ad72453b91b0adf"
+    }
+  ]
+}
