@@ -4,7 +4,7 @@
 
 在 DeepSeek Harness Desktop 里，伙伴有自己的工位、房间和聊天窗口。新档案从鲸鱼娘开始。在「联系」里和她聊两句，交给她一项工作，再邀请其他伙伴加入。
 
-[下载 Windows 正式版 0.6.5](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.6.5) · [工作室使用指南](docs/studio.md) · [安装与使用手册](docs/guide.md) · [记忆与爱之屋](docs/memory.md) · [使用许可](LICENSE.md)
+[下载 Windows 正式版 0.6.6](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.6.6) · [工作室使用指南](docs/studio.md) · [安装与使用手册](docs/guide.md) · [记忆与爱之屋](docs/memory.md) · [使用许可](LICENSE.md)
 
 ## 从工位走到桌面
 
@@ -36,10 +36,12 @@
 ## Windows 首次安装
 
 1. 安装并打开一次 **DeepSeek Harness Desktop**，让宿主建立桌面档案。[DeepSeek Harness 项目](https://github.com/deepseek-ai/deepseek-harness)
-2. 从发行页下载 **Luma-DSH-0.6.5-Installer.zip**，完整解压，双击 **Install-Luma-DSH.cmd**。首次安装会下载基础美术和本版更新；已安装的用户可以复用旧版资源。[0.6.5 正式发行页](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.6.5)
+2. 从发行页下载 **Luma-DSH-0.6.6-Installer.zip**，完整解压，双击 **Install-Luma-DSH.cmd**。首次安装会下载基础美术和本版更新；已安装的用户可以复用旧版资源。[0.6.6 正式发行页](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.6.6)
 3. 重新打开 DSH，在侧栏选择「Luma 办公室」。新档只有鲸鱼娘。下班后可以从办公室左下角直接去她的卧室。想开第一包卡时，打开「收藏」领取新册礼，再选择卡包。[安装、离线升级与回退](docs/guide.md)
 
 ## 工位、卧室与桌宠
+
+0.6.6 的桌宠支持在右键菜单里选「吃点心」「原地转圈」「优雅行礼」。也可以把文本、带文字层的 PDF 或 Office 文档拖给她，她会读一段正文，再问你想怎样处理。白天从屏幕底边探出时，每套衣装都有自己的扶边或托腮姿势。[桌宠使用方法](docs/guide.md#拖动伙伴与桌面探头)
 
 ![九间办公室的八人入座实拍](docs/images/offices-061.jpg)
 

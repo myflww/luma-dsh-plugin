@@ -31,28 +31,25 @@ def ease(a, b, value):
 def head_source_map(gx, gy, eyes, mouth, look):
     """Inverse 2.5-D portrait turn: facial plane advances ahead of the cranium.
 
-    A roll about the neck carries hair, horns and halo. The outer hair has
-    less parallax than the forehead and cheeks. Weights decay through the
-    collar, leaving every lower-body pixel on its original contact.
+    Pivot high in the face. The lip landmark gives each outfit a lower
+    boundary above its neckline, including high collars and chokers.
     """
     hx, hy = look
     cx, cy = np.mean(eyes, axis=0)
     span = math.dist(*eyes)
-    # The mouth locates the chin of a portrait that is already tilted.
-    nx = cx + 1.65 * (mouth[0] - cx)
-    ny = cy + 1.85 * (mouth[1] - cy)
+    nx, ny = mouth
     u, v = (gx - cx) / span, (gy - cy) / span
-    neck = 1 - ease(ny - .24 * span, ny + .7 * span, gy)
+    head = 1 - ease(cy + .04 * span, ny + 4, gy)
     # A broad, locally flat face keeps outlines, glasses and the bridge of
     # the nose together. Its sides turn into the far cheek toward the ears.
     depth = 1 - ease(.62, 1.8, np.hypot(u, (v + .13) * .86))
-    angle = math.radians(3.3) * hx
+    angle = math.radians(1.4) * hx
     cosine, sine = math.cos(angle), math.sin(angle)
     dx = (cosine - 1) * (gx - nx) - sine * (gy - ny)
     dy = sine * (gx - nx) + (cosine - 1) * (gy - ny)
-    dx += span * hx * (.07 + .20 * depth) - .044 * hx * hx * (gx - cx) * depth
-    dy += span * hy * (.083 + .16 * depth) - .041 * hy * hy * (gy - cy) * depth
-    return (gx - neck * dx).astype(np.float32), (gy - neck * dy).astype(np.float32)
+    dx += span * hx * (.035 + .094 * depth) - .016 * hx * hx * (gx - cx) * depth
+    dy += span * hy * (.03 + .075 * depth)
+    return (gx - head * dx).astype(np.float32), (gy - head * dy).astype(np.float32)
 
 
 def iris_offsets(patch, eyes, origin, key):
@@ -136,6 +133,9 @@ def make_sheets(key, meta, landmarks):
             views.append(np.uint8(np.clip(base + pupil * opaque[:, :, None] + .5, 0, 255)))
         matching = views[head_index]
         cell[rect][:, :, :3] = matching
+        stationary = landmarks['mouth'][1] + 4
+        if not np.array_equal(cell[stationary:], neutral[stationary:]):
+            raise ValueError(f'{key}: gaze moved the jaw base, neck or clothing')
         if head_index == CENTER and not np.array_equal(cell, neutral):
             raise ValueError(f'{key}: the frontal cell must match the landing pose')
         heads.paste(Image.fromarray(cell), ((head_index % 5) * w, (head_index // 5) * h))

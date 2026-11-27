@@ -17,8 +17,12 @@ type PetMode = 'field'|'peeking'|'hidden-edge'
 type PetActivity = 'awake'|'greeting'|'lunch'|'sleepy'|'settling'|'dozing'
 type PetState = {roleId:string;skinId:string|null;mode:PetMode;side:'left'|'right'|'top'|'bottom'|null;activity:PetActivity}
 interface Pet {process:ChildProcessWithoutNullStreams;state:PetState;closed:Promise<void>;slot:number;windowId?:number;reduceMotion:boolean;requestedSkin:string|null;retrySkinAt:number}
+export interface PetFileConversation {
+  drop(roleId:string,paths:readonly string[]):Promise<{topic:string;text:string}>
+  reply(roleId:string,topic:string,text:string):Promise<string>
+}
 
-export function desktopPets(directory:string, unlocked:()=>readonly string[], skin:(role:string)=>string|undefined, readCalendar:()=>DesktopPetCalendar=()=>({})) {
+export function desktopPets(directory:string, unlocked:()=>readonly string[], skin:(role:string)=>string|undefined, readCalendar:()=>DesktopPetCalendar=()=>({}), files?:PetFileConversation) {
   const pets = new Map<string,Pet>()
   const supported = process.platform === 'win32'
   let disposed=false
@@ -37,7 +41,9 @@ export function desktopPets(directory:string, unlocked:()=>readonly string[], sk
         ...source.poses.look,path:assetPath(source.poses.look.path),eyesPath:assetPath(source.poses.look.eyesPath)}},
       sleep:assetPath(source.sleep),sleepAngle:source.sleepAngle,sleepMirror:source.sleepMirror,
       peek:join(directory,'pet-art',key+'.png'),ledge:join(directory,'pet-art','ledge',key+'.png'),
+      bottomPeek:join(directory,'pet-art','bottom',key+'.png'),
       sleepyPose:join(directory,'pet-art','drowsy',key+'.png'),greet:join(directory,'pet-art','greet',key+'.png'),
+      performance:join(directory,'pet-art','performance',key+'.png'),
       lunchPose:join(directory,'pet-art','lunch',key+'.png')}
   }
   function command(pet:Pet, message:object) {
@@ -77,6 +83,33 @@ export function desktopPets(directory:string, unlocked:()=>readonly string[], sk
     pets.set(role,pet)
     void closed.then(()=>{if(pets.get(role)===pet){pets.delete(role);shareWindows()}})
     const lines=createInterface({input:child.stdout})
+    let fileBusy=false
+    let fileTopic:string|undefined
+    async function fileEvent(event:Record<string,unknown>) {
+      const requestId=event.requestId
+      if(typeof requestId!=='string' || !/^[a-f0-9]{32}$/i.test(requestId))return
+      const report=(result:object)=>{
+        if(!disposed && pets.get(role)===pet)command(pet,{action:'fileResult',requestId,...result})
+      }
+      if(fileBusy){report({error:'上一份文件还在处理中，请稍后再试。'});return}
+      fileBusy=true
+      try {
+        if(!files || disposed || !unlocked().includes(role))throw Error('目前无法使用这位伙伴的文件对话。')
+        if(event.kind==='fileDrop'){
+          const paths=event.paths
+          if(!Array.isArray(paths) || !paths.length || paths.length>4 ||
+             !paths.every(path=>typeof path==='string' && path.length>0 && path.length<=32767))throw Error('请一次交给我一至四个文件。')
+          const result=await files.drop(role,paths)
+          fileTopic=result.topic
+          report(result)
+        }else{
+          if(!fileTopic || event.topic!==fileTopic || typeof event.text!=='string' ||
+             !event.text.trim() || event.text.length>4000)throw Error('这次回复未能关联到当前文件。')
+          report({topic:fileTopic,text:await files.reply(role,fileTopic,event.text.trim())})
+        }
+      }catch(error){report({error:error instanceof Error?error.message:'文件对话暂时无法完成。'})}
+      finally{fileBusy=false}
+    }
     try {
       await new Promise<void>((ok,no)=>{
         const timer=setTimeout(()=>no(Error('桌宠窗口启动超时。')),25000)
@@ -86,6 +119,7 @@ export function desktopPets(directory:string, unlocked:()=>readonly string[], sk
         lines.on('line',line=>{
           try {
             const event=JSON.parse(line.replace(/^\uFEFF/, ''))
+            if(event?.kind==='fileDrop' || event?.kind==='fileReply'){void fileEvent(event);return}
             if(!['field','peeking','hidden-edge'].includes(event.mode))return
             pet.state={...pet.state,mode:event.mode,side:['left','right','top','bottom'].includes(event.side)?event.side:null,
               skinId:event.skinId===null||event.skinId===pet.requestedSkin?event.skinId:pet.state.skinId,

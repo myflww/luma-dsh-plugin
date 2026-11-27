@@ -117,14 +117,27 @@ def drawings(path):
         yield rgba
 
 
-def place(drawing, scale, contact, floor):
-    """A single rigid similarity transform keeps the source anatomy and knee bend intact."""
+def place(drawing, scale, contact, floor, collar=None, body=1.):
+    """Register the face at its painted scale and keep the weight-bearing shoe fixed."""
     sx,sy=contact
     fx,fy=floor
     matrix=np.float32([[scale,0,fx-scale*sx],[0,scale,fy-scale*sy]])
     rgb=drawing.astype(np.float32)/255
     rgb[:,:,:3]*=rgb[:,:,3:4]
-    return cv2.warpAffine(rgb,matrix,(384,336),flags=cv2.INTER_LINEAR)
+    if collar is None or body>=.9999:
+        return cv2.warpAffine(rgb,matrix,(384,336),flags=cv2.INTER_LINEAR)
+    # A long torso in a separately drawn key must not resize the entire face.
+    # Keep the head through the collar and the bottom 14 pixels of the shoe
+    # rigid. Only the span between those landmarks changes length.
+    ankle=sy-14/scale
+    shoulder_y=fy-scale*(sy-collar)*body
+    ankle_y=fy-14
+    if ankle<=collar or ankle_y<=shoulder_y:raise ValueError('Invalid body landmarks')
+    y,x=np.indices((336,384),dtype=np.float32)
+    mid_scale=(ankle_y-shoulder_y)/(ankle-collar)
+    source_y=np.where(y<shoulder_y,collar+(y-shoulder_y)/scale,
+                      np.where(y>ankle_y,ankle+(y-ankle_y)/scale,collar+(y-shoulder_y)/mid_scale))
+    return cv2.remap(rgb,sx+(x-fx)/scale,np.float32(source_y),cv2.INTER_LINEAR)
 
 
 def premultiply(image):
@@ -183,7 +196,7 @@ def build(key, meta, registration):
         # Compose the whole action's shoe alignment after its in-betweens.
         floor=[meta['foot'][0]+mark['floor'][0]-placement[i//3],meta['foot'][1]-1+mark['floor'][1]]
         contacts.append(floor)
-        poses.append(place(drawing,mark['scale'],mark['sole'],floor))
+        poses.append(place(drawing,mark['scale'],mark['sole'],floor,mark.get('collar'),mark.get('body',1.)))
     sheet=Image.new('RGBA',(w*8,h*2))
     actions=[]
     for row,(name,title) in enumerate(ACTIONS[key]):

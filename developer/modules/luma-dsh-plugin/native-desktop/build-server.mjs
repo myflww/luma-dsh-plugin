@@ -84,7 +84,12 @@ for (const preset of Object.keys(employees)) {
   }
 }
 await build({
+  entryPoints:[join(plugin,'src/host/pet-pdf-worker.mjs')],outfile:join(output,'pet-pdf-worker.mjs'),
+  platform:'node',format:'esm',target:'node24',bundle:true,minify:true,legalComments:'eof',
+})
+await build({
   ...nativeBundleOptions,
+  banner:{js:"import { createRequire as createNodeRequire } from 'node:module'; const require=createNodeRequire(import.meta.url);"},
   entryPoints:[join(here, 'server-entry.ts')], outfile:join(output, 'server.mjs'),
   platform:'node', format:'esm', target:'node24', bundle:true,
   define:{__LUMA_DESKTOP_PRESETS__:JSON.stringify({employees,plugins:config.plugins}),__LUMA_PET_ART__:JSON.stringify(petArt)},

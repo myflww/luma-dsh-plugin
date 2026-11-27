@@ -142,7 +142,16 @@ def main():
         except (ValueError, KeyError, OSError, IndexError, struct.error) as error:
             errors.append({"file": name, "error": str(error)})
 
-    for file in sorted((package / "native-desktop/pet-art").rglob("*.png")):
+    pet_art = package / "native-desktop/pet-art"
+    pose_index = Path(__file__).resolve().parent / "overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/actorPoseAtlas.generated.json"
+    costumes = set(json.loads(pose_index.read_text(encoding="utf8")))
+    for folder in ("", "bottom", "greet", "drowsy", "lunch", "ledge", "performance"):
+        directory = pet_art / folder
+        actual = {file.stem for file in directory.glob("*.png")}
+        if actual != costumes:
+            errors.append({"file": directory.relative_to(package).as_posix(),
+                           "error": "costume mismatch: " + ", ".join(sorted(actual ^ costumes))})
+    for file in sorted(pet_art.rglob("*.png")):
         try:
             inspect(file, file.read_bytes())
             counts["desktopPetImages"] += 1

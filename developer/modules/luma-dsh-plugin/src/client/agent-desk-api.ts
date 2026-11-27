@@ -27,6 +27,7 @@ export interface AgentConfig {
 }
 export interface WorkRoom { duties?:Record<string,string>; workflow?: TeamWorkflow; id: string; name: string; roleIds: string[]; createdAt: number }
 export interface AgentState {
+  petFileDefault?: boolean
   roles: Record<string, AgentConfig>
   jobs: AgentJob[]
   rooms?: WorkRoom[]

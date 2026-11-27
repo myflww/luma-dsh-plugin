@@ -138,16 +138,19 @@ internal static class PetMotionCheck {
             }
         }
     }
-    static void CheckLook(string key,PetPoseAtlas atlas){
+    sealed class StandingLandmarks { public int[] mouth {get;set;} }
+    static void CheckLook(string key,PetPoseAtlas atlas,int jaw){
         var cell=new Rectangle(Point.Empty,atlas.Frame(0).Size);
         var rest=Pixels(atlas.Frame(0),cell);
         Check(rest.SequenceEqual(Pixels(atlas.LookFrame(12,12),cell)),key+" look moved the neutral artwork");
-        var foot=new Rectangle(0,atlas.Metadata.foot[1]-13,cell.Width,17);
-        var sole=Pixels(atlas.Frame(0),foot);
+        var collarAndClothes=new Rectangle(0,jaw,cell.Width,cell.Height-jaw);
+        var fixedPixels=Pixels(atlas.Frame(0),collarAndClothes);
+        for(int index=0;index<25;index++)
+            Check(fixedPixels.SequenceEqual(Pixels(atlas.LookFrame(index,24-index),collarAndClothes)),
+                  key+" release gaze moved the jaw base, neck or clothing at "+index);
         foreach(var index in new[]{2,10,14,22}){
             Check(!Pixels(atlas.LookFrame(index,index),cell).SequenceEqual(rest),key+" missing head angle");
             Check(!Pixels(atlas.LookFrame(12,index),cell).SequenceEqual(rest),key+" missing independent eyes");
-            Check(sole.SequenceEqual(Pixels(atlas.LookFrame(index,12),foot)),key+" release gaze moved the feet");
         }
     }
     static void CheckLookTiming(){
@@ -167,11 +170,12 @@ internal static class PetMotionCheck {
         CheckLookTiming();
         Check(PetPoseAtlas.IdleDelay("lu-mi")==615 && PetPoseAtlas.IdleDelay("grok")==22,"native and room idle beats diverged");
         var all=new JavaScriptSerializer().Deserialize<Dictionary<string,PetPoseStrip>>(File.ReadAllText(args[0]));
+        var marks=new JavaScriptSerializer().Deserialize<Dictionary<string,StandingLandmarks>>(File.ReadAllText(args[1]));
         foreach(var pair in all)
             using(var atlas=new PetPoseAtlas(pair.Value)){
                 CheckAtlas(pair.Key,atlas);
                 CheckGestures(pair.Key,atlas);
-                CheckLook(pair.Key,atlas);
+                CheckLook(pair.Key,atlas,marks[pair.Key].mouth[1]+4);
             }
     }
 }

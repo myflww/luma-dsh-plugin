@@ -84,12 +84,14 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
     const key = topicFor(job)
     if (!workTopics.has(key)) workTopics.set(key, (job.text || job.attachments?.[0]?.name || '工作记录').slice(0, 30))
   }
+  const latestFile = [...roleJobs].reverse().find(job=>job.topic?.startsWith('pet-file-'))
   const newestJob = roleJobs.reduce<AgentJob | undefined>((latest, job) => !latest || latest.createdAt < job.createdAt ? job : latest, undefined)
   const latestLetter=(desk.state?.letters??[]).filter(l=>l.role===roleId && l.topic.startsWith('desk:')).sort((a,b)=>b.time-a.time)[0]
-  const defaultTopic = configured ? (newestJob ? topicFor(newestJob) : latestLetter?.topic.slice(5) || freshTopic) : 'native'
+  const defaultTopic = configured ? (newestJob ? topicFor(newestJob) : latestLetter?.topic.slice(5) || freshTopic) : latestFile?.topic && desk.state?.petFileDefault ? latestFile.topic : 'native'
   const preferred = chosen[roleId] ?? (desk.state ? defaultTopic : undefined)
   const nativeView = preferred === 'native'
   const topic = preferred && !nativeView ? preferred : freshTopic
+  const defaultFileChat=Boolean(mode==='chat' && !nativeView && topic.startsWith('pet-file-') && desk.state?.petFileDefault)
   const selectedWindow=mode==='task' && !nativeView && windowAssignment?.role===roleId && windowAssignment.topic===topic ? windowAssignment:undefined
   const jobs = nativeView ? [] : roleJobs.filter(job => topicFor(job) === topic).sort((a,b) => a.createdAt - b.createdAt)
   const letters = (desk.state?.letters ?? []).filter(letter=>letter.role===roleId && (nativeView
@@ -106,7 +108,7 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
     ? handoff.filter(id => !serviceConfigs[id]?.model) : []
   const teamReady = mode !== 'team' || (optedTeam.length > 0 && missingServices.length === 0)
   const sendViaNative = mode !== 'team' && nativeView
-  const dshAttachments = sendViaNative || (mode==='team' ? handoff : [roleId]).some(id=>acceptsImagesAndTextOnly(serviceConfigs?.[id]?.source))
+  const dshAttachments = sendViaNative || (!configured && defaultFileChat) || (mode==='team' ? handoff : [roleId]).some(id=>acceptsImagesAndTextOnly(serviceConfigs?.[id]?.source))
   const attachmentKey = JSON.stringify([roleId, nativeView ? 'native' : topic, nativeView ? state.sessionId : ''])
   const files = attachmentDrafts.filesFor(attachmentKey)
   const fileSelectionDisabled = busy || !state.writable || !preferred
@@ -117,23 +119,25 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
   }
   const deskReady = Boolean(desk.state) && !desk.problem
   const serviceReady = sendViaNative ? !state.running && !state.attention
-    : deskReady && (mode === 'team' ? teamReady : configured)
+    : deskReady && (mode === 'team' ? teamReady : configured || defaultFileChat)
   const canSend = visibleRoles.has(roleId) && state.writable && !busy && !privateMailInTeam && (!!drafting.trim() || !!files.length) && !runningJob && serviceReady
   const serviceRole = serviceTarget?.owner === roleId ? serviceTarget.id : roleId
   const [localRefresh, setLocalRefresh] = useState(0)
   const scrollFingerprint = (letters.at(-1)?.id ?? '') + jobs.map(job => [job.id, job.status, job.steps.map(step => step.output.length).join(',')].join(':')).join('|')
   function selectLocal(key:string) {
     if (key!==topic || nativeView) setWindowAssignment(undefined)
+    if (key.startsWith('pet-file-')) setMode('chat')
     setChosen(old => ({ ...old, [roleId]: key }))
   }
   function chooseMode(value:AgentMode) {
     if(value!=='task') setWindowAssignment(undefined)
+    if(value!=='chat' && topic.startsWith('pet-file-'))selectLocal(freshTopic)
     setMode(value)
   }
   function assignWindow(id:string,label:string,readTitle?:string) {
     if(!id){setWindowAssignment(undefined);return}
     if(!configured || !state.writable || busy || runningJob) return
-    const targetTopic=nativeView?'desk-'+crypto.randomUUID():topic
+    const targetTopic=nativeView || topic.startsWith('pet-file-')?'desk-'+crypto.randomUUID():topic
     selectLocal(targetTopic);setMode('task');setActionError('')
     setWindowAssignment({id,label,role:roleId,topic:targetTopic,...(readTitle ? {readTitle} : {})})
   }
@@ -295,6 +299,9 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
           <button className="lumaContactSettingsButton" type="button" aria-label="聊天设置" title="聊天设置" aria-expanded={panel==='settings'} onClick={() => setPanel(panel === 'settings' ? null : 'settings')}><Settings2 size={18} aria-hidden="true"/></button>
         </div>
       </header>
+      {!nativeView && topic.startsWith('pet-file-') && <p className="lumaMessageNotice">桌宠文件对话 · 可以在这里继续问这位伙伴。</p>}
+      {latestFile?.topic && latestFile.topic!==preferred && <button type="button" className="lumaContactFileLink" disabled={busy}
+        onClick={()=>selectLocal(latestFile.topic!)}>继续桌宠文件对话</button>}
       {state.problem && <div className="lumaMessageNotice" role="alert">{state.problem}<button type="button" onClick={onOpenNative}>检查模型和连接</button></div>}
       {actionError && <p className="lumaMessageNotice" role="alert">{actionError}</p>}
       {desk.problem && <div className="lumaMessageNotice" role="alert"><span>{desk.problem}</span>
@@ -305,7 +312,7 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
         }}>另开私聊</button></div>}
       {!preferred && (slowLookup || desk.problem) && <div className="lumaMessageNotice" role="status"><span>{desk.problem ? '可在 DSH 会话中继续聊天或单人派工。' : '连接员工服务耗时较长，可先使用 DSH 会话。'}</span>
         <button type="button" onClick={() => selectLocal('native')}>使用 DSH 会话</button></div>}
-      {preferred && !nativeView && deskReady && !configured && mode !== 'team' && <p className="lumaMessageNotice">这段工作记录使用独立服务。可在「模型服务」中配置模型，或从「历史对话」选择 DSH 会话。</p>}
+      {preferred && !nativeView && deskReady && !configured && !defaultFileChat && mode !== 'team' && <p className="lumaMessageNotice">这段工作记录使用独立服务。可在「模型服务」中配置模型，或从「历史对话」选择 DSH 会话。</p>}
       {!state.writable && !state.loading && <p className="lumaMessageNotice">当前连接为只读，仍可阅读已有对话。请在本机 DSH 中保存设定或发送消息。</p>}
       {nativeView && state.attention && <div className="lumaMessageNotice" role="status">此对话有待确认事项。<button type="button" onClick={onOpenNative}>前往原生会话处理</button></div>}
       <TranscriptFrame scroll={scroll} scope={JSON.stringify([roleId,preferred,state.sessionId])}><div className={`lumaMessageHistory is-${state.preferences.display}`} ref={scroll} role="log" aria-label="角色对话记录" aria-live="polite"
