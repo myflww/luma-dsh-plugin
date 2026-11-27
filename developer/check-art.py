@@ -142,9 +142,29 @@ def main():
         except (ValueError, KeyError, OSError, IndexError, struct.error) as error:
             errors.append({"file": name, "error": str(error)})
 
-    for file in sorted((package / "native-desktop/pet-art").rglob("*.png")):
+    pet_art = package / "native-desktop/pet-art"
+    pose_index = Path(__file__).resolve().parent / "overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/actorPoseAtlas.generated.json"
+    costumes = set(json.loads(pose_index.read_text(encoding="utf8")))
+    for folder in ("", "bottom", "bottom-night", "greet", "drowsy", "lunch", "ledge", "performance"):
+        directory = pet_art / folder
+        actual = {file.stem for file in directory.glob("*.png")}
+        expected_costumes = {"lu-mi-base", "lu-mi-v1"} if folder == "bottom-night" else costumes
+        if actual != expected_costumes:
+            errors.append({"file": directory.relative_to(package).as_posix(),
+                           "error": "costume mismatch: " + ", ".join(sorted(actual ^ expected_costumes))})
+    for file in sorted(pet_art.rglob("*.png")):
         try:
             inspect(file, file.read_bytes())
+            if file.parent.name == "performance":
+                with Image.open(file) as sheet:
+                    if sheet.size != (4 * 384, 4 * 336):
+                        raise ValueError("expected four rows, including the head-pat response")
+                    alpha = sheet.getchannel("A")
+                    for y in range(0, sheet.height, 336):
+                        for x in range(0, sheet.width, 384):
+                            box = alpha.crop((x, y, x + 384, y + 336)).getbbox()
+                            if not box or min(box[0], box[1], 384 - box[2], 336 - box[3]) < 2:
+                                raise ValueError(f"empty or clipped performance frame at {x}, {y}")
             counts["desktopPetImages"] += 1
         except (OSError, ValueError) as error:
             errors.append({"file": file.relative_to(package).as_posix(), "error": str(error)})

@@ -28,40 +28,35 @@ def ease(a, b, value):
     return t * t * (3 - 2 * t)
 
 
-def head_source_map(gx, gy, eyes, mouth, look):
-    """Inverse 2.5-D portrait turn: facial plane advances ahead of the cranium.
-
-    A roll about the neck carries hair, horns and halo. The outer hair has
-    less parallax than the forehead and cheeks. Weights decay through the
-    collar, leaving every lower-body pixel on its original contact.
-    """
+def head_source_map(gx, gy, eyes, mouth, chin, look):
+    """Turn the painted face together, with the neck anchored under its jaw."""
     hx, hy = look
+    length = max(1., math.hypot(hx, hy))
+    hx, hy = hx / length, hy / length
     cx, cy = np.mean(eyes, axis=0)
     span = math.dist(*eyes)
-    # The mouth locates the chin of a portrait that is already tilted.
-    nx = cx + 1.65 * (mouth[0] - cx)
-    ny = cy + 1.85 * (mouth[1] - cy)
+    nx, ny = mouth
     u, v = (gx - cx) / span, (gy - cy) / span
-    neck = 1 - ease(ny - .24 * span, ny + .7 * span, gy)
-    # A broad, locally flat face keeps outlines, glasses and the bridge of
-    # the nose together. Its sides turn into the far cheek toward the ears.
-    depth = 1 - ease(.62, 1.8, np.hypot(u, (v + .13) * .86))
-    angle = math.radians(3.3) * hx
+    # The bottom of the face rises towards both ears. Keep the mouth and
+    # cheeks on the same moving plane as the eye sockets, then attach this
+    # plane to the fixed neck only around the painted mandibular contour.
+    jaw = chin[1] - span * np.minimum(.44, .53 * np.abs((gx - chin[0]) / span) ** 1.8)
+    face_weight = 1 - ease(jaw - 1.3, jaw + 2., gy)
+    hair_weight = 1 - ease(cy - .1 * span, chin[1] + 2., gy)
+    outer = ease(.70, 1.25, np.abs(u))
+    head = face_weight * (1 - outer) + hair_weight * outer
+    depth = 1 - ease(.72, 1.75, np.hypot(u, (v - .11) * .77))
+    angle = math.radians(.85) * hx
     cosine, sine = math.cos(angle), math.sin(angle)
-    dx = (cosine - 1) * (gx - nx) - sine * (gy - ny)
-    dy = sine * (gx - nx) + (cosine - 1) * (gy - ny)
-    dx += span * hx * (.07 + .20 * depth) - .044 * hx * hx * (gx - cx) * depth
-    dy += span * hy * (.083 + .16 * depth) - .041 * hy * hy * (gy - cy) * depth
-    return (gx - neck * dx).astype(np.float32), (gy - neck * dy).astype(np.float32)
+    dx = (cosine - 1) * (gx - nx) - sine * (gy - chin[1])
+    dy = sine * (gx - nx) + (cosine - 1) * (gy - chin[1])
+    dx += span * hx * (.028 + .067 * depth) - .012 * hx * hx * (gx - cx) * depth
+    dy += span * hy * (.021 + .045 * depth)
+    return (gx - head * dx).astype(np.float32), (gy - head * dy).astype(np.float32)
 
 
-def iris_offsets(patch, eyes, origin, key):
-    """Move original iris pigment through its eye opening, holding both lids.
-
-    The mask follows the painted eye line. The visor's specular streaks stay
-    fixed on the glass.
-    Each result is a color difference inside the painted eye in this small crop.
-    """
+def eye_aperture(patch, eyes, origin, key):
+    """Register the inside of each eye; hold the lash, rims and visor glints."""
     oy, ox = origin[1], origin[0]
     gy, gx = np.indices(patch.shape[:2], dtype=np.float32)
     angle = math.atan2(eyes[1][1] - eyes[0][1], eyes[1][0] - eyes[0][0])
@@ -70,33 +65,42 @@ def iris_offsets(patch, eyes, origin, key):
     weight = np.zeros_like(gx)
     for cx, cy in eyes:
         x, y = gx + ox - cx, gy + oy - cy
-        u = (cos * x + sin * y) / (span * .31)
-        v = (-sin * x + cos * y) / (span * .225)
-        # Shorten the upper portion to anchor the dark upper lash; the iris
-        # can travel across the visible white between the two corners.
-        aperture = u * u + (v * np.where(v < 0, 1.17, 1.0)) ** 2
-        weight = np.maximum(weight, 1 - ease(.21, .98, aperture)).astype(np.float32)
-    ink = patch[:, :, :3].astype(np.float32)
+        u = (cos * x + sin * y) / (span * .29)
+        v = (-sin * x + cos * y) / (span * .215)
+        aperture = u * u + (v * np.where(v < 0, 1.19, 1.0)) ** 2
+        weight = np.maximum(weight, 1 - ease(.20, .98, aperture)).astype(np.float32)
     weight *= patch[:, :, 3] >= 248
+    glint = np.zeros(weight.shape, dtype=np.float32)
     if key == 'gemini-v1':
-        # Cyan/white glints are reflections on the continuous tinted screen.
-        r, g, b = ink.transpose(2, 0, 1)
-        glint = (g > 213) & (b > 232) & ((r > 187) | (g - r > 32))
-        weight *= ~glint
-    offsets = []
+        r, g, b = patch[:, :, :3].astype(np.float32).transpose(2, 0, 1)
+        glint = ((g > 213) & (b > 232) & ((r > 187) | (g - r > 32))).astype(np.float32)
+        weight *= 1 - glint
+    return weight, glint
+
+
+def eye_views(ink, face, mx, my, weight, glint, span):
+    # Compose both deformations in source coordinates, then sample the painted
+    # pupil once. Two consecutive image resamples blur the catchlight on diagonals.
+    aperture = cv2.remap(weight, mx, my, cv2.INTER_LINEAR)
+    has_glass = np.any(glint)
+    if has_glass:
+        glass = cv2.remap(glint, mx, my, cv2.INTER_LINEAR)
+    base = face[:, :, :3]
     for x, y in DIRECTIONS:
-        mx = gx - x * span * .091 * weight
-        my = gy - y * span * .064 * weight
-        moved = cv2.remap(ink, mx, my, cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
-        if key == 'gemini-v1':
-            reflected = cv2.remap(glint.astype(np.float32), mx, my, cv2.INTER_LINEAR)
-            moved = ink + (moved - ink) * (1 - reflected[:, :, None])
-        offsets.append(moved - ink)
-    return offsets
+        radius = max(1., math.hypot(x, y))
+        sx = mx - (x / radius) * span * .062 * aperture
+        sy = my - (y / radius) * span * .039 * aperture
+        moved = cv2.remap(ink, sx, sy, cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
+        if has_glass:
+            moved_glass = cv2.remap(glint, sx, sy, cv2.INTER_LINEAR)
+            keep = 1 - np.maximum(glass, moved_glass)
+            moved = base + (moved - base) * keep[:, :, None]
+        changing = (aperture > 0) & (face[:, :, 3] >= 248)
+        yield np.where(changing[:, :, None], np.uint8(np.clip(moved + .5, 0, 255)), base)
 
 
 def head_pixels(neutral, premultiplied, gx, gy, mx, my):
-    moved = cv2.remap(premultiplied, mx, my, cv2.INTER_LINEAR)
+    moved = cv2.remap(premultiplied, mx, my, cv2.INTER_CUBIC)
     alpha = moved[:, :, 3:4]
     rgb = moved[:, :, :3] / np.maximum(alpha / 255, 1e-6)
     result = np.uint8(np.clip(np.dstack((rgb, alpha)) + .5, 0, 255))
@@ -118,7 +122,8 @@ def make_sheets(key, meta, landmarks):
     x1, y1 = high.tolist()
     rect = np.s_[y0:y1, x0:x1]
     sw, sh = x1 - x0, y1 - y0
-    offsets = iris_offsets(neutral[rect], eyes, low, key)
+    weight, glint = eye_aperture(neutral[rect], eyes, low, key)
+    ink = neutral[rect][:, :, :3].astype(np.float32)
     premultiplied = neutral.astype(np.float32)
     premultiplied[:, :, :3] *= premultiplied[:, :, 3:4] / 255
     gy, gx = np.indices((h, w), dtype=np.float32)
@@ -126,16 +131,15 @@ def make_sheets(key, meta, landmarks):
     patches = []
     used = np.zeros((sh, sw), dtype=np.uint8)
     for head_index, direction in enumerate(DIRECTIONS):
-        mx, my = head_source_map(gx, gy, eyes, landmarks['mouth'], direction)
+        mx, my = head_source_map(gx, gy, eyes, landmarks['mouth'], landmarks['chin'], direction)
         cell = head_pixels(neutral, premultiplied, gx, gy, mx, my)
-        base = cell[rect][:, :, :3].astype(np.float32)
-        opaque = cell[rect][:, :, 3] >= 248
-        views = []
-        for delta in offsets:
-            pupil = cv2.remap(delta, mx[rect] - x0, my[rect] - y0, cv2.INTER_LINEAR)
-            views.append(np.uint8(np.clip(base + pupil * opaque[:, :, None] + .5, 0, 255)))
+        views = list(eye_views(ink, cell[rect], mx[rect] - x0, my[rect] - y0,
+                               weight, glint, math.dist(*eyes)))
         matching = views[head_index]
         cell[rect][:, :, :3] = matching
+        stationary = landmarks['chin'][1] + 2
+        if not np.array_equal(cell[stationary:], neutral[stationary:]):
+            raise ValueError(f'{key}: gaze moved the neck or clothing')
         if head_index == CENTER and not np.array_equal(cell, neutral):
             raise ValueError(f'{key}: the frontal cell must match the landing pose')
         heads.paste(Image.fromarray(cell), ((head_index % 5) * w, (head_index // 5) * h))

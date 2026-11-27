@@ -193,6 +193,9 @@ export async function apply(ctx: Context) {
       const presets = createEmployeePresetRoster(ctx.agentPresets,readUnlockedEmployees)
       let calendarRevision=-1
       let petCalendar:DesktopPetCalendar={}
+      const studioDesktop = createStudioDesktop(fileURLToPath(new URL('./agent-desktop/agent-desktop.exe', import.meta.url)))
+      const desk = createAgentWork(join(root, 'agent-workbench'), req => ownerAdmission(ctx, req) === 0,
+        { read:() => readPortableBinding(undefined, true), verify:verifyPortableLibraries }, readUnlockedEmployees, true, ctx, usage.recordModelUsage, studioDesktop, settings.readSavedProfiles)
       const pets = desktopPets(fileURLToPath(new URL('.',import.meta.url)), readUnlockedEmployees, role => {
         const row = readCollection.get(OFFICE_PRESENTATION_NAMESPACE)
         return row && JSON.parse(String(row.value)).selection?.employeeSkins?.[role]
@@ -209,14 +212,11 @@ export async function apply(ctx: Context) {
           calendarRevision=Number(row.revision)
         }
         return petCalendar
-      })
+      },desk.petFiles)
       clean.push(() => pets.dispose())
       clean.push(ctx.webServer.register({kind:'exact',path:'/luma-native/desktop-pet',handler:protect(pets.handler)}))
       clean.push(()=>presets.dispose())
       startup = Promise.all([presets.sync(false), settings.refreshWallet()]).then(() => {})
-      const studioDesktop = createStudioDesktop(fileURLToPath(new URL('./agent-desktop/agent-desktop.exe', import.meta.url)))
-      const desk = createAgentWork(join(root, 'agent-workbench'), req => ownerAdmission(ctx, req) === 0,
-        { read:() => readPortableBinding(undefined, true), verify:verifyPortableLibraries }, readUnlockedEmployees, true, ctx, usage.recordModelUsage, studioDesktop, settings.readSavedProfiles)
       clean.push(() => desk.dispose())
       clean.push(ctx.webServer.register({ kind:'exact', path:'/luma-native/settings', handler:protect(settings.handle) }))
       clean.push(ctx.webServer.register({ kind:'exact', path:'/luma-native/employee-workspace', handler:protect(employeeWorkspaceHandler(ctx,homes,readUnlockedEmployees)) }))

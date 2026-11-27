@@ -18,7 +18,7 @@ const sha256 = async path => {
   for await (const chunk of createReadStream(path)) hash.update(chunk)
   return hash.digest('hex')
 }
-for (const entry of ['client.mjs', 'server.mjs']) await lstat(resolve(built, entry))
+for (const entry of ['client.mjs', 'server.mjs', 'pet-pdf-worker.mjs']) await lstat(resolve(built, entry))
 // Existing release folders can be rebuilt, but never write over another package.
 try {
   const existing = JSON.parse(await readFile(resolve(destination, 'package.json'), 'utf8'))
@@ -38,7 +38,7 @@ for (const row of art) {
   await mkdir(dirname(target), { recursive: true })
   await copyFile(file, target)
 }
-for (const entry of ['client.mjs', 'server.mjs']) await copyFile(resolve(built, entry), resolve(destination, 'native-desktop', entry))
+for (const entry of ['client.mjs', 'server.mjs', 'pet-pdf-worker.mjs']) await copyFile(resolve(built, entry), resolve(destination, 'native-desktop', entry))
 await copyFile(resolve(built, 'DesktopPet.exe'), resolve(destination, 'native-desktop', 'DesktopPet.exe'))
 await cp(resolve(built, 'agent-desktop'), resolve(destination, 'native-desktop', 'agent-desktop'), {recursive:true})
 await cp(resolve(source, 'pet-art'), resolve(destination, 'native-desktop', 'pet-art'), {recursive:true})

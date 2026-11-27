@@ -23,10 +23,11 @@ test('native pet pose continuity, gaze and hand inertia for every outfit', {skip
       look:{...look,path:pathFor(look),eyesPath:resolve(here,'../art/release-assets',look.eyesSrc.slice(1))}}]
   }))
   const input=join(temporary,'poses.json')
+  const marks=fileURLToPath(new URL('../art/actor-poses-keys/standing/landmarks.json',import.meta.url))
   const executable=join(temporary,'CheckMotion.exe')
   await writeFile(input,JSON.stringify(config))
   const compiler=join(process.env.SystemRoot,'Microsoft.NET/Framework/v4.0.30319/csc.exe')
   execFileSync(compiler,['/nologo','/r:System.Drawing.dll','/r:System.Web.Extensions.dll','/out:'+executable,
     join(here,'PetPoseAtlas.cs'),join(here,'PetFace.cs'),join(here,'tests/PetMotionCheck.cs')],{windowsHide:true})
-  execFileSync(executable,[input],{windowsHide:true})
+  execFileSync(executable,[input,marks],{windowsHide:true})
 })

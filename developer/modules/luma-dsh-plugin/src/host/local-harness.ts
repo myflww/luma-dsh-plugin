@@ -212,7 +212,11 @@ export function createLocalHarness(resolve=findHarness,discover=discoverClient) 
               const msg=JSON.parse(line)
               if(msg.type==='thread.started')trace?.({stage:'thread',threadId:officialThread(msg.thread_id)})
               if(msg.type==='turn.started')trace?.({stage:'turn'})
-              if(msg.type==='error'){lastError=msg.message;trace?.({stage:'provider-error'})}
+              if(msg.type==='error' || (msg.type==='item.completed' && msg.item?.type==='error')){
+                lastError=msg.message ?? msg.item?.message ?? lastError
+                trace?.({stage:'provider-error'})
+                continue
+              }
               if(msg.type==='turn.failed') throw failure(msg.error?.message ?? lastError,id)
               if((msg.type==='item.started' || msg.type==='item.completed') && !['agent_message','reasoning'].includes(msg.item?.type))
                 throw Error('模型服务的本机模型尝试调用额外工具，已停止本轮。')

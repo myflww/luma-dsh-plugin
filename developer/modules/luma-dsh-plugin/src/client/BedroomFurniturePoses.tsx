@@ -1,3 +1,4 @@
+import { getRoomSeatedDrawing, type RoomSeatAngle } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/roomSeated.ts'
 import { PERSONAL_BEDROOMS } from './bedroom-personal-layouts.ts'
 import { mapShopBedrooms } from './bedroom-shop-layouts.ts'
 import type { BedroomRoom } from './bedroom-floor.ts'
@@ -27,8 +28,8 @@ const outfit: readonly PhoneFrame[] = [
 ]
 const blend = (a:number,b:number,t:number) => a+(b-a)*t
 
-export function BedroomPhonePose({id,skinId,room,approach,reclined,animate}: {
-  id:ResidentId; skinId?:string|undefined; room:Pick<Geometry,'head'|'feet'>; approach:Point; reclined:number; animate:boolean
+function InstalledPhonePose({id,skinId,room,approach,reclined,animate}: {
+  id:ResidentId; skinId?:string|undefined; room:Pick<Geometry,'head'|'feet'>; approach:Point; reclined:number; animate:boolean; elapsed?:number
 }) {
   const filterId=useId(), cell=phoneRoles.indexOf(id)
   const outfitPack=getEmployeeSkinPack(id,skinId ?? getBrowserOfficeDefaultSkinId(id))
@@ -108,6 +109,7 @@ const chairTravel:Record<BedroomRoom,readonly [open:Point,working:Point]>={
 }
 
 export function bedroomSeatedCenter(room:BedroomRoom,id?:ResidentId,skinId?:string,approach?:Point,seated=1):Point {
+  if(id==='lu-mi' && approach)return lumiDeskPlacement(room,getLumiDeskModel(id,skinId,room),approach,seated).center
   const pose=id && getDeskRearPose(id,skinId)
   if(pose && id && approach)return deskPlacement(room,pose,getBedroomDeskModel(id,skinId,room),approach,seated).center
   const seat=chairTravel[room][1]
@@ -356,7 +358,7 @@ function deskPlacement(room:BedroomRoom,pose:RearPose,model:BedroomModel,approac
     center:[blend(hip[0],head[0],.58),blend(hip[1],head[1],.58)] as Point}
 }
 
-export function BedroomDeskPose({id,skinId,roomId,room,background,approach,seated,elapsed,animate,waiting=false,allowJoint=true}:{
+function InstalledDeskPose({id,skinId,roomId,room,background,approach,seated,elapsed,animate,waiting=false,allowJoint=true}:{
   id:ResidentId; skinId?:string|undefined; roomId:BedroomRoom; room:Geometry; background:string; approach:Point
   seated:number; elapsed:number; animate:boolean; waiting?:boolean; allowJoint?:boolean
 }) {
@@ -384,11 +386,11 @@ export function BedroomDeskPose({id,skinId,roomId,room,background,approach,seate
   const plate=chairGeometry[roomId],nearSide=chairNearSide[roomId]
   if(joint){
     const enter=Math.max(0,Math.min(1,(seated-.65)/.32))
-    if(enter===0)return <BedroomDeskPose {...{id,skinId,roomId,room,background,approach,seated,elapsed,animate,waiting}} allowJoint={false}/>
+    if(enter===0)return <InstalledDeskPose {...{id,skinId,roomId,room,background,approach,seated,elapsed,animate,waiting}} allowJoint={false}/>
     const [cw,ch]=joint.cell,[sw,sh]=joint.imageSize,[wx,wy,ww,wh]=joint.hands
     return <g data-bedroom-pose="computer" data-bedroom-frame={frame} data-desk-facing="backRight"
       data-desk-view="joint" data-desk-action={waiting?'waiting':animate && beat>=2750?'reading':'typing'}>
-      {enter<1 && <g opacity={1-enter}><BedroomDeskPose {...{id,skinId,roomId,room,background,approach,seated,elapsed,animate,waiting}} allowJoint={false}/></g>}
+      {enter<1 && <g opacity={1-enter}><InstalledDeskPose {...{id,skinId,roomId,room,background,approach,seated,elapsed,animate,waiting}} allowJoint={false}/></g>}
       <g opacity={enter}>
         <ChairLayer roomId={roomId} night={night} underlay/>
         <g data-bedroom-original-chair="" transform={chairTransform}><ChairLayer roomId={roomId} night={night}/></g>
@@ -457,4 +459,149 @@ export function BedroomDeskPose({id,skinId,roomId,room,background,approach,seate
       </g></g></g>
     </g>
   </g>
+}
+
+function LumiPhonePose({id,skinId,room,approach,reclined,animate,elapsed}:{
+  id:ResidentId;skinId?:string|undefined;room:Pick<Geometry,'head'|'feet'>;approach:Point;reclined:number;animate:boolean;elapsed:number
+}){
+  // The source is the original chair-free side view, with both knees already
+  // bent and the hands free. The handset sits behind the fingers.
+  const actor=seatedModel(id,skinId,'sideRight'),[w,h]=actor.cell
+  const head=actor.head,feet:Point=[actor.foot[0],actor.soleY]
+  const tx=room.feet[0]-room.head[0],ty=room.feet[1]-room.head[1],mirror=tx<0?-1:1
+  const dx=feet[0]-head[0],dy=feet[1]-head[1]
+  const hx=blend(approach[0]-mirror*20,room.head[0],reclined),hy=blend(approach[1]-129,room.head[1],reclined)
+  const length=blend(Math.hypot(20,123),Math.hypot(tx,ty),reclined)
+  const angle=blend(Math.atan2(123,mirror*20),Math.atan2(ty,tx),reclined)-Math.atan2(dy,dx*mirror)
+  const scale=length/Math.hypot(dx,dy)
+  const beat=elapsed%(4200+phoneRoles.indexOf(id)*137)
+  const frame=animate && beat>=1400 && beat<2150?Math.floor((beat-1400)/95)%actor.count:0
+  const rect=[frame*w,0,w,h]
+  const phone=actor.figureHeight*.105
+  return <g data-bedroom-pose="phone" data-desk-source={actor.src} data-costume-source={actor.sourceSrc}
+    transform={`translate(${hx} ${hy}) rotate(${angle*180/Math.PI}) scale(${scale*mirror} ${scale}) translate(${-head[0]} ${-head[1]})`}>
+    <g data-bedroom-handset="" transform={`translate(${actor.hand[0]} ${actor.hand[1]}) rotate(12)`}>
+      <rect x={-phone*.28} y={-phone*.76} width={phone*.56} height={phone} rx={phone*.075} fill="#36384c" stroke="#171825" strokeWidth={phone*.037}/>
+      <rect x={-phone*.21} y={-phone*.65} width={phone*.42} height={phone*.77} rx={phone*.035} fill="#a7c6d5"/>
+    </g>
+    <svg width={w} height={h} viewBox={rect.join(' ')} overflow="hidden">
+      <image href={actor.src} width={w*actor.count} height={h}/>
+    </svg>
+  </g>
+}
+
+function seatedModel(role:ResidentId,skinId:string|undefined,angle:RoomSeatAngle){
+  const art=(getRoomSeatedDrawing(role,skinId,angle)??getRoomSeatedDrawing(role,undefined,angle))!
+  const left=angle.endsWith('Left')
+  const point=(p:Point):Point=>[left?art.cell[0]-p[0]:p[0],p[1]]
+  return {...art,hip:point(art.hip),head:point(art.head),foot:point(art.foot),hand:point(art.hand),
+    soleY:art.foot[1],sourceFacing:angle,mirrorSource:left}
+}
+export function getLumiDeskModel(role:ResidentId,skinId:string|undefined,room:BedroomRoom){
+  const {side,yaw}=deskBearing(room)
+  const angle=yaw<50?(side<0?'quarterLeft':'quarterRight'):(side<0?'sideLeft':'sideRight')
+  return seatedModel(role,skinId,angle)
+}
+type LumiModel=ReturnType<typeof seatedModel>
+
+function lumiDeskViewFit(room:BedroomRoom,view:LumiModel){
+  const [,preferred]=chairTravel[room]
+  const {side}=deskBearing(room)
+  // The bedroom chairs use their own camera calibration. The median visible
+  // height of the 12 installed peer outfits at 128 px skull width is 279 px
+  // in three-quarter view and 285 px in profile (alpha >= 96, first exposure).
+  const skull=referenceWidths[room]??cushionWidth[room]*.72
+  const peerHeight=view.sourceFacing.startsWith('quarter')?279:285
+  const scale=skull*peerHeight/(128*view.figureHeight)
+  const plate=chairGeometry[room]
+  const [rearEdge,forwardEdge]=seatPlane[room]
+  const open:Point=[plate.x+blend(rearEdge[0],forwardEdge[0],.51),plate.y+blend(rearEdge[1],forwardEdge[1],.51)]
+  const offset:Point=[side*(view.hand[0]-view.hip[0])*scale,(view.hand[1]-view.hip[1])*scale]
+  const keys=keyBeds[room]
+  const mid:Point=[keys.reduce((n,p)=>n+p[0],0)/4,keys.reduce((n,p)=>n+p[1],0)/4]
+  // Keep the fingertips a little inside the original keycaps for each stroke.
+  const caps=keys.map(p=>[blend(p[0],mid[0],.075),blend(p[1],mid[1],.075)] as Point)
+  let possible:Point[]=[[0,0],[2000,0],[2000,1200],[0,1200]]
+  for(const [i,p] of caps.entries()){
+    const q=caps[(i+1)%4]!
+    possible=intersectHalfPlane(possible,[p[0]-offset[0],p[1]-offset[1]],[q[0]-p[0],q[1]-p[1]])
+  }
+  // In an almost edge-on view one hand may overlap the other, or the
+  // foreshortened key row may be narrower than their depth separation.
+  const fallback:Point=[mid[0]-offset[0],mid[1]-offset[1]]
+  const working=possible.length?closestInPolygon(possible,preferred):fallback
+  return {open,working,view,side,scale}
+}
+
+function lumiDeskPlacement(room:BedroomRoom,model:LumiModel,approach:Point,seated:number){
+  const fit=lumiDeskViewFit(room,model)
+  const {open,working,side,scale,view}=fit
+  const t=Math.max(0,Math.min(1,(seated-.32)/.68)),advance=t*t*(3-2*t)
+  const seat:Point=[blend(open[0],working[0],advance),blend(open[1],working[1],advance)]
+  const hip:Point=[blend(approach[0],seat[0],seated),blend(approach[1]-41,seat[1],seated)]
+  const tx=hip[0]-side*scale*view.hip[0],ty=hip[1]-scale*view.hip[1]
+  const head:Point=[side*scale*view.head[0]+tx,scale*view.head[1]+ty]
+  return {...fit,advance,seat,
+    chairTransform:`translate(${seat[0]-open[0]} ${seat[1]-open[1]})`,
+    body:`matrix(${side*scale} 0 0 ${scale} ${tx} ${ty})`,
+    undoChair:`translate(${open[0]-seat[0]} ${open[1]-seat[1]})`,
+    center:[blend(hip[0],head[0],.58),blend(hip[1],head[1],.58)] as Point}
+}
+
+function LumiDeskPose({id,skinId,roomId,background,approach,seated,elapsed,animate,waiting=false}:{
+  id:ResidentId; skinId?:string|undefined; roomId:BedroomRoom; room:Geometry; background:string; approach:Point
+  seated:number; elapsed:number; animate:boolean; waiting?:boolean
+}) {
+  const clip=useId(),model=getLumiDeskModel(id,skinId,roomId)
+  const {advance,seat,chairTransform,body,side,undoChair}=lumiDeskPlacement(roomId,model,approach,seated)
+  const slot=phoneRoles.indexOf(id),beat=elapsed%(4200+slot*137)
+  const frame=animate && beat<2750 ? Math.floor(beat/(96+slot*3))%model.count : 0
+  const [w,h]=model.cell,rect=[frame*w,0,w,h]
+  const source=<g transform={model.mirrorSource?`translate(${w} 0) scale(-1 1)`:undefined}>
+    <svg width={w} height={h} viewBox={rect.join(' ')} overflow="hidden">
+      <image href={model.src} width={w*model.count} height={h}/>
+    </svg>
+  </g>
+  const night=background.includes('-night.'),front=deskFront[roomId],plate=chairGeometry[roomId]
+  const [r,g,b]=bedroomModels.lighting[roomId]
+  const lap=model.hip[1]-(model.hip[1]-model.hand[1])*.18
+  const elbow=[blend(model.hip[0],model.hand[0],.5),blend(model.hip[1],model.hand[1],.72)]
+  return <g data-bedroom-pose="computer" data-bedroom-frame={frame} data-desk-facing={side<0?'backLeft':'backRight'}
+    data-desk-view={model.sourceFacing} data-desk-source={model.src} data-costume-source={model.sourceSrc} data-desk-action={waiting?'waiting':animate&&beat>=2750?'reading':'typing'}>
+    {advance>0 && <><ChairLayer roomId={roomId} night={night} underlay/>
+      <g transform={chairTransform}><ChairLayer roomId={roomId} night={night}/></g></>}
+    {seated>.6 && <DeskScreen id={id} surface={screens[roomId]} tint="#a2cfdd" elapsed={animate?elapsed:0}/>}
+    <defs>
+      <clipPath id={clip+'-upper'}><rect width={w} height={lap}/></clipPath>
+      <clipPath id={clip+'-lower'}><rect y={lap} width={w} height={h-lap}/></clipPath>
+      <clipPath id={clip+'-desk'}><path d={'M0 0H2000V1200H0Z '+desktopLip(roomId)} clipRule="evenodd"/></clipPath>
+      {front&&<clipPath id={clip+'-cabinet'}><path d={'M0 0H2000V1200H0Z '+front} clipRule="evenodd"/></clipPath>}
+      <clipPath id={clip+'-near-arm'}><path transform={`translate(${plate.x} ${plate.y})`} d={chairNearSide[roomId]}/></clipPath>
+      <clipPath id={clip+'-wrist'}><path d={`M${elbow[0]} ${elbow[1]-8}L${model.hand[0]+7} ${model.hand[1]-9}V${model.hand[1]+10}L${elbow[0]} ${elbow[1]+9}Z`}/></clipPath>
+      <clipPath id={clip+'-chair'}><path d={chairBack[roomId]}/><path data-bedroom-chair-near-side=""
+        transform={`translate(${plate.x} ${plate.y})`} d={chairNearSide[roomId]}/></clipPath>
+      {night&&<filter id={clip+'-light'} colorInterpolationFilters="sRGB"><feColorMatrix values={`${r} 0 0 0 0 0 ${g} 0 0 0 0 0 ${b} 0 0 0 0 0 1 0`}/></filter>}
+    </defs>
+    <ellipse cx={seat[0]} cy={seat[1]+1} rx={cushionWidth[roomId]*.195} ry="4" fill="#211d19" opacity={.22*seated}/>
+    <g data-bedroom-seated-body="" filter={night?`url(#${clip}-light)`:undefined}>
+      <g data-body-projection="seated" transform={body}><g clipPath={`url(#${clip}-upper)`}>{source}</g></g>
+      <g data-bedroom-desk-front-lip="" clipPath={`url(#${clip}-desk)`}><g clipPath={front?`url(#${clip}-cabinet)`:undefined}>
+        <g transform={body}><g clipPath={`url(#${clip}-lower)`}>{source}</g></g>
+      </g></g>
+    </g>
+    <g data-bedroom-chair-foreground="" transform={chairTransform}><g clipPath={`url(#${clip}-chair)`}>
+      <ChairLayer roomId={roomId} night={night}/>
+    </g></g>
+    <g data-bedroom-near-sleeve="" transform={chairTransform} filter={night?`url(#${clip}-light)`:undefined}><g clipPath={`url(#${clip}-near-arm)`}>
+      <g transform={undoChair}><g transform={body}><g clipPath={`url(#${clip}-wrist)`}>{source}</g></g></g>
+    </g></g>
+  </g>
+}
+
+export function BedroomDeskPose(props:Parameters<typeof InstalledDeskPose>[0]) {
+  return props.id==='lu-mi'?<LumiDeskPose {...props}/>:<InstalledDeskPose {...props}/>
+}
+
+export function BedroomPhonePose(props:Parameters<typeof InstalledPhonePose>[0]) {
+  return props.id==='lu-mi'?<LumiPhonePose {...props} elapsed={props.elapsed??0}/>:<InstalledPhonePose {...props}/>
 }

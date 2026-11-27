@@ -25,9 +25,17 @@ export function getActorLookAtlas(role: string, skinId?: string): ActorLookAtlas
   return (looks as unknown as Readonly<Record<string, ActorLookAtlas>>)[role + '-' + variant]
 }
 
-// Both axes refer to the source drawing. Positive values look right and down.
-// Mirror x before lookup when the caller has horizontally mirrored the drawing.
-export function actorLookFrame(x: number, y: number): number {
-  const step = (n: number) => Number.isFinite(n) ? Math.round((Math.min(1, Math.max(-1, n)) + 1) * 2) : 2
-  return step(y) * 5 + step(x)
+export {actorLookFrame} from './postDropLook.ts'
+
+// The transparent patch replaces individual source pixels. Assemble it at 1:1
+// before a scene transform, so the original iris is filtered only once.
+export function drawActorLook(context:CanvasRenderingContext2D,art:ActorLookAtlas,
+  headImage:CanvasImageSource,head:number,eyesImage:CanvasImageSource|undefined,eyes:number) {
+  const [w,h]=art.cell
+  context.clearRect(0,0,w,h)
+  context.drawImage(headImage,head%art.columns*w,Math.floor(head/art.columns)*h,w,h,0,0,w,h)
+  if(eyesImage && eyes!==head){
+    const [ew,eh]=art.eyesCell
+    context.drawImage(eyesImage,eyes*ew,head*eh,ew,eh,...art.eyesOrigin,ew,eh)
+  }
 }

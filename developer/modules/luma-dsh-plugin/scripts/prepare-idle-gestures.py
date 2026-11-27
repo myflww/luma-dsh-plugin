@@ -15,6 +15,8 @@ import cv2
 import numpy as np
 from PIL import Image
 
+from original_pose_motion import CostumeMotion, ORIGINAL_COSTUMES
+
 ROOT = Path(__file__).resolve().parents[1]
 OFFICE = ROOT.parents[1] / 'overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d'
 SOURCE = ROOT / 'art/actor-poses-keys/idle-gestures'
@@ -117,14 +119,27 @@ def drawings(path):
         yield rgba
 
 
-def place(drawing, scale, contact, floor):
-    """A single rigid similarity transform keeps the source anatomy and knee bend intact."""
+def place(drawing, scale, contact, floor, collar=None, body=1.):
+    """Register the face at its painted scale and keep the weight-bearing shoe fixed."""
     sx,sy=contact
     fx,fy=floor
     matrix=np.float32([[scale,0,fx-scale*sx],[0,scale,fy-scale*sy]])
     rgb=drawing.astype(np.float32)/255
     rgb[:,:,:3]*=rgb[:,:,3:4]
-    return cv2.warpAffine(rgb,matrix,(384,336),flags=cv2.INTER_LINEAR)
+    if collar is None or body>=.9999:
+        return cv2.warpAffine(rgb,matrix,(384,336),flags=cv2.INTER_LINEAR)
+    # A long torso in a separately drawn key must not resize the entire face.
+    # Keep the head through the collar and the bottom 14 pixels of the shoe
+    # rigid. Only the span between those landmarks changes length.
+    ankle=sy-14/scale
+    shoulder_y=fy-scale*(sy-collar)*body
+    ankle_y=fy-14
+    if ankle<=collar or ankle_y<=shoulder_y:raise ValueError('Invalid body landmarks')
+    y,x=np.indices((336,384),dtype=np.float32)
+    mid_scale=(ankle_y-shoulder_y)/(ankle-collar)
+    source_y=np.where(y<shoulder_y,collar+(y-shoulder_y)/scale,
+                      np.where(y>ankle_y,ankle+(y-ankle_y)/scale,collar+(y-shoulder_y)/mid_scale))
+    return cv2.remap(rgb,sx+(x-fx)/scale,np.float32(source_y),cv2.INTER_LINEAR)
 
 
 def premultiply(image):
@@ -163,11 +178,47 @@ def ease_towards(source, next_key, fraction, foot):
     return cv2.remap(source,x-fraction*field[:,:,0],y-fraction*field[:,:,1],cv2.INTER_LINEAR)
 
 
+def original_gestures(key, neutral):
+    marks_path=SOURCE.parent/'standing/landmarks.json'
+    marks=json.loads(marks_path.read_text(encoding='utf8'))[key]
+    motion=CostumeMotion(key,premultiply(neutral),marks)
+    w,h=neutral.size
+    sheet=Image.new('RGBA',(w*8,h*2))
+    actions=[]
+    for row,(name,label) in enumerate(ACTIONS[key]):
+        sources=[motion.gesture(row,t) for t in (.26,.64,1.,.84,.48,.20)]
+        pictures=[straight(frame) for frame in sources]
+        if key=='lu-mi-base':
+            with Image.open(SOURCE.parent/'original-gesture-overrides'/(key+'-'+str(row)+'.png')) as art:
+                peak=art.convert('RGBA')
+            if peak.size!=neutral.size:
+                raise ValueError(f'{key}: gesture {name} must match neutral registration')
+            # Preserve individually painted fingers and the original facial
+            # lines. Ease each adjacent drawing towards its own nearest key.
+            end=premultiply(peak)
+            pictures[1]=straight(ease_towards(sources[1],end,.69,marks['foot']))
+            pictures[2]=peak
+            pictures[3]=straight(ease_towards(end,sources[4],.55,marks['foot']))
+        for col,frame in enumerate([neutral,*pictures,neutral]):
+            box=frame.getchannel('A').getbbox()
+            if not box or min(box[0],box[1],w-box[2],h-box[3])<1:
+                raise ValueError(f'{key} {name} exposure {col} is clipped')
+            sheet.paste(frame,(col*w,row*h))
+        lead,accent,settle=HOLDS[name]
+        actions.append(dict(id=name,label=label,frames=list(range(row*8,row*8+8)),
+                            durationsMs=[85,lead,95,accent,110,settle,100,90]))
+    buffer=BytesIO()
+    sheet.save(buffer,format='PNG',compress_level=6)
+    return buffer.getvalue(),actions
+
+
 def build(key, meta, registration):
     path=meta['src'].lstrip('/')
     w,h=meta['cell']
     with Image.open(ROOT/'art/release-assets'/path) as sheet:
         neutral=sheet.crop((0,0,w,h)).convert('RGBA')
+    if key in ORIGINAL_COSTUMES:
+        return original_gestures(key,neutral)
     ready=premultiply(neutral)
     source=SOURCE/(key+'.png')
     reg=registration[key]
@@ -183,7 +234,7 @@ def build(key, meta, registration):
         # Compose the whole action's shoe alignment after its in-betweens.
         floor=[meta['foot'][0]+mark['floor'][0]-placement[i//3],meta['foot'][1]-1+mark['floor'][1]]
         contacts.append(floor)
-        poses.append(place(drawing,mark['scale'],mark['sole'],floor))
+        poses.append(place(drawing,mark['scale'],mark['sole'],floor,mark.get('collar'),mark.get('body',1.)))
     sheet=Image.new('RGBA',(w*8,h*2))
     actions=[]
     for row,(name,title) in enumerate(ACTIONS[key]):
@@ -226,7 +277,8 @@ def main():
     if set(bases)!=set(ACTIONS):
         raise ValueError('Every selectable costume needs two small gestures')
     registration_path=SOURCE/'registration.json'
-    registration=json.loads(registration_path.read_text(encoding='utf8')) if registration_path.exists() else {}
+    needs_paintings = args.only not in ORIGINAL_COSTUMES
+    registration=json.loads(registration_path.read_text(encoding='utf8')) if needs_paintings and registration_path.exists() else {}
     metadata_path=OFFICE/'actorGestureAtlas.generated.json'
     index=json.loads(metadata_path.read_text(encoding='utf-8-sig')) if args.only and metadata_path.exists() else {}
     targets=[args.only] if args.only else list(bases)

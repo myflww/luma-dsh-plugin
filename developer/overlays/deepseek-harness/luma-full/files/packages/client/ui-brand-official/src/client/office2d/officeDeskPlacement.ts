@@ -1,3 +1,4 @@
+import { getRoomSeatedDrawing } from './roomSeated.ts'
 import { getDeskRearPose } from './deskRearPose.ts'
 import { standingFigureHeight } from './officeFigureScale.ts'
 import { officeKeyboardCenter, officeKeyboardContact } from './officeKeyboardContact.ts'
@@ -69,6 +70,7 @@ export function classicOfficeDeskPlacement(station:{id:string;seatPoint:Point|nu
 
 /** Seat and keyboard are two independent contact surfaces in the same projection. */
 export function officeDeskPlacement(theme:string,station:Station,role:string,skinId?:string):OfficeDeskDrawing|undefined {
+  if(role==='lu-mi')return lumiDeskPlacement(theme,station,role,skinId)
   const pose=getDeskRearPose(role,skinId)
   if(!pose)return undefined
   const {id,seat}=station
@@ -118,6 +120,53 @@ export function officeDeskPlacement(theme:string,station:Station,role:string,ski
 
 export function officeDeskFrame(pose:OfficeDeskDrawing,actor:string,elapsedMs:number,working:boolean,ambient:boolean) {
   if(!working)return 0
-  const beat=sampleDeskRhythm(actor,elapsedMs,pose.count*130,ambient)
-  return beat.reading?0:Math.floor(beat.stripElapsedMs/130)%pose.count
+  const stepMs=actor==='lu-mi'?65:130
+  const beat=sampleDeskRhythm(actor,elapsedMs,pose.count*stepMs,ambient)
+  return beat.reading?0:Math.floor(beat.stripElapsedMs/stepMs)%pose.count
+}
+
+function lumiDeskPlacement(theme:string,station:Station,role:string,skinId?:string):OfficeDeskDrawing|undefined {
+  const {id,seat}=station
+  const front=station.facing==='front' || theme==='classic' && id==='reception'
+  if(front){
+    const art=getRoomSeatedDrawing(role,skinId,'front')
+    if(!art)return undefined
+    const scale=standingFigureHeight(seat[1])*.355/art.crownWidth
+    const surface:Point=theme==='classic'?[838,753]:[seat[0],(station.keyboard?.[1]??seat[1]+16)-3]
+    const origin:Point=[surface[0]-art.hand[0]*scale,surface[1]-art.hand[1]*scale]
+    return {...art,origin,scale,hip:[origin[0]+art.hip[0]*scale,origin[1]+art.hip[1]*scale],
+      palm:surface,bank:0,mirror:false,facing:'front'}
+  }
+  const keys=officeKeyboardCenter(theme,id)
+  if(!keys || station.keyboard && Math.hypot(keys[0]-station.keyboard[0],keys[1]-station.keyboard[1])>35)return undefined
+  const dy=keys[1]-seat[1]
+  if(dy>=0)return undefined
+  const screen=screens[theme]?.[OFFICE_WORKSTATION_IDS.findIndex(slot=>slot===id)]
+  if(!screen)return undefined
+  const screenOffset=screen[0]-seat[0]
+  const oblique=Math.abs(screenOffset)>=9
+  const left=screenOffset<0
+  const side=oblique && sideChairs[theme]?.includes(id)
+  const shallow=oblique && !side && Math.abs(screenOffset)<=22
+  const angle=!oblique?'rear':shallow?(left?'shallowLeft':'shallowRight')
+    :side?(left?'sideLeft':'sideRight'):(left?'quarterLeft':'quarterRight')
+  const view=getRoomSeatedDrawing(role,skinId,angle)
+  if(!view)return undefined
+  // Lu Mi's long straight hair and horns extend beyond the actual head.
+  // Fit the registered crown and keep the long back hem behind the seat shell.
+  const scale=standingFigureHeight(seat[1])*.35/view.crownWidth
+  const reachX=view.hand[0]-view.hip[0],reachY=view.hand[1]-view.hip[1]
+  // Front-on wrists disappear behind the nape. Centre the head over its cushion
+  // and allow only a small seated lean, never a full arm's lateral translation.
+  const clamp=(v:number,limit:number)=>Math.max(-limit,Math.min(limit,v))
+  const wristAtRest:Point=[seat[0]+(oblique?reachX*scale:0),seat[1]+reachY*scale]
+  const contact=officeKeyboardContact(theme,id,wristAtRest)??keys
+  const hip:Point=[seat[0]+clamp(contact[0]-wristAtRest[0],shallow?7:oblique?22:5),
+    seat[1]+clamp(contact[1]-wristAtRest[1],Math.max(26,-dy*.56))]
+  const origin:Point=[hip[0]-view.hip[0]*scale,hip[1]-view.hip[1]*scale]
+  return {...view,bank:0,mirror:false,
+    ...(!oblique?{hiddenShins:[0,view.cell[0],view.hip[1]-view.figureHeight*.065] as const}:{}),
+    facing:oblique?(left?'rearLeft':'rearRight'):'rear',origin,scale,hip,
+    palm:[hip[0]+(oblique?reachX*scale:0),hip[1]+reachY*scale]}
+
 }

@@ -6,6 +6,7 @@ import type { TextMessage } from './employee-model.ts'
 
 type Reasoning = { efforts: ModelOption[]; defaultEffort?: string }
 export interface NativeModels {
+  get?(name:'agentDefaultModel'): {currentSelection():{provider:string;model:string;reasoningEffort?:string}} | undefined
   llm: {
     listProviders(): readonly ModelOption[]
     listModels(provider: string): Promise<readonly ModelOption[]>

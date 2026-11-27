@@ -1,0 +1,470 @@
+{
+  "lu-mi-base": {
+    "rear": {
+      "src": "/luma-office/luma-plugin-art/room-seated/lu-mi-base-rear.55c695e097ca.webp",
+      "sha256": "55c695e097ca1616dff1aa90914e6e4145e7db414208a6b7389e2dc393e87f2e",
+      "sourceSrc": "/luma-office/luma-plugin-art/lu-mi-typing-back-r1.2ea41b62b3d8.png",
+      "sourceSha256": "2ea41b62b3d8f6257ff6cb643710bacd34cb4e59375d7767a13de81b361038d2",
+      "cell": [
+        352,
+        352
+      ],
+      "count": 8,
+      "figureHeight": 266.0,
+      "hip": [
+        174.607,
+        246.233
+      ],
+      "head": [
+        174.607,
+        114.18
+      ],
+      "foot": [
+        139.108,
+        319.0
+      ],
+      "hand": [
+        176.348,
+        153.62
+      ],
+      "crownWidth": 84.0
+    },
+    "shallowRight": {
+      "src": "/luma-office/luma-plugin-art/room-seated/lu-mi-base-shallowRight.93155b6639e8.webp",
+      "sha256": "93155b6639e84fff7d84fe9a0d340df0e485e3e5ac94000c81eccffd544bca2d",
+      "sourceSrc": "/luma-office/luma-plugin-art/lu-mi-typing-back-r1.2ea41b62b3d8.png",
+      "sourceSha256": "2ea41b62b3d8f6257ff6cb643710bacd34cb4e59375d7767a13de81b361038d2",
+      "cell": [
+        352,
+        352
+      ],
+      "count": 8,
+      "figureHeight": 266.0,
+      "hip": [
+        174.607,
+        246.233
+      ],
+      "head": [
+        184.247,
+        114.18
+      ],
+      "foot": [
+        133.796,
+        319.0
+      ],
+      "hand": [
+        183.109,
+        153.62
+      ],
+      "crownWidth": 84.0
+    },
+    "shallowLeft": {
+      "src": "/luma-office/luma-plugin-art/room-seated/lu-mi-base-shallowLeft.5dc4947b68e1.webp",
+      "sha256": "5dc4947b68e1dacd2f62792622d02a8e0e4602aa4c226900197ace48c0ad12e2",
+      "sourceSrc": "/luma-office/luma-plugin-art/lu-mi-typing-back-r1.2ea41b62b3d8.png",
+      "sourceSha256": "2ea41b62b3d8f6257ff6cb643710bacd34cb4e59375d7767a13de81b361038d2",
+      "cell": [
+        352,
+        352
+      ],
+      "count": 8,
+      "figureHeight": 266.0,
+      "hip": [
+        174.607,
+        246.233
+      ],
+      "head": [
+        164.967,
+        114.18
+      ],
+      "foot": [
+        144.42,
+        319.0
+      ],
+      "hand": [
+        169.587,
+        153.62
+      ],
+      "crownWidth": 84.0
+    },
+    "sideRight": {
+      "src": "/luma-office/luma-plugin-art/room-seated/lu-mi-base-sideRight.d5db1af6cbf1.webp",
+      "sha256": "d5db1af6cbf12b3757c0d62daa5137e07dcf8f02db438138a9f876276e5c6c2a",
+      "sourceSrc": "/luma-office/luma-plugin-art/lu-mi-typing-back-right-r1.b955187a85b3.png",
+      "sourceSha256": "b955187a85b3db753c9f20ba95fafc3451bb84f1506d00539b3b8d42e1b92bfb",
+      "cell": [
+        352,
+        352
+      ],
+      "count": 8,
+      "figureHeight": 266.0,
+      "hip": [
+        170.069,
+        250.105
+      ],
+      "head": [
+        170.069,
+        114.18
+      ],
+      "foot": [
+        214.956,
+        319.0
+      ],
+      "hand": [
+        252.196,
+        193.985
+      ],
+      "crownWidth": 97.0
+    },
+    "quarterRight": {
+      "src": "/luma-office/luma-plugin-art/room-seated/lu-mi-base-quarterRight.41848e624115.webp",
+      "sha256": "41848e6241150f251c3660a38cadac61278e925f3b190f88c02785ea7bee7efc",
+      "sourceSrc": "/luma-office/luma-plugin-art/lu-mi-typing-back-right-r1.b955187a85b3.png",
+      "sourceSha256": "b955187a85b3db753c9f20ba95fafc3451bb84f1506d00539b3b8d42e1b92bfb",
+      "cell": [
+        352,
+        352
+      ],
+      "count": 8,
+      "figureHeight": 266.0,
+      "hip": [
+        170.069,
+        250.105
+      ],
+      "head": [
+        170.069,
+        114.18
+      ],
+      "foot": [
+        212.712,
+        319.0
+      ],
+      "hand": [
+        248.09,
+        193.985
+      ],
+      "crownWidth": 91.0
+    },
+    "sideLeft": {
+      "src": "/luma-office/luma-plugin-art/room-seated/lu-mi-base-sideLeft.000c5e0497e3.webp",
+      "sha256": "000c5e0497e3fdcdab1e7a2370d57fdc83d2bacd8dcf89f61021096a867dfe60",
+      "sourceSrc": "/luma-office/luma-plugin-art/lu-mi-typing-back-left-r1.964ac3b26668.png",
+      "sourceSha256": "964ac3b26668f8f3ea8577d1c4bbc5707b59ed76824ff490c91dabfceeaa6968",
+      "cell": [
+        352,
+        352
+      ],
+      "count": 8,
+      "figureHeight": 266.0,
+      "hip": [
+        158.561,
+        245.059
+      ],
+      "head": [
+        158.561,
+        114.18
+      ],
+      "foot": [
+        135.812,
+        319.0
+      ],
+      "hand": [
+        98.572,
+        193.906
+      ],
+      "crownWidth": 94.0
+    },
+    "quarterLeft": {
+      "src": "/luma-office/luma-plugin-art/room-seated/lu-mi-base-quarterLeft.2485e47215fa.webp",
+      "sha256": "2485e47215fa77100785e109609358f0d7f3ef1531c4c29c5a9bcd31368b9c59",
+      "sourceSrc": "/luma-office/luma-plugin-art/lu-mi-typing-back-left-r1.964ac3b26668.png",
+      "sourceSha256": "964ac3b26668f8f3ea8577d1c4bbc5707b59ed76824ff490c91dabfceeaa6968",
+      "cell": [
+        352,
+        352
+      ],
+      "count": 8,
+      "figureHeight": 266.0,
+      "hip": [
+        158.561,
+        245.059
+      ],
+      "head": [
+        158.561,
+        114.18
+      ],
+      "foot": [
+        136.949,
+        319.0
+      ],
+      "hand": [
+        101.571,
+        193.906
+      ],
+      "crownWidth": 89.0
+    },
+    "front": {
+      "src": "/luma-office/luma-plugin-art/room-seated/lu-mi-base-front.be28c661fa1d.webp",
+      "sha256": "be28c661fa1d8828b7221d7c17bf073bf78d6f317dc8aef8e049d1b208a63974",
+      "sourceSrc": "/luma-office/luma-plugin-art/lu-mi-typing-front-r1.2f7843065592.png",
+      "sourceSha256": "2f78430655923f263aa03af36278de8b4b8b932bc509742a101c0ece51e873e9",
+      "cell": [
+        352,
+        352
+      ],
+      "count": 8,
+      "figureHeight": 266.0,
+      "hip": [
+        173.294,
+        195.366
+      ],
+      "head": [
+        173.294,
+        114.18
+      ],
+      "foot": [
+        136.054,
+        319.0
+      ],
+      "hand": [
+        173.294,
+        142.166
+      ],
+      "crownWidth": 108.0
+    }
+  },
+  "lu-mi-v1": {
+    "rear": {
+      "src": "/luma-office/luma-plugin-art/room-seated/lu-mi-v1-rear.9d6dcbeefa61.webp",
+      "sha256": "9d6dcbeefa6160a68665d6b0256b788cb3be880dbb45e3340234a8111e6ec885",
+      "sourceSrc": "/luma-office/assets/lu-mi-skin-v1-typing-back.0bcd599c420f.png",
+      "sourceSha256": "0bcd599c420fb38efa4c8b40afa91504f8bf3d9d9f81bddaa804199eb521b843",
+      "cell": [
+        352,
+        352
+      ],
+      "count": 8,
+      "figureHeight": 266.0,
+      "hip": [
+        179.768,
+        230.836
+      ],
+      "head": [
+        179.768,
+        102.734
+      ],
+      "foot": [
+        182.97,
+        275.295
+      ],
+      "hand": [
+        181.086,
+        150.584
+      ],
+      "crownWidth": 81.0
+    },
+    "shallowRight": {
+      "src": "/luma-office/luma-plugin-art/room-seated/lu-mi-v1-shallowRight.6f2ca247e4d6.webp",
+      "sha256": "6f2ca247e4d64beacdfe13cb8d1627e54a91ff22ba98e45c51f230fbc32c21f2",
+      "sourceSrc": "/luma-office/assets/lu-mi-skin-v1-typing-back.0bcd599c420f.png",
+      "sourceSha256": "0bcd599c420fb38efa4c8b40afa91504f8bf3d9d9f81bddaa804199eb521b843",
+      "cell": [
+        352,
+        352
+      ],
+      "count": 8,
+      "figureHeight": 266.0,
+      "hip": [
+        179.768,
+        230.836
+      ],
+      "head": [
+        189.119,
+        102.734
+      ],
+      "foot": [
+        179.724,
+        275.295
+      ],
+      "hand": [
+        186.944,
+        150.584
+      ],
+      "crownWidth": 81.0
+    },
+    "shallowLeft": {
+      "src": "/luma-office/luma-plugin-art/room-seated/lu-mi-v1-shallowLeft.0eef7b71d48f.webp",
+      "sha256": "0eef7b71d48fe2343a3ce5ba46628b8753e30b41adbe54f728772eddf8e8c9cb",
+      "sourceSrc": "/luma-office/assets/lu-mi-skin-v1-typing-back.0bcd599c420f.png",
+      "sourceSha256": "0bcd599c420fb38efa4c8b40afa91504f8bf3d9d9f81bddaa804199eb521b843",
+      "cell": [
+        352,
+        352
+      ],
+      "count": 8,
+      "figureHeight": 266.0,
+      "hip": [
+        179.768,
+        230.836
+      ],
+      "head": [
+        170.417,
+        102.734
+      ],
+      "foot": [
+        186.216,
+        275.295
+      ],
+      "hand": [
+        175.228,
+        150.584
+      ],
+      "crownWidth": 81.0
+    },
+    "sideRight": {
+      "src": "/luma-office/luma-plugin-art/room-seated/lu-mi-v1-sideRight.f06a4b3f0c58.webp",
+      "sha256": "f06a4b3f0c58df3d3dd8e89c4ca76768f763994721fee283f0d175f240c3e3fc",
+      "sourceSrc": "/luma-office/assets/lu-mi-skin-v1-typing-back-right.6afac10897a8.png",
+      "sourceSha256": "6afac10897a884be4156d498bb323d1431212aef3d52d015058965164c755f4b",
+      "cell": [
+        352,
+        352
+      ],
+      "count": 8,
+      "figureHeight": 266.0,
+      "hip": [
+        193.016,
+        237.244
+      ],
+      "head": [
+        179.325,
+        112.068
+      ],
+      "foot": [
+        231.938,
+        307.069
+      ],
+      "hand": [
+        244.456,
+        187.369
+      ],
+      "crownWidth": 96.0
+    },
+    "quarterRight": {
+      "src": "/luma-office/luma-plugin-art/room-seated/lu-mi-v1-quarterRight.2dc51958bbd0.webp",
+      "sha256": "2dc51958bbd0067ff28bfb52052b941efaf03ddcd41e9c3c35dee9e684f04e28",
+      "sourceSrc": "/luma-office/assets/lu-mi-skin-v1-typing-back-right.6afac10897a8.png",
+      "sourceSha256": "6afac10897a884be4156d498bb323d1431212aef3d52d015058965164c755f4b",
+      "cell": [
+        352,
+        352
+      ],
+      "count": 8,
+      "figureHeight": 266.0,
+      "hip": [
+        193.016,
+        237.244
+      ],
+      "head": [
+        180.01,
+        112.068
+      ],
+      "foot": [
+        229.992,
+        307.069
+      ],
+      "hand": [
+        241.884,
+        187.369
+      ],
+      "crownWidth": 91.0
+    },
+    "sideLeft": {
+      "src": "/luma-office/luma-plugin-art/room-seated/lu-mi-v1-sideLeft.01919fdf35aa.webp",
+      "sha256": "01919fdf35aa8a7825c53899295340ac783b73c624c7a3da2764932e06c1fd6f",
+      "sourceSrc": "/luma-office/assets/lu-mi-skin-v1-typing-back-left.64cb113de858.png",
+      "sourceSha256": "64cb113de8582fa743d89f5285e2df1d686d7625c60748b54f3b7bb48bfdb958",
+      "cell": [
+        352,
+        352
+      ],
+      "count": 8,
+      "figureHeight": 266.0,
+      "hip": [
+        170.045,
+        239.2
+      ],
+      "head": [
+        170.045,
+        116.125
+      ],
+      "foot": [
+        136.1,
+        306.693
+      ],
+      "hand": [
+        117.043,
+        177.067
+      ],
+      "crownWidth": 95.0
+    },
+    "quarterLeft": {
+      "src": "/luma-office/luma-plugin-art/room-seated/lu-mi-v1-quarterLeft.4d0c38da6db4.webp",
+      "sha256": "4d0c38da6db468c566e4ca78edcd30098f41cbea6f713e49176bad508fdc1fbd",
+      "sourceSrc": "/luma-office/assets/lu-mi-skin-v1-typing-back-left.64cb113de858.png",
+      "sourceSha256": "64cb113de8582fa743d89f5285e2df1d686d7625c60748b54f3b7bb48bfdb958",
+      "cell": [
+        352,
+        352
+      ],
+      "count": 8,
+      "figureHeight": 266.0,
+      "hip": [
+        170.045,
+        239.2
+      ],
+      "head": [
+        170.045,
+        116.125
+      ],
+      "foot": [
+        137.797,
+        306.693
+      ],
+      "hand": [
+        119.693,
+        177.067
+      ],
+      "crownWidth": 91.0
+    },
+    "front": {
+      "src": "/luma-office/luma-plugin-art/room-seated/lu-mi-v1-front.3516f3c3732a.webp",
+      "sha256": "3516f3c3732ae1fd0b354959552f8d8061930c284eb21526d5eb321b9011d4e9",
+      "sourceSrc": "/luma-office/assets/lu-mi-skin-v1-typing-front.283972e692f4.png",
+      "sourceSha256": "283972e692f4f83910daccbb948f58479623c93f76bd9b8e65dabf5b5ad60fc0",
+      "cell": [
+        352,
+        352
+      ],
+      "count": 8,
+      "figureHeight": 266.0,
+      "hip": [
+        183.727,
+        233.299
+      ],
+      "head": [
+        183.727,
+        115.754
+      ],
+      "foot": [
+        182.322,
+        306.356
+      ],
+      "hand": [
+        185.6,
+        199.581
+      ],
+      "crownWidth": 95.0
+    }
+  }
+}

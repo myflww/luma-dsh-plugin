@@ -13,8 +13,8 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/idle-gestures/bai-shuangming-base.3392c80223c7.png",
-    "sha256": "3392c80223c7b813218fffb59b0cde07652d3ae5e2c133b86c00b62e3357d0ab",
+    "src": "/luma-office/luma-plugin-art/idle-gestures/bai-shuangming-base.4ef477f7d90c.png",
+    "sha256": "4ef477f7d90cdc8de4024a5a47c43291ea74854f9f2e657ca81a8b45a4517f37",
     "columns": 8,
     "count": 16,
     "actions": [
@@ -82,8 +82,8 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/idle-gestures/bai-shuangming-v1.38f85ede70d4.png",
-    "sha256": "38f85ede70d4ae3e8436e5a64556262b331e9bb07eb4021a5c9046c00615374b",
+    "src": "/luma-office/luma-plugin-art/idle-gestures/bai-shuangming-v1.d706b3ef2190.png",
+    "sha256": "d706b3ef21909235462bcbe7d9cfdea3717dcdfd7974479b7df740be3a604242",
     "columns": 8,
     "count": 16,
     "actions": [
@@ -151,8 +151,8 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/idle-gestures/claude-base.65bd41413800.png",
-    "sha256": "65bd41413800649e3c2704ccbacee846c7528b7e91ba23f3020664653ece4448",
+    "src": "/luma-office/luma-plugin-art/idle-gestures/claude-base.389c359eb9a1.png",
+    "sha256": "389c359eb9a1422efc98c212a8c305fb29e946f95d8c51531d86848a103edf11",
     "columns": 8,
     "count": 16,
     "actions": [
@@ -220,8 +220,8 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/idle-gestures/claude-v1.6a5afeb70758.png",
-    "sha256": "6a5afeb707586ed84f4f156d4d60925f20b4062474a79f570af1d800d0486ef9",
+    "src": "/luma-office/luma-plugin-art/idle-gestures/claude-v1.e5bee5ffce29.png",
+    "sha256": "e5bee5ffce2959e265bbb4e7955e1373a001f786d5bf9f92a873b0b5e12e06a6",
     "columns": 8,
     "count": 16,
     "actions": [
@@ -289,8 +289,8 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/idle-gestures/gemini-v1.ce00853f4cf3.png",
-    "sha256": "ce00853f4cf314edfbea61fafac995b2d518d36504d851912b1b7ba6a5945873",
+    "src": "/luma-office/luma-plugin-art/idle-gestures/gemini-v1.32f645b3a480.png",
+    "sha256": "32f645b3a480e50f5f2fd736ea6d5a3bb6826d8a8a763a131128b6c5d1b20967",
     "columns": 8,
     "count": 16,
     "actions": [
@@ -358,8 +358,8 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/idle-gestures/grok-v1.47bc2984e821.png",
-    "sha256": "47bc2984e8219faba01c05ef62f21bf04fd813d9a9544d475e1188175926e727",
+    "src": "/luma-office/luma-plugin-art/idle-gestures/grok-v1.5897388fd12d.png",
+    "sha256": "5897388fd12d2c1183189b319ba4b062f71fac213e3d686ddfce8d45e2c4e915",
     "columns": 8,
     "count": 16,
     "actions": [
@@ -427,8 +427,8 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/idle-gestures/jingyuniang-base.bb9cb5092f31.png",
-    "sha256": "bb9cb5092f314ad23d19ccfd1a99421de82933d32630e498f75cc9a5f90bbccd",
+    "src": "/luma-office/luma-plugin-art/idle-gestures/jingyuniang-base.97b67093cd16.png",
+    "sha256": "97b67093cd168dc6f987a5941df03c25957ee4fba0fbd213a6be6c171ad650b6",
     "columns": 8,
     "count": 16,
     "actions": [
@@ -496,8 +496,8 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/idle-gestures/jingyuniang-v1.d81ed063f76a.png",
-    "sha256": "d81ed063f76aac048b70f8591a6252f068090760339b9cc0868229579c80ec71",
+    "src": "/luma-office/luma-plugin-art/idle-gestures/jingyuniang-v1.5f43d396ef95.png",
+    "sha256": "5f43d396ef9579e9eedb27a49dff8c62b09767a18d0a1bc2f4785b4971c1ae1c",
     "columns": 8,
     "count": 16,
     "actions": [
@@ -565,8 +565,8 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/idle-gestures/longmama-base.06c90a69189e.png",
-    "sha256": "06c90a69189efd6ecc5604dc4baeed50441571ab8ec826c4d9ee13f19e1fc334",
+    "src": "/luma-office/luma-plugin-art/idle-gestures/longmama-base.965cd412a7ad.png",
+    "sha256": "965cd412a7ad8e2f93a496e055c90443ce35f7a1071da871610f4efb15779655",
     "columns": 8,
     "count": 16,
     "actions": [
@@ -634,8 +634,8 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/idle-gestures/longmama-v1.78c1f61afd7f.png",
-    "sha256": "78c1f61afd7f1179d8a98a58eb66d037523e1414299b427da96366e0861e1731",
+    "src": "/luma-office/luma-plugin-art/idle-gestures/longmama-v1.318326df7874.png",
+    "sha256": "318326df78742bc4d548c6c9b9ed7f50bcbb01c161bbada54d7c4fe1bf66f520",
     "columns": 8,
     "count": 16,
     "actions": [
@@ -696,15 +696,15 @@
     ],
     "figureHeight": 256,
     "foot": [
-      186,
+      192,
       300
     ],
     "grip": [
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/idle-gestures/lu-mi-base.4661b9223145.png",
-    "sha256": "4661b922314545de2fc7eacd7899797f0d54cf804c62f36dbd85a5a8dadf0aa6",
+    "src": "/luma-office/luma-plugin-art/idle-gestures/lu-mi-base.2137480720d4.png",
+    "sha256": "2137480720d4824fbff514604b20a7bc3a2034f90ca4bbfb2c7d15fa8b748b4a",
     "columns": 8,
     "count": 16,
     "actions": [
@@ -765,15 +765,15 @@
     ],
     "figureHeight": 256,
     "foot": [
-      200,
+      192,
       300
     ],
     "grip": [
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/idle-gestures/lu-mi-v1.f630368f95c6.png",
-    "sha256": "f630368f95c6caa2f58367ece119a978252beeeb31503dd1c70c1be605f891fb",
+    "src": "/luma-office/luma-plugin-art/idle-gestures/lu-mi-v1.55f3b5fd15bc.png",
+    "sha256": "55f3b5fd15bc4e0be19e3877fa18132b67792582999d9dfd76b8c947073f7dd0",
     "columns": 8,
     "count": 16,
     "actions": [
@@ -841,8 +841,8 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/idle-gestures/shan-base.5fbcdac2b491.png",
-    "sha256": "5fbcdac2b4913fcba77081480dd0b4649df5770c13870341f629b65d727cfad1",
+    "src": "/luma-office/luma-plugin-art/idle-gestures/shan-base.2fefc08cf5c1.png",
+    "sha256": "2fefc08cf5c1ce377936e163c94f35eb1033f67cb7b708eaf0bb516e858a4a45",
     "columns": 8,
     "count": 16,
     "actions": [
@@ -910,8 +910,8 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/idle-gestures/shan-v1.332d743a8999.png",
-    "sha256": "332d743a89999a1863986b1ae8816b16c4fd1b35d4f07f8a63f89e8d8bee1971",
+    "src": "/luma-office/luma-plugin-art/idle-gestures/shan-v1.bbdc6089d249.png",
+    "sha256": "bbdc6089d2495b0923c8ba39c2c8a4471454f5c18f9fcb5cd99179ab3318eecf",
     "columns": 8,
     "count": 16,
     "actions": [

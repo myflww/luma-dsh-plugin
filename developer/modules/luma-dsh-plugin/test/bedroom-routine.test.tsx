@@ -1,8 +1,9 @@
+import lumiSleep from '../src/client/bedroomSleep.generated.json'
 import { act, cleanup, fireEvent, render } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import { bedroomDropJourney, bedroomDropFrame } from '../src/client/bedroom-placement.ts'
 import { bedroomBedContacts } from '../src/client/bedroom-bed-pose.ts'
-import { BedroomDeskPose, bedroomSeatedCenter, getBedroomDeskModel, bedroomDeskHeadWidth } from '../src/client/BedroomFurniturePoses.tsx'
+import { BedroomDeskPose, bedroomSeatedCenter, getBedroomDeskModel, getLumiDeskModel, bedroomDeskHeadWidth } from '../src/client/BedroomFurniturePoses.tsx'
 import { BEDROOM_FLOORS, bedroomFootAt, bedroomStepAt, createBedroomRoutine } from '../src/client/bedroom-routine.ts'
 import { OfficeBedroom, type ResidentId } from '../src/client/OfficeBedroom.tsx'
 import { BEDROOM_ART, getBedroomArt } from '../src/client/bedroom-art.generated.ts'
@@ -80,7 +81,7 @@ it('moves the chair towards the fixed key bed and registers the rear wrists and 
   }
 })
 
-it('preserves each painted chibi at the same chair scale for all 210 bedroom and outfit pairs',()=>{
+it('preserves each painted chibi at the same chair scale for the 180 installed peer and bedroom pairs',()=>{
   // Front lip, in the original room painting. These four deep seats had
   // previously rendered both shoes on the top surface.
   const referenceLips:Partial<Record<BedroomRoom,readonly [number,number]>>={
@@ -95,6 +96,7 @@ it('preserves each painted chibi at the same chair scale for all 210 bedroom and
     const room=getBedroomArt(roomId),approach=BEDROOM_FLOORS[roomId].desk
     let skull:number|undefined
     for(const id of Object.keys(BEDROOM_ART) as ResidentId[]){
+      if(id==='lu-mi')continue
       const custom='skin.'+id+'.v1'
       for(const skinId of id==='gemini' || id==='grok'?[custom]:[undefined,custom]){
         view.rerender(<svg><BedroomDeskPose {...{roomId,room,id,skinId,approach}}
@@ -158,8 +160,43 @@ it('preserves each painted chibi at the same chair scale for all 210 bedroom and
       }
     }
   }
-  expect(combinations).toBe(210)
+  expect(combinations).toBe(180)
   view.unmount()
+})
+
+it('uses the catalog costume and moves its room chair to the original painted hand in every bedroom',()=>{
+  let combinations=0
+  const view=render(<svg/>)
+  for(const roomId of Object.keys(BEDROOM_FLOORS) as BedroomRoom[]){
+    const room=getBedroomArt(roomId),approach=BEDROOM_FLOORS[roomId].desk
+    for(const id of ['lu-mi'] as const){
+      const custom='skin.'+id+'.v1'
+      for(const skinId of [undefined,custom]){
+        view.rerender(<svg><BedroomDeskPose {...{roomId,room,id,skinId,approach}}
+          background={room.day} seated={1} elapsed={750} animate/></svg>)
+        const actor=view.container.querySelector('[data-bedroom-pose="computer"]')!
+        const body=actor.querySelector('[data-body-projection]')!
+        const model=getLumiDeskModel(id,skinId,roomId)
+        const catalog=getEmployeeCatalogWithSkin(id,skinId)!
+        expect(Object.values(catalog.typing).some(id=>getOfficeAsset(id).sha256===model.sourceSha256)).toBe(true)
+        expect(model.count).toBe(8)
+        expect(model.src).toContain("/room-seated/")
+        expect(body.querySelector('image')?.getAttribute('href')).toBe(model.src)
+        const [a,b,c,d,tx,ty]=body.getAttribute('transform')!.slice(7,-1).split(' ').map(Number)
+        expect(Math.abs(a!)).toBeCloseTo(d!);expect([b,c]).toEqual([0,0])
+        const cushion=actor.querySelector('ellipse')!
+        expect(a!*model.hip[0]+tx!).toBeCloseTo(Number(cushion.getAttribute('cx')))
+        expect(d!*model.hip[1]+ty!).toBeCloseTo(Number(cushion.getAttribute('cy'))-1)
+        expect(d!*model.figureHeight).toBeGreaterThan(125)
+        expect(d!*model.figureHeight).toBeLessThan(195)
+        expect(actor.querySelector('[data-bedroom-desk-front-lip]')).toBeTruthy()
+        expect(actor.querySelector('[data-bedroom-chair-foreground]')).toBeTruthy()
+        expect(actor.querySelector('[data-bedroom-keyboard],[data-bedroom-input-tray]')).toBeNull()
+        combinations++
+      }
+    }
+  }
+  expect(combinations).toBe(30)
 })
 
 it('uses continuous floor routes in every room, with sleep and attendance transitions at the correct landmarks',()=>{
@@ -191,6 +228,22 @@ it('uses continuous floor routes in every room, with sleep and attendance transi
 
 const props={id:'jingyuniang' as const,name:'鲸鱼娘',themeOwner:'jingyuniang' as const,phase:'morning' as const,location:'bedroom' as const,
   bedtime:false,taskIdle:true,workingDay:false,active:true,reduceMotion:false,officeActivity:'',onChat:vi.fn(),onOffice:vi.fn()}
+it('keeps both Lu Mi sleepers in their catalog costume on the actual night bed',()=>{
+  const id='lu-mi' as const
+  for(const [key,skinId] of [['lu-mi-base',undefined],['lu-mi-v1','skin.lu-mi.v1']] as const){
+    const clock=new Date(2026,10,24,1)
+    const registration=lumiSleep[key]
+    const catalog=getEmployeeCatalogWithSkin(id,skinId)!
+    expect(registration.sourceSha256).toBe(getOfficeAsset(catalog.walk.down).sha256)
+    const view=render(<OfficeBedroom {...props} {...{id,skinId,clock}} themeOwner={id} phase="night" bedtime/>)
+    const cel=view.container.querySelector('[data-bedroom-pose="sleep"] image')!
+    expect(cel.getAttribute('href')).toBe(registration.src)
+    expect(cel.getAttribute('width')).toBe(String(registration.size[0]))
+    expect(cel.getAttribute('height')).toBe(String(registration.size[1]))
+    view.unmount()
+  }
+})
+
 it('sleeps by the clock, keeps sleeping after contact, wakes and walks without input',()=>{
   vi.useFakeTimers()
   vi.setSystemTime(new Date(2026,10,22,5,59))
@@ -254,9 +307,9 @@ it('renders each resident in the matching phone outfit and animated chair pose a
     vi.setSystemTime(phone.start+500)
     const opts={...props,id,skinId,themeOwner:room==='classic'?undefined:id}
     const view=render(<OfficeBedroom {...opts} clock={new Date()}/>)
-    const image=view.container.querySelector('[data-bedroom-pose="phone"] svg g image')
+    const image=view.container.querySelector('[data-bedroom-pose="phone"] svg image')
     const usesOutfit=Boolean(skinId) || id==='gemini' || id==='grok'
-    expect(image?.getAttribute('href')).toContain(usesOutfit?'phone-outfit.webp':'phone-standard.webp')
+    expect(image?.getAttribute('href')).toContain(id==='lu-mi'?'/room-seated/lu-mi-'+(usesOutfit?'v1':'base')+'-sideRight.':usesOutfit?'phone-outfit.webp':'phone-standard.webp')
     expect(view.getByText('躺在床上看手机')).toBeTruthy()
     view.unmount()
     const desk=routine.steps.find(s=>s.pose==='computer')!
@@ -264,7 +317,7 @@ it('renders each resident in the matching phone outfit and animated chair pose a
     const computer=render(<OfficeBedroom {...opts} clock={new Date()}/>)
     const actor=computer.container.querySelector('[data-bedroom-pose="computer"]')!
     expect(actor.querySelector('[data-bedroom-monitor="awake"]')).toBeTruthy()
-    expect(actor.querySelector('[data-bedroom-seated-body] image')?.getAttribute('href')).toBe(activeDeskDrawing(actor,getDeskRearPose(id,skinId)!,room,id,skinId).src)
+    expect(actor.querySelector('[data-bedroom-seated-body] image')?.getAttribute('href')).toBe(id==='lu-mi'?getLumiDeskModel(id,skinId,room).src:activeDeskDrawing(actor,getDeskRearPose(id,skinId)!,room,id,skinId).src)
     expect(actor.querySelector('[data-bedroom-keyboard],[data-bedroom-input-tray]')).toBeNull()
     const initial=actor.getAttribute('data-bedroom-frame')
     act(()=>vi.advanceTimersByTime(320))

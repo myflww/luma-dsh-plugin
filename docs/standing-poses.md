@@ -1,12 +1,12 @@
 # 伙伴闲下来时怎么站
 
-![八位伙伴十四套衣装，中立站姿的呼吸和眨眼循环](images/standing-outfits-065.gif)
+![两套新陆弥与本机实装的十二套伙伴造型，全部使用同一倍率](images/original-actors-067.jpg)
 
-刚好没人说话时，八位伙伴像角色合照里那样面朝前，肩膀放松，双手垂在身旁，两只鞋稳稳落地。站上一会儿，能看见她们眨眼，发梢和裙边随呼吸轻轻起落。等端木嫣想给人打气，或白霜命想侧过头细听，才会抬手、换步，做完再站回原处。
+刚好没人说话时，八位伙伴像角色合照里那样面朝前，肩膀放松，双手垂在身旁，双脚自然承重。陆弥的脚尖轻轻交叠，保留她原画的站姿。站上一会儿，能看见她们眨眼，发梢和裙边随呼吸轻轻起落。等端木嫣想给人打气，或白霜命想侧过头细听，才会抬手、换步，做完再站回原处。
 
 ## 十四套衣装
 
-下表的原画可以点开看透明大图。左右均以看图者的方向为准。日常站姿沿用合照里的手脚位置，个性更多体现在她们偶尔会做什么。[六位伙伴的角色设定](../developer/overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/companion/companion-fiction.ts) · [吉米与绯洛的角色设定](../developer/overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/companion/companion-prepared-identities.ts)
+下表的原画可以点开看透明大图。左右均以看图者的方向为准。陆弥两套使用各自的原画定位，其余伙伴保留实装的日常站姿，个性更多体现在她们偶尔会做什么。[六位伙伴的角色设定](../developer/overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/companion/companion-fiction.ts) · [吉米与绯洛的角色设定](../developer/overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/companion/companion-prepared-identities.ts)
 
 | 伙伴与原画 | 平时站着的样子 | 驻足时的两个小动作 |
 | --- | --- | --- |
@@ -14,7 +14,7 @@
 | 白霜命 · [白色礼服](../developer/modules/luma-dsh-plugin/art/actor-poses-keys/standing/bai-shuangming-v1.png) | 手臂沿裙侧放下，手指自然微曲，两只浅色鞋从前短后长的裙摆中露出。蓝蝶发饰与小冠衬着她正面的浅笑。 | 她并近双脚，沿浅色裙褶轻抚一遍。轮到侧听，才将一只鞋错到另一只前面，微微转身，抬手拢发。 |
 | 端木嫣 · [水手上衣](../developer/modules/luma-dsh-plugin/art/actor-poses-keys/standing/shan-base.png) | 白袖口停在黑色短裙两旁，手指朝下。两只粉鞋自然分开，胸前的大蝴蝶结完整露着。 | 这位沙龙主持人握拳打气时会屈起一腿，把力气送到拳上。合掌轻拍时肩胯侧转，换另一只脚站稳。 |
 | 端木嫣 · [粉色蕾丝裙](../developer/modules/luma-dsh-plugin/art/actor-poses-keys/standing/shan-v1.png) | 双手自然落到腰间蝴蝶结下方，指尖停在两侧裙边。两只粉鞋都落地，浅粉裙层在身前铺开。 | 提裙行礼时双膝微屈，裙层随身体降低。掩嘴轻笑时重新站高，由画面左脚承重，另一只鞋轻轻抬起。 |
-| 陆弥 · [蓝蔷薇礼裙](../developer/modules/luma-dsh-plugin/art/actor-poses-keys/standing/lu-mi-base.png) | 她微微带笑，两臂沿层叠的蓝裙自然下垂。正面的裙摆稍短，深色袜和系带鞋露出来，脚尖并排朝前。 | 整理丝带时一手抬到发侧，另一手扶腰。致意时双掌展开。她熟悉典仪，两段都以手势为主，裙下只留小幅重心变化。 |
+| 陆弥 · [无袖深蓝裙](../developer/modules/luma-dsh-plugin/art/actor-poses-keys/standing/lu-mi-base.png) | 长直黑发垂在肩后，金叶发饰露在鬓边。短裙后的纱摆垂落，两手自然放低，双脚轻轻交叠。 | 整理丝带时，她抬手轻触身前的饰带。致意时，一手展掌，另一手收在腰前。她熟悉典仪，两段都以手势为主，裙下只留小幅重心变化。 |
 | 陆弥 · [短披肩与深色靴](../developer/modules/luma-dsh-plugin/art/actor-poses-keys/standing/lu-mi-v1.png) | 白色袖口从蓝金披肩下露出，两手垂在裙外。靴尖的金色星纹朝前，领口的扣饰也看得清楚。 | 她站稳两只靴子，伸手拢好披肩。邀请人同行时才朝旁边开半步，一手摊开，肩和目光一起转过去。 |
 | 鲸鱼娘 · [海军蓝围裙](../developer/modules/luma-dsh-plugin/art/actor-poses-keys/standing/jingyuniang-base.png) | 她双手放在白围裙两旁，露出正中的小鲸图案。蓝鞋踩平，尾巴从裙后绕向画面左侧。 | 这位生活策划会低头抚平围裙，双脚收在身下。回头看尾鳍时，膝盖向同侧转，鞋子错开，目光落到身后的蓝尾上。 |
 | 鲸鱼娘 · [薄荷色开衫](../developer/modules/luma-dsh-plugin/art/actor-poses-keys/standing/jingyuniang-v1.png) | 薄荷绿袖子沿蓝裙垂下，两只蓝鞋轻轻分开。宽大的尾鳍露在画面右边，静止时也认得出她。 | 她松膝再站直，抬起双臂伸个懒腰。张臂找平衡时换用画面左脚支撑，另一膝抬起，尾鳍从身后舒展开。 |

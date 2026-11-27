@@ -13,24 +13,24 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/actor-look/bai-shuangming-base.d38fa7b809f6.png",
-    "sha256": "d38fa7b809f63fedd5e448c3883448e0788bd72c1296fc0ce3a271dd626b7d80",
+    "src": "/luma-office/luma-plugin-art/actor-look/bai-shuangming-base.51901cc05ca0.png",
+    "sha256": "51901cc05ca01c4b816bf7499c57138a18032e40bc94b1dfd99fec59a5d74d6f",
     "columns": 5,
     "count": 25,
     "neutralIndex": 12,
-    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/bai-shuangming-base-eyes.03e1933b3574.png",
-    "eyesSha256": "03e1933b35749d382d69c10654400a367a3e22af3fce5df276e842add630f609",
+    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/bai-shuangming-base-eyes.d21f76013e1b.png",
+    "eyesSha256": "d21f76013e1be4569ba6e6ac11533cbaf73f917fe20ad0ccac5374d5eb9d27f5",
     "eyeCenter": [
       190.5,
       122.0
     ],
     "eyesOrigin": [
-      156,
-      108
+      162,
+      114
     ],
     "eyesCell": [
-      69,
-      31
+      58,
+      18
     ]
   },
   "bai-shuangming-v1": {
@@ -47,24 +47,24 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/actor-look/bai-shuangming-v1.1c10d2fe4ce0.png",
-    "sha256": "1c10d2fe4ce086784693ada9212c58bd54d23fa1efc3bef9a412bc9e2bbf4c30",
+    "src": "/luma-office/luma-plugin-art/actor-look/bai-shuangming-v1.9a3564a57dfe.png",
+    "sha256": "9a3564a57dfedfdd7d60dbf8bf956c7aad9bc59e9bfb1b43b1e103c74a9f241d",
     "columns": 5,
     "count": 25,
     "neutralIndex": 12,
-    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/bai-shuangming-v1-eyes.bede4a6b8b6e.png",
-    "eyesSha256": "bede4a6b8b6e9a0ff9891ab1a014515c489edf349125746fb615eb76299f31ed",
+    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/bai-shuangming-v1-eyes.a0564336c482.png",
+    "eyesSha256": "a0564336c482ecd609cfcba00ac387e60f24e4ab88ab311acb6ef36f33ab2d2e",
     "eyeCenter": [
       191.5,
       125.0
     ],
     "eyesOrigin": [
-      157,
-      111
+      163,
+      117
     ],
     "eyesCell": [
-      69,
-      31
+      58,
+      18
     ]
   },
   "claude-base": {
@@ -81,24 +81,24 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/actor-look/claude-base.bc9a6046dd4b.png",
-    "sha256": "bc9a6046dd4b042052c3fd12d796a221d1c38feafcd1dc3caec41c5e3e98325f",
+    "src": "/luma-office/luma-plugin-art/actor-look/claude-base.8eaf8e7a942f.png",
+    "sha256": "8eaf8e7a942fc1758f2ecb27a68703753dea946cfdc5492bb7aed2fc58d7b05a",
     "columns": 5,
     "count": 25,
     "neutralIndex": 12,
-    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/claude-base-eyes.7a68f638f926.png",
-    "eyesSha256": "7a68f638f926b8e3ae48808e77dbe0b2cb70da33817691455d7abeeaf22b4a07",
+    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/claude-base-eyes.718460822c3f.png",
+    "eyesSha256": "718460822c3fb64e27c563a904bf343a96dc4533c9d5c4263e1389dcadcbfb37",
     "eyeCenter": [
       191.0,
       114.0
     ],
     "eyesOrigin": [
-      156,
-      99
+      161,
+      105
     ],
     "eyesCell": [
-      71,
-      32
+      61,
+      20
     ]
   },
   "claude-v1": {
@@ -115,24 +115,24 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/actor-look/claude-v1.e5b4730fb06e.png",
-    "sha256": "e5b4730fb06e3680026b58d3a571dc1ed7b7ee45763c3682d5eb988b9ff8359a",
+    "src": "/luma-office/luma-plugin-art/actor-look/claude-v1.140296eea44c.png",
+    "sha256": "140296eea44c2a94d18aabfbf8e18ff47d124eebe7db99d5a442d1a8259099e1",
     "columns": 5,
     "count": 25,
     "neutralIndex": 12,
-    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/claude-v1-eyes.5f8873236b21.png",
-    "eyesSha256": "5f8873236b21a0d1669e8678c8113efdb5240d0cdaa8b116ab26e5e22e4bc132",
+    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/claude-v1-eyes.2f422b585b62.png",
+    "eyesSha256": "2f422b585b62a29adeb267fa40938f1ff1a4936996c77aa1a0b9da16e57d5f5a",
     "eyeCenter": [
       191.5,
       114.0
     ],
     "eyesOrigin": [
-      158,
-      100
+      163,
+      106
     ],
     "eyesCell": [
-      68,
-      31
+      58,
+      18
     ]
   },
   "gemini-v1": {
@@ -149,24 +149,24 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/actor-look/gemini-v1.e0d1d58256a5.png",
-    "sha256": "e0d1d58256a54b65648897df95377484e4553fbcf0608b1af03c174b437a1f4f",
+    "src": "/luma-office/luma-plugin-art/actor-look/gemini-v1.e27d58456aaf.png",
+    "sha256": "e27d58456aafb6541ac8dae85f03d749dfa241f457c06065beeb7c7616d385c8",
     "columns": 5,
     "count": 25,
     "neutralIndex": 12,
-    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/gemini-v1-eyes.47ef7a40ca51.png",
-    "eyesSha256": "47ef7a40ca51693fe2aa9fb892d806746840d47a7996b3c6ac6146602e351865",
+    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/gemini-v1-eyes.79b54664319a.png",
+    "eyesSha256": "79b54664319a8a18a61f8d1305737b621228a8fff13ba6b3bcef93d0e1646cfb",
     "eyeCenter": [
       190.5,
       133.0
     ],
     "eyesOrigin": [
-      158,
-      120
+      164,
+      125
     ],
     "eyesCell": [
-      66,
-      28
+      54,
+      18
     ]
   },
   "grok-v1": {
@@ -183,24 +183,24 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/actor-look/grok-v1.85aa397dfa04.png",
-    "sha256": "85aa397dfa0425c16c1487a69f1d97d65fbe02775a10d2534f0c38a8a6d41fd5",
+    "src": "/luma-office/luma-plugin-art/actor-look/grok-v1.1b52ffda0ba8.png",
+    "sha256": "1b52ffda0ba8109ed6563d30ecf42c4ee23c32a8f207563f16855825605eed4c",
     "columns": 5,
     "count": 25,
     "neutralIndex": 12,
-    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/grok-v1-eyes.0e931f678b62.png",
-    "eyesSha256": "0e931f678b62f1cedf785ad17b993cf6606e8876b5aa228b89d069aa6e59974f",
+    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/grok-v1-eyes.0d10c8b0c682.png",
+    "eyesSha256": "0d10c8b0c6820c85b7ace1c19edeb79c60168c41a4ddb5e2efd95b664b5cf045",
     "eyeCenter": [
       192.5,
       128.0
     ],
     "eyesOrigin": [
-      158,
-      114
+      164,
+      120
     ],
     "eyesCell": [
-      70,
-      31
+      58,
+      18
     ]
   },
   "jingyuniang-base": {
@@ -217,24 +217,24 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/actor-look/jingyuniang-base.3de100f877a2.png",
-    "sha256": "3de100f877a247c3477c1dd164272db49b42f98ac7ff36a512c4e6b921c0849a",
+    "src": "/luma-office/luma-plugin-art/actor-look/jingyuniang-base.0ab2856fdd04.png",
+    "sha256": "0ab2856fdd04f37ae60834e418c66910cf98790605496ea6ecbeb134349e3896",
     "columns": 5,
     "count": 25,
     "neutralIndex": 12,
-    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/jingyuniang-base-eyes.48b901acfa7e.png",
-    "eyesSha256": "48b901acfa7e909300b86667e7942e7cd9a77034d0bbe4999f47c0706ffb85b4",
+    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/jingyuniang-base-eyes.0ab4360063a8.png",
+    "eyesSha256": "0ab4360063a8fcbd5d0986885e695f510d7b9ae69fd96f2b18519ade5df4daea",
     "eyeCenter": [
       194.5,
       131.0
     ],
     "eyesOrigin": [
-      162,
-      118
+      168,
+      123
     ],
     "eyesCell": [
-      66,
-      28
+      54,
+      18
     ]
   },
   "jingyuniang-v1": {
@@ -251,24 +251,24 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/actor-look/jingyuniang-v1.f8807a65b61f.png",
-    "sha256": "f8807a65b61fc21329e50dedb5d312f6f1cca1992f3a2d3db621332b71171838",
+    "src": "/luma-office/luma-plugin-art/actor-look/jingyuniang-v1.159443c7540d.png",
+    "sha256": "159443c7540d63ee15d603c32d58f5579fb1f9ad17423b051cedfc5582bda6e9",
     "columns": 5,
     "count": 25,
     "neutralIndex": 12,
-    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/jingyuniang-v1-eyes.0c8952d261ca.png",
-    "eyesSha256": "0c8952d261ca560a1abcec3f0a0f3f7340bef724cf601918bf3ed18bacb26d4a",
+    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/jingyuniang-v1-eyes.a800b7597405.png",
+    "eyesSha256": "a800b7597405685d04b77a21150ed8355220ff39ee9d04d9d18c064149a64992",
     "eyeCenter": [
       191.5,
       124.0
     ],
     "eyesOrigin": [
-      159,
-      111
+      165,
+      116
     ],
     "eyesCell": [
-      66,
-      28
+      54,
+      18
     ]
   },
   "longmama-base": {
@@ -285,24 +285,24 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/actor-look/longmama-base.562c51331afd.png",
-    "sha256": "562c51331afdb8432ecce3b68b805a2804a0cb7c451be43cc56c06f27a8d3e41",
+    "src": "/luma-office/luma-plugin-art/actor-look/longmama-base.df81ac7ea2be.png",
+    "sha256": "df81ac7ea2befff5928b5c56156610e95bd3dee9198931d6ec9c83bc95f15712",
     "columns": 5,
     "count": 25,
     "neutralIndex": 12,
-    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/longmama-base-eyes.719cf64361ab.png",
-    "eyesSha256": "719cf64361ab6586b46490813bd6c90a2b7da8db90a4c0e59f0f58f4fd5a2f40",
+    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/longmama-base-eyes.58f44eafaf4c.png",
+    "eyesSha256": "58f44eafaf4cfa29473ca3edfd41bd1f4aaa79835dfa8aeaeabfeb61db409f0a",
     "eyeCenter": [
       193.0,
       119.0
     ],
     "eyesOrigin": [
-      160,
-      105
+      165,
+      111
     ],
     "eyesCell": [
-      67,
-      30
+      57,
+      18
     ]
   },
   "longmama-v1": {
@@ -319,24 +319,24 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/actor-look/longmama-v1.97d0f891045e.png",
-    "sha256": "97d0f891045efe553c4804ecd90eb95d4616cfb3a5a741b701fcee86d285d11e",
+    "src": "/luma-office/luma-plugin-art/actor-look/longmama-v1.d5f50a0db0f8.png",
+    "sha256": "d5f50a0db0f8d712508be666c109a315e487c5bed299496a0b4eedbd53f61f36",
     "columns": 5,
     "count": 25,
     "neutralIndex": 12,
-    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/longmama-v1-eyes.880d62532a04.png",
-    "eyesSha256": "880d62532a04bb6ef9f3830ff4365a12430f72c85e2ea38209be98d60dff2cb2",
+    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/longmama-v1-eyes.f45ede6e03a0.png",
+    "eyesSha256": "f45ede6e03a06b1c8df2cce78c5c973874bdef93eb24688088531ca6bf3be94f",
     "eyeCenter": [
       193.5,
       119.0
     ],
     "eyesOrigin": [
-      160,
-      105
+      165,
+      111
     ],
     "eyesCell": [
-      69,
-      31
+      58,
+      18
     ]
   },
   "lu-mi-base": {
@@ -346,31 +346,31 @@
     ],
     "figureHeight": 256,
     "foot": [
-      186,
+      192,
       300
     ],
     "grip": [
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/actor-look/lu-mi-base.e8f630a56673.png",
-    "sha256": "e8f630a566730c4eeb72689d0e3ded85f6b0449da98db198528417f1b31ece26",
+    "src": "/luma-office/luma-plugin-art/actor-look/lu-mi-base.7e90f91ca260.png",
+    "sha256": "7e90f91ca2604f1cefb70bb81583c142c1331cfbef54cf007bafce1edb610fa2",
     "columns": 5,
     "count": 25,
     "neutralIndex": 12,
-    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/lu-mi-base-eyes.6992d2e34188.png",
-    "eyesSha256": "6992d2e3418880516536aed35d7fc6f184bcfeb369738901cc2c6106740243f0",
+    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/lu-mi-base-eyes.c454afdba5bc.png",
+    "eyesSha256": "c454afdba5bc083ed2c9b2acc5ab8af297d613671655e833902505e9c1bbd61c",
     "eyeCenter": [
-      192.5,
-      129.0
+      195.5,
+      114.0
     ],
     "eyesOrigin": [
-      158,
-      115
+      169,
+      106
     ],
     "eyesCell": [
-      70,
-      30
+      54,
+      18
     ]
   },
   "lu-mi-v1": {
@@ -380,31 +380,31 @@
     ],
     "figureHeight": 256,
     "foot": [
-      200,
+      192,
       300
     ],
     "grip": [
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/actor-look/lu-mi-v1.275f77d7b6a8.png",
-    "sha256": "275f77d7b6a81a5a5be85f5f3831db415b1160120415a955bdd8698e58ffd70b",
+    "src": "/luma-office/luma-plugin-art/actor-look/lu-mi-v1.f6c35cac4564.png",
+    "sha256": "f6c35cac4564763d19c85de06bd1481994fa70a678941f20e4bdd15cce435867",
     "columns": 5,
     "count": 25,
     "neutralIndex": 12,
-    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/lu-mi-v1-eyes.41de26f0a263.png",
-    "eyesSha256": "41de26f0a263ad1c35da35a741262f4db4cc8f692c6631d40fcfc0c9be076c4b",
+    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/lu-mi-v1-eyes.fa664fc06997.png",
+    "eyesSha256": "fa664fc06997ab40ee5c1565eb571a420f2bc2ddc971c465cbbb27aea4974eea",
     "eyeCenter": [
-      193.5,
-      126.0
+      194.5,
+      114.5
     ],
     "eyesOrigin": [
-      159,
-      112
+      168,
+      106
     ],
     "eyesCell": [
-      70,
-      30
+      54,
+      19
     ]
   },
   "shan-base": {
@@ -421,24 +421,24 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/actor-look/shan-base.d610d432e2df.png",
-    "sha256": "d610d432e2dfece25be49de20aaa7c04ca2583cf67321c0eb682af34ad17c9fd",
+    "src": "/luma-office/luma-plugin-art/actor-look/shan-base.7cb9d2251654.png",
+    "sha256": "7cb9d22516544862204cc7120f0eebe6b661d83c46b7f636e8af8cd73776dbf0",
     "columns": 5,
     "count": 25,
     "neutralIndex": 12,
-    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/shan-base-eyes.3ab86f2a5966.png",
-    "eyesSha256": "3ab86f2a5966f422f4091377476a2790928dd0b2de57234bb2b5ce9bee4a7820",
+    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/shan-base-eyes.fecab3e65136.png",
+    "eyesSha256": "fecab3e6513620e1d5f2446e3bb1c49e0bfc7c9ab56497b93c1a1004eb3a07fc",
     "eyeCenter": [
       192.5,
       129.0
     ],
     "eyesOrigin": [
-      159,
-      115
+      164,
+      121
     ],
     "eyesCell": [
-      68,
-      30
+      58,
+      18
     ]
   },
   "shan-v1": {
@@ -455,24 +455,24 @@
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/actor-look/shan-v1.fb56353db714.png",
-    "sha256": "fb56353db714a9df67ec6858d2e738ee376f7018aa0c08da6a80df2241396591",
+    "src": "/luma-office/luma-plugin-art/actor-look/shan-v1.83aaa7f38a87.png",
+    "sha256": "83aaa7f38a878469a62e84377c8e3e3e88c921e93db7453ae4b74df4be74c7dd",
     "columns": 5,
     "count": 25,
     "neutralIndex": 12,
-    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/shan-v1-eyes.9eda30700b41.png",
-    "eyesSha256": "9eda30700b4160b61812325197d51e7a05bf6b66466c33b4459f361d281a09f0",
+    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/shan-v1-eyes.0e6b69f5f7e7.png",
+    "eyesSha256": "0e6b69f5f7e78634178434ef771533a1aecbe22c1dd680edfeacdecb527126c8",
     "eyeCenter": [
       193.5,
       130.0
     ],
     "eyesOrigin": [
-      160,
-      116
+      165,
+      122
     ],
     "eyesCell": [
-      68,
-      31
+      58,
+      18
     ]
   }
 }

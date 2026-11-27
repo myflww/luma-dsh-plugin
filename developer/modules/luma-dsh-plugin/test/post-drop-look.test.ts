@@ -32,3 +32,22 @@ it('cancels an interrupted resident without rearming from later mouse movements'
   look.cancel()
   expect(look.has('claude')).toBe(false)
 })
+
+it('holds each grid cell through one-pixel pointer noise on either side of an angle boundary',()=>{
+  for(const initial of [0,.55]){
+    const look=new PostDropLook(),height=164
+    look.begin('whale',initial*height*.36,-initial*height*.30,0)
+    const expected=initial===0?12:8
+    for(let t=0;t<800;t+=16)look.sample('whale',t,0,0,height)
+    for(let t=800;t<2000;t+=16){
+      const offset=Math.floor(t/80)%2?1:-1
+      look.move(height*.36*.25+offset,-height*.30*.25-offset)
+      const gaze=look.sample('whale',t,0,0,height)!
+      expect([gaze.head,gaze.eyes]).toEqual([expected,expected])
+    }
+    look.move(height,-height)
+    for(let t=2000;t<=2400;t+=16)look.sample('whale',t,0,0,height)
+    const far=look.sample('whale',2420,0,0,height)!
+    expect([far.head,far.eyes]).toEqual([4,4])
+  }
+})

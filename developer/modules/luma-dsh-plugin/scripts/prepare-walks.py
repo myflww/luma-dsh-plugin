@@ -203,7 +203,8 @@ def pack_atlas(asset, stage, atlas, cell_w, cell_h, cols, count, timings=None):
 
 def compile_strip(asset, stage):
     painted = ROOT / "art/walk-keydrawings" / (asset["costume"] + ".png")
-    if painted.is_file():
+    original = asset["costume"].startswith("lu-mi-")
+    if painted.is_file() and not original:
         row = ("down","left","up","right").index(asset["direction"])
         frames = register(painted_keys(painted)[row*4:row*4+4])
         cell_w,cell_h = frames[0].size
@@ -236,8 +237,9 @@ def compile_strip(asset, stage):
     cells = [premultiply(im) for im in registered]
     planes = [cv2.cvtColor(np.uint8((c[:, :, :3] + .36 * (1 - c[:, :, 3:4])) * 255),
                           cv2.COLOR_RGB2GRAY) for c in cells]
-    order = strip.get("frameOrder") or list(range(total))
-    count = len(order) * STEPS
+    order = asset["order"] if original else strip.get("frameOrder") or list(range(total))
+    steps = 2 if original else STEPS
+    count = len(order) * steps
     cell_w, cell_h = registered[0].size
     cols = math.ceil(math.sqrt(count * cell_h / cell_w))
     atlas = Image.new("RGBA", (cols * cell_w, math.ceil(count / cols) * cell_h))
@@ -248,9 +250,9 @@ def compile_strip(asset, stage):
         k = order[(i + 1) % len(order)]
         forward = smooth_flow(dis.calc(planes[j], planes[k], None))
         backward = smooth_flow(dis.calc(planes[k], planes[j], None))
-        for n in range(STEPS):
-            index = i * STEPS + n
-            frame = registered[j] if n == 0 else inbetween(cells[j], cells[k], forward, backward, n / STEPS, grid)
+        for n in range(steps):
+            index = i * steps + n
+            frame = registered[j] if n == 0 else inbetween(cells[j], cells[k], forward, backward, n / steps, grid)
             # Flow can briefly lift both soles at a crossing. Constrain the planted
             # foot and drawing height in the packed cells, including the loop seam.
             if n:
@@ -262,7 +264,11 @@ def compile_strip(asset, stage):
                     (1/ratio, 0, half - half/ratio, 0, 1/ratio, sole - SOLE/ratio),
                     resample=Image.Resampling.BICUBIC)
             atlas.paste(frame, (index % cols * cell_w, index // cols * cell_h))
-    return pack_atlas(asset, stage, atlas, cell_w, cell_h, cols, count)
+    timings = [duration / steps for duration in asset["durations"] for _ in range(steps)] if original else None
+    data, record = pack_atlas(asset, stage, atlas, cell_w, cell_h, cols, count, timings)
+    if original:
+        data["sourceSha256"] = asset["sha"]
+    return data, record
 
 
 def main():
