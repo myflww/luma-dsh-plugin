@@ -55,23 +55,28 @@
 .lumaBedroomArt { position:relative; overflow:hidden; border-radius:14px; background:#464345; border:1px solid #a996803d; }
 .lumaBedroomArt>img, .lumaBedroomResidentLayer { width:100%; height:100%; display:block; position:absolute; inset:0; }
 .lumaBedroomResidentLayer { pointer-events:none; overflow:visible; }
-.lumaBedroomArt[data-bedroom-light="lamplight"] :is([data-bedroom-pose="sleep"],[data-bedroom-pose="phone"],[data-bedroom-pose="walking"],[data-bedroom-pose="awake"],[data-bedroom-pose="computer"]>svg) {
+.lumaBedroomArt[data-bedroom-light="lamplight"] :is([data-bedroom-pose="sleep"],[data-bedroom-pose="phone"],[data-bedroom-pose="walking"],[data-bedroom-pose="awake"]) {
   filter:brightness(.85) saturate(.9) sepia(.05);
 }
 .lumaBedroomArt .lumaBedroomInvite {
   position:absolute; z-index:1; transform:translate(-50%,-50%); display:grid; place-items:center;
-  width:34px; height:34px; padding:0; border:1px solid #f5efdea8; border-radius:50%;
-  color:#fffaf1; background:#344740d9; box-shadow:0 2px 8px #181c1638; cursor:pointer;
+  width:34px; height:34px; padding:0; border:0; border-radius:50%;
+  color:#fffaf1; background:transparent; cursor:pointer;
 }
-.lumaBedroomArt .lumaBedroomInvite:is(:hover,:focus-visible,[aria-pressed=true]) { color:#2f473c; background:#fff8e8; }
+.lumaBedroomInvite::before { content:""; position:absolute; inset:4px; border-radius:inherit; border:1px solid #fffc; background:#243e3991; }
+.lumaBedroomInvite svg { position:relative; filter:drop-shadow(0 1px 1px #182522); }
+.lumaBedroomInvite:is(:hover,:focus-visible,[aria-pressed=true])::before { background:#243e39b5; }
 .lumaBedroomInvite:focus-visible { outline:2px solid #2b5f51; outline-offset:3px; }
 .lumaBedroomInvite span,.lumaBedroomReply {
-  position:absolute; border-radius:8px; padding:5px 9px; background:#fff9eb; color:#2d4036;
-  box-shadow:0 2px 9px #211d1830; font:500 12px/1.5 "Microsoft YaHei",sans-serif; pointer-events:none;
+  border-radius:8px; padding:5px 9px; background:rgb(245 241 227 / 76%); color:#21352d;
+  font:500 12px/1.5 "Microsoft YaHei",sans-serif; pointer-events:none;
 }
-.lumaBedroomInvite span { top:calc(100% + 4px); left:50%; transform:translateX(-50%); white-space:nowrap; visibility:hidden; }
+.lumaBedroomInvite span { position:absolute; top:calc(100% + 2px); left:50%; transform:translateX(-50%); white-space:nowrap; visibility:hidden; }
 .lumaBedroomInvite:is(:hover,:focus-visible) span { visibility:visible; }
-.lumaBedroomReply { z-index:2; transform:translate(-50%,calc(-100% - 24px)); max-width:min(184px,30%); width:max-content; }
+.lumaBedroomReply { width:fit-content; max-width:100%; padding:6px 12px; }
+.lumaImmersiveOffice .lumaBedroomReply { position:absolute; z-index:2; top:calc(var(--stage-edge) + 54px); max-width:min(23em,52%); }
+.lumaImmersiveOffice .lumaBedroomReply[data-side=right] { right:var(--stage-edge); }
+.lumaImmersiveOffice .lumaBedroomReply[data-side=left] { left:var(--stage-edge); }
 .lumaRoomActions { padding:12px 0; }
 .lumaRoomActions strong { margin-right:2px; }
 .lumaRoomActions span { margin-right:auto; }

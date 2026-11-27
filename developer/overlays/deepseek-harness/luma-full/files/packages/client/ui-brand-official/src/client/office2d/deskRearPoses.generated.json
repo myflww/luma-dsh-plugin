@@ -1,0 +1,4552 @@
+{
+  "bai-shuangming-base": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/bai-shuangming-base.06ea5de62d70.webp",
+    "sha256": "06ea5de62d706fc3af3c2af976857c3d277764dcf90ee7dbb157808429aaa339",
+    "cell": [
+      352,
+      352
+    ],
+    "count": 8,
+    "preferOblique": false,
+    "rear": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        122.91
+      ],
+      "palms": [
+        [
+          152.32,
+          191.0
+        ],
+        [
+          199.68,
+          191.0
+        ]
+      ],
+      "ankleLine": 282,
+      "headHeight": 116,
+      "knee": [
+        190.8,
+        259.09
+      ],
+      "sole": [
+        187.84,
+        307.0
+      ],
+      "soleY": 307.0,
+      "wristsOccluded": true,
+      "nearElbow": [
+        214.48,
+        211.17
+      ],
+      "cuffRadius": 0,
+      "forearm": "M0 0Z"
+    },
+    "oblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        124.36
+      ],
+      "palms": [
+        [
+          223.89,
+          187.3
+        ],
+        [
+          249.55,
+          189.77
+        ]
+      ],
+      "ankleLine": 279,
+      "headHeight": 116,
+      "knee": [
+        230.73,
+        241.6
+      ],
+      "sole": [
+        227.31,
+        295.89
+      ],
+      "soleY": 295.89,
+      "nearElbow": [
+        205,
+        204
+      ],
+      "cuffRadius": 13,
+      "forearm": "M205.15 217.60 L251.38 195.49 L255.27 187.94 L247.72 184.05 L197.23 192.83Z"
+    },
+    "highOblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        120.39
+      ],
+      "palms": [
+        [
+          228.43,
+          165.78
+        ],
+        [
+          252.9,
+          180.91
+        ]
+      ],
+      "ankleLine": 267,
+      "headHeight": 116,
+      "knee": [
+        235.43,
+        226.3
+      ],
+      "sole": [
+        230.18,
+        294.39
+      ],
+      "soleY": 294.39,
+      "nearElbow": [
+        217.95,
+        198.57
+      ],
+      "cuffRadius": 11,
+      "forearm": "M219.34 210.19 L255.61 186.27 L258.26 178.20 L250.19 175.55 L209.42 190.55Z",
+      "src": "/luma-office/luma-plugin-art/rear-desk/bai-shuangming-base-high.1c18b1579ffa.webp",
+      "sha256": "1c18b1579ffaef275bea5e4eac8929f4924d978e6fb3f00feea8a156ccc1051a"
+    },
+    "joints": {
+      "bedroom.shop.alpine-library.v1": {
+        "room": "bedroom.shop.alpine-library.v1",
+        "cell": [
+          448,
+          552
+        ],
+        "count": 8,
+        "hip": [
+          210,
+          255
+        ],
+        "head": [
+          210.0,
+          104.2
+        ],
+        "headHeight": 116,
+        "palms": [
+          [
+            268.38,
+            185.4
+          ],
+          [
+            297.57,
+            212.47
+          ]
+        ],
+        "knee": [
+          309.24,
+          251.13
+        ],
+        "sole": [
+          329.68,
+          328.47
+        ],
+        "ankleLine": 286,
+        "soleY": 328.47,
+        "castors": [
+          [
+            75.73,
+            374.87
+          ],
+          [
+            145.78,
+            421.27
+          ],
+          [
+            306.33,
+            405.8
+          ],
+          [
+            218.76,
+            347.8
+          ]
+        ],
+        "nearElbow": [
+          267.57,
+          221.47
+        ],
+        "cuffRadius": 10,
+        "forearm": "M266.61 232.20 L299.29 218.22 L303.32 210.75 L295.85 206.72 L260.87 213.04Z",
+        "hands": [
+          209,
+          148,
+          149,
+          103
+        ],
+        "imageSize": [
+          1256,
+          663
+        ],
+        "nightTint": [
+          0.7078,
+          0.7062,
+          0.75
+        ],
+        "src": "/luma-office/luma-plugin-art/rear-desk/alpine-bai-shuangming-base-joint.d971a9f57a8c.webp",
+        "rail": [
+          247.95,
+          231.8
+        ]
+      },
+      "bedroom.shop.rose-sketchbook.v1": {
+        "room": "bedroom.shop.rose-sketchbook.v1",
+        "cell": [
+          448,
+          552
+        ],
+        "count": 8,
+        "hip": [
+          210,
+          255
+        ],
+        "head": [
+          210.0,
+          93.0
+        ],
+        "headHeight": 116,
+        "palms": [
+          [
+            278.43,
+            167.0
+          ],
+          [
+            305.2,
+            191.0
+          ]
+        ],
+        "knee": [
+          308.18,
+          243.0
+        ],
+        "sole": [
+          334.96,
+          307.0
+        ],
+        "ankleLine": 275,
+        "soleY": 307.0,
+        "castors": [
+          [
+            99.92,
+            391.0
+          ],
+          [
+            174.3,
+            423.0
+          ],
+          [
+            275.45,
+            403.0
+          ],
+          [
+            272.48,
+            359.0
+          ]
+        ],
+        "nearElbow": [
+          275.2,
+          200.0
+        ],
+        "cuffRadius": 10,
+        "forearm": "M274.24 210.73 L306.92 196.75 L310.95 189.28 L303.48 185.25 L268.50 191.57Z",
+        "hands": [
+          219,
+          130,
+          147,
+          99
+        ],
+        "imageSize": [
+          1240,
+          659
+        ],
+        "nightTint": [
+          0.6531,
+          0.6139,
+          0.7172
+        ],
+        "src": "/luma-office/luma-plugin-art/rear-desk/rose-bai-shuangming-base-joint.11fe80ee75b5.webp",
+        "rail": [
+          245.7,
+          205.0
+        ]
+      }
+    },
+    "shallow": {
+      "hip": [
+        176.0,
+        249.0
+      ],
+      "head": [
+        176.0,
+        124.36
+      ],
+      "palms": [
+        [
+          194.68,
+          185.3
+        ],
+        [
+          204.68,
+          187.77
+        ]
+      ],
+      "ankleLine": 263,
+      "headHeight": 116,
+      "knee": [
+        197.34,
+        239.13
+      ],
+      "sole": [
+        196.01,
+        279.89
+      ],
+      "soleY": 279.89,
+      "nearElbow": [
+        187.31,
+        202.58
+      ],
+      "cuffRadius": 10.4,
+      "forearm": "M191.01 213.09 L208.57 192.34 L209.25 183.88 L200.79 183.20 L177.52 197.26Z"
+    }
+  },
+  "bai-shuangming-v1": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/bai-shuangming-v1.af7f0b8e23ad.webp",
+    "sha256": "af7f0b8e23ad345c2f9583d484393644bf9e191828ce2b6fbdcfe018f1137b75",
+    "cell": [
+      352,
+      352
+    ],
+    "count": 8,
+    "preferOblique": false,
+    "rear": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        116.43
+      ],
+      "palms": [
+        [
+          148.96,
+          185.48
+        ],
+        [
+          203.04,
+          185.48
+        ]
+      ],
+      "ankleLine": 288,
+      "headHeight": 116,
+      "knee": [
+        192.9,
+        262.81
+      ],
+      "sole": [
+        184.45,
+        309.76
+      ],
+      "soleY": 309.76,
+      "wristsOccluded": true,
+      "nearElbow": [
+        219.94,
+        204.81
+      ],
+      "cuffRadius": 0,
+      "forearm": "M0 0Z"
+    },
+    "oblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        110.9
+      ],
+      "palms": [
+        [
+          227.37,
+          168.9
+        ],
+        [
+          253.94,
+          177.19
+        ]
+      ],
+      "ankleLine": 263,
+      "headHeight": 116,
+      "knee": [
+        245.08,
+        226.9
+      ],
+      "sole": [
+        243.31,
+        279.38
+      ],
+      "soleY": 279.38,
+      "nearElbow": [
+        211,
+        191
+      ],
+      "cuffRadius": 9,
+      "forearm": "M209.95 200.79 L255.78 182.90 L259.65 175.35 L252.10 171.48 L204.44 183.66Z"
+    },
+    "highOblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        123.98
+      ],
+      "palms": [
+        [
+          213.23,
+          169.09
+        ],
+        [
+          245.61,
+          184.56
+        ]
+      ],
+      "ankleLine": 254,
+      "headHeight": 116,
+      "knee": [
+        224.57,
+        218.07
+      ],
+      "sole": [
+        224.57,
+        279.93
+      ],
+      "soleY": 279.93,
+      "nearElbow": [
+        205.14,
+        194.87
+      ],
+      "cuffRadius": 7,
+      "forearm": "M202.99 202.64 L247.09 190.37 L251.42 183.08 L244.13 178.75 L199.54 189.07Z",
+      "src": "/luma-office/luma-plugin-art/rear-desk/bai-shuangming-v1-high.b37568c8769b.webp",
+      "sha256": "b37568c8769bad8c6cb435c56e8c0a642ff0c6eae43478a1c9c500c1c3d69b22"
+    },
+    "joints": {
+      "bedroom.shop.alpine-library.v1": {
+        "room": "bedroom.shop.alpine-library.v1",
+        "cell": [
+          448,
+          552
+        ],
+        "count": 8,
+        "hip": [
+          210,
+          255
+        ],
+        "head": [
+          210.0,
+          101.0
+        ],
+        "headHeight": 116,
+        "palms": [
+          [
+            278.31,
+            179.0
+          ],
+          [
+            299.1,
+            203.0
+          ]
+        ],
+        "knee": [
+          310.98,
+          247.0
+        ],
+        "sole": [
+          334.74,
+          331.0
+        ],
+        "ankleLine": 287,
+        "soleY": 331.0,
+        "castors": [
+          [
+            73.38,
+            379.0
+          ],
+          [
+            144.66,
+            427.0
+          ],
+          [
+            308.01,
+            411.0
+          ],
+          [
+            218.91,
+            351.0
+          ]
+        ],
+        "nearElbow": [
+          269.1,
+          212.0
+        ],
+        "cuffRadius": 10,
+        "forearm": "M268.14 222.73 L300.82 208.75 L304.85 201.28 L297.38 197.25 L262.40 203.57Z",
+        "hands": [
+          218,
+          142,
+          142,
+          99
+        ],
+        "imageSize": [
+          1200,
+          659
+        ],
+        "nightTint": [
+          0.7078,
+          0.7062,
+          0.75
+        ],
+        "src": "/luma-office/luma-plugin-art/rear-desk/alpine-bai-shuangming-v1-joint.caa39a5ac8e4.webp",
+        "rail": [
+          248.61,
+          231.0
+        ]
+      },
+      "bedroom.shop.rose-sketchbook.v1": {
+        "room": "bedroom.shop.rose-sketchbook.v1",
+        "cell": [
+          448,
+          552
+        ],
+        "count": 8,
+        "hip": [
+          210,
+          255
+        ],
+        "head": [
+          210.0,
+          85.14
+        ],
+        "headHeight": 116,
+        "palms": [
+          [
+            275.49,
+            163.86
+          ],
+          [
+            306.67,
+            184.57
+          ]
+        ],
+        "knee": [
+          309.79,
+          242.57
+        ],
+        "sole": [
+          340.97,
+          308.86
+        ],
+        "ankleLine": 276,
+        "soleY": 308.86,
+        "castors": [
+          [
+            91.5,
+            391.71
+          ],
+          [
+            169.46,
+            424.86
+          ],
+          [
+            275.49,
+            404.14
+          ],
+          [
+            272.37,
+            358.57
+          ]
+        ],
+        "nearElbow": [
+          276.67,
+          193.57
+        ],
+        "cuffRadius": 10,
+        "forearm": "M275.71 204.30 L308.39 190.32 L312.42 182.85 L304.95 178.82 L269.97 185.14Z",
+        "hands": [
+          216,
+          127,
+          152,
+          96
+        ],
+        "imageSize": [
+          1280,
+          656
+        ],
+        "nightTint": [
+          0.6531,
+          0.6139,
+          0.7172
+        ],
+        "src": "/luma-office/luma-plugin-art/rear-desk/rose-bai-shuangming-v1-joint.45741a1b346e.webp",
+        "rail": [
+          244.3,
+          199.07
+        ]
+      }
+    },
+    "shallow": {
+      "hip": [
+        176.0,
+        249.0
+      ],
+      "head": [
+        176.0,
+        110.9
+      ],
+      "palms": [
+        [
+          196.03,
+          166.9
+        ],
+        [
+          206.4,
+          175.19
+        ]
+      ],
+      "ankleLine": 252,
+      "headHeight": 116,
+      "knee": [
+        202.94,
+        224.9
+      ],
+      "sole": [
+        202.25,
+        263.38
+      ],
+      "soleY": 263.38,
+      "nearElbow": [
+        189.65,
+        189.25
+      ],
+      "cuffRadius": 7.2,
+      "forearm": "M191.22 197.34 L210.26 179.79 L211.00 171.33 L202.54 170.59 L181.96 186.31Z"
+    }
+  },
+  "claude-base": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/claude-base.a781995af373.webp",
+    "sha256": "a781995af373406611f53d3d3954ec296afc0f0f5ca24091b6a76950cb01ef46",
+    "cell": [
+      352,
+      352
+    ],
+    "count": 8,
+    "preferOblique": false,
+    "rear": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        107.37
+      ],
+      "palms": [
+        [
+          147.1,
+          184.26
+        ],
+        [
+          204.9,
+          184.26
+        ]
+      ],
+      "ankleLine": 284,
+      "headHeight": 116,
+      "knee": [
+        194.06,
+        262.49
+      ],
+      "sole": [
+        188.64,
+        308.35
+      ],
+      "soleY": 308.35,
+      "wristsOccluded": true,
+      "nearElbow": [
+        221.15,
+        205.84
+      ],
+      "cuffRadius": 0,
+      "forearm": "M0 0Z"
+    },
+    "oblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        109.55
+      ],
+      "palms": [
+        [
+          222.39,
+          165.09
+        ],
+        [
+          249.15,
+          167.55
+        ]
+      ],
+      "ankleLine": 274,
+      "headHeight": 116,
+      "knee": [
+        225.96,
+        239.13
+      ],
+      "sole": [
+        229.52,
+        290.96
+      ],
+      "soleY": 290.96,
+      "nearElbow": [
+        222,
+        189
+      ],
+      "cuffRadius": 12,
+      "forearm": "M226.30 200.90 L252.87 172.26 L253.86 163.83 L245.43 162.84 L211.42 182.06Z"
+    },
+    "highOblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        109.27
+      ],
+      "palms": [
+        [
+          238.27,
+          156.73
+        ],
+        [
+          259.03,
+          177.82
+        ]
+      ],
+      "ankleLine": 273,
+      "headHeight": 116,
+      "knee": [
+        243.93,
+        230.55
+      ],
+      "sole": [
+        240.16,
+        299.09
+      ],
+      "soleY": 299.09,
+      "nearElbow": [
+        215.63,
+        188.36
+      ],
+      "cuffRadius": 11,
+      "forearm": "M214.34 200.00 L260.45 183.65 L264.86 176.40 L257.61 171.99 L209.14 178.62Z",
+      "src": "/luma-office/luma-plugin-art/rear-desk/claude-base-high.23ac6e3e88b3.webp",
+      "sha256": "23ac6e3e88b369ff806a0bc19f54ae0168317ecf895deca248153d5f7fb9b0f8"
+    },
+    "joints": {
+      "bedroom.shop.alpine-library.v1": {
+        "room": "bedroom.shop.alpine-library.v1",
+        "cell": [
+          448,
+          552
+        ],
+        "count": 8,
+        "hip": [
+          210,
+          255
+        ],
+        "head": [
+          210.0,
+          100.33
+        ],
+        "headHeight": 116,
+        "palms": [
+          [
+            272.89,
+            177.67
+          ],
+          [
+            296.85,
+            204.73
+          ]
+        ],
+        "knee": [
+          314.82,
+          243.4
+        ],
+        "sole": [
+          335.79,
+          324.6
+        ],
+        "ankleLine": 286,
+        "soleY": 324.6,
+        "castors": [
+          [
+            72.23,
+            371.0
+          ],
+          [
+            144.11,
+            417.4
+          ],
+          [
+            308.83,
+            401.93
+          ],
+          [
+            218.98,
+            343.93
+          ]
+        ],
+        "nearElbow": [
+          266.85,
+          213.73
+        ],
+        "cuffRadius": 10,
+        "forearm": "M265.89 224.46 L298.57 210.48 L302.60 203.01 L295.13 198.98 L260.15 205.30Z",
+        "hands": [
+          213,
+          141,
+          145,
+          102
+        ],
+        "imageSize": [
+          1224,
+          662
+        ],
+        "nightTint": [
+          0.7078,
+          0.7062,
+          0.75
+        ],
+        "src": "/luma-office/luma-plugin-art/rear-desk/alpine-claude-base-joint.00d84ef51d0a.webp",
+        "rail": [
+          248.93,
+          227.93
+        ]
+      },
+      "bedroom.shop.rose-sketchbook.v1": {
+        "room": "bedroom.shop.rose-sketchbook.v1",
+        "cell": [
+          448,
+          552
+        ],
+        "count": 8,
+        "hip": [
+          210,
+          255
+        ],
+        "head": [
+          210.0,
+          81.0
+        ],
+        "headHeight": 116,
+        "palms": [
+          [
+            279.6,
+            160.48
+          ],
+          [
+            309.42,
+            186.26
+          ]
+        ],
+        "knee": [
+          319.37,
+          242.11
+        ],
+        "sole": [
+          349.19,
+          297.96
+        ],
+        "ankleLine": 272,
+        "soleY": 297.96,
+        "castors": [
+          [
+            87.38,
+            401.07
+          ],
+          [
+            170.23,
+            435.44
+          ],
+          [
+            282.91,
+            413.96
+          ],
+          [
+            279.6,
+            366.7
+          ]
+        ],
+        "nearElbow": [
+          279.42,
+          195.26
+        ],
+        "cuffRadius": 10,
+        "forearm": "M278.46 205.99 L311.14 192.01 L315.17 184.54 L307.70 180.51 L272.72 186.83Z",
+        "hands": [
+          220,
+          123,
+          150,
+          101
+        ],
+        "imageSize": [
+          1264,
+          661
+        ],
+        "nightTint": [
+          0.6531,
+          0.6139,
+          0.7172
+        ],
+        "src": "/luma-office/luma-plugin-art/rear-desk/rose-claude-base-joint.37f4c0b141ff.webp",
+        "rail": [
+          249.77,
+          201.3
+        ]
+      }
+    },
+    "shallow": {
+      "hip": [
+        176.0,
+        249.0
+      ],
+      "head": [
+        176.0,
+        109.55
+      ],
+      "palms": [
+        [
+          194.09,
+          163.09
+        ],
+        [
+          204.53,
+          165.55
+        ]
+      ],
+      "ankleLine": 259,
+      "headHeight": 116,
+      "knee": [
+        195.48,
+        237.03
+      ],
+      "sole": [
+        196.87,
+        274.96
+      ],
+      "soleY": 274.96,
+      "nearElbow": [
+        193.94,
+        187.0
+      ],
+      "cuffRadius": 9.600000000000001,
+      "forearm": "M200.78 194.84 L209.91 168.21 L207.19 160.17 L199.15 162.89 L183.56 186.34Z"
+    }
+  },
+  "claude-v1": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/claude-v1.324bcc4fe5c5.webp",
+    "sha256": "324bcc4fe5c52f1810f2ccfa1e4f3696d87b94b3ced5aadfd575494384cdd9a4",
+    "cell": [
+      352,
+      352
+    ],
+    "count": 8,
+    "preferOblique": false,
+    "rear": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        122.45
+      ],
+      "palms": [
+        [
+          150.87,
+          193.64
+        ],
+        [
+          201.13,
+          193.64
+        ]
+      ],
+      "ankleLine": 291,
+      "headHeight": 116,
+      "knee": [
+        193.27,
+        264.82
+      ],
+      "sole": [
+        185.42,
+        317.55
+      ],
+      "soleY": 317.55,
+      "wristsOccluded": true,
+      "nearElbow": [
+        218.4,
+        220.0
+      ],
+      "cuffRadius": 0,
+      "forearm": "M0 0Z"
+    },
+    "oblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        110.3
+      ],
+      "palms": [
+        [
+          230.52,
+          165.78
+        ],
+        [
+          257.78,
+          170.83
+        ]
+      ],
+      "ankleLine": 277,
+      "headHeight": 116,
+      "knee": [
+        232.47,
+        231.35
+      ],
+      "sole": [
+        220.79,
+        296.91
+      ],
+      "soleY": 296.91,
+      "nearElbow": [
+        220,
+        196
+      ],
+      "cuffRadius": 12,
+      "forearm": "M223.32 208.20 L261.11 175.82 L262.77 167.50 L254.45 165.84 L210.02 188.23Z"
+    },
+    "highOblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        117.87
+      ],
+      "palms": [
+        [
+          231.14,
+          173.35
+        ],
+        [
+          253.2,
+          188.48
+        ]
+      ],
+      "ankleLine": 274,
+      "headHeight": 116,
+      "knee": [
+        225.63,
+        231.35
+      ],
+      "sole": [
+        212.76,
+        299.43
+      ],
+      "soleY": 299.43,
+      "nearElbow": [
+        209.09,
+        201.09
+      ],
+      "cuffRadius": 11,
+      "forearm": "M208.26 212.76 L254.85 194.25 L258.97 186.83 L251.55 182.71 L202.22 191.61Z",
+      "src": "/luma-office/luma-plugin-art/rear-desk/claude-v1-high.cebb72cf7109.webp",
+      "sha256": "cebb72cf710948651aaf40e4f4035886ef757716e504e155b2ae6d4091f6d8d7"
+    },
+    "joints": {
+      "bedroom.shop.alpine-library.v1": {
+        "room": "bedroom.shop.alpine-library.v1",
+        "cell": [
+          448,
+          552
+        ],
+        "count": 8,
+        "hip": [
+          210,
+          255
+        ],
+        "head": [
+          210.0,
+          100.33
+        ],
+        "headHeight": 116,
+        "palms": [
+          [
+            263.07,
+            173.8
+          ],
+          [
+            292.55,
+            200.87
+          ]
+        ],
+        "knee": [
+          304.34,
+          247.27
+        ],
+        "sole": [
+          330.87,
+          324.6
+        ],
+        "ankleLine": 286,
+        "soleY": 324.6,
+        "castors": [
+          [
+            74.39,
+            371.0
+          ],
+          [
+            145.14,
+            417.4
+          ],
+          [
+            307.29,
+            401.93
+          ],
+          [
+            218.84,
+            343.93
+          ]
+        ],
+        "nearElbow": [
+          262.55,
+          209.87
+        ],
+        "cuffRadius": 10,
+        "forearm": "M261.59 220.60 L294.27 206.62 L298.30 199.15 L290.83 195.12 L255.85 201.44Z",
+        "hands": [
+          203,
+          137,
+          150,
+          102
+        ],
+        "imageSize": [
+          1264,
+          662
+        ],
+        "nightTint": [
+          0.7078,
+          0.7062,
+          0.75
+        ],
+        "src": "/luma-office/luma-plugin-art/rear-desk/alpine-claude-v1-joint.f9ba77949f86.webp",
+        "rail": [
+          248.33,
+          227.93
+        ]
+      },
+      "bedroom.shop.rose-sketchbook.v1": {
+        "room": "bedroom.shop.rose-sketchbook.v1",
+        "cell": [
+          448,
+          552
+        ],
+        "count": 8,
+        "hip": [
+          210,
+          255
+        ],
+        "head": [
+          210.0,
+          76.7
+        ],
+        "headHeight": 116,
+        "palms": [
+          [
+            277.04,
+            156.19
+          ],
+          [
+            307.21,
+            181.96
+          ]
+        ],
+        "knee": [
+          320.62,
+          237.81
+        ],
+        "sole": [
+          350.79,
+          306.56
+        ],
+        "ankleLine": 272,
+        "soleY": 306.56,
+        "castors": [
+          [
+            82.62,
+            396.78
+          ],
+          [
+            166.42,
+            431.15
+          ],
+          [
+            280.39,
+            409.67
+          ],
+          [
+            277.04,
+            362.41
+          ]
+        ],
+        "nearElbow": [
+          277.21,
+          190.96
+        ],
+        "cuffRadius": 10,
+        "forearm": "M276.25 201.69 L308.93 187.71 L312.96 180.24 L305.49 176.21 L270.51 182.53Z",
+        "hands": [
+          217,
+          119,
+          151,
+          101
+        ],
+        "imageSize": [
+          1272,
+          661
+        ],
+        "nightTint": [
+          0.6531,
+          0.6139,
+          0.7172
+        ],
+        "src": "/luma-office/luma-plugin-art/rear-desk/rose-claude-v1-joint.54a2e5becca3.webp",
+        "rail": [
+          246.87,
+          197.0
+        ]
+      }
+    },
+    "shallow": {
+      "hip": [
+        176.0,
+        249.0
+      ],
+      "head": [
+        176.0,
+        110.3
+      ],
+      "palms": [
+        [
+          197.26,
+          163.78
+        ],
+        [
+          207.89,
+          168.83
+        ]
+      ],
+      "ankleLine": 261,
+      "headHeight": 116,
+      "knee": [
+        198.02,
+        229.35
+      ],
+      "sole": [
+        193.47,
+        280.91
+      ],
+      "soleY": 280.91,
+      "nearElbow": [
+        193.16,
+        194.0
+      ],
+      "cuffRadius": 9.600000000000001,
+      "forearm": "M199.43 202.30 L213.07 171.86 L210.92 163.65 L202.71 165.80 L182.85 192.60Z"
+    }
+  },
+  "gemini-v1": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/gemini-v1.807e0eb2ba88.webp",
+    "sha256": "807e0eb2ba889429e24fec1886f3402802eaf80820ac933847624bed5946e79e",
+    "cell": [
+      352,
+      352
+    ],
+    "count": 8,
+    "preferOblique": false,
+    "rear": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        119.62
+      ],
+      "palms": [
+        [
+          149.15,
+          189.51
+        ],
+        [
+          202.85,
+          189.51
+        ]
+      ],
+      "ankleLine": 285,
+      "headHeight": 116,
+      "knee": [
+        192.11,
+        263.87
+      ],
+      "sole": [
+        186.74,
+        308.49
+      ],
+      "soleY": 308.49,
+      "wristsOccluded": true,
+      "nearElbow": [
+        222.53,
+        198.44
+      ],
+      "cuffRadius": 0,
+      "forearm": "M0 0Z"
+    },
+    "oblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        110.69
+      ],
+      "palms": [
+        [
+          236.05,
+          168.69
+        ],
+        [
+          265.04,
+          171.67
+        ]
+      ],
+      "ankleLine": 261,
+      "headHeight": 116,
+      "knee": [
+        252.62,
+        222.23
+      ],
+      "sole": [
+        256.76,
+        278.74
+      ],
+      "soleY": 278.74,
+      "nearElbow": [
+        226,
+        190
+      ],
+      "cuffRadius": 9,
+      "forearm": "M226.20 199.85 L267.59 177.10 L270.47 169.12 L262.49 166.24 L218.55 183.55Z"
+    },
+    "highOblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        133.0
+      ],
+      "palms": [
+        [
+          214.24,
+          188.36
+        ],
+        [
+          250.65,
+          191.0
+        ]
+      ],
+      "ankleLine": 262,
+      "headHeight": 116,
+      "knee": [
+        236.09,
+        225.27
+      ],
+      "sole": [
+        247.01,
+        283.27
+      ],
+      "soleY": 283.27,
+      "nearElbow": [
+        210.59,
+        204.18
+      ],
+      "cuffRadius": 7,
+      "forearm": "M208.98 212.08 L252.53 196.70 L256.35 189.12 L248.77 185.30 L204.61 198.78Z",
+      "src": "/luma-office/luma-plugin-art/rear-desk/gemini-v1-high.44341ee2ad96.webp",
+      "sha256": "44341ee2ad965749b238c57cbc5b3fc4637b7bcde5723590bc58e0c329db46aa"
+    },
+    "joints": {
+      "bedroom.shop.alpine-library.v1": {
+        "room": "bedroom.shop.alpine-library.v1",
+        "cell": [
+          448,
+          552
+        ],
+        "count": 8,
+        "hip": [
+          210,
+          255
+        ],
+        "head": [
+          210.0,
+          94.38
+        ],
+        "headHeight": 116,
+        "palms": [
+          [
+            273.95,
+            165.77
+          ],
+          [
+            304.24,
+            197.0
+          ]
+        ],
+        "knee": [
+          321.07,
+          250.54
+        ],
+        "sole": [
+          347.99,
+          339.77
+        ],
+        "ankleLine": 286,
+        "soleY": 339.77,
+        "castors": [
+          [
+            55.18,
+            384.38
+          ],
+          [
+            135.95,
+            437.92
+          ],
+          [
+            321.07,
+            420.08
+          ],
+          [
+            220.1,
+            353.15
+          ]
+        ],
+        "nearElbow": [
+          274.24,
+          206.0
+        ],
+        "cuffRadius": 10,
+        "forearm": "M273.28 216.73 L305.96 202.75 L309.99 195.28 L302.52 191.25 L267.54 197.57Z",
+        "hands": [
+          214,
+          129,
+          151,
+          106
+        ],
+        "imageSize": [
+          1272,
+          666
+        ],
+        "nightTint": [
+          0.7078,
+          0.7062,
+          0.75
+        ],
+        "src": "/luma-office/luma-plugin-art/rear-desk/alpine-gemini-v1-joint.25cebccf9048.webp",
+        "rail": [
+          253.75,
+          219.31
+        ]
+      },
+      "bedroom.shop.rose-sketchbook.v1": {
+        "room": "bedroom.shop.rose-sketchbook.v1",
+        "cell": [
+          448,
+          552
+        ],
+        "count": 8,
+        "hip": [
+          210,
+          255
+        ],
+        "head": [
+          210.0,
+          71.33
+        ],
+        "headHeight": 116,
+        "palms": [
+          [
+            296.23,
+            139.0
+          ],
+          [
+            326.23,
+            163.17
+          ]
+        ],
+        "knee": [
+          333.72,
+          235.67
+        ],
+        "sole": [
+          371.22,
+          308.17
+        ],
+        "ankleLine": 279,
+        "soleY": 308.17,
+        "castors": [
+          [
+            71.28,
+            409.67
+          ],
+          [
+            165.01,
+            448.33
+          ],
+          [
+            292.48,
+            424.17
+          ],
+          [
+            288.73,
+            371.0
+          ]
+        ],
+        "nearElbow": [
+          296.23,
+          172.17
+        ],
+        "cuffRadius": 10,
+        "forearm": "M295.27 182.90 L327.95 168.92 L331.98 161.45 L324.51 157.42 L289.53 163.74Z",
+        "hands": [
+          236,
+          102,
+          151,
+          99
+        ],
+        "imageSize": [
+          1272,
+          659
+        ],
+        "nightTint": [
+          0.6531,
+          0.6139,
+          0.7172
+        ],
+        "src": "/luma-office/luma-plugin-art/rear-desk/rose-gemini-v1-joint.f1abef9c41a0.webp",
+        "rail": [
+          254.99,
+          184.92
+        ]
+      }
+    },
+    "shallow": {
+      "hip": [
+        176.0,
+        249.0
+      ],
+      "head": [
+        176.0,
+        110.69
+      ],
+      "palms": [
+        [
+          199.42,
+          166.69
+        ],
+        [
+          210.73,
+          169.67
+        ]
+      ],
+      "ankleLine": 251,
+      "headHeight": 116,
+      "knee": [
+        205.88,
+        220.23
+      ],
+      "sole": [
+        207.5,
+        262.74
+      ],
+      "soleY": 262.74,
+      "nearElbow": [
+        195.5,
+        188.0
+      ],
+      "cuffRadius": 7.2,
+      "forearm": "M198.48 195.68 L215.34 173.50 L214.56 165.06 L206.12 165.84 L187.41 186.48Z"
+    }
+  },
+  "grok-v1": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/grok-v1.6676e2224757.webp",
+    "sha256": "6676e222475763e4e603f7ae372c50710415c22b891e4666eacf4236994cc8b3",
+    "cell": [
+      352,
+      352
+    ],
+    "count": 8,
+    "preferOblique": false,
+    "rear": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        133.0
+      ],
+      "palms": [
+        [
+          151.24,
+          191.0
+        ],
+        [
+          200.76,
+          191.0
+        ]
+      ],
+      "ankleLine": 281,
+      "headHeight": 116,
+      "knee": [
+        193.03,
+        262.18
+      ],
+      "sole": [
+        186.83,
+        304.36
+      ],
+      "soleY": 304.36,
+      "wristsOccluded": true,
+      "nearElbow": [
+        216.24,
+        204.18
+      ],
+      "cuffRadius": 0,
+      "forearm": "M0 0Z"
+    },
+    "oblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        109.8
+      ],
+      "palms": [
+        [
+          231.96,
+          182.3
+        ],
+        [
+          250.01,
+          170.7
+        ]
+      ],
+      "ankleLine": 278,
+      "headHeight": 116,
+      "knee": [
+        246.4,
+        237.4
+      ],
+      "sole": [
+        239.18,
+        301.2
+      ],
+      "soleY": 301.2,
+      "nearElbow": [
+        226,
+        187
+      ],
+      "cuffRadius": 10,
+      "forearm": "M228.31 197.52 L253.38 175.66 L254.97 167.33 L246.64 165.74 L217.07 180.97Z"
+    },
+    "highOblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        122.45
+      ],
+      "palms": [
+        [
+          231.9,
+          162.0
+        ],
+        [
+          257.15,
+          183.09
+        ]
+      ],
+      "ankleLine": 267,
+      "headHeight": 116,
+      "knee": [
+        240.92,
+        225.27
+      ],
+      "sole": [
+        235.51,
+        291.18
+      ],
+      "soleY": 291.18,
+      "nearElbow": [
+        215.67,
+        198.91
+      ],
+      "cuffRadius": 11,
+      "forearm": "M215.86 210.61 L259.29 188.70 L262.76 180.95 L255.01 177.48 L208.02 190.06Z",
+      "src": "/luma-office/luma-plugin-art/rear-desk/grok-v1-high.81095f783b48.webp",
+      "sha256": "81095f783b488d3a5200382ccc1f0b2fb641a6508543bbe9fd383eed63b21fb1"
+    },
+    "joints": {
+      "bedroom.shop.alpine-library.v1": {
+        "room": "bedroom.shop.alpine-library.v1",
+        "cell": [
+          448,
+          552
+        ],
+        "count": 8,
+        "hip": [
+          210,
+          255
+        ],
+        "head": [
+          210.0,
+          98.85
+        ],
+        "headHeight": 116,
+        "palms": [
+          [
+            273.91,
+            156.85
+          ],
+          [
+            304.19,
+            188.08
+          ]
+        ],
+        "knee": [
+          324.37,
+          250.54
+        ],
+        "sole": [
+          347.92,
+          326.38
+        ],
+        "ankleLine": 291,
+        "soleY": 326.38,
+        "castors": [
+          [
+            55.26,
+            384.38
+          ],
+          [
+            136.0,
+            437.92
+          ],
+          [
+            321.01,
+            420.08
+          ],
+          [
+            220.09,
+            353.15
+          ]
+        ],
+        "nearElbow": [
+          274.19,
+          197.08
+        ],
+        "cuffRadius": 10,
+        "forearm": "M273.23 207.81 L305.91 193.83 L309.94 186.36 L302.47 182.33 L267.49 188.65Z",
+        "hands": [
+          214,
+          120,
+          151,
+          106
+        ],
+        "imageSize": [
+          1272,
+          666
+        ],
+        "nightTint": [
+          0.7078,
+          0.7062,
+          0.75
+        ],
+        "src": "/luma-office/luma-plugin-art/rear-desk/alpine-grok-v1-joint.706f80573ec5.webp",
+        "rail": [
+          253.73,
+          219.31
+        ]
+      },
+      "bedroom.shop.rose-sketchbook.v1": {
+        "room": "bedroom.shop.rose-sketchbook.v1",
+        "cell": [
+          448,
+          552
+        ],
+        "count": 8,
+        "hip": [
+          210,
+          255
+        ],
+        "head": [
+          210.0,
+          81.0
+        ],
+        "headHeight": 116,
+        "palms": [
+          [
+            284.63,
+            143.83
+          ],
+          [
+            316.62,
+            168.0
+          ]
+        ],
+        "knee": [
+          330.83,
+          240.5
+        ],
+        "sole": [
+          362.82,
+          313.0
+        ],
+        "ankleLine": 279,
+        "soleY": 313.0,
+        "castors": [
+          [
+            78.5,
+            414.5
+          ],
+          [
+            167.35,
+            453.17
+          ],
+          [
+            288.19,
+            429.0
+          ],
+          [
+            284.63,
+            375.83
+          ]
+        ],
+        "nearElbow": [
+          286.62,
+          177.0
+        ],
+        "cuffRadius": 10,
+        "forearm": "M285.66 187.73 L318.34 173.75 L322.37 166.28 L314.90 162.25 L279.92 168.57Z",
+        "hands": [
+          225,
+          107,
+          152,
+          99
+        ],
+        "imageSize": [
+          1280,
+          659
+        ],
+        "nightTint": [
+          0.6531,
+          0.6139,
+          0.7172
+        ],
+        "src": "/luma-office/luma-plugin-art/rear-desk/rose-grok-v1-joint.3f864c5fd933.webp",
+        "rail": [
+          252.65,
+          189.75
+        ]
+      }
+    },
+    "shallow": {
+      "hip": [
+        176.0,
+        249.0
+      ],
+      "head": [
+        176.0,
+        109.8
+      ],
+      "palms": [
+        [
+          197.82,
+          180.3
+        ],
+        [
+          204.86,
+          168.7
+        ]
+      ],
+      "ankleLine": 262,
+      "headHeight": 116,
+      "knee": [
+        203.46,
+        235.4
+      ],
+      "sole": [
+        200.64,
+        285.2
+      ],
+      "soleY": 285.2,
+      "nearElbow": [
+        195.5,
+        185.0
+      ],
+      "cuffRadius": 8.0,
+      "forearm": "M200.45 192.45 L210.06 171.69 L207.85 163.50 L199.66 165.71 L186.57 184.49Z"
+    }
+  },
+  "jingyuniang-base": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/jingyuniang-base.0c1cca9765fa.webp",
+    "sha256": "0c1cca9765fad6b215aca280cd36e0111e9e11816cc1e16311ce171ea00366b5",
+    "cell": [
+      352,
+      352
+    ],
+    "count": 8,
+    "preferOblique": false,
+    "rear": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        135.76
+      ],
+      "palms": [
+        [
+          150.7,
+          193.76
+        ],
+        [
+          201.3,
+          193.76
+        ]
+      ],
+      "ankleLine": 285,
+      "headHeight": 116,
+      "knee": [
+        190.88,
+        265.57
+      ],
+      "sole": [
+        184.93,
+        309.76
+      ],
+      "soleY": 309.76,
+      "wristsOccluded": true,
+      "nearElbow": [
+        214.69,
+        204.81
+      ],
+      "cuffRadius": 0,
+      "forearm": "M0 0Z"
+    },
+    "oblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        114.61
+      ],
+      "palms": [
+        [
+          225.86,
+          166.95
+        ],
+        [
+          249.87,
+          175.44
+        ]
+      ],
+      "ankleLine": 283,
+      "headHeight": 116,
+      "knee": [
+        224.02,
+        246.17
+      ],
+      "sole": [
+        214.78,
+        302.76
+      ],
+      "soleY": 302.76,
+      "nearElbow": [
+        226,
+        198
+      ],
+      "cuffRadius": 14,
+      "forearm": "M232.71 210.92 L253.99 179.80 L254.23 171.32 L245.75 171.08 L213.48 190.57Z"
+    },
+    "highOblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        138.04
+      ],
+      "palms": [
+        [
+          227.49,
+          178.39
+        ],
+        [
+          254.95,
+          196.04
+        ]
+      ],
+      "ankleLine": 274,
+      "headHeight": 116,
+      "knee": [
+        229.21,
+        236.39
+      ],
+      "sole": [
+        217.19,
+        296.91
+      ],
+      "soleY": 296.91,
+      "nearElbow": [
+        218.91,
+        208.65
+      ],
+      "cuffRadius": 11,
+      "forearm": "M218.77 220.36 L256.93 201.70 L260.61 194.06 L252.97 190.38 L211.50 199.59Z",
+      "src": "/luma-office/luma-plugin-art/rear-desk/jingyuniang-base-high.eb9b9d2731b1.webp",
+      "sha256": "eb9b9d2731b115481ac81121d9cb310c9cb871fff853abe30c00bd6a4417679c"
+    },
+    "joints": {
+      "bedroom.shop.alpine-library.v1": {
+        "room": "bedroom.shop.alpine-library.v1",
+        "cell": [
+          448,
+          552
+        ],
+        "count": 8,
+        "hip": [
+          210,
+          255
+        ],
+        "head": [
+          210.0,
+          98.85
+        ],
+        "headHeight": 116,
+        "palms": [
+          [
+            267.45,
+            170.23
+          ],
+          [
+            299.37,
+            205.92
+          ]
+        ],
+        "knee": [
+          305.76,
+          255.0
+        ],
+        "sole": [
+          337.68,
+          344.23
+        ],
+        "ankleLine": 286,
+        "soleY": 344.23,
+        "castors": [
+          [
+            59.98,
+            393.31
+          ],
+          [
+            136.59,
+            446.85
+          ],
+          [
+            312.14,
+            429.0
+          ],
+          [
+            216.38,
+            362.08
+          ]
+        ],
+        "nearElbow": [
+          269.37,
+          214.92
+        ],
+        "cuffRadius": 10,
+        "forearm": "M268.41 225.65 L301.09 211.67 L305.12 204.20 L297.65 200.17 L262.67 206.49Z",
+        "hands": [
+          208,
+          133,
+          152,
+          111
+        ],
+        "imageSize": [
+          1280,
+          671
+        ],
+        "nightTint": [
+          0.7078,
+          0.7062,
+          0.75
+        ],
+        "src": "/luma-office/luma-plugin-art/rear-desk/alpine-jingyuniang-base-joint.fd5b70075af9.webp",
+        "rail": [
+          248.3,
+          228.23
+        ]
+      },
+      "bedroom.shop.rose-sketchbook.v1": {
+        "room": "bedroom.shop.rose-sketchbook.v1",
+        "cell": [
+          448,
+          552
+        ],
+        "count": 8,
+        "hip": [
+          210,
+          255
+        ],
+        "head": [
+          210.0,
+          71.33
+        ],
+        "headHeight": 116,
+        "palms": [
+          [
+            294.43,
+            148.67
+          ],
+          [
+            326.09,
+            172.83
+          ]
+        ],
+        "knee": [
+          329.61,
+          240.5
+        ],
+        "sole": [
+          361.27,
+          317.83
+        ],
+        "ankleLine": 279,
+        "soleY": 317.83,
+        "castors": [
+          [
+            83.36,
+            414.5
+          ],
+          [
+            171.3,
+            453.17
+          ],
+          [
+            290.91,
+            429.0
+          ],
+          [
+            287.39,
+            375.83
+          ]
+        ],
+        "nearElbow": [
+          296.09,
+          181.83
+        ],
+        "cuffRadius": 10,
+        "forearm": "M295.13 192.56 L327.81 178.58 L331.84 171.11 L324.37 167.08 L289.39 173.40Z",
+        "hands": [
+          235,
+          112,
+          152,
+          99
+        ],
+        "imageSize": [
+          1280,
+          659
+        ],
+        "nightTint": [
+          0.6531,
+          0.6139,
+          0.7172
+        ],
+        "src": "/luma-office/luma-plugin-art/rear-desk/rose-jingyuniang-base-joint.a1e6cb8a54a6.webp",
+        "rail": [
+          255.73,
+          189.75
+        ]
+      }
+    },
+    "shallow": {
+      "hip": [
+        176.0,
+        249.0
+      ],
+      "head": [
+        176.0,
+        114.61
+      ],
+      "palms": [
+        [
+          195.45,
+          164.95
+        ],
+        [
+          204.81,
+          173.44
+        ]
+      ],
+      "ankleLine": 268,
+      "headHeight": 116,
+      "knee": [
+        194.73,
+        242.46
+      ],
+      "sole": [
+        191.12,
+        287.59
+      ],
+      "soleY": 287.59,
+      "nearElbow": [
+        195.5,
+        196.0
+      ],
+      "cuffRadius": 11.200000000000001,
+      "forearm": "M204.33 203.97 L210.36 175.73 L207.10 167.89 L199.26 171.15 L183.62 195.43Z"
+    }
+  },
+  "jingyuniang-v1": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/jingyuniang-v1.2c980db068ae.webp",
+    "sha256": "2c980db068ae129b13dcb2ae80e5e16d1973ba11759963954221a69c8e3f24fe",
+    "cell": [
+      352,
+      352
+    ],
+    "count": 8,
+    "preferOblique": false,
+    "rear": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        133.0
+      ],
+      "palms": [
+        [
+          150.07,
+          193.64
+        ],
+        [
+          201.93,
+          193.64
+        ]
+      ],
+      "ankleLine": 283,
+      "headHeight": 116,
+      "knee": [
+        190.4,
+        264.82
+      ],
+      "sole": [
+        184.64,
+        307.0
+      ],
+      "soleY": 307.0,
+      "wristsOccluded": true,
+      "nearElbow": [
+        216.33,
+        206.82
+      ],
+      "cuffRadius": 0,
+      "forearm": "M0 0Z"
+    },
+    "oblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        114.61
+      ],
+      "palms": [
+        [
+          221.3,
+          164.12
+        ],
+        [
+          250.29,
+          172.61
+        ]
+      ],
+      "ankleLine": 277,
+      "headHeight": 116,
+      "knee": [
+        228.54,
+        229.2
+      ],
+      "sole": [
+        224.92,
+        291.44
+      ],
+      "soleY": 291.44,
+      "nearElbow": [
+        225,
+        184
+      ],
+      "cuffRadius": 15,
+      "forearm": "M227.51 199.32 L252.75 178.08 L255.76 170.15 L247.83 167.14 L215.19 171.97Z"
+    },
+    "highOblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        138.27
+      ],
+      "palms": [
+        [
+          208.16,
+          159.36
+        ],
+        [
+          229.6,
+          180.45
+        ]
+      ],
+      "ankleLine": 265,
+      "headHeight": 116,
+      "knee": [
+        213.52,
+        220.0
+      ],
+      "sole": [
+        208.16,
+        288.55
+      ],
+      "soleY": 288.55,
+      "nearElbow": [
+        197.44,
+        193.64
+      ],
+      "cuffRadius": 12,
+      "forearm": "M198.29 206.26 L231.88 186.00 L235.15 178.17 L227.32 174.90 L189.19 184.05Z",
+      "src": "/luma-office/luma-plugin-art/rear-desk/jingyuniang-v1-high.5784ff09505d.webp",
+      "sha256": "5784ff09505d6c7571f47203e0bb48452fcfb56d2f00a381b307a50890ce298d"
+    },
+    "joints": {
+      "bedroom.shop.alpine-library.v1": {
+        "room": "bedroom.shop.alpine-library.v1",
+        "cell": [
+          448,
+          552
+        ],
+        "count": 8,
+        "hip": [
+          210,
+          255
+        ],
+        "head": [
+          210.0,
+          113.0
+        ],
+        "headHeight": 116,
+        "palms": [
+          [
+            271.54,
+            179.0
+          ],
+          [
+            294.98,
+            203.0
+          ]
+        ],
+        "knee": [
+          306.7,
+          251.0
+        ],
+        "sole": [
+          330.15,
+          327.0
+        ],
+        "ankleLine": 283,
+        "soleY": 327.0,
+        "castors": [
+          [
+            75.2,
+            375.0
+          ],
+          [
+            145.53,
+            423.0
+          ],
+          [
+            306.7,
+            407.0
+          ],
+          [
+            218.79,
+            347.0
+          ]
+        ],
+        "nearElbow": [
+          264.98,
+          212.0
+        ],
+        "cuffRadius": 10,
+        "forearm": "M264.02 222.73 L296.70 208.75 L300.73 201.28 L293.26 197.25 L258.28 203.57Z",
+        "hands": [
+          212,
+          142,
+          144,
+          99
+        ],
+        "imageSize": [
+          1216,
+          659
+        ],
+        "nightTint": [
+          0.7078,
+          0.7062,
+          0.75
+        ],
+        "src": "/luma-office/luma-plugin-art/rear-desk/alpine-jingyuniang-v1-joint.35d2aca34efe.webp",
+        "rail": [
+          248.09,
+          227.0
+        ]
+      },
+      "bedroom.shop.rose-sketchbook.v1": {
+        "room": "bedroom.shop.rose-sketchbook.v1",
+        "cell": [
+          448,
+          552
+        ],
+        "count": 8,
+        "hip": [
+          210,
+          255
+        ],
+        "head": [
+          210.0,
+          70.91
+        ],
+        "headHeight": 116,
+        "palms": [
+          [
+            294.21,
+            144.04
+          ],
+          [
+            328.66,
+            169.26
+          ]
+        ],
+        "knee": [
+          336.31,
+          234.83
+        ],
+        "sole": [
+          374.59,
+          320.57
+        ],
+        "ankleLine": 280,
+        "soleY": 320.57,
+        "castors": [
+          [
+            68.37,
+            421.43
+          ],
+          [
+            164.07,
+            461.78
+          ],
+          [
+            294.21,
+            436.57
+          ],
+          [
+            290.38,
+            381.09
+          ]
+        ],
+        "nearElbow": [
+          298.66,
+          178.26
+        ],
+        "cuffRadius": 10,
+        "forearm": "M297.70 188.99 L330.38 175.01 L334.41 167.54 L326.94 163.51 L291.96 169.83Z",
+        "hands": [
+          234,
+          107,
+          156,
+          100
+        ],
+        "imageSize": [
+          1312,
+          660
+        ],
+        "nightTint": [
+          0.6531,
+          0.6139,
+          0.7172
+        ],
+        "src": "/luma-office/luma-plugin-art/rear-desk/rose-jingyuniang-v1-joint.5be52f1b37d5.webp",
+        "rail": [
+          255.93,
+          186.91
+        ]
+      }
+    },
+    "shallow": {
+      "hip": [
+        176.0,
+        249.0
+      ],
+      "head": [
+        176.0,
+        114.61
+      ],
+      "palms": [
+        [
+          193.67,
+          162.12
+        ],
+        [
+          204.97,
+          170.61
+        ]
+      ],
+      "ankleLine": 261,
+      "headHeight": 116,
+      "knee": [
+        196.49,
+        227.2
+      ],
+      "sole": [
+        195.08,
+        275.44
+      ],
+      "soleY": 275.44,
+      "nearElbow": [
+        195.11,
+        182.0
+      ],
+      "cuffRadius": 12.0,
+      "forearm": "M201.56 192.88 L209.51 174.54 L208.90 166.07 L200.43 166.68 L183.42 177.17Z"
+    }
+  },
+  "longmama-base": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/longmama-base.efd446ae4dd6.webp",
+    "sha256": "efd446ae4dd62bb71a638231da195be1a62710177537fb82cb121c494da9f0df",
+    "cell": [
+      352,
+      352
+    ],
+    "count": 8,
+    "preferOblique": false,
+    "rear": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        127.73
+      ],
+      "palms": [
+        [
+          150.42,
+          185.73
+        ],
+        [
+          204.99,
+          185.73
+        ]
+      ],
+      "ankleLine": 281,
+      "headHeight": 116,
+      "knee": [
+        194.76,
+        262.18
+      ],
+      "sole": [
+        189.64,
+        301.73
+      ],
+      "soleY": 301.73,
+      "wristsOccluded": true,
+      "nearElbow": [
+        228.86,
+        204.18
+      ],
+      "cuffRadius": 0,
+      "forearm": "M0 0Z"
+    },
+    "oblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        109.8
+      ],
+      "palms": [
+        [
+          232.36,
+          179.4
+        ],
+        [
+          264.88,
+          185.2
+        ]
+      ],
+      "ankleLine": 281,
+      "headHeight": 116,
+      "knee": [
+        236.7,
+        246.1
+      ],
+      "sole": [
+        230.19,
+        304.1
+      ],
+      "soleY": 304.1,
+      "nearElbow": [
+        222,
+        198
+      ],
+      "cuffRadius": 11,
+      "forearm": "M221.31 209.68 L266.60 190.95 L270.63 183.48 L263.16 179.45 L215.02 188.60Z"
+    },
+    "highOblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        123.98
+      ],
+      "palms": [
+        [
+          237.97,
+          166.51
+        ],
+        [
+          259.27,
+          187.13
+        ]
+      ],
+      "ankleLine": 267,
+      "headHeight": 116,
+      "knee": [
+        247.65,
+        225.8
+      ],
+      "sole": [
+        241.84,
+        290.24
+      ],
+      "soleY": 290.24,
+      "nearElbow": [
+        222.48,
+        200.02
+      ],
+      "cuffRadius": 10,
+      "forearm": "M222.01 210.78 L261.25 192.79 L264.93 185.15 L257.29 181.47 L215.40 191.91Z",
+      "src": "/luma-office/luma-plugin-art/rear-desk/longmama-base-high.855d12365a28.webp",
+      "sha256": "855d12365a28fa5a0b13605c4a52d81229ecd83d4072988a5bc21dfd0369f9ad"
+    },
+    "joints": {
+      "bedroom.shop.alpine-library.v1": {
+        "room": "bedroom.shop.alpine-library.v1",
+        "cell": [
+          448,
+          552
+        ],
+        "count": 8,
+        "hip": [
+          210,
+          255
+        ],
+        "head": [
+          210.0,
+          93.89
+        ],
+        "headHeight": 116,
+        "palms": [
+          [
+            265.87,
+            177.67
+          ],
+          [
+            298.73,
+            207.74
+          ]
+        ],
+        "knee": [
+          318.45,
+          259.3
+        ],
+        "sole": [
+          351.31,
+          345.22
+        ],
+        "ankleLine": 294,
+        "soleY": 345.22,
+        "castors": [
+          [
+            62.12,
+            383.89
+          ],
+          [
+            140.99,
+            435.44
+          ],
+          [
+            321.73,
+            418.26
+          ],
+          [
+            223.14,
+            353.81
+          ]
+        ],
+        "nearElbow": [
+          268.73,
+          216.74
+        ],
+        "cuffRadius": 10,
+        "forearm": "M267.77 227.47 L300.45 213.49 L304.48 206.02 L297.01 201.99 L262.03 208.31Z",
+        "hands": [
+          206,
+          141,
+          154,
+          105
+        ],
+        "imageSize": [
+          1296,
+          665
+        ],
+        "nightTint": [
+          0.7078,
+          0.7062,
+          0.75
+        ],
+        "src": "/luma-office/luma-plugin-art/rear-desk/alpine-longmama-base-joint.d4ff8de32fb1.webp",
+        "rail": [
+          256.01,
+          224.93
+        ]
+      },
+      "bedroom.shop.rose-sketchbook.v1": {
+        "room": "bedroom.shop.rose-sketchbook.v1",
+        "cell": [
+          448,
+          552
+        ],
+        "count": 8,
+        "hip": [
+          210,
+          255
+        ],
+        "head": [
+          210.0,
+          81.0
+        ],
+        "headHeight": 116,
+        "palms": [
+          [
+            296.41,
+            152.92
+          ],
+          [
+            324.07,
+            176.12
+          ]
+        ],
+        "knee": [
+          330.98,
+          236.44
+        ],
+        "sole": [
+          358.63,
+          315.32
+        ],
+        "ankleLine": 278,
+        "soleY": 315.32,
+        "castors": [
+          [
+            82.11,
+            408.12
+          ],
+          [
+            168.52,
+            445.24
+          ],
+          [
+            286.04,
+            422.04
+          ],
+          [
+            282.59,
+            371.0
+          ]
+        ],
+        "nearElbow": [
+          294.07,
+          185.12
+        ],
+        "cuffRadius": 10,
+        "forearm": "M293.11 195.85 L325.79 181.87 L329.82 174.40 L322.35 170.37 L287.37 176.69Z",
+        "hands": [
+          237,
+          116,
+          148,
+          98
+        ],
+        "imageSize": [
+          1248,
+          658
+        ],
+        "nightTint": [
+          0.6531,
+          0.6139,
+          0.7172
+        ],
+        "src": "/luma-office/luma-plugin-art/rear-desk/rose-longmama-base-joint.1643de686a58.webp",
+        "rail": [
+          251.48,
+          192.36
+        ]
+      }
+    },
+    "shallow": {
+      "hip": [
+        176.0,
+        249.0
+      ],
+      "head": [
+        176.0,
+        109.8
+      ],
+      "palms": [
+        [
+          197.98,
+          177.4
+        ],
+        [
+          210.66,
+          183.2
+        ]
+      ],
+      "ankleLine": 265,
+      "headHeight": 116,
+      "knee": [
+        199.67,
+        242.41
+      ],
+      "sole": [
+        197.13,
+        288.1
+      ],
+      "soleY": 288.1,
+      "nearElbow": [
+        193.94,
+        196.0
+      ],
+      "cuffRadius": 8.8,
+      "forearm": "M196.11 205.42 L214.31 187.96 L215.42 179.55 L207.01 178.44 L185.41 191.44Z"
+    }
+  },
+  "longmama-v1": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/longmama-v1.f14b0992b9af.webp",
+    "sha256": "f14b0992b9af759d1c28de66bced85394785ee945863a87619acfab9a15eab88",
+    "cell": [
+      352,
+      352
+    ],
+    "count": 8,
+    "preferOblique": false,
+    "rear": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        115.47
+      ],
+      "palms": [
+        [
+          150.67,
+          184.26
+        ],
+        [
+          201.33,
+          184.26
+        ]
+      ],
+      "ankleLine": 279,
+      "headHeight": 116,
+      "knee": [
+        191.83,
+        262.49
+      ],
+      "sole": [
+        185.5,
+        302.95
+      ],
+      "soleY": 302.95,
+      "wristsOccluded": true,
+      "nearElbow": [
+        217.16,
+        203.14
+      ],
+      "cuffRadius": 0,
+      "forearm": "M0 0Z"
+    },
+    "oblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        101.1
+      ],
+      "palms": [
+        [
+          236.33,
+          164.9
+        ],
+        [
+          264.34,
+          164.9
+        ]
+      ],
+      "ankleLine": 278,
+      "headHeight": 116,
+      "knee": [
+        251.41,
+        237.4
+      ],
+      "sole": [
+        247.1,
+        295.4
+      ],
+      "soleY": 295.4,
+      "nearElbow": [
+        220,
+        192
+      ],
+      "cuffRadius": 11,
+      "forearm": "M222.32 203.47 L267.47 170.02 L269.46 161.77 L261.21 159.78 L210.85 184.70Z"
+    },
+    "highOblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        130.36
+      ],
+      "palms": [
+        [
+          243.41,
+          175.18
+        ],
+        [
+          267.21,
+          191.0
+        ]
+      ],
+      "ankleLine": 273,
+      "headHeight": 116,
+      "knee": [
+        245.4,
+        230.55
+      ],
+      "sole": [
+        249.36,
+        301.73
+      ],
+      "soleY": 301.73,
+      "nearElbow": [
+        219.62,
+        204.18
+      ],
+      "cuffRadius": 11,
+      "forearm": "M218.70 215.85 L268.81 196.78 L272.99 189.40 L265.61 185.22 L212.83 194.65Z",
+      "src": "/luma-office/luma-plugin-art/rear-desk/longmama-v1-high.77155250b6cf.webp",
+      "sha256": "77155250b6cfadd6b58d6bd67806a8be6b42a17a353d2b488d52200bb810f4a1"
+    },
+    "joints": {
+      "bedroom.shop.alpine-library.v1": {
+        "room": "bedroom.shop.alpine-library.v1",
+        "cell": [
+          448,
+          552
+        ],
+        "count": 8,
+        "hip": [
+          210,
+          255
+        ],
+        "head": [
+          210.0,
+          85.64
+        ],
+        "headHeight": 116,
+        "palms": [
+          [
+            271.95,
+            166.84
+          ],
+          [
+            306.37,
+            199.32
+          ]
+        ],
+        "knee": [
+          323.57,
+          255.0
+        ],
+        "sole": [
+          351.11,
+          347.8
+        ],
+        "ankleLine": 297,
+        "soleY": 347.8,
+        "castors": [
+          [
+            48.24,
+            394.2
+          ],
+          [
+            130.84,
+            449.88
+          ],
+          [
+            320.13,
+            431.32
+          ],
+          [
+            216.88,
+            361.72
+          ]
+        ],
+        "nearElbow": [
+          276.37,
+          208.32
+        ],
+        "cuffRadius": 10,
+        "forearm": "M275.41 219.05 L308.09 205.07 L312.12 197.60 L304.65 193.57 L269.67 199.89Z",
+        "hands": [
+          212,
+          130,
+          155,
+          107
+        ],
+        "imageSize": [
+          1304,
+          667
+        ],
+        "nightTint": [
+          0.7078,
+          0.7062,
+          0.75
+        ],
+        "src": "/luma-office/luma-plugin-art/rear-desk/alpine-longmama-v1-joint.226fc0ef1ce1.webp",
+        "rail": [
+          251.3,
+          222.52
+        ]
+      },
+      "bedroom.shop.rose-sketchbook.v1": {
+        "room": "bedroom.shop.rose-sketchbook.v1",
+        "cell": [
+          448,
+          552
+        ],
+        "count": 8,
+        "hip": [
+          210,
+          255
+        ],
+        "head": [
+          210.0,
+          76.36
+        ],
+        "headHeight": 116,
+        "palms": [
+          [
+            297.49,
+            148.28
+          ],
+          [
+            325.49,
+            176.12
+          ]
+        ],
+        "knee": [
+          332.49,
+          236.44
+        ],
+        "sole": [
+          360.49,
+          310.68
+        ],
+        "ankleLine": 274,
+        "soleY": 310.68,
+        "castors": [
+          [
+            84.01,
+            408.12
+          ],
+          [
+            171.5,
+            445.24
+          ],
+          [
+            290.49,
+            422.04
+          ],
+          [
+            286.99,
+            371.0
+          ]
+        ],
+        "nearElbow": [
+          295.49,
+          185.12
+        ],
+        "cuffRadius": 10,
+        "forearm": "M294.53 195.85 L327.21 181.87 L331.24 174.40 L323.77 170.37 L288.79 176.69Z",
+        "hands": [
+          238,
+          111,
+          148,
+          103
+        ],
+        "imageSize": [
+          1248,
+          663
+        ],
+        "nightTint": [
+          0.6531,
+          0.6139,
+          0.7172
+        ],
+        "src": "/luma-office/luma-plugin-art/rear-desk/rose-longmama-v1-joint.cc1d24409775.webp",
+        "rail": [
+          255.5,
+          192.36
+        ]
+      }
+    },
+    "shallow": {
+      "hip": [
+        176.0,
+        249.0
+      ],
+      "head": [
+        176.0,
+        101.1
+      ],
+      "palms": [
+        [
+          199.53,
+          162.9
+        ],
+        [
+          210.45,
+          162.9
+        ]
+      ],
+      "ankleLine": 262,
+      "headHeight": 116,
+      "knee": [
+        205.41,
+        235.4
+      ],
+      "sole": [
+        203.73,
+        279.4
+      ],
+      "soleY": 279.4,
+      "nearElbow": [
+        193.16,
+        190.0
+      ],
+      "cuffRadius": 8.8,
+      "forearm": "M198.43 198.11 L215.51 166.13 L213.68 157.84 L205.39 159.67 L183.59 188.64Z"
+    }
+  },
+  "lu-mi-base": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/lu-mi-base.b1df7ef7ee0d.webp",
+    "sha256": "b1df7ef7ee0d86e5149d40a52cb53a6b6f159fd30acf4c50fc8f2ea1cc5e0b9e",
+    "cell": [
+      352,
+      352
+    ],
+    "count": 8,
+    "preferOblique": false,
+    "rear": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        123.56
+      ],
+      "palms": [
+        [
+          147.37,
+          184.26
+        ],
+        [
+          204.63,
+          184.26
+        ]
+      ],
+      "ankleLine": 279,
+      "headHeight": 116,
+      "knee": [
+        192.1,
+        262.49
+      ],
+      "sole": [
+        184.95,
+        302.95
+      ],
+      "soleY": 302.95,
+      "wristsOccluded": true,
+      "nearElbow": [
+        222.52,
+        200.44
+      ],
+      "cuffRadius": 0,
+      "forearm": "M0 0Z"
+    },
+    "oblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        106.12
+      ],
+      "palms": [
+        [
+          236.49,
+          178.27
+        ],
+        [
+          263.6,
+          178.27
+        ]
+      ],
+      "ankleLine": 277,
+      "headHeight": 116,
+      "knee": [
+        249.0,
+        234.85
+      ],
+      "sole": [
+        246.92,
+        294.27
+      ],
+      "soleY": 294.27,
+      "nearElbow": [
+        232,
+        199
+      ],
+      "cuffRadius": 8,
+      "forearm": "M233.04 207.88 L266.89 183.29 L268.62 174.98 L260.31 173.25 L224.27 194.50Z"
+    },
+    "highOblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        126.56
+      ],
+      "palms": [
+        [
+          233.14,
+          174.24
+        ],
+        [
+          259.8,
+          192.29
+        ]
+      ],
+      "ankleLine": 267,
+      "headHeight": 116,
+      "knee": [
+        248.37,
+        228.38
+      ],
+      "sole": [
+        244.56,
+        292.82
+      ],
+      "soleY": 292.82,
+      "nearElbow": [
+        225.52,
+        202.6
+      ],
+      "cuffRadius": 8,
+      "forearm": "M223.99 211.41 L261.53 198.04 L265.55 190.56 L258.07 186.54 L219.38 196.09Z",
+      "src": "/luma-office/luma-plugin-art/rear-desk/lu-mi-base-high.341b219f4422.webp",
+      "sha256": "341b219f442229a2b6e71214c023bf87defdd276615b9e17db9a491bd982822b"
+    },
+    "joints": {
+      "bedroom.shop.alpine-library.v1": {
+        "room": "bedroom.shop.alpine-library.v1",
+        "cell": [
+          448,
+          552
+        ],
+        "count": 8,
+        "hip": [
+          210,
+          255
+        ],
+        "head": [
+          210.0,
+          114.14
+        ],
+        "headHeight": 116,
+        "palms": [
+          [
+            270.31,
+            180.43
+          ],
+          [
+            303.48,
+            205.29
+          ]
+        ],
+        "knee": [
+          312.52,
+          255.0
+        ],
+        "sole": [
+          330.61,
+          329.57
+        ],
+        "ankleLine": 288,
+        "soleY": 329.57,
+        "castors": [
+          [
+            68.28,
+            379.29
+          ],
+          [
+            140.65,
+            429.0
+          ],
+          [
+            306.49,
+            412.43
+          ],
+          [
+            216.03,
+            350.29
+          ]
+        ],
+        "nearElbow": [
+          273.48,
+          214.29
+        ],
+        "cuffRadius": 10,
+        "forearm": "M272.52 225.02 L305.20 211.04 L309.23 203.57 L301.76 199.54 L266.78 205.86Z",
+        "hands": [
+          210,
+          143,
+          154,
+          100
+        ],
+        "imageSize": [
+          1296,
+          660
+        ],
+        "nightTint": [
+          0.7078,
+          0.7062,
+          0.75
+        ],
+        "src": "/luma-office/luma-plugin-art/rear-desk/alpine-lu-mi-base-joint.de65da1eed35.webp",
+        "rail": [
+          246.18,
+          226.0
+        ]
+      },
+      "bedroom.shop.rose-sketchbook.v1": {
+        "room": "bedroom.shop.rose-sketchbook.v1",
+        "cell": [
+          448,
+          552
+        ],
+        "count": 8,
+        "hip": [
+          210,
+          255
+        ],
+        "head": [
+          210.0,
+          76.17
+        ],
+        "headHeight": 116,
+        "palms": [
+          [
+            290.54,
+            143.83
+          ],
+          [
+            322.05,
+            168.0
+          ]
+        ],
+        "knee": [
+          325.55,
+          235.67
+        ],
+        "sole": [
+          360.57,
+          308.17
+        ],
+        "ankleLine": 274,
+        "soleY": 308.17,
+        "castors": [
+          [
+            80.44,
+            414.5
+          ],
+          [
+            167.98,
+            453.17
+          ],
+          [
+            287.03,
+            429.0
+          ],
+          [
+            283.53,
+            375.83
+          ]
+        ],
+        "nearElbow": [
+          292.05,
+          177.0
+        ],
+        "cuffRadius": 10,
+        "forearm": "M291.09 187.73 L323.77 173.75 L327.80 166.28 L320.33 162.25 L285.35 168.57Z",
+        "hands": [
+          231,
+          107,
+          152,
+          99
+        ],
+        "imageSize": [
+          1280,
+          659
+        ],
+        "nightTint": [
+          0.6531,
+          0.6139,
+          0.7172
+        ],
+        "src": "/luma-office/luma-plugin-art/rear-desk/rose-lu-mi-base-joint.bc9b8da253c5.webp",
+        "rail": [
+          252.02,
+          189.75
+        ]
+      }
+    },
+    "shallow": {
+      "hip": [
+        176.0,
+        249.0
+      ],
+      "head": [
+        176.0,
+        106.12
+      ],
+      "palms": [
+        [
+          199.59,
+          176.27
+        ],
+        [
+          210.16,
+          176.27
+        ]
+      ],
+      "ankleLine": 261,
+      "headHeight": 116,
+      "knee": [
+        204.47,
+        232.85
+      ],
+      "sole": [
+        203.66,
+        278.27
+      ],
+      "soleY": 278.27,
+      "nearElbow": [
+        197.84,
+        197.0
+      ],
+      "cuffRadius": 6.4,
+      "forearm": "M201.30 203.71 L215.32 179.34 L213.23 171.11 L205.00 173.20 L190.29 197.17Z"
+    }
+  },
+  "lu-mi-v1": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/lu-mi-v1.4a1d24378378.webp",
+    "sha256": "4a1d243783784b82822160b76e0d17a94b3747048e1d8c969f3a269af53f3906",
+    "cell": [
+      352,
+      352
+    ],
+    "count": 8,
+    "preferOblique": false,
+    "rear": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        125.09
+      ],
+      "palms": [
+        [
+          151.2,
+          188.36
+        ],
+        [
+          200.8,
+          188.36
+        ]
+      ],
+      "ankleLine": 283,
+      "headHeight": 116,
+      "knee": [
+        190.59,
+        262.18
+      ],
+      "sole": [
+        184.75,
+        307.0
+      ],
+      "soleY": 307.0,
+      "wristsOccluded": true,
+      "nearElbow": [
+        213.93,
+        206.82
+      ],
+      "cuffRadius": 0,
+      "forearm": "M0 0Z"
+    },
+    "oblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        108.14
+      ],
+      "palms": [
+        [
+          230.05,
+          166.14
+        ],
+        [
+          257.07,
+          171.67
+        ]
+      ],
+      "ankleLine": 279,
+      "headHeight": 116,
+      "knee": [
+        231.98,
+        240.71
+      ],
+      "sole": [
+        222.33,
+        295.95
+      ],
+      "soleY": 295.95,
+      "nearElbow": [
+        222,
+        194
+      ],
+      "cuffRadius": 12,
+      "forearm": "M225.07 206.27 L260.29 176.73 L262.13 168.45 L253.85 166.61 L212.18 186.03Z"
+    },
+    "highOblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        129.13
+      ],
+      "palms": [
+        [
+          238.69,
+          171.67
+        ],
+        [
+          263.38,
+          189.71
+        ]
+      ],
+      "ankleLine": 272,
+      "headHeight": 116,
+      "knee": [
+        242.49,
+        233.53
+      ],
+      "sole": [
+        238.69,
+        297.98
+      ],
+      "soleY": 297.98,
+      "nearElbow": [
+        215.89,
+        205.18
+      ],
+      "cuffRadius": 10,
+      "forearm": "M215.19 215.92 L265.24 195.41 L269.08 187.85 L261.52 184.01 L208.99 196.91Z",
+      "src": "/luma-office/luma-plugin-art/rear-desk/lu-mi-v1-high.281f3ca577b2.webp",
+      "sha256": "281f3ca577b20d716cda9b62dda40a97ebaffde682a2d46fecc474ba84418c02"
+    },
+    "joints": {
+      "bedroom.shop.alpine-library.v1": {
+        "room": "bedroom.shop.alpine-library.v1",
+        "cell": [
+          448,
+          552
+        ],
+        "count": 8,
+        "hip": [
+          210,
+          255
+        ],
+        "head": [
+          210.0,
+          103.31
+        ],
+        "headHeight": 116,
+        "palms": [
+          [
+            276.46,
+            174.69
+          ],
+          [
+            309.69,
+            205.92
+          ]
+        ],
+        "knee": [
+          319.66,
+          255.0
+        ],
+        "sole": [
+          342.92,
+          335.31
+        ],
+        "ankleLine": 291,
+        "soleY": 335.31,
+        "castors": [
+          [
+            53.82,
+            388.85
+          ],
+          [
+            133.57,
+            442.38
+          ],
+          [
+            316.33,
+            424.54
+          ],
+          [
+            216.65,
+            357.62
+          ]
+        ],
+        "nearElbow": [
+          279.69,
+          214.92
+        ],
+        "cuffRadius": 10,
+        "forearm": "M278.73 225.65 L311.41 211.67 L315.44 204.20 L307.97 200.17 L272.99 206.49Z",
+        "hands": [
+          217,
+          138,
+          154,
+          106
+        ],
+        "imageSize": [
+          1296,
+          666
+        ],
+        "nightTint": [
+          0.7078,
+          0.7062,
+          0.75
+        ],
+        "src": "/luma-office/luma-plugin-art/rear-desk/alpine-lu-mi-v1-joint.5ed1cc6d0b41.webp",
+        "rail": [
+          249.87,
+          223.77
+        ]
+      },
+      "bedroom.shop.rose-sketchbook.v1": {
+        "room": "bedroom.shop.rose-sketchbook.v1",
+        "cell": [
+          448,
+          552
+        ],
+        "count": 8,
+        "hip": [
+          210,
+          255
+        ],
+        "head": [
+          210.0,
+          81.0
+        ],
+        "headHeight": 116,
+        "palms": [
+          [
+            284.1,
+            148.28
+          ],
+          [
+            314.41,
+            176.12
+          ]
+        ],
+        "knee": [
+          317.78,
+          236.44
+        ],
+        "sole": [
+          351.45,
+          310.68
+        ],
+        "ankleLine": 274,
+        "soleY": 310.68,
+        "castors": [
+          [
+            85.38,
+            408.12
+          ],
+          [
+            169.58,
+            445.24
+          ],
+          [
+            284.1,
+            422.04
+          ],
+          [
+            280.73,
+            371.0
+          ]
+        ],
+        "nearElbow": [
+          284.41,
+          185.12
+        ],
+        "cuffRadius": 10,
+        "forearm": "M283.45 195.85 L316.13 181.87 L320.16 174.40 L312.69 170.37 L277.71 176.69Z",
+        "hands": [
+          224,
+          111,
+          151,
+          103
+        ],
+        "imageSize": [
+          1272,
+          663
+        ],
+        "nightTint": [
+          0.6531,
+          0.6139,
+          0.7172
+        ],
+        "src": "/luma-office/luma-plugin-art/rear-desk/rose-lu-mi-v1-joint.4aab0109ab69.webp",
+        "rail": [
+          250.42,
+          192.36
+        ]
+      }
+    },
+    "shallow": {
+      "hip": [
+        176.0,
+        249.0
+      ],
+      "head": [
+        176.0,
+        108.14
+      ],
+      "palms": [
+        [
+          197.08,
+          164.14
+        ],
+        [
+          207.62,
+          169.67
+        ]
+      ],
+      "ankleLine": 263,
+      "headHeight": 116,
+      "knee": [
+        197.83,
+        238.4
+      ],
+      "sole": [
+        194.07,
+        279.95
+      ],
+      "soleY": 279.95,
+      "nearElbow": [
+        193.94,
+        192.0
+      ],
+      "cuffRadius": 9.600000000000001,
+      "forearm": "M200.04 200.43 L212.74 172.80 L210.75 164.55 L202.50 166.54 L183.66 190.40Z"
+    }
+  },
+  "shan-base": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/shan-base.52ff7befad22.webp",
+    "sha256": "52ff7befad22c12a092274d94e9d4db02e407b9920235d26e4f729f0c34e6e0d",
+    "cell": [
+      352,
+      352
+    ],
+    "count": 8,
+    "preferOblique": false,
+    "rear": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        135.76
+      ],
+      "palms": [
+        [
+          149.31,
+          193.76
+        ],
+        [
+          202.69,
+          193.76
+        ]
+      ],
+      "ankleLine": 282,
+      "headHeight": 116,
+      "knee": [
+        192.68,
+        262.81
+      ],
+      "sole": [
+        187.68,
+        312.52
+      ],
+      "soleY": 312.52,
+      "wristsOccluded": true,
+      "nearElbow": [
+        217.71,
+        210.33
+      ],
+      "cuffRadius": 0,
+      "forearm": "M0 0Z"
+    },
+    "oblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        107.72
+      ],
+      "palms": [
+        [
+          235.04,
+          162.74
+        ],
+        [
+          262.45,
+          162.74
+        ]
+      ],
+      "ankleLine": 285,
+      "headHeight": 116,
+      "knee": [
+        235.04,
+        237.1
+      ],
+      "sole": [
+        232.93,
+        302.54
+      ],
+      "soleY": 302.54,
+      "nearElbow": [
+        216,
+        191
+      ],
+      "cuffRadius": 12,
+      "forearm": "M218.82 203.33 L265.57 167.87 L267.58 159.62 L259.33 157.61 L206.35 182.83Z"
+    },
+    "highOblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        125.09
+      ],
+      "palms": [
+        [
+          239.63,
+          180.45
+        ],
+        [
+          266.62,
+          188.36
+        ]
+      ],
+      "ankleLine": 270,
+      "headHeight": 116,
+      "knee": [
+        233.84,
+        233.18
+      ],
+      "sole": [
+        231.91,
+        299.09
+      ],
+      "soleY": 299.09,
+      "nearElbow": [
+        214.56,
+        201.55
+      ],
+      "cuffRadius": 11,
+      "forearm": "M213.39 213.19 L268.09 194.18 L272.44 186.89 L265.15 182.54 L207.98 191.86Z",
+      "src": "/luma-office/luma-plugin-art/rear-desk/shan-base-high.c9b44f4bb669.webp",
+      "sha256": "c9b44f4bb6694b576cfb2dc817654d15797aa954b80abb53e0524f86858bfa3f"
+    },
+    "joints": {
+      "bedroom.shop.rose-sketchbook.v1": {
+        "room": "bedroom.shop.rose-sketchbook.v1",
+        "cell": [
+          448,
+          552
+        ],
+        "count": 8,
+        "hip": [
+          210,
+          255
+        ],
+        "head": [
+          210.0,
+          76.17
+        ],
+        "headHeight": 116,
+        "palms": [
+          [
+            289.46,
+            143.83
+          ],
+          [
+            325.58,
+            168.0
+          ]
+        ],
+        "knee": [
+          318.36,
+          235.67
+        ],
+        "sole": [
+          365.31,
+          317.83
+        ],
+        "ankleLine": 270,
+        "soleY": 317.83,
+        "castors": [
+          [
+            76.36,
+            414.5
+          ],
+          [
+            166.66,
+            453.17
+          ],
+          [
+            289.46,
+            429.0
+          ],
+          [
+            285.85,
+            375.83
+          ]
+        ],
+        "nearElbow": [
+          295.58,
+          177.0
+        ],
+        "cuffRadius": 10,
+        "forearm": "M294.62 187.73 L327.30 173.75 L331.33 166.28 L323.86 162.25 L288.88 168.57Z",
+        "hands": [
+          230,
+          107,
+          156,
+          99
+        ],
+        "imageSize": [
+          1312,
+          659
+        ],
+        "nightTint": [
+          0.6531,
+          0.6139,
+          0.7172
+        ],
+        "src": "/luma-office/luma-plugin-art/rear-desk/rose-shan-base-joint.618e178a9d37.webp",
+        "rail": [
+          253.34,
+          189.75
+        ]
+      },
+      "bedroom.shop.alpine-library.v1": {
+        "room": "bedroom.shop.alpine-library.v1",
+        "cell": [
+          448,
+          552
+        ],
+        "count": 8,
+        "hip": [
+          210,
+          255
+        ],
+        "head": [
+          210.0,
+          94.38
+        ],
+        "headHeight": 116,
+        "palms": [
+          [
+            269.21,
+            170.23
+          ],
+          [
+            305.39,
+            197.0
+          ]
+        ],
+        "knee": [
+          318.55,
+          246.08
+        ],
+        "sole": [
+          344.86,
+          335.31
+        ],
+        "ankleLine": 291,
+        "soleY": 335.31,
+        "castors": [
+          [
+            58.69,
+            388.85
+          ],
+          [
+            137.63,
+            442.38
+          ],
+          [
+            318.55,
+            424.54
+          ],
+          [
+            219.87,
+            357.62
+          ]
+        ],
+        "nearElbow": [
+          275.39,
+          206.0
+        ],
+        "cuffRadius": 10,
+        "forearm": "M274.43 216.73 L307.11 202.75 L311.14 195.28 L303.67 191.25 L268.69 197.57Z",
+        "hands": [
+          209,
+          133,
+          157,
+          102
+        ],
+        "imageSize": [
+          1320,
+          662
+        ],
+        "nightTint": [
+          0.7078,
+          0.7062,
+          0.75
+        ],
+        "src": "/luma-office/luma-plugin-art/rear-desk/alpine-shan-base-joint.aee62ca16c4d.webp",
+        "rail": [
+          252.76,
+          223.77
+        ]
+      }
+    },
+    "shallow": {
+      "hip": [
+        176.0,
+        249.0
+      ],
+      "head": [
+        176.0,
+        107.72
+      ],
+      "palms": [
+        [
+          199.03,
+          160.74
+        ],
+        [
+          209.72,
+          160.74
+        ]
+      ],
+      "ankleLine": 269,
+      "headHeight": 116,
+      "knee": [
+        199.03,
+        235.1
+      ],
+      "sole": [
+        198.2,
+        286.54
+      ],
+      "soleY": 286.54,
+      "nearElbow": [
+        191.6,
+        189.07
+      ],
+      "cuffRadius": 9.600000000000001,
+      "forearm": "M197.53 197.61 L214.77 163.97 L212.95 155.69 L204.67 157.51 L181.36 187.27Z"
+    }
+  },
+  "shan-v1": {
+    "src": "/luma-office/luma-plugin-art/rear-desk/shan-v1.f9badaef7143.webp",
+    "sha256": "f9badaef7143dfddd1f7b84bb70d868a591d50e4e22cf30f594107390dc08c3f",
+    "cell": [
+      352,
+      352
+    ],
+    "count": 8,
+    "preferOblique": false,
+    "rear": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        128.95
+      ],
+      "palms": [
+        [
+          153.5,
+          192.35
+        ],
+        [
+          198.5,
+          192.35
+        ]
+      ],
+      "ankleLine": 284,
+      "headHeight": 116,
+      "knee": [
+        190.06,
+        262.49
+      ],
+      "sole": [
+        183.03,
+        311.05
+      ],
+      "soleY": 311.05,
+      "wristsOccluded": true,
+      "nearElbow": [
+        211.16,
+        208.53
+      ],
+      "cuffRadius": 0,
+      "forearm": "M0 0Z"
+    },
+    "oblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        111.78
+      ],
+      "palms": [
+        [
+          228.23,
+          172.61
+        ],
+        [
+          256.2,
+          178.27
+        ]
+      ],
+      "ankleLine": 280,
+      "headHeight": 116,
+      "knee": [
+        237.55,
+        234.85
+      ],
+      "sole": [
+        230.09,
+        297.1
+      ],
+      "soleY": 297.1,
+      "nearElbow": [
+        216,
+        198
+      ],
+      "cuffRadius": 12,
+      "forearm": "M217.70 210.53 L258.84 183.66 L261.59 175.63 L253.56 172.88 L207.12 188.99Z"
+    },
+    "highOblique": {
+      "hip": [
+        176,
+        249
+      ],
+      "head": [
+        176.0,
+        129.13
+      ],
+      "palms": [
+        [
+          233.42,
+          181.98
+        ],
+        [
+          250.96,
+          194.87
+        ]
+      ],
+      "ankleLine": 272,
+      "headHeight": 116,
+      "knee": [
+        228.63,
+        230.96
+      ],
+      "sole": [
+        220.66,
+        300.56
+      ],
+      "soleY": 300.56,
+      "nearElbow": [
+        209.49,
+        205.18
+      ],
+      "cuffRadius": 11,
+      "forearm": "M208.27 216.82 L252.41 200.69 L256.78 193.42 L249.51 189.05 L202.96 195.47Z",
+      "src": "/luma-office/luma-plugin-art/rear-desk/shan-v1-high.8117965dca45.webp",
+      "sha256": "8117965dca45182c5634cb70746c746648fa94a0f08cd7fe202d57fbbf3e652b"
+    },
+    "joints": {
+      "bedroom.shop.rose-sketchbook.v1": {
+        "room": "bedroom.shop.rose-sketchbook.v1",
+        "cell": [
+          448,
+          552
+        ],
+        "count": 8,
+        "hip": [
+          210,
+          255
+        ],
+        "head": [
+          210.0,
+          76.17
+        ],
+        "headHeight": 116,
+        "palms": [
+          [
+            289.75,
+            143.83
+          ],
+          [
+            322.38,
+            172.83
+          ]
+        ],
+        "knee": [
+          326.0,
+          235.67
+        ],
+        "sole": [
+          365.88,
+          313.0
+        ],
+        "ankleLine": 274,
+        "soleY": 313.0,
+        "castors": [
+          [
+            75.88,
+            414.5
+          ],
+          [
+            166.5,
+            453.17
+          ],
+          [
+            289.75,
+            429.0
+          ],
+          [
+            286.12,
+            375.83
+          ]
+        ],
+        "nearElbow": [
+          292.38,
+          181.83
+        ],
+        "cuffRadius": 10,
+        "forearm": "M291.42 192.56 L324.10 178.58 L328.13 171.11 L320.66 167.08 L285.68 173.40Z",
+        "hands": [
+          230,
+          107,
+          153,
+          104
+        ],
+        "imageSize": [
+          1288,
+          664
+        ],
+        "nightTint": [
+          0.6531,
+          0.6139,
+          0.7172
+        ],
+        "src": "/luma-office/luma-plugin-art/rear-desk/rose-shan-v1-joint.e0bb8b2730f9.webp",
+        "rail": [
+          253.5,
+          189.75
+        ]
+      },
+      "bedroom.shop.alpine-library.v1": {
+        "room": "bedroom.shop.alpine-library.v1",
+        "cell": [
+          448,
+          552
+        ],
+        "count": 8,
+        "hip": [
+          210,
+          255
+        ],
+        "head": [
+          210.0,
+          98.19
+        ],
+        "headHeight": 116,
+        "palms": [
+          [
+            267.91,
+            173.37
+          ],
+          [
+            296.86,
+            203.44
+          ]
+        ],
+        "knee": [
+          312.95,
+          250.7
+        ],
+        "sole": [
+          341.9,
+          336.63
+        ],
+        "ankleLine": 285,
+        "soleY": 336.63,
+        "castors": [
+          [
+            62.01,
+            379.59
+          ],
+          [
+            139.22,
+            431.15
+          ],
+          [
+            316.16,
+            413.96
+          ],
+          [
+            219.65,
+            349.52
+          ]
+        ],
+        "nearElbow": [
+          266.86,
+          212.44
+        ],
+        "cuffRadius": 10,
+        "forearm": "M265.90 223.17 L298.58 209.19 L302.61 201.72 L295.14 197.69 L260.16 204.01Z",
+        "hands": [
+          208,
+          136,
+          150,
+          106
+        ],
+        "imageSize": [
+          1264,
+          666
+        ],
+        "nightTint": [
+          0.7078,
+          0.7062,
+          0.75
+        ],
+        "src": "/luma-office/luma-plugin-art/rear-desk/alpine-shan-v1-joint.3563dde22660.webp",
+        "rail": [
+          251.82,
+          220.63
+        ]
+      }
+    },
+    "shallow": {
+      "hip": [
+        176.0,
+        249.0
+      ],
+      "head": [
+        176.0,
+        111.78
+      ],
+      "palms": [
+        [
+          196.37,
+          170.61
+        ],
+        [
+          207.28,
+          176.27
+        ]
+      ],
+      "ankleLine": 264,
+      "headHeight": 116,
+      "knee": [
+        200.0,
+        232.85
+      ],
+      "sole": [
+        197.1,
+        281.1
+      ],
+      "soleY": 281.1,
+      "nearElbow": [
+        191.6,
+        196.07
+      ],
+      "cuffRadius": 9.600000000000001,
+      "forearm": "M196.64 205.17 L211.98 179.99 L211.00 171.57 L202.58 172.55 L181.59 193.25Z"
+    }
+  }
+}

@@ -1,105 +1,99 @@
 {
-  "version": "0.6.1",
+  "version": "0.6.5",
   "platform": "Windows x64",
   "tests": {
-    "rendererAndDomain": 313,
-    "hostAndNative": 73,
+    "rendererAndDomain": 337,
+    "hostAndNative": 74,
     "failures": 0,
     "skipped": 0
   },
-  "packageFiles": 1936,
+  "packageFiles": 2090,
   "artwork": {
-    "standaloneImages": 1075,
-    "verifiedPublicFiles": 1838,
+    "standaloneImages": 1229,
+    "verifiedPublicFiles": 1992,
     "localReferences": 540,
     "htmlPages": 127,
     "authoredPageCopies": 50,
     "glbModels": 36,
     "desktopPetImages": 70,
-    "inlinedImages": 57
+    "inlinedImages": 59
   },
   "packageDigests": {
-    "native-desktop/client.mjs": "f1fb31d1e68c8b4660d28774948632fb9c509b036b255e80ca9422aa2574ede0",
-    "native-desktop/server.mjs": "c3eb90e110b12013abbb28e734e776a07ae75280bc2abcb7a463821ff41d0a2a",
-    "native-desktop/DesktopPet.exe": "33107ae7b4233ffe419b963b83bc9702dee7434201591ac7add34c7450ad0572",
-    "package.json": "1d3b5f58d821b52864d9afe8d3d7ef74763fa9903ccfc8307e71864670c50f43"
+    "cordis.patch.yml": "5017a014506a399f5db4f08e523996c7c9ac68f2472c2809e022442db62a59cc",
+    "native-desktop/client.mjs": "877457c3a475edc183de07dbfbcd3855d4f1953904bc4c06e2b23c31801a6633",
+    "native-desktop/server.mjs": "cd7331e349aa01957ebdd9e12293330a5ef08ca46be11b64fd3a88cfeb46c064",
+    "native-desktop/DesktopPet.exe": "706261b80ace482c98a33b3e68a8a3852a168fc2d6c1d8c46deffb0d78dcd48e",
+    "package.json": "e4626de5f703489a2b5b669415f6a135993d40afa9544e79d64c1d49ce53676c"
   },
-  "office": {
-    "scenes": 9,
-    "actualSelectableRoleOutfits": 14,
-    "ordinaryLayoutThemes": 4,
-    "independentLayoutThemes": 5,
-    "slotsPerScene": 9,
-    "workstationCases": 1134,
-    "walkDirectionCases": 504,
-    "classicRenderComponentFrames": 2016,
-    "keyboardAnchors": 616,
-    "phaseBackgrounds": 54,
-    "nativeScreens": 18,
-    "actualSeatedActorsAcrossScreens": 144,
-    "actualOccupiedSlotsPerScene": {
-      "office.gemini.v1": 9,
-      "office.bai-shuangming.v1": 9,
-      "office.claude.v1": 9,
-      "office.grok.v1": 9,
-      "office.lu-mi.v1": 9,
-      "classic": 9,
-      "office.jingyuniang.v1": 9,
-      "office.longmama.v1": 9,
-      "office.duanmu-yan.v1": 9
-    },
-    "concealedKeyboardAnchors": 14
+  "distribution": {
+    "originalBaseVersion": "0.4.3",
+    "baseSha256": "e949d369a89da2bf6ce01c2eabef4b8a3a95ced38db5ab625ea90c2bb0549c81",
+    "fullArchiveSha256": "338e3062e7d190a659e465b537e59ad5661e97bd24193cbf22e8cb5dd9f8f318",
+    "updateSha256": "ac9b28e932d66349cf5846d10d4a2371e20b219122d2d361ac7c93a04b75abfb",
+    "installerSha256": "237a4c493a05797cecc490e65c78f5ab261b116baeb733d113b9d36d8cfd649f",
+    "verifiedPayloadFiles": 381
   },
-  "traffic": {
-    "prior": {
-      "independent": {
-        "minFeet": 2.76968064083449,
-        "completed": 45,
-        "scenarios": 45,
-        "maxSeconds": 8.92
+  "scenes": {
+    "bedroom": {
+      "rooms": 15,
+      "wearableAppearances": 14,
+      "lightingModes": 2,
+      "actualRenderedCombinations": 420,
+      "bySeatedView": {
+        "joint": 56,
+        "quarter": 224,
+        "side": 140
       },
-      "classic": {
-        "minFeet": 0.6899863671378472,
-        "completed": 9,
-        "scenarios": 9,
-        "maxSeconds": 19.5
-      }
+      "sameCameraComparison": "docs/images/bedroom-seating-comparison-065.jpg"
     },
-    "now": {
-      "independent": {
-        "minFeet": 17.324111823840276,
-        "completed": 45,
-        "scenarios": 45,
-        "maxSeconds": 8.92
+    "office": {
+      "scenes": 9,
+      "seatsPerScene": 9,
+      "wearableAppearances": 14,
+      "actualRenderedCombinations": 1134,
+      "pageErrors": 0
+    },
+    "standing": {
+      "wearableAppearances": 14,
+      "idleExposuresPerAppearance": 24,
+      "independentGestures": 28,
+      "gestureExposures": 224,
+      "postDropHeadDirectionsPerAppearance": 25,
+      "postDropEyeDirectionsPerAppearance": 25,
+      "verifiedPackagedNativeWindows": 14
+    },
+    "priorMotionEvidence": {
+      "version": "0.6.4",
+      "drag": {
+        "wearableAppearances": 14,
+        "actualPointerCombinations": 56,
+        "targets": [
+          "Windows native pet",
+          "classic office",
+          "themed office",
+          "bedroom"
+        ],
+        "motionCapture": "docs/images/drag-motion-064.gif"
       },
-      "classic": {
-        "minFeet": 16.225060863192628,
-        "completed": 9,
-        "scenarios": 9,
-        "maxSeconds": 19.5
+      "walk": {
+        "wearableAppearances": 14,
+        "directionsPerAppearance": 4,
+        "directionAtlases": 56,
+        "drawnKeyframes": 224,
+        "lastThreeAppearances": {
+          "directions": 12,
+          "newFrames": 48,
+          "bedroomBeforeFrames": 48,
+          "bedroomAfterFrames": 48,
+          "nativeWindowsFrames": 48,
+          "shoeBaselineY": 258,
+          "visibleHeightRange": [
+            242,
+            246
+          ]
+        },
+        "comparison": "docs/images/walk-last-three-064.gif"
       }
     }
-  },
-  "bedroom": {
-    "layouts": 15,
-    "wearableAppearances": 14,
-    "combinations": 210,
-    "poseRenders": 630,
-    "nativeChecks": 29
-  },
-  "desktopPets": {
-    "roles": 8,
-    "wearableAppearances": 14,
-    "physicalDisplaysTested": 1,
-    "negativeCoordinatesAndMixedDpiGeometry": true
-  },
-  "firstUse": {
-    "emptyProfile": true,
-    "starter": "jingyuniang",
-    "initialCoins": 0,
-    "welcomeGift": 300,
-    "firstPackPrice": 10,
-    "reopenedBalance": 290,
-    "reopenedCardCount": 1
   }
 }

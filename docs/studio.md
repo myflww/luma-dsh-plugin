@@ -1,6 +1,6 @@
 # 工作室版 · 从窗口操作到交付
 
-工作室适合多位伙伴协作、跨工作记住偏好，或让成员操作具体应用窗口。0.6.1 将工作室、办公室和桌宠整合在同一插件中。[下载 Windows 正式版](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.6.1)
+工作室适合多位伙伴协作、跨工作记住偏好，或让成员操作具体应用窗口。0.6.1 将工作室、办公室和桌宠整合在同一插件中。[下载 Windows 正式版](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.6.5)
 
 ## Windows 安装
 

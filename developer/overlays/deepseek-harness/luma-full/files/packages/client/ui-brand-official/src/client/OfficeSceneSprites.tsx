@@ -15,8 +15,8 @@ import {
   resolveOfficeAssetUrl,
   type OfficeAssetId,
 } from './office2d/assets.ts'
-import { getBrowserOfficeDefaultSkinId, getEmployeeCatalogWithSkin, getEmployeeSkinPack, getEmployeeTypingProfileWithSkin } from './office2d/employeeSkins.ts'
-import { OFFICE_WORKSTATION_KEYBOARD_BOUNDS } from './office2d/workstationProps.ts'
+import { getEmployeeCatalogWithSkin, getEmployeeTypingProfileWithSkin } from './office2d/employeeSkins.ts'
+import { officeKeyboardContact, officeRearHands } from './office2d/officeKeyboardContact.ts'
 import { createOfficeFrameTimeline } from './office2d/frameTimeline.ts'
 import {
   OFFICE_NAV_HEIGHT,
@@ -27,15 +27,11 @@ import {
   getOfficeWorkstation
 } from './office2d/workstations.ts'
 import { seatedFigureScale } from './office2d/officeFigureScale.ts'
+import { classicOfficeDeskPlacement, officeDeskShell } from './office2d/officeDeskPlacement.ts'
+import { OfficeDeskCanvas } from './OfficeDeskCanvas.tsx'
 import { getWalkAtlas, sampleWalkAtlas, drawWalkAtlas } from './office2d/walkAtlas.ts'
 import { sampleDeskRhythm } from './office2d/deskRhythm.ts'
 import { compileOfficeEmployeeOcclusionPolygons, compileOfficeEmployeeVisibleClipPath, getWorkstationTypingFrameAnchor } from './officeSceneGeometry.ts'
-
-// Midpoint between the original rear-view hands, in the 512 × 860 typing cell.
-const originalBackHands: Readonly<Record<string, readonly [number, number]>> = {
-  shan: [256, 446], 'bai-shuangming': [254, 564], 'lu-mi': [256, 387],
-  jingyuniang: [250, 548], longmama: [268, 644], claude: [236, 552],
-}
 
 export function SpriteStripCanvas({
   assetId,
@@ -115,6 +111,7 @@ export function SpriteStripCanvas({
     let lastClock = performance.now()
     const walkAtlas = getWalkAtlas(assetId)
     const walkImage = walkAtlas ? new Image() : undefined
+    let walkLoadFailed = false
     let paintedGait = -1
     let paintedFrame = -1
     let paintedPolygons = ''
@@ -131,11 +128,16 @@ export function SpriteStripCanvas({
       canvas.dataset.spriteReady = 'error'
     }
     const paint = (frameIndex: number) => {
+      // Keep the last complete sprite while the replacement costume decodes.
+      if (walkAtlas?.frameDurationsMs && !walkImage?.naturalWidth && !walkLoadFailed) return
       const occlusionPolygons = controlsRef.current.resolveOcclusionPolygons?.(frameIndex) ?? []
       const signature = JSON.stringify(occlusionPolygons)
-      const gaitTime = controlsRef.current.walkElapsedMs
-      const gait = walkAtlas && walkImage?.complete && walkImage.naturalWidth && gaitTime !== undefined && !media?.matches
-        ? sampleWalkAtlas(walkAtlas, strip, gaitTime) : undefined
+      const controls = controlsRef.current
+      const manualPlayback = loopOverride !== undefined && controls.fixedFrameIndex == null && !controls.paused
+      const gaitTime = controls.walkElapsedMs ?? (manualPlayback ? elapsedMs : undefined)
+      const useGait = walkAtlas?.frameDurationsMs || (gaitTime !== undefined && !media?.matches)
+      const gait = walkAtlas && walkImage?.complete && walkImage.naturalWidth && useGait
+        ? sampleWalkAtlas(walkAtlas, strip, media?.matches ? 0 : gaitTime ?? elapsedMs, loop) : undefined
       if (paintedFrame === frameIndex && paintedPolygons === signature && paintedGait === (gait?.index ?? -1)) return
       // Compose the entire frame offscreen first. A failed preparation never
       // clears the previously visible complete character.
@@ -210,7 +212,8 @@ export function SpriteStripCanvas({
         try { paint(fixedFrame ?? (held ? timeline.order[timeline.order.length - 1]! : rhythm?.reading ? controls.deskRhythm!.restFrame : timeline.frameAt(stripTime, loop))) } catch { fail(); return }
       }
       if (!playing) { clearPlaybackTimer(); return }
-      const frameDelay = timeline.nextDelayMs(stripTime, loop)
+      const frameDelay = walkAtlas && walkImage?.naturalWidth && loopOverride !== undefined
+        ? sampleWalkAtlas(walkAtlas, strip, elapsedMs, loop).nextDelayMs : timeline.nextDelayMs(stripTime, loop)
       const delayMs = rhythm && frameDelay !== null
         ? rhythm.reading ? rhythm.untilChangeMs : Math.min(rhythm.untilChangeMs, frameDelay / rhythm.rate)
         : frameDelay
@@ -250,12 +253,16 @@ export function SpriteStripCanvas({
     image.addEventListener('error', fail)
     media?.addEventListener?.('change', synchronize)
     document.addEventListener('visibilitychange', synchronize)
-    if (walkAtlas && walkImage) { walkImage.onload = synchronize; walkImage.src = walkAtlas.src }
+    if (walkAtlas && walkImage) {
+      walkImage.onload = synchronize
+      walkImage.onerror = () => { walkLoadFailed = true; synchronize() }
+      walkImage.src = walkAtlas.src
+    }
     image.src = resolveOfficeAssetUrl(assetId)
     if (image.complete && image.naturalWidth > 0) loaded()
     return () => {
       disposed = true
-      if (walkImage) walkImage.onload = null
+      if (walkImage) { walkImage.onload = null; walkImage.onerror = null }
       if (playing && loop) {
         elapsedMs += Math.max(0, performance.now() - lastClock) * previousRate
         loopPhaseRef.current = (elapsedMs % cycleDurationMs) / cycleDurationMs
@@ -295,19 +302,38 @@ export function SeatedActor({ employee, workstationId, command, onClick, onConte
   const catalog = getEmployeeCatalogWithSkin(employee.id, skinId)
   const workstation = getOfficeWorkstation(workstationId)
   const [frameIndex, setFrameIndex] = useState(review?.frameIndex ?? (paused || !command ? 3 : 0))
-  if (!catalog || !workstation) return null
+  if (!workstation) return null
+  const ambientTyping = !command && employee.ambientDesk === true
+  const sessionWorking = Boolean(command || employee.sceneActivity === 'working')
+  const animateTyping = !employee.deskOnHold && Boolean(sessionWorking || ambientTyping || review?.mode === 'working')
+  const painted=classicOfficeDeskPlacement(workstation,employee.id,skinId)
+  if(painted){
+    // The counter rises in front of the lap. Extend the old mask's *upper* edge
+    // beyond hats/halos, retaining its measured lower rim against the hands.
+    const visible=workstation.employeeVisiblePolygon?.map(([x,y])=>[x,y===685?550:y] as const)
+    return <button type="button" className="lumaOfficeEmployee lumaOfficeEmployeeWorking"
+      onClick={onClick} onContextMenu={onContextMenu} onPointerDown={onPointerDown} onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp} onPointerCancel={onPointerCancel}
+      {...officeEmployeeAction(employee.name,employeeDestination,employee.canDrag&&!sessionWorking,paperPlane)}
+      data-employee-id={employee.id} data-skin-id={skinId} data-workstation-id={workstationId}
+      data-typing-facing={workstation.typingFacing} data-desk-view={painted.facing}
+      data-scene-activity={sessionWorking?'task':ambientTyping?'desk-practice':'desk-break'}
+      data-presence-label={sessionWorking?'工作中':ambientTyping?'整理资料':'在席待命'}
+      data-scene-command-id={command?.commandId} data-task-id={command?.taskId}
+      style={{left:painted.origin[0]/OFFICE_NAV_WIDTH*100+'%',top:painted.origin[1]/OFFICE_NAV_HEIGHT*100+'%',
+        width:painted.cell[0]*painted.scale/OFFICE_NAV_WIDTH*100+'%',height:painted.cell[1]*painted.scale/OFFICE_NAV_HEIGHT*100+'%',
+        transform:'none',zIndex:Math.round(workstation.y*OFFICE_NAV_HEIGHT)}}>
+      <OfficeDeskCanvas pose={painted} actor={employee.id} working={animateTyping} ambient={ambientTyping}
+        paused={paused} fixed={review?.frameIndex} cover={officeDeskShell('classic',workstationId)} visible={visible} />
+    </button>
+  }
+  if (!catalog) return null
   const profile = getEmployeeTypingProfileWithSkin(employee.id, workstation.typingFacing, skinId)
   if (!profile) return null
   const assetId = catalog.typing[workstation.typingFacing]
   const sourceSha = getOfficeAsset(assetId).sha256
-  // Side rooms put the keyboard left of the empty chair. Seat the whole rear
-  // pose at the keys, including its own chair, so the hands reach the desk.
-  const keys = workstation.zone === 'private-office' ? OFFICE_WORKSTATION_KEYBOARD_BOUNDS[workstation.id] : undefined
-  const pack = keys && getEmployeeSkinPack(employee.id, skinId ?? getBrowserOfficeDefaultSkinId(employee.id))
-  const pixels = originalBackHands[employee.id]
-  const hand = pack ? pack.typingProfiles.back.landmarks.hand : pixels ? { x: pixels[0] / 512, y: pixels[1] / 860 } : undefined
-  const contactProfile = keys && hand ? { ...profile, seatAnchor: hand } : profile
-  const anchor = getWorkstationTypingFrameAnchor(contactProfile, workstation, frameIndex, sourceSha)
+  const pixels = officeRearHands[sourceSha]
+  const hand = pixels ? {x:pixels[0]/512, y:pixels[1]/860} : undefined
   const depth = Math.max(.77, Math.min(1.11, .74 + workstation.y * .38))
   const rectWidth = workstation.rect.width * OFFICE_NAV_WIDTH
   const rectHeight = workstation.rect.height * OFFICE_NAV_HEIGHT
@@ -317,10 +343,14 @@ export function SeatedActor({ employee, workstationId, command, onClick, onConte
     rectWidth * .84 / 512,
   ) * workstation.employee.scale * profile.scaleMultiplier
   const spriteScale = seatedFigureScale(sourceSha, workstation.y * OFFICE_NAV_HEIGHT, originalScale)
-  const ambientTyping = !command && employee.ambientDesk === true
-  const sessionWorking = Boolean(command || employee.sceneActivity === 'working')
-  const animateTyping = !employee.deskOnHold && Boolean(sessionWorking || ambientTyping || review?.mode === 'working')
-  const base = keys && hand ? { x: (keys.left + keys.right) / 2, y: (keys.top + keys.bottom) / 2 } : workstation.seatPoint
+  const seat=workstation.seatPoint
+  const keys=seat && hand && workstation.typingFacing==='back' ? officeKeyboardContact('classic',workstationId,[
+    seat[0]+(hand.x-profile.seatAnchor.x)*512*spriteScale,
+    seat[1]+(hand.y-profile.seatAnchor.y)*860*spriteScale,
+  ]) : undefined
+  const contactProfile = keys && hand ? { ...profile, seatAnchor: hand } : profile
+  const anchor = getWorkstationTypingFrameAnchor(contactProfile, workstation, frameIndex, sourceSha)
+  const base = keys ? { x: keys[0], y: keys[1] } : workstation.seatPoint
     ? { x: workstation.seatPoint[0], y: workstation.seatPoint[1] }
     : {
         x: (workstation.rect.x + workstation.rect.width * workstation.employee.x) * OFFICE_NAV_WIDTH,

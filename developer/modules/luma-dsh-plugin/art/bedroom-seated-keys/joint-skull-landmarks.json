@@ -1,0 +1,142 @@
+{
+  "bai-shuangming-base": {
+    "rose": [
+      34,
+      70
+    ],
+    "alpine": [
+      32,
+      70
+    ]
+  },
+  "bai-shuangming-v1": {
+    "rose": [
+      34,
+      73
+    ],
+    "alpine": [
+      32,
+      70
+    ]
+  },
+  "claude-base": {
+    "rose": [
+      30,
+      68
+    ],
+    "alpine": [
+      27,
+      71
+    ]
+  },
+  "claude-v1": {
+    "rose": [
+      29,
+      69
+    ],
+    "alpine": [
+      28,
+      69
+    ]
+  },
+  "gemini-v1": {
+    "rose": [
+      33,
+      71
+    ],
+    "alpine": [
+      31,
+      70
+    ]
+  },
+  "grok-v1": {
+    "rose": [
+      34,
+      69
+    ],
+    "alpine": [
+      33,
+      69
+    ]
+  },
+  "jingyuniang-base": {
+    "rose": [
+      32,
+      72
+    ],
+    "alpine": [
+      29,
+      70
+    ]
+  },
+  "jingyuniang-v1": {
+    "rose": [
+      32,
+      69
+    ],
+    "alpine": [
+      31,
+      68
+    ]
+  },
+  "longmama-base": {
+    "rose": [
+      36,
+      72
+    ],
+    "alpine": [
+      31,
+      66
+    ]
+  },
+  "longmama-v1": {
+    "rose": [
+      34,
+      70
+    ],
+    "alpine": [
+      30,
+      67
+    ]
+  },
+  "lu-mi-base": {
+    "rose": [
+      32,
+      70
+    ],
+    "alpine": [
+      30,
+      71
+    ]
+  },
+  "lu-mi-v1": {
+    "rose": [
+      32,
+      67
+    ],
+    "alpine": [
+      28,
+      68
+    ]
+  },
+  "shan-base": {
+    "rose": [
+      33,
+      71
+    ],
+    "alpine": [
+      32,
+      68
+    ]
+  },
+  "shan-v1": {
+    "rose": [
+      34,
+      71
+    ],
+    "alpine": [
+      31,
+      66
+    ]
+  }
+}

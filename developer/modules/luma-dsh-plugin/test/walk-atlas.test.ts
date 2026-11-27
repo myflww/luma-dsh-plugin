@@ -2,10 +2,11 @@ import { expect, it } from 'vitest'
 import { getOfficeAsset } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/assets.ts'
 import { getEmployeeCatalogWithSkin } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/employeeSkins.ts'
 import { createOfficeFrameTimeline } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/frameTimeline.ts'
-import { getWalkAtlas, sampleWalkAtlas, walkAtlasBounds } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/walkAtlas.ts'
+import { getWalkAtlas, sampleWalkAtlas } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/walkAtlas.ts'
+import { OFFICE_SILHOUETTES } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/officeSilhouettes.generated.ts'
 import { BEDROOM_FLOORS, bedroomFootAt, bedroomTravelAt, createBedroomRoutine } from '../src/client/bedroom-routine.ts'
 
-it('gives every owned character and outfit three distinct draw cells per painted exposure in all directions', () => {
+it('uses four individually painted walking poses for every outfit and direction', () => {
   const ids = ['shan','lu-mi','bai-shuangming','jingyuniang','longmama','claude','gemini','grok']
   for (const id of ids) for (const skin of [undefined,'skin.'+id+'.v1']) {
     const catalog = getEmployeeCatalogWithSkin(id,skin)!
@@ -13,34 +14,38 @@ it('gives every owned character and outfit three distinct draw cells per painted
       const atlas = getWalkAtlas(asset)!
       const strip = getOfficeAsset(asset).frameStrip!
       const timeline = createOfficeFrameTimeline(strip)
-      expect(atlas.count).toBe(timeline.order.length*3)
-      for (let i=0;i<timeline.order.length;i++) {
-        const phase = timeline.starts[i]!, exposure = timeline.durations[i]!
-        for(const sample of [0,1,2]) {
-          const cell = sampleWalkAtlas(atlas,strip,phase+exposure*(sample+.1)/3)
-          expect(cell.index).toBe(i*3+sample)
-          expect(cell.rect[0]+cell.rect[2]).toBeLessThanOrEqual(atlas.columns*atlas.cell[0]!)
-        }
+      expect(atlas.count).toBe(4)
+      expect(atlas.frameDurationsMs).toHaveLength(4)
+      let phase=0
+      for (let i=0;i<4;i++) {
+        const duration=atlas.frameDurationsMs![i]!
+        const frame=sampleWalkAtlas(atlas,strip,phase+duration/2)
+        expect(frame.index).toBe(i)
+        expect(frame.rect).toEqual([i*atlas.cell[0]!,0,atlas.cell[0],atlas.cell[1]])
+        phase+=duration
       }
-      expect(sampleWalkAtlas(atlas,strip,timeline.cycleMs).index).toBe(0)
+      expect(phase).toBeCloseTo(timeline.cycleMs,5)
+      expect(sampleWalkAtlas(atlas,strip,phase).index).toBe(0)
+      const last = sampleWalkAtlas(atlas,strip,phase,false)
+      expect(last.index).toBe(3)
+      expect(last.nextDelayMs).toBeNull()
     }
   }
 })
 
-it('fits the two drawing scales in Claude’s rear walk around the same floor contact', () => {
-  const atlas = getWalkAtlas(getEmployeeCatalogWithSkin('claude')!.walk.up)!
-  const [width, height] = atlas.cell
-  function measurement(index: number, inkHeight: number) {
-    const bounds = walkAtlasBounds(atlas, [
-      index % atlas.columns * width!, Math.floor(index / atlas.columns) * height!, width!, height!,
-    ])
-    const sole = 699
-    const soleUV = (sole - atlas.bounds[1]!) / atlas.bounds[3]!
-    expect(bounds[1]! + soleUV * bounds[3]!).toBeCloseTo(sole)
-    return inkHeight * bounds[3]! / height!
+it('places every rebuilt direction on the scene floor at the same displayed figure height', () => {
+  for (const role of ['shan','lu-mi','bai-shuangming','jingyuniang','longmama','claude','gemini','grok']) {
+    for (const skin of [undefined, 'skin.'+role+'.v1']) {
+      for (const id of Object.values(getEmployeeCatalogWithSkin(role, skin)!.walk)) {
+        const atlas = getWalkAtlas(id)!
+        const [height, floor] = OFFICE_SILHOUETTES[getOfficeAsset(id).sha256]!
+        const units = atlas.bounds[3]! / atlas.cell[1]!
+        expect(atlas.figureHeight * units).toBeCloseTo(height, 3)
+        expect(atlas.bounds[1]! + atlas.sole * units).toBeCloseTo(floor, 3)
+        expect(atlas.src).toMatch(/\.png$/)
+      }
+    }
   }
-  // Opaque extents measured in the 256-pixel packed cell.
-  expect(measurement(0, 248) / measurement(12, 224)).toBeLessThan(1.04)
 })
 
 it('keeps the planted foot phase and the same tangent through every room’s central aisle', () => {

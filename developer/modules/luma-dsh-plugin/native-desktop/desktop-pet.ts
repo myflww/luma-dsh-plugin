@@ -5,7 +5,8 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 import { createOfficeClockPolicy } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/office-time/domain/timePolicy.ts'
 
 interface Strip { path:string;gaitPath:string;frameWidth:number;frameHeight:number;frameCount:number;frameDurationsMs?:number[] }
-declare const __LUMA_PET_ART__: Record<string,{strips:Record<string,Strip>;sleep:string;sleepMirror:boolean;sleepAngle:number}>
+interface PoseStrip { path:string;cell:number[];count:number;columns:number;foot:number[];grip:number[];figureHeight:number;eyes:number[][];idleDurationsMs:number[];gestures?:{path:string};look?:{path:string;eyesPath:string} }
+declare const __LUMA_PET_ART__: Record<string,{strips:Record<string,Strip>;poses:PoseStrip;sleep:string;sleepMirror:boolean;sleepAngle:number}>
 export type DesktopPetCalendar=Pick<NonNullable<Parameters<typeof createOfficeClockPolicy>[0]>,'calendar'|'officialCalendarCache'>
 export function desktopPetPeriod(date=new Date(), calendar:DesktopPetCalendar={}) {
   const policy=createOfficeClockPolicy({date,...calendar})
@@ -14,7 +15,7 @@ export function desktopPetPeriod(date=new Date(), calendar:DesktopPetCalendar={}
 export const desktopPetBedtime=(date=new Date())=>desktopPetPeriod(date)==='night'
 type PetMode = 'field'|'peeking'|'hidden-edge'
 type PetActivity = 'awake'|'greeting'|'lunch'|'sleepy'|'settling'|'dozing'
-type PetState = {roleId:string;skinId:string|null;mode:PetMode;side:'left'|'right'|null;activity:PetActivity}
+type PetState = {roleId:string;skinId:string|null;mode:PetMode;side:'left'|'right'|'top'|'bottom'|null;activity:PetActivity}
 interface Pet {process:ChildProcessWithoutNullStreams;state:PetState;closed:Promise<void>;slot:number;windowId?:number;reduceMotion:boolean;requestedSkin:string|null;retrySkinAt:number}
 
 export function desktopPets(directory:string, unlocked:()=>readonly string[], skin:(role:string)=>string|undefined, readCalendar:()=>DesktopPetCalendar=()=>({})) {
@@ -31,6 +32,9 @@ export function desktopPets(directory:string, unlocked:()=>readonly string[], sk
     const assetPath=(p:string)=>join(directory,'../public',p)
     return {skinId:selected, strips:Object.fromEntries(Object.entries(source.strips).map(([dir,strip])=>
       [dir,{...strip,path:assetPath(strip.path),gaitPath:assetPath(strip.gaitPath)}])),
+      poses:{...source.poses,path:assetPath(source.poses.path),gestures:source.poses.gestures && {
+        ...source.poses.gestures,path:assetPath(source.poses.gestures.path)},look:source.poses.look && {
+        ...source.poses.look,path:assetPath(source.poses.look.path),eyesPath:assetPath(source.poses.look.eyesPath)}},
       sleep:assetPath(source.sleep),sleepAngle:source.sleepAngle,sleepMirror:source.sleepMirror,
       peek:join(directory,'pet-art',key+'.png'),ledge:join(directory,'pet-art','ledge',key+'.png'),
       sleepyPose:join(directory,'pet-art','drowsy',key+'.png'),greet:join(directory,'pet-art','greet',key+'.png'),
@@ -83,7 +87,7 @@ export function desktopPets(directory:string, unlocked:()=>readonly string[], sk
           try {
             const event=JSON.parse(line.replace(/^\uFEFF/, ''))
             if(!['field','peeking','hidden-edge'].includes(event.mode))return
-            pet.state={...pet.state,mode:event.mode,side:['left','right'].includes(event.side)?event.side:null,
+            pet.state={...pet.state,mode:event.mode,side:['left','right','top','bottom'].includes(event.side)?event.side:null,
               skinId:event.skinId===null||event.skinId===pet.requestedSkin?event.skinId:pet.state.skinId,
               activity:['greeting','lunch','sleepy','settling','dozing'].includes(event.activity)?event.activity:'awake'}
             if(Number.isSafeInteger(event.windowId)&&event.windowId>0&&event.windowId!==pet.windowId) {

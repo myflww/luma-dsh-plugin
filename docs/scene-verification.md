@@ -1,4 +1,99 @@
-# 0.6.1 场景与角色验收
+# 场景与角色验收
+
+## 0.6.5 站立时的小动作
+
+在经典办公室、鲸鱼娘主题办公室和各角色卧室分别轮播全部 14 套造型。42 个组合都播到了两个动作的中间姿势，切到书桌后停止播放，开启减少动态后停在待机第 0 格。
+
+28 个动作的首尾共 56 格，逐像素核对后都与各自的日常站立首帧相同。逐段按支撑鞋对齐后，140 格原有动作画面与上一版一致，覆盖准备、峰值和收势；另按新站姿重新生成了回到静止前的一格。[14 套造型的全部小动作](images/idle-gestures-065.gif)
+
+八位伙伴的 14 套外观各有两个动作。鲸鱼娘换装先伸展肩臂，回到站立后再张臂屈膝，单脚撑地。同框动图取自经典办公室与鲸鱼娘卧室的实际画面，两侧各连续录下 64 帧，完整一轮为 8.65 秒。经典办公室、主题办公室和卧室都另用鼠标在动作中途抓起角色，并检查入座和开启减少动态后的画面。[办公室与卧室的小动作实录](images/office-bedroom-idle-actions.gif)
+
+## 0.6.5 放回地面后的视线
+
+鲸鱼娘被放回地面时先屈膝落稳，然后用眼睛追随光标，头稍后转向。落稳后约 2.45 秒停止追踪，随后用约半秒回正。实录左侧是经典办公室中的鼠标拖放，箭头按实际指针事件的位置绘制，右侧放大同一帧。经典和鲸鱼娘主题办公室都实际检查了光标换边、回正和中途重新抓起。角色在注视期间入座，或办公室先隐藏再打开，画面均立即交给当前状态。卧室中将光标从右上移到左下，头和眼睛分别跟上并在时限结束时回正。三个场景开启减少动态后都停止注视。[放手后的视线实录](images/post-drop-look.gif)
+
+## 0.6.5 办公室工位和打字
+
+经典办公室北排右席是反馈图中陆弥的位置。她的显示器中心比椅垫中心向右偏 20 个场景像素，键盘中心只偏 2 个像素。此前这一整排共用正背图，遮住了角色转向屏幕的动作。新版分别以屏幕标定身体朝向、以坐垫支撑骨盆，再把双手对到原场景键面。北排中席和南排右席也使用浅斜后坐姿。[三席的空椅、校准前和校准后](images/office-curved-workstations-065.jpg) · [0.6.4 三人同框](images/office-rear-hands-before.png) · [0.6.5 同机位](images/office-rear-hands-after.png)
+
+14 套造型分别从自己的斜后打字原画生成八个浅转身曝光。缩短腕、膝、鞋向前伸出的水平投影，保留头饰间距与髋部支点。正后方的长发盖住双手，近侧扶手和椅背保留原场景的前景轮廓。前台、侧桌与斜列电脑使用各自的视角。每套造型留存了远近正背、弧桌浅转、向右斜后、高斜侧和正面六幅实景。[前七套造型](images/office-seated-views-1.jpg) · [后七套造型](images/office-seated-views-2.jpg)
+
+九间办公室共用六种不同的工位布局。分别核对了六种布局的九个实际岗位，共留下 54 张工位实景。经典与三个沿用经典家具的主题另逐席核对衣装画布，五个独立布局从主题画布确认人物和工位。Edge 共完成 9 × 9 × 14 = 1,134 次绑定与渲染检查。[经典、克劳德和吉米的工位](images/office-layouts-065-a.jpg) · [绯洛、鲸鱼娘和龙妈妈的工位](images/office-layouts-065-b.jpg)
+
+## 0.6.5 卧室坐姿
+
+15 间卧室在新版和 0.6.4 各拍摄了 420 张实景，每张都取自运行中的卧室组件。同一房间使用相同机位、缩放和光照。对照页为每间房选取一位角色，左图是旧版，右图是新版。[15 间卧室同机位对照](images/bedroom-seating-comparison-065.jpg)
+
+各房从原画中标定键盘空格键一侧的边缘和显示器底座，用桌面上这两处的位置确定人物朝向。鲸鱼娘的房间里，绯洛面朝右后方的屏幕，背后的蝴蝶结清晰可见。白霜命在自己的房间换装后朝左后方就座。吉米和绯洛房内的屏幕相对键盘偏得更远，两间保留侧面坐姿。
+
+15 间房中，8 间使用斜后坐姿，5 间使用较侧坐姿，蔷薇画房与雪原书斋各用专为原椅绘制的 14 套人椅图。每间房内按同一颅骨宽度校准角色尺寸。每套造型在白天与夜间都对齐原键盘，检查近手触键及远手抬指范围，保留坐骨与椅面、膝盖与椅缘、鞋与桌柜的前后关系。
+
+每张分房实拍包含 14 套造型，成对显示白天和夜间。
+
+| 房间 | 房间 | 房间 |
+| --- | --- | --- |
+| [经典卧室](images/bedroom-seats-065/classic.jpg) | [端木嫣的卧室](images/bedroom-seats-065/shan.jpg) | [白霜命的卧室](images/bedroom-seats-065/bai-shuangming.jpg) |
+| [陆弥的卧室](images/bedroom-seats-065/lu-mi.jpg) | [鲸鱼娘的卧室](images/bedroom-seats-065/jingyuniang.jpg) | [龙妈妈的卧室](images/bedroom-seats-065/longmama.jpg) |
+| [克劳德的卧室](images/bedroom-seats-065/claude.jpg) | [吉米的卧室](images/bedroom-seats-065/gemini.jpg) | [绯洛的卧室](images/bedroom-seats-065/grok.jpg) |
+| [蔷薇画房](images/bedroom-seats-065/rose-sketchbook.jpg) | [宝蓝琴房](images/bedroom-seats-065/sapphire-music.jpg) | [雪原书斋](images/bedroom-seats-065/alpine-library.jpg) |
+| [山茶花亭](images/bedroom-seats-065/camellia-pavilion.jpg) | [蓝晶蔷薇廊](images/bedroom-seats-065/blue-rose-gallery.jpg) | [霜蝶玻璃馆](images/bedroom-seats-065/frostwing-glasshouse.jpg) |
+
+## 0.6.4 抓起与落地
+
+桌宠和房间共用同一套角色原画。提起时，角色先抬手收脚。鼠标上下移动会带动手臂和小腿，斜向急转时腰、裙摆和发梢一起跟进。停手后角色稳住，松手会接着释放前的姿势落地，双脚着地后屈膝，再站回原位。[鲸鱼娘的 Windows 桌宠与卧室实录](images/drag-motion-064.gif)
+
+八位角色的 14 套造型分别通过 Windows 原生窗口、Edge 经典办公室、鲸鱼娘主题办公室和卧室的鼠标测试。检查了起步、上下拖、斜向急转、停手和落地。每套的 24 张悬挂受力姿势保留了同一块原画脸部像素，落地后的鞋底在源图上逐帧保持在第 299 行。[全部造型的动作对照](images/drag-outfits-064.jpg)
+
+抓起、悬挂、回落和着地的先后顺序参考了 Shimeji-ee 的动作配置。手势速度、回复力度和阻尼分开计算，衣袖、发梢和腿按各自的关节响应。两个运行端使用相同的数值和曝光顺序。[Shimeji-ee 动作源文件](https://github.com/gil/shimeji-ee/blob/master/conf/actions.xml#L219-L270) · [Spine 物理约束说明](https://en.esotericsoftware.com/spine-physics-constraints)
+
+## 0.6.4 四向行走
+
+鲸鱼娘原装、鲸鱼娘换装和端木嫣原装补齐了四个方向的手绘步态。每个方向有四个姿势，前后视角两只脚依次承重，侧面能看到迈步、抬膝和后脚离地。八位角色的 14 套造型现共有 56 组方向图、224 个步态姿势。
+
+对照动图取自 Edge 中实际运行的卧室。上下两行取同一房间、同一时刻和同一落脚位置，依次展示三套造型的正面、左侧、背面与右侧。新版 48 个姿势逐一通过 Windows 桌宠窗口的绘制核对。这 48 格的鞋底均对齐图集第 258 行，可见身高为 242–246 像素。[三套造型的四向室内实录](images/walk-last-three-064.gif)
+
+## 0.6.4 办公室工位
+
+经典办公室和八间主题办公室共有 81 个工位。中央桌排朝向屏幕，私人侧桌与弧形桌的两翼使用对应方向的斜后坐姿。人物的手对齐各自桌面上的键盘，原场景的椅背和近侧扶手遮住身体。在五个独立布局里，44 把后视座椅分别核对了另外五种光照，220 次比对中椅背边缘的位移均在一个场景像素内。
+
+经典布局的接待台使用与原黑网椅同画的四个打字姿势。员工离座后恢复空椅。鲸鱼娘主题的前台由原显示器和柜台遮住下身，另外四间独立主题的第九席面向自己的显示器。五组对照使用相同机位，依次显示空椅、0.6.3 和更新后的实景。[办公室工位实拍对照](images/office-workstations-064.jpg)
+
+Edge 实际渲染了 9 间办公室 × 9 个工位 × 14 套造型，共 1,134 个组合。经典布局逐项检查演员画布上的可见像素，独立布局逐项确认角色已入座、工位编号与当前绘制视角一致。浏览器未报告页面异常。
+
+## 0.6.4 卧室电脑坐姿与原场景椅子
+
+蔷薇画房和雪原书斋分别以房内的木扶手转椅、白色软包扶手椅为参考，把每套造型的人物和椅子一起画出四个敲键姿态。游戏取出人物绕过扶手和侧板的部分，按近侧扶手的位置对齐到原椅。白天、夜间均保留房间原画的椅背、木纹、椅腿、脚轮和地面投影。三列实拍使用相同镜头，依次为原场景空椅、0.6.3 坐姿和本版画面。[两间卧室的日夜对照](images/bedroom-original-chair-comparison.jpg) · [蔷薇画房全部造型](images/bedroom-desk-looks/rose-sketchbook.jpg) · [雪原书斋全部造型](images/bedroom-desk-looks/alpine-library.jpg)
+
+其余 13 间卧室从正后、后斜侧和新绘的高斜侧三个视角中选择与椅面深度及屏幕方位一致的姿态。椅背遮住腰，近侧袖子可以搭到扶手上，桌沿和抽屉遮住伸到桌下的衣摆或腿。两手按不同节奏敲键，近手落在原键盘上，另一手可以抬起换指。每张画按头部等比例放置，实际头部高度随房间透视为 50.0 至 60.6 个场景像素。[全部 15 间卧室](images/bedroom-desks-15-rooms.jpg) · [接近书桌与坐定的尺度](images/bedroom-q-scale.jpg) · [打字与停顿实录](images/bedroom-computer-motion.gif)
+
+从卧室日程和书桌邀请入口进入实际 Edge 场景，核对 15 间房、14 套造型、昼夜共 420 次。按每个房间与造型计数，28 组使用联合原画，144 组使用高斜侧，35 组使用后斜侧，3 组使用正后视。美术参考了等距场景中前后景的分层方式，以及坐姿中肩、肘和腰背支撑的关系。[Godot 等距场景示例](https://github.com/godotengine/godot-demo-projects/tree/master/2d/isometric) · [OSHA 工作站坐姿图](https://www.osha.gov/etools/computer-workstations/positions)
+
+单独复测了两种联合座椅的 56 组房间、照明与造型搭配，每组通过正常卧室入口截取 3 个时刻，共 168 张图。扣除双手活动范围与显示器后，各帧的原椅、人体其余部分和背景均无可见像素变化。各套通用坐姿的三个视角也分别检查了八个敲击曝光，84 个手部区域均有可见变化，头部中心采样区域保持稳定。
+
+## 0.6.3 开发版
+
+八位伙伴共有 14 套可选造型。站立、刚被提起、悬空和屈膝落地各有独立姿势。拖动换向时，悬空的膝盖与衣袖随手势改变方向。停手后会稳住。深色与浅色桌面均用 Windows 原生窗口检查脸颊和轮廓。[八位伙伴的动作](images/actor-poses-063.gif) · [原生桌宠实录](images/desktop-pet-motion.gif) · [卧室拖放](images/bedroom-drag.gif) · [14 套造型在黑白桌面的实录对照](images/desktop-pet-backgrounds-063.png)
+
+卧室电脑前的角色使用等比缩放的完整 Q 版坐姿，各房分别对齐椅垫、原画桌沿与原键盘。头、髋和屈膝后的鞋保持同一比例。下表中每张图都有该房间的全部 14 套造型。[15 房间对照](images/bedroom-desks-15-rooms.jpg) · [走近与坐定时的比例](images/bedroom-q-scale.jpg) · [电脑前打字动图](images/bedroom-computer-motion.gif)
+
+| 普通与专属卧室 | 专属卧室 | 商店卧室 |
+| --- | --- | --- |
+| [经典卧室](images/bedroom-desk-looks/classic.jpg) | [鲸鱼娘](images/bedroom-desk-looks/jingyuniang.jpg) | [蔷薇画房](images/bedroom-desk-looks/rose-sketchbook.jpg) |
+| [端木嫣](images/bedroom-desk-looks/shan.jpg) | [龙妈妈](images/bedroom-desk-looks/longmama.jpg) | [宝蓝琴房](images/bedroom-desk-looks/sapphire-music.jpg) |
+| [白霜命](images/bedroom-desk-looks/bai-shuangming.jpg) | [克劳德](images/bedroom-desk-looks/claude.jpg) | [雪原书斋](images/bedroom-desk-looks/alpine-library.jpg) |
+| [陆弥](images/bedroom-desk-looks/lu-mi.jpg) | [吉米](images/bedroom-desk-looks/gemini.jpg) | [山茶花亭](images/bedroom-desk-looks/camellia-pavilion.jpg) |
+| | [绯洛](images/bedroom-desk-looks/grok.jpg) | [蓝晶蔷薇廊](images/bedroom-desk-looks/blue-rose-gallery.jpg) |
+| | | [霜羽玻璃花房](images/bedroom-desk-looks/frostwing-glasshouse.jpg) |
+
+雪原书斋、克劳德的卧室、宝蓝琴房和龙妈妈的卧室都保留了同角度的修改前后实拍。近侧扶手挡住大腿根，膝盖伸到坐垫前缘，鞋从边缘垂下。核验覆盖 210 组房间与造型搭配，并在日夜画面分别检查双手与键盘的接触。[四间房的脚与椅子](images/bedroom-chair-feet.jpg)
+
+八位伙伴共有 56 个方向图集。陆弥两套衣装、吉米以及另外八套造型重绘了四向步态。每套用十六格原画区分支撑脚和迈步脚。鲸鱼娘的两套外观与端木嫣原装沿用已校准的步态。在 Windows 原生桌宠、卧室和办公室中使用同一套图集。[四向修改前后动图](images/walk-proportions.gif) · [八位伙伴走路](images/walk-preview.gif)
+
+把全身按鞋底对齐到同一高度，从最高的头饰量到下巴，吉米四格正面行走占全高的 43.2%–43.6%，待机占 40.6%。端木嫣换装行走占 44.4%–44.8%，待机占 40.4%。核对侧视和背视时也分别检查了左右脚交换与裙摆的遮挡。
+
+床边的手机按钮位于床脚，角色的答复出现在另一侧。[床边实拍](images/bedroom-interaction-062.jpg)
+
+## 0.6.1 验收记录
 
 本次验收使用 Windows x64 的 DeepSeek Harness Desktop、独立测试档案和最终发行文件。八位伙伴共用 14 套实际可选衣装。办公室与卧室按角色、衣装、房间和姿态分别检查，原生桌宠另在 Windows 窗口中验证。
 

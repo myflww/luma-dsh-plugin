@@ -1,3 +1,8 @@
+import { gestureSequenceFor, type IdleGestureSequence } from './office2d/idleGestures.ts'
+import { ActorMotionLayer } from './ActorMotionLayer.tsx'
+import { LANDING_MS } from './office2d/actorMotion.ts'
+import { getActorPoseAtlas } from './office2d/actorPoseAtlas.ts'
+import { standingFigureHeight } from './office2d/officeFigureScale.ts'
 import { getOfficeAsset } from './office2d/assets.ts'
 import { OfficeSkinSelectionNotices } from './OfficeSkinSelectionNotices.tsx'
 import { normalizeOfficeSkinSelections } from './office2d/skinSelectionAvailability.ts'
@@ -29,6 +34,7 @@ import {
   type OfficeAutonomyState
 } from './office2d/autonomyController.ts'
 import { OFFICE_CHAIR_FOREGROUND_LAYERS } from './office2d/chairForegroundLayers.ts'
+import { classicOfficeDeskPlacement } from './office2d/officeDeskPlacement.ts'
 import {
   EMPLOYEE_IDS
 } from './office2d/employeeCatalog.ts'
@@ -62,6 +68,7 @@ import { OFFICE_SEAT_BOXES, type OfficeActorBinding } from './officeSceneSeatTar
 import { useOfficeAmbientViewportEligibility } from './useOfficeAmbientViewportEligibility.ts'
 import { hitOfficeActorAtPoint } from './officeActorHitTest.ts'
 import { useOfficeSceneInteractions } from './useOfficeSceneInteractions.ts'
+import { usePostDropLook } from './usePostDropLook.ts'
 import { OfficeSeatFeedback, useOfficeSeatFeedback } from './OfficeSeatFeedback.tsx'
 export type { ActorMode, ActorRuntime, OfficeSceneEmployee, OfficeSceneReport, OfficeSceneSurfaceProps, Point } from './OfficeSceneSurface.types.ts'
 export { advanceOfficeActorTrafficFrame, applyOfficeAutonomyDecision, canRenderOfficeActorOverlay, prepareActorRuntime, resolvePresentOfficeEmployeeIds, resolveVisibleOfficeMonitorIds } from './officeSceneActorRuntime.ts'
@@ -104,10 +111,13 @@ function ClassicOfficeSceneSurface({
   decorations,
   onAmbientEligibleChange,
   presentationActive = true,
-  reduceMotion: reduceMotionRequested = false,
+  reduceMotion: reducedMotion = false,
   seatReview,
 }: OfficeSceneSurfaceProps) {
   const scrollerRef = useRef<HTMLDivElement | null>(null)
+  const look=usePostDropLook()
+  useEffect(()=>()=>look.cancel(),[look,officeTheme])
+  useEffect(()=>{if(reducedMotion || !presentationActive)look.cancel()},[look,reducedMotion,presentationActive])
   const attachScroller = useCallback((element: HTMLDivElement | null) => {
     scrollerRef.current = element
     // Keep native inert behavior on both Harness React 18 and QA React 19.
@@ -115,6 +125,7 @@ function ClassicOfficeSceneSurface({
   }, [presentationActive])
   const canvasRef = useRef<HTMLDivElement | null>(null)
   const [actionTarget, setActionTarget] = useState<OfficeActionMenuTarget | null>(null)
+  const [missingPoses, setMissingPoses] = useState<ReadonlySet<string>>(() => new Set())
   const [manualActions, setManualActions] = useState<Readonly<Record<string, OfficeManualAction>>>({})
   const manualActionsRef = useRef(manualActions)
   manualActionsRef.current = manualActions
@@ -131,6 +142,7 @@ function ClassicOfficeSceneSurface({
     if (!presentationActive || drawingPaused || seatReview) return
     setActionTarget({ employeeId: employee.id, name: employee.name, x: event.clientX, y: event.clientY })
   }
+  const gestureSequences=useRef(new Map<string,IdleGestureSequence>())
   const officeBindingsRef = useRef<readonly OfficeActorBinding[]>([])
   const employeeRef = useRef(employees)
   employeeRef.current = employees
@@ -166,11 +178,6 @@ function ClassicOfficeSceneSurface({
   const actorRef = useRef(actors)
   actorRef.current = actors
   const autonomyStateRef = useRef<Readonly<Record<string, OfficeAutonomyState>>>({})
-  const [systemReducedMotion, setSystemReducedMotion] = useState(() => typeof window !== 'undefined'
-    && (window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false))
-  const reducedMotion = reduceMotionRequested || systemReducedMotion
-  const reducedMotionRequestedRef = useRef(reduceMotionRequested)
-  reducedMotionRequestedRef.current = reduceMotionRequested
   const reducedMotionRef = useRef(reducedMotion)
   reducedMotionRef.current = reducedMotion
   const { lighting, lightingControllerRef } = useOfficeSceneLighting({ timePolicy, officeTheme, drawingPaused, reducedMotion })
@@ -210,20 +217,12 @@ function ClassicOfficeSceneSurface({
   }, [reports])
 
   useEffect(() => {
-    const media = window.matchMedia?.('(prefers-reduced-motion: reduce)')
-    const syncReducedMotion = () => {
-      reducedMotionRef.current = reducedMotionRequestedRef.current || (media?.matches ?? false)
-      setSystemReducedMotion(media?.matches ?? false)
-    }
-    syncReducedMotion()
-    media?.addEventListener?.('change', syncReducedMotion)
     const centered = requestSceneFrame(() => {
       const scroller = scrollerRef.current
       if (scroller) scroller.scrollLeft = Math.max(0, (scroller.scrollWidth - scroller.clientWidth) / 2)
     })
     return () => {
       cancelSceneFrame(centered)
-      media?.removeEventListener?.('change', syncReducedMotion)
     }
   }, [])
 
@@ -354,7 +353,7 @@ function ClassicOfficeSceneSurface({
   const seatFeedback=useOfficeSeatFeedback(employees,onBindWorkstation,officeTheme,presentationActive)
   const { seatDrag, actorDragRef, clearPendingActorTap, handleActorClick, startActorDrag,
     moveActorDrag, finishActorDrag, startPan, movePan, finishPan, onKeyDown } = useOfficeSceneInteractions({
-      canvasRef, scrollerRef, actorRef, setActors, officeBindingsRef, presentationActive,
+      canvasRef, scrollerRef, actorRef, setActors, officeBindingsRef, presentationActive,look,reducedMotion,
       closeActionMenu, onCharacterClick, paperPlanePick, onBindWorkstation:seatFeedback.bind, onFloorDrop:seatFeedback.floor, onDesktopPet, employeeDestination,
     })
 
@@ -365,9 +364,13 @@ function ClassicOfficeSceneSurface({
   const floorFootpoints = classicFloorFootpoints(actors,presentEmployeeIds)
   const visibleEmployees = seatReview ? [] : employees.filter(employee => presentEmployeeIds.has(employee.id))
   const integratedChairStationIds = new Set<OfficeWorkstationId>()
+  const ownsChair=(station:NonNullable<ReturnType<typeof getOfficeWorkstation>>,id:string)=>{
+    const drawn=classicOfficeDeskPlacement(station,id,employeeSkins[id])
+    return drawn?drawn.facing==='front':getEmployeeTypingProfileWithSkin(id,station.typingFacing,employeeSkins[id])?.integratedChair
+  }
   if (seatReview) {
     const station = getOfficeWorkstation(seatReview.workstationId)
-    if (station && getEmployeeTypingProfileWithSkin(seatReview.employeeId, station.typingFacing, employeeSkins[seatReview.employeeId])?.integratedChair) {
+    if (station && ownsChair(station,seatReview.employeeId)) {
       integratedChairStationIds.add(seatReview.workstationId)
     }
   } else {
@@ -376,7 +379,7 @@ function ClassicOfficeSceneSurface({
       if (!actor || manualActions[employee.id] || (actor.mode !== 'working' && actor.mode !== 'desk-break')
         || actor.targetWorkstationId === null) continue
       const station = getOfficeWorkstation(actor.targetWorkstationId)
-      if (station && getEmployeeTypingProfileWithSkin(employee.id, station.typingFacing, employeeSkins[employee.id])?.integratedChair) {
+      if (station && ownsChair(station,employee.id)) {
         integratedChairStationIds.add(actor.targetWorkstationId)
       }
     }
@@ -391,6 +394,7 @@ function ClassicOfficeSceneSurface({
           ? actor.targetWorkstationId : null
       })()
   const luMiChairForeground = luMiSeatedStationId === null
+      || classicOfficeDeskPlacement(getOfficeWorkstation(luMiSeatedStationId)!,EMPLOYEE_IDS.LU_MI,employeeSkins[EMPLOYEE_IDS.LU_MI])
       || integratedChairStationIds.has(luMiSeatedStationId)
       || !['west-studio', 'south-left', 'south-right', 'private-upper', 'private-lower'].includes(luMiSeatedStationId)
     ? null
@@ -433,6 +437,8 @@ function ClassicOfficeSceneSurface({
         const button = canvas && hitOfficeActorAtPoint(canvas, event.clientX, event.clientY)
         const employee = employees.find(item => item.id === button?.dataset.employeeId)
         if (!employee) return
+        const pose = getActorPoseAtlas(employee.id,employeeSkins[employee.id])
+        if (pose) { const image=new Image(); image.src=pose.src; void image.decode?.().catch(()=>{}) }
         startActorDrag(event, { ...employee, canDrag: employeeDestination === 'contact' || employee.canDrag && !manualActions[employee.id] })
       }}
       onClickCapture={event => {
@@ -552,6 +558,14 @@ function ClassicOfficeSceneSurface({
             const restCandidate = catalog.walkRest?.[direction]
             const walkRest = moving || manual || (restCandidate && unavailableAssetIds.includes(restCandidate.asset)) ? undefined : restCandidate
             const framePresentation = officeActorFramePresentation(employee.id, actor.position.y, direction, skinId, walkRest)
+            const motion = actor.mode === 'drag' ? 'held'
+              : actor.landedAt !== undefined && performance.now()-actor.landedAt < LANDING_MS ? 'landing'
+              : !moving && (!manual || manual.id === 'stand-front') ? 'idle' : undefined
+            const authored = motion && getActorPoseAtlas(employee.id, skinId)
+            const pose = authored && !missingPoses.has(authored.src) ? authored : undefined
+            const bodyHeight = standingFigureHeight(foot.y)
+            const width = pose ? bodyHeight * pose.cell[0] / pose.figureHeight : framePresentation.width
+            const anchor = pose ? {x:pose.foot[0]/pose.cell[0], y:pose.foot[1]/pose.cell[1]} : framePresentation.anchor
             const autonomyActivity = getOfficeAutonomyActivity(
               autonomyStateRef.current[employee.id],
               actor.mode === 'report' ? 'task' : actor.mode,
@@ -572,11 +586,11 @@ function ClassicOfficeSceneSurface({
                 style={{
                   left: `${foot.x / OFFICE_NAV_WIDTH * 100}%`,
                   top: `${foot.y / OFFICE_NAV_HEIGHT * 100}%`,
-                  width: `${framePresentation.width / OFFICE_NAV_WIDTH * 100}%`,
-                  ...(framePresentation.anchor
-                    ? { transform: `translate(${-framePresentation.anchor.x * 100}%, ${-framePresentation.anchor.y * 100}%)` }
+                  width: `${width / OFFICE_NAV_WIDTH * 100}%`,
+                  ...(anchor
+                    ? { transform: `translate(${-anchor.x * 100}%, ${-anchor.y * 100}%)` }
                     : {}),
-                  zIndex: Math.round(foot.y),
+                  zIndex: actor.mode==='drag' ? OFFICE_NAV_HEIGHT+1 : Math.round(foot.y),
                 } satisfies CSSProperties}
                 onClick={event => { handleActorClick(event, employee.id) }}
                 onContextMenu={event => openActionMenu(event, employee)}
@@ -586,22 +600,27 @@ function ClassicOfficeSceneSurface({
               >
                 <span
                   className="lumaOfficeEmployeeSprite"
-                  style={walkRest?.scale || walkRest?.liftPercent
+                  style={!pose && (walkRest?.scale || walkRest?.liftPercent)
                     ? { transform: `translateY(-${walkRest.liftPercent ?? 0}%) scale(${walkRest.scale ?? 1})` }
                     : undefined}
                 >
-                  <SpriteStripCanvas
-                    key={`${skinId ?? 'default'}:${manual ? `manual:${manual.revision}` : 'automatic'}`}
-                    assetId={manual?.asset ?? walkRest?.asset ?? catalog.walk[direction]}
-                    className="lumaOfficeEmployeeWalkCanvas"
-                    {...manual?.mode === 'hold' || manual?.id === 'stand-front' ? { fixedFrameIndex: manual.holdFrame }
-                      : automaticFrame !== undefined ? { fixedFrameIndex: automaticFrame }
-                      : walkRest === undefined ? {} : { fixedFrameIndex: walkRest.frameIndex }}
-                    {...manual ? { loopOverride: manual.mode === 'loop' } : {}}
-                    {...automaticFrame !== undefined && automaticTimeline ? { walkElapsedMs: (actor.walkPhase ?? 0) * automaticTimeline.cycleMs } : {}}
-                    playbackRate={manual ? 1 : automaticCadence?.playbackRate ?? 1}
-                    paused={!moving || drawingPaused || reducedMotion}
-                  />
+                  {pose && motion ? <ActorMotionLayer atlas={pose} id={employee.id} skinId={skinId} motion={motion} look={look}
+                    sequence={gestureSequenceFor(gestureSequences.current,pose.src)}
+                    landingStartedAt={actor.landedAt}
+                    footX={foot.x} footY={foot.y} bodyHeight={bodyHeight} paused={drawingPaused || reducedMotion}
+                    asCanvas className="lumaOfficeArticulatedPose"
+                    onError={() => setMissingPoses(current => new Set([...current, pose.src]))}/> : <SpriteStripCanvas
+                      key={`${skinId ?? 'default'}:${manual ? `manual:${manual.revision}` : 'automatic'}`}
+                      assetId={manual?.asset ?? walkRest?.asset ?? catalog.walk[direction]}
+                      className="lumaOfficeEmployeeWalkCanvas"
+                      {...manual?.mode === 'hold' || manual?.id === 'stand-front' ? { fixedFrameIndex: manual.holdFrame }
+                        : automaticFrame !== undefined ? { fixedFrameIndex: automaticFrame }
+                        : walkRest === undefined ? {} : { fixedFrameIndex: walkRest.frameIndex }}
+                      {...manual ? { loopOverride: manual.mode === 'loop' } : {}}
+                      {...automaticFrame !== undefined && automaticTimeline ? { walkElapsedMs: (actor.walkPhase ?? 0) * automaticTimeline.cycleMs } : {}}
+                      playbackRate={manual ? 1 : automaticCadence?.playbackRate ?? 1}
+                      paused={!moving || drawingPaused || reducedMotion}
+                    />}
                 </span>
               </button>
             )
@@ -692,10 +711,20 @@ function ClassicOfficeSceneSurface({
 }
 
 export function OfficeSceneSurface(props: OfficeSceneSurfaceProps) {
+  const [systemReducedMotion,setSystemReducedMotion]=useState(() => typeof window !== 'undefined'
+    && (window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false))
+  useEffect(() => {
+    const media=window.matchMedia?.('(prefers-reduced-motion: reduce)')
+    const sync=()=>setSystemReducedMotion(media?.matches ?? false)
+    sync()
+    media?.addEventListener?.('change',sync)
+    return ()=>media?.removeEventListener?.('change',sync)
+  },[])
+  const reduceMotion=!!props.reduceMotion || systemReducedMotion
   const skins = normalizeOfficeSkinSelections(props.employeeSkins)
   const selected = skins === props.employeeSkins || skins === undefined ? props : { ...props, employeeSkins: skins }
-  return isIndependentOfficeTheme(props.officeTheme) ? <IndependentOfficeSceneSurface {...selected} /> : <>
-    <ClassicOfficeSceneSurface {...selected} />
+  return isIndependentOfficeTheme(props.officeTheme) ? <IndependentOfficeSceneSurface {...selected} reduceMotion={reduceMotion} /> : <>
+    <ClassicOfficeSceneSurface {...selected} reduceMotion={reduceMotion} />
     <OfficeSkinSelectionNotices active={props.presentationActive !== false} employees={props.employees} employeeSkins={skins} />
   </>
 }

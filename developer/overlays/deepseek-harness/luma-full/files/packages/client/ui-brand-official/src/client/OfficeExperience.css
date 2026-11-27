@@ -572,6 +572,12 @@
 }.lumaOfficeEmployeeWalkCanvas {
   aspect-ratio: 592 / 724;
   max-height: none;
+}.lumaOfficeArticulatedPose {
+  display: block;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+  filter: var(--luma-office-actor-light);
 }.lumaOfficeEmployee img {
   max-height: 160px;
 }.lumaOfficeEmployeeTypingCanvas {
