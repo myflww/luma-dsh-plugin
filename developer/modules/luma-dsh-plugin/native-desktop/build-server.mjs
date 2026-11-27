@@ -41,6 +41,8 @@ if (Object.keys(employees).length !== 8) throw Error('Expected eight Luma employ
 const petArt = {}
 const gaits=JSON.parse(await readFile(join(repo,'overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/walkAtlas.generated.json'),'utf8'))
 const poses=JSON.parse(await readFile(join(repo,'overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/actorPoseAtlas.generated.json'),'utf8'))
+const gestures=JSON.parse(await readFile(join(repo,'overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/actorGestureAtlas.generated.json'),'utf8'))
+const looks=JSON.parse(await readFile(join(repo,'overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/actorLookAtlas.generated.json'),'utf8'))
 for (const preset of Object.keys(employees)) {
   const role = preset === 'luma-duanmu-yan' ? 'shan' : preset.slice('luma-'.length)
   for (const variant of ['base', 'v1']) {
@@ -71,8 +73,14 @@ for (const preset of Object.keys(employees)) {
     }))
     const key=role+'-'+variant
     const pose=poses[key]
-    if (!pose || pose.count!==48 || pose.columns!==8) throw Error('Missing desktop pose artwork for '+key)
-    petArt[key]={strips,poses:{...pose,path:pose.src.slice(1)},sleep:sleeper.url.slice(1),sleepMirror:dx<0,sleepAngle:13-Math.atan2(dy,Math.abs(dx))*180/Math.PI}
+    if (!pose || ![48,64].includes(pose.count) || pose.columns!==8) throw Error('Missing desktop pose artwork for '+key)
+    const gesture=gestures[key]
+    if(!gesture || gesture.count!==16 || gesture.actions?.length!==2)throw Error('Missing desktop gestures for '+key)
+    const look=looks[key]
+    if(!look || look.count!==25 || !look.eyesSrc)throw Error('Missing desktop gaze artwork for '+key)
+    petArt[key]={strips,poses:{...pose,path:pose.src.slice(1),gestures:{...gesture,path:gesture.src.slice(1)},
+        look:{...look,path:look.src.slice(1),eyesPath:look.eyesSrc.slice(1)}},
+      sleep:sleeper.url.slice(1),sleepMirror:dx<0,sleepAngle:13-Math.atan2(dy,Math.abs(dx))*180/Math.PI}
   }
 }
 await build({

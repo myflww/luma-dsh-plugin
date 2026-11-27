@@ -200,8 +200,12 @@ internal class PetWindow : Form {
     long nextHello;
     double gripX,gripY;
     bool pinnedPeek;
+    readonly int idleDelay;
+    readonly Dictionary<string,int> nextGestures=new Dictionary<string,int>();
+    int firstGesture;
     long idleOrigin,liftStart,landedAt=-1000;
     readonly PetSuspension suspension=new PetSuspension();
+    readonly PetDropAttention releaseLook=new PetDropAttention();
     int lastHeldPose=16;
     double gazeX,gazeY;
     int side, renderStamp = -1;
@@ -249,6 +253,7 @@ internal class PetWindow : Form {
         StartPosition=FormStartPosition.Manual;
         var summonAt=Cursor.Position;
         costume=new Costume(cmd);
+        idleDelay=PetPoseAtlas.IdleDelay(cmd.roleId);
         quiet=cmd.reduceMotion;asleep=cmd.asleep;lunch=cmd.lunch;activeSkin=cmd.skinId;peers=cmd.peers??new long[0];
         if(!Greetings.TryGetValue(cmd.roleId,out dayLine))dayLine=Greetings["jingyuniang"];
         nightSlot=Bound(cmd.nightSlot,0,LedgeSeats.Length-1);
@@ -365,12 +370,16 @@ internal class PetWindow : Form {
         if(cmd.action=="quit") {Close();return;}
         if(cmd.action=="peers") {peers=cmd.peers??new long[0];return;}
         if(cmd.action=="motion") {
+            if(quiet==cmd.reduceMotion)return;
+            releaseLook.Stop();
             quiet=cmd.reduceMotion;
             if(quiet){moving=false;if(asleep&&nightActivity=="settling")StartSettling();}
+            else if(!asleep && side==0 && dayActivity=="awake")StandUntilNextWalk(clock.ElapsedMilliseconds);
             Draw(true);return;
         }
         if(cmd.action=="clock") {
             if(asleep==cmd.asleep&&lunch==cmd.lunch)return;
+            releaseLook.Stop();
             asleep=cmd.asleep;lunch=cmd.lunch;
             if(pinnedPeek&&side!=0){nightActivity=asleep?"sleepy":"awake";Draw(true);Announce();return;}
             if(asleep) StartSleepy();
@@ -378,9 +387,13 @@ internal class PetWindow : Form {
             Clamp();Draw(true);Announce();return;
         }
         if(cmd.action=="outfit") {
+            if(activeSkin==cmd.skinId){lastState="";Announce();return;}
             try {
                 var replacement=new Costume(cmd);
                 var old=costume;costume=replacement;activeSkin=cmd.skinId;old.Dispose();
+                releaseLook.Stop();
+                if(!moving && !dragging && !asleep && side==0 && dayActivity=="awake")
+                    StandUntilNextWalk(Math.Max(clock.ElapsedMilliseconds,landedAt+PetPoseAtlas.LandMs));
             } catch(Exception ex) {
                 Console.Error.WriteLine("Cannot change desktop costume: "+ex.Message);
                 lastState="";Announce();return;
@@ -402,13 +415,19 @@ internal class PetWindow : Form {
         if(asleep)StartSleepy();else Greet(true);
         Clamp();FindSpace(false,false);Draw(true);Announce();
     }
-    void StartDayRest(){
+    void StartDayRest(int lookDuration=0){
         dayActivity=lunch?"lunch":"awake";moving=false;remarkEnd=0;
         long now=clock.ElapsedMilliseconds;
-        idleOrigin=Math.Max(now,landedAt+PetPoseAtlas.LandMs);
-        next=now+rng.Next(2400,5100);nextHello=now+rng.Next(70000,115000)+nightSlot*2000;
+        StandUntilNextWalk(Math.Max(now,landedAt+PetPoseAtlas.LandMs)+lookDuration);
+        nextHello=now+rng.Next(70000,115000)+nightSlot*2000;
+    }
+    void StandUntilNextWalk(long now){
+        idleOrigin=now;
+        if(!nextGestures.TryGetValue(activeSkin??"",out firstGesture))firstGesture=idleDelay%2;
+        next=now+idleDelay+costume.Poses.IdleCycleMs+costume.Poses.GestureDuration(firstGesture)+rng.Next(120,1100);
     }
     void Greet(bool speak){
+        releaseLook.Stop();
         dayActivity="greeting";moving=false;gestureStart=clock.ElapsedMilliseconds;
         next=gestureStart+(speak?2600:1550);remark=dayLine;remarkEnd=speak?next:0;
     }
@@ -442,6 +461,7 @@ internal class PetWindow : Form {
         Draw(false);Announce();
     }
     void DockAt(int dir,bool manual=false) {
+        releaseLook.Stop();
         if(asleep&&!manual) {
             var work=display.WorkingArea;
             x=dir<0?work.Left:work.Right-Width;
@@ -487,13 +507,13 @@ internal class PetWindow : Form {
             double proposedX=fromX+(toX-fromX)*progress, proposedY=fromY+(toY-fromY)*progress;
             var projected=new Rectangle((int)proposedX,(int)proposedY,Width,Height);
             if((proposedX!=x || proposedY!=y) && Others().Exists(r=>r.IntersectsWith(projected))) {
-                moving=false;next=now+rng.Next(2700,4800);Draw(false);return;
+                moving=false;StandUntilNextWalk(now);Draw(false);return;
             }
             x=proposedX; y=proposedY;
             if(t>=1) {
                 x=toX; y=toY; moving=false;
                 if(dockOnArrival) {DockAt(toX<fromX?-1:1);return;}
-                next=now+rng.Next(2200,5500);
+                StandUntilNextWalk(now);
             }
         } else if(!quiet && now>=nextHello) {
             Greet(false);
@@ -567,29 +587,50 @@ internal class PetWindow : Form {
         bool landing=!quiet&&side==0&&!dragging&&sinceDrop>=0&&sinceDrop<PetPoseAtlas.LandMs;
         bool speaking=now<remarkEnd&&!landing&&!dragging;
         int pose=-1;
+        bool looking=false;
         if(dragging) {
             suspension.Advance(now);
             pose=PetPoseAtlas.DragFrame(now-liftStart,suspension.Lean,suspension.Vertical,quiet);
             lastHeldPose=pose;
         } else if(landing)pose=PetPoseAtlas.LandFrame(sinceDrop,lastHeldPose);
-        else if(verticalPeek||(side==0&&!moving&&!asleep&&!greeting&&!seated))
-            pose=quiet?0:poses.IdleFrame(now-(verticalPeek?dockStart:idleOrigin));
+        else if(verticalPeek)pose=quiet?0:poses.IdleFrame(now-dockStart-idleDelay);
+        else if(side==0&&!moving&&!asleep&&!greeting&&!seated){
+            if(quiet)pose=0;
+            else{
+                var look=meta.look;
+                if(look!=null){
+                    double height=spriteSide*.89,unit=height/look.figureHeight;
+                    double eyeScreenX=x+Width*.5+(look.eyeCenter[0]-look.foot[0])*unit;
+                    double eyeScreenY=y+Height-Math.Ceiling(spriteSide*.075)+(look.eyeCenter[1]-look.foot[1])*unit;
+                    looking=releaseLook.Sample(now,(pointer.X-eyeScreenX)/(.36*height),(pointer.Y-eyeScreenY)/(.30*height));
+                }
+                if(looking)pose=0;
+                else{
+                    int nextGesture;
+                    pose=poses.StandingFrame(now-idleOrigin-idleDelay,firstGesture,out nextGesture);
+                    nextGestures[activeSkin??""]=nextGesture;
+                }
+            }
+        }
         var restArt=onLedge?costume.Sleep:asleep?costume.Sleepy:greeting?costume.Greeting:seated?costume.Lunch:null;
         if(pose<0&&!moving&&side==0&&restArt==null)pose=0;
-        var face=pose>=0&&pose<8?poses.Face(pose):null;
-        var bitmap=pose>=0?poses.Frame(pose):side!=0?costume.Peek:moving?costume.Frames[direction][frame]:restArt;
+        var face=pose>=0&&!looking?poses.Face(pose):null;
+        var bitmap=looking?poses.LookFrame(releaseLook.Head,releaseLook.Eyes):
+            pose>=0?poses.Frame(pose):side!=0?costume.Peek:moving?costume.Frames[direction][frame]:restArt;
         Rectangle cell=new Rectangle(Point.Empty,bitmap.Size);
         double scale=spriteSide*(side!=0?.80:onLedge?.76:asleep||greeting?.79:seated?.73:.91)/Math.Max(cell.Width,cell.Height);
         PetStrip gait=null;
-        if(pose>=0)scale=spriteSide*(verticalPeek?.80:.89)/meta.figureHeight;
+        var gesture=pose>=meta.count?meta.gestures:null;
+        if(pose>=0)scale=spriteSide*(verticalPeek?.80:.89)/(gesture==null?meta.figureHeight:gesture.figureHeight);
         else if(moving && costume.Gaits.TryGetValue(direction,out gait) && gait.figureHeight>0)
             scale=spriteSide*.89/gait.figureHeight;
         int w=(int)Math.Round(cell.Width*scale),h=(int)Math.Round(cell.Height*scale);
         int clearance=(int)Math.Ceiling(spriteSide*.075);
         int left=(Width-w)/2,top=Height-h-(onLedge?0:5);
         if(pose>=0) {
-            left=(int)Math.Round(Width*.50-scale*meta.foot[0]);
-            top=Height-clearance-(int)Math.Round(scale*meta.foot[1]);
+            var foot=gesture==null?meta.foot:gesture.foot;
+            left=(int)Math.Round(Width*.50-scale*foot[0]);
+            top=Height-clearance-(int)Math.Round(scale*foot[1]);
         } else if(gait!=null && gait.sole>0)top=Height-clearance-(int)Math.Round(scale*gait.sole);
         if(side!=0) {
             if(verticalPeek) {
@@ -610,6 +651,7 @@ internal class PetWindow : Form {
         }
         int stamp=unchecked((((direction.GetHashCode()*31+frame)*31+left)*31+top)*3+side);
         stamp=unchecked(((stamp*31+h)*31+pose)*31+(face==null?-1:face.Expression));
+        if(looking)stamp=unchecked(stamp*631+1+releaseLook.Head*25+releaseLook.Eyes);
         stamp=unchecked(stamp*31+nightActivity.GetHashCode()+(speaking?remark.GetHashCode():0));
         stamp=unchecked(stamp*31+dayActivity.GetHashCode());
         var pos=new Point((int)Math.Round(x),(int)Math.Round(y));
@@ -671,6 +713,7 @@ internal class PetWindow : Form {
         BeginGrab(PointToScreen(e.Location));
     }
     internal void BeginGrab(Point pointer) {
+        if(releaseLook.Active){releaseLook.Stop();Draw(true,pointer);}
         pressed=true;dragging=false;pressedAt=pointer;
         suspension.Grab(pointer,clock.ElapsedMilliseconds);
         lastHeldPose=16;
@@ -722,7 +765,10 @@ internal class PetWindow : Form {
             NightTick(clock.ElapsedMilliseconds);return;
         }
         if(dragging) {
-            dragging=false;StartDayRest();
+            dragging=false;
+            bool watch=!quiet && !lunch && costume.Poses.Metadata.look!=null;
+            StartDayRest(watch?PetDropAttention.DurationMs:0);
+            if(watch)releaseLook.Start(landedAt+PetPoseAtlas.LandMs);
             FindSpace(false,false);
         } else Greet(true);
         Draw(true);Announce();

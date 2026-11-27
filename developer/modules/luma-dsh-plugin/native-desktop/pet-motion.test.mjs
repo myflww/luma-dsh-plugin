@@ -11,8 +11,17 @@ test('native pet pose continuity, gaze and hand inertia for every outfit', {skip
   const temporary=await mkdtemp(join(tmpdir(),'luma-native-motion-'))
   t.after(()=>rm(temporary,{recursive:true,force:true}))
   const atlas=JSON.parse(await readFile(new URL('../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/actorPoseAtlas.generated.json',import.meta.url),'utf8'))
+  const gestures=JSON.parse(await readFile(new URL('../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/actorGestureAtlas.generated.json',import.meta.url),'utf8'))
+  const looks=JSON.parse(await readFile(new URL('../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/actorLookAtlas.generated.json',import.meta.url),'utf8'))
   assert.equal(Object.keys(atlas).length,14)
-  const config=Object.fromEntries(Object.entries(atlas).map(([key,entry])=>[key,{...entry,path:resolve(here,'../art/release-assets',entry.src.slice(1))}]))
+  const config=Object.fromEntries(Object.entries(atlas).map(([key,entry])=>{
+    const extra=gestures[key]
+    assert.equal(extra.actions.length,2)
+    const pathFor=sheet=>resolve(here,'../art/release-assets',sheet.src.slice(1))
+    const look=looks[key]
+    return [key,{...entry,path:pathFor(entry),gestures:{...extra,path:pathFor(extra)},
+      look:{...look,path:pathFor(look),eyesPath:resolve(here,'../art/release-assets',look.eyesSrc.slice(1))}}]
+  }))
   const input=join(temporary,'poses.json')
   const executable=join(temporary,'CheckMotion.exe')
   await writeFile(input,JSON.stringify(config))

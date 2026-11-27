@@ -210,25 +210,137 @@ def save_atomic(path,data):
         scratch.unlink(missing_ok=True)
 
 
-def build(source,rigs):
-    raw=cut_keys(source)
-    sheet=Image.new('RGBA',(CELL*8,CELL*2))
-    views=[]
-    for i in range(2):
-        a,landmarks=registration(raw[2*i],rigs[i][0])
-        b,_=registration(raw[2*i+1],rigs[i][-1])
-        set_arm(landmarks,ELBOW[source.stem][i])
-        for frame,image in enumerate(keystrokes(a,b,landmarks)):
-            sheet.paste(image,(frame*CELL,i*CELL))
-        views.append(landmarks)
-    out=BytesIO();sheet.save(out,format='WEBP',lossless=True,method=5)
+def check_rear_palm_occlusion(key, image):
+    """Catch the six exposed hands from the released rear artwork at native scale."""
+    sites = {
+        'shan-base': [(137.19, 186.76), (219.13, 186.76)],
+        'lu-mi-base': [(151.59, 175.44), (210.58, 178.27)],
+        'jingyuniang-base': [(135.34, 192.41), (208.53, 192.41)],
+    }
+    if key not in sites:
+        return
+    red, green, blue, alpha = np.asarray(image, dtype=np.int16).transpose(2, 0, 1)
+    skin = (red > 120) & (red > green + 12) & (green > blue + 2) & (red > blue + 22) & (alpha > 220)
+    for x, y in sites[key]:
+        on_back = (X - x) ** 2 + (Y - y) ** 2 < 13 ** 2
+        if np.count_nonzero(skin & on_back) > 16:
+            raise ValueError(f'{key}: a painted palm is visible on the back near ({x}, {y})')
+
+
+def rear_keys(source,record):
+    """Type behind the hair. Only exposed outer cloth and hair tips follow the beat."""
+    raw=cut_high_keys(source);rig=record['rig']
+    first,view=registration(raw[0],rig);painted=[first]
+    for n,key in enumerate(raw[1:],1):
+        image,_=registration(key,record.get('overrides',{}).get(str(n),rig))
+        painted.append(stabilize_ink(first,image))
+    w,h=raw[0].size;scale=SKULL/((rig[1]-rig[0])*h/100)
+    def anchor(x,y):
+        return HIP[0]+(x-rig[2])*w*scale/100,HIP[1]+(y-rig[3])*h*scale/100
+    outer=np.zeros_like(X)
+    for x,y,rx,ry in record['follow']:
+        cx,cy=anchor(x,y)
+        outer=np.maximum(outer,np.exp(-(((X-cx)/(rx*w*scale/100))**2+((Y-cy)/(ry*h*scale/100))**2)**2))
+    # A keyboard contact projected onto the hair is not an exposed wrist.
+    # The complete middle of the head/back comes from the approved neutral
+    # painting in every exposure. It must never drive a palm warp or a
+    # foreground sleeve over the character/chair.
+    xmid=view['head'][0];half=SKULL*.46
+    protected=(abs(X-xmid)<half)&(Y<HIP[1]-SKULL*.14)
+    outer=np.clip((outer-.055)/.8,0,1)
+    outer[protected]=0
+    view.update({'wristsOccluded':True,'nearElbow':[round(v,2) for v in anchor(76,61)],
+                 'cuffRadius':0,'forearm':'M0 0Z'})
+    out=[]
+    for i in range(8):
+        a=painted[i//2];b=painted[(i//2+1)%4]
+        # Interpolate the drawn secondary movement without double-exposing
+        # a ribbon or a lock of hair. Skull, lumbar support and shoes stay put.
+        if i%2:
+            gray=lambda im:np.uint8(np.clip(cv2.cvtColor(im[:,:,:3],cv2.COLOR_RGB2GRAY),0,1)*255)
+            flow=cv2.calcOpticalFlowFarneback(gray(a),gray(b),None,.5,3,17,4,7,1.2,0)
+            secondary=cv2.remap(a,X-flow[:,:,0]*.5,Y-flow[:,:,1]*.5,cv2.INTER_LINEAR)
+        else:secondary=a
+        # The small lag at the outer ends survives reduction to office scale.
+        beat=i*math.pi/4
+        secondary=cv2.remap(secondary,X-outer*.8*math.sin(beat-.55),
+                            Y-outer*1.75*math.sin(beat),cv2.INTER_LINEAR)
+        image=first*(1-outer[:,:,None])+secondary*outer[:,:,None]
+        if not np.array_equal(image[protected],first[protected]):
+            raise ValueError('Protected back changed during typing: '+source.stem)
+        rendered=rgba(image)
+        check_rear_palm_occlusion(source.stem,rendered)
+        out.append(rendered)
+    return view,out
+
+
+def shallow_projection(view):
+    """Foreshorten the limbs of the painted three-quarter pose on the curved desks.
+
+    The rear crown, horn spacing and pelvis keep their size. Only the nearer
+    shoulder below the nape and the depth of the hands/knees turn inwards.
+    The shoe lifts in projection as the forward-pointing shin turns away.
+    """
+    hx,hy=view['hip']
+    crown_y=view['head'][1]
+    palm_y=min(p[1] for p in view['palms'])
+    start=crown_y+SKULL*.29
+    end=max(start+12,palm_y)
+    def smooth(t):
+        t=np.clip(t,0,1)
+        return t*t*(3-2*t)
+    def forward(x,y):
+        turn=smooth((y-start)/(end-start))
+        side=np.maximum(x-hx,0)
+        dx=side*turn*.61
+        foot=smooth((y-hy+12)/42)
+        dy=smooth(side/45)*turn*(2+14*foot)
+        return x-dx,y-dy
+    # Invert the monotonic horizontal projection analytically. The small
+    # vertical displacement converges to subpixel precision in this range.
+    sy=Y.copy()
+    for _ in range(8):
+        turn=smooth((sy-start)/(end-start))
+        sx=hx+np.where(X>hx,(X-hx)/(1-.61*turn),X-hx)
+        _,projected=forward(sx,sy)
+        sy+=Y-projected
+    def point(p):
+        x,y=forward(*p)
+        return [round(float(x),2),round(float(y),2)]
+    result={**view,'palms':[point(p) for p in view['palms']]}
+    for name in ('head','hip','knee','sole'):
+        result[name]=point(view[name])
+    result['soleY']=result['sole'][1]
+    result['ankleLine']=round(point([view['sole'][0],view['ankleLine']])[1])
+    set_arm(result,(*point(view['nearElbow']),view['cuffRadius']*.8))
+    return result,sx.astype('float32'),sy.astype('float32')
+
+
+def build(source,rigs,occlusion,prior=None):
+    rear,frames=rear_keys(SOURCE/'rear-occluded'/source.name,occlusion)
+    sheet=Image.new('RGBA',(CELL*8,CELL*3))
+    for idx,im in enumerate(frames):sheet.paste(im,(idx*CELL,0))
+    if prior:
+        # Rebuild just the straight-rear row. Reuse the literal released
+        # side view so a change to hidden hands cannot alter its artwork.
+        previous=Image.open(PLUGIN/'art/release-assets'/prior['src'].lstrip('/')).convert('RGBA')
+        sheet.paste(previous.crop((0,CELL,CELL*8,CELL*2)),(0,CELL))
+        side=prior['oblique']
+    else:
+        raw=cut_keys(source)
+        a,side=registration(raw[2],rigs[1][0]);b,_=registration(raw[3],rigs[1][-1])
+        set_arm(side,ELBOW[source.stem][1])
+        for idx,im in enumerate(keystrokes(a,b,side)):sheet.paste(im,(idx*CELL,CELL))
+    shallow,sx,sy=shallow_projection(side)
+    for idx in range(8):
+        cell=sheet.crop((idx*CELL,CELL,(idx+1)*CELL,2*CELL))
+        turn=cv2.remap(pm(cell),sx,sy,cv2.INTER_AREA)
+        sheet.paste(rgba(turn),(idx*CELL,2*CELL))
+    out=BytesIO();sheet.save(out,format='WEBP',lossless=True,exact=True,method=5)
     data=out.getvalue();digest=hashlib.sha256(data).hexdigest()
     path=(ART/(source.stem+'.'+digest[:12]+'.webp')).as_posix()
-    # In these two rear paintings the wrists land over the long back hair.
-    # The three-quarter keys clearly show the forearms reaching past the body.
-    use_oblique=source.stem in ('lu-mi-base','jingyuniang-base')
     return path,data,{'src':'/'+path,'sha256':digest,'cell':[CELL,CELL],'count':8,
-                      'preferOblique':use_oblique,'rear':views[0],'oblique':views[1]}
+                      'preferOblique':False,'rear':rear,'oblique':side,'shallow':shallow}
 
 
 def stabilize_ink(reference,key):
@@ -399,7 +511,12 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--preview',type=Path,help='Build available paintings into an isolated preview directory.')
     parser.add_argument('--joints-only',action='store_true',help='Retain the current three body views and rebuild room-specific joint masks and hand cells.')
+    parser.add_argument('--rear-only',action='store_true',help='Repaint the straight rear view; keep the released side views and room-specific paintings.')
     args=parser.parse_args()
+    if args.joints_only and args.rear_only:parser.error('Select a single atlas group.')
+    occlusion={} if args.joints_only else json.loads((SOURCE/'rear-occluded/registration.json').read_text(encoding='utf8'))
+    if not args.preview and not args.joints_only and set(occlusion)!=EXPECTED:
+        raise ValueError('Missing strict-rear paintings or registrations: '+str(EXPECTED-set(occlusion)))
     rigs=json.loads((SOURCE/'registration.json').read_text(encoding='utf8'))
     hpath=SOURCE/'high-oblique/registration.json'
     high=json.loads(hpath.read_text(encoding='utf8')) if hpath.exists() else {}
@@ -409,17 +526,21 @@ def main():
     elif keys!=EXPECTED or set(rigs)!=EXPECTED:
         raise ValueError('Missing or unexpected source paintings or registrations: '+str((keys^EXPECTED,set(rigs)^EXPECTED)))
     meta={};new=[];payloads={}
-    if args.joints_only:
-        target=args.preview/'deskRearPoses.generated.json' if args.preview else OFFICE/'deskRearPoses.generated.json'
+    if args.joints_only or args.rear_only:
+        target=(args.preview/'deskRearPoses.generated.json' if args.joints_only and args.preview else OFFICE/'deskRearPoses.generated.json')
         meta=json.loads(target.read_text(encoding='utf8'))
         if set(meta)!=EXPECTED or not all('highOblique' in record for record in meta.values()):
             raise ValueError('Build and register the three body views before updating joint drawings.')
-        for record in meta.values():record.pop('joints',None)
+        if args.joints_only:
+            for record in meta.values():record.pop('joints',None)
     for key in ([] if args.joints_only else sorted(keys)):
-        path,data,meta[key]=build(SOURCE/(key+'.png'),rigs[key])
+        if args.preview and key not in occlusion:continue
+        prior=meta.get(key) if args.rear_only else None
+        path,data,body=build(SOURCE/(key+'.png'),rigs[key],occlusion[key],prior)
+        meta[key]={**(prior or {}),**body}
         new.append({'path':path,'bytes':len(data),'sha256':meta[key]['sha256']})
         payloads[path]=data
-        if key in high:
+        if not args.rear_only and key in high:
             hp,hd,hv=high_atlas(SOURCE/'high-oblique'/(key+'.png'),high[key])
             meta[key]['highOblique']=hv
             new.append({'path':hp,'bytes':len(hd),'sha256':hv['sha256']});payloads[hp]=hd
@@ -428,7 +549,7 @@ def main():
     pairs=chair_pairs()
     if not args.preview and set(pairs)!={r+'-'+k for r in ('alpine','rose') for k in EXPECTED}:
         raise ValueError('Both upholstered chairs must have a registered joint drawing for every outfit.')
-    for name,spec in pairs.items():
+    for name,spec in ([] if args.rear_only else pairs.items()):
         if not (SOURCE/'joint'/(name+'.png')).exists() and args.preview:continue
         key,record,files=joint_atlas(name,spec)
         if key not in meta:continue
@@ -444,6 +565,15 @@ def main():
     manifest=PLUGIN/'lib/asset-manifest.json'
     rows=json.loads(manifest.read_text(encoding='utf8'))
     prev=[r for r in rows if Path(r['path']).parent==ART]
+    if args.rear_only:
+        # Other art compilers may have registered a room outfit while these
+        # fourteen images were rendered. Merge only the rows we own.
+        fresh=json.loads((OFFICE/'deskRearPoses.generated.json').read_text(encoding='utf8'))
+        for key,record in meta.items():
+            for field in ('src','sha256','rear','shallow','preferOblique'):
+                fresh[key][field]=record[field]
+        meta=fresh
+        new=[r for r in prev if Path(r['path']).name.split('.')[0] not in EXPECTED]+new
     if args.joints_only:
         new=[r for r in prev if '-joint.' not in r['path']]+new
     save_atomic(OFFICE/'deskRearPoses.generated.json',dump(meta))

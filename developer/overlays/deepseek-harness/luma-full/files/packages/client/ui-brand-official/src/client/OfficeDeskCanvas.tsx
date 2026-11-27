@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { officeDeskFrame, type OfficeDeskDrawing } from './office2d/officeDeskPlacement.ts'
+import { drawOfficeDeskFrame } from './office2d/drawOfficeDeskFrame.ts'
 
 type Point=readonly [number,number]
 type Polygon=readonly Point[]
@@ -21,9 +22,8 @@ export function OfficeDeskCanvas(props:Props){
       const i=fixed===undefined?officeDeskFrame(pose,actor,now-start,working&&!paused,ambient):Math.max(0,Math.floor(fixed))%pose.count
       if(i!==last){
         const [w,h]=pose.cell
-        ctx.clearRect(0,0,w,h);ctx.save()
-        if(pose.mirror){ctx.translate(w,0);ctx.scale(-1,1)}
-        ctx.drawImage(image,i*w,pose.bank*h,w,h,0,0,w,h);ctx.restore()
+        ctx.clearRect(0,0,w,h)
+        drawOfficeDeskFrame(ctx,image,pose,i,0,0,1)
         const polygon=(p:Polygon)=>{
           ctx.beginPath()
           for(const [j,[x,y]] of p.entries()){

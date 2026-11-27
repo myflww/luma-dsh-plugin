@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { execFileSync, spawn } from 'node:child_process'
 import { createServer } from 'node:http'
-import { access, mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { access, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { once } from 'node:events'
@@ -153,6 +153,48 @@ test('studio HTTP dispatch gives two roles independent WinForms windows, then re
   }
 })
 
+async function activateLoadedFixtureTab(profile,pages) {
+  // At startup the native title can already name the first page while Edge
+  // is still opening the second tab. Establish the foreground tab through
+  // this fixture's private browser before asking the production UIA layer.
+  const signal=AbortSignal.timeout(15000)
+  const [active]=pages
+  while (!signal.aborted) {
+    const file=await readFile(join(profile,'DevToolsActivePort'),'utf8').catch(error=>{
+      if (error.code!=='ENOENT') throw error
+      return ''
+    })
+    const port=file.split(/\r?\n/,1)[0]
+    if (/^\d+$/.test(port)) {
+      const endpoint='http://127.0.0.1:'+port
+      const response=await fetch(endpoint+'/json/list',{signal})
+      assert.equal(response.ok,true,'Could not list the fixture tabs')
+      const tabs=await response.json()
+      const matching=pages.map(page=>tabs.find(tab=>tab.type==='page' &&
+        tab.title===page.name && tab.url===pathToFileURL(page.html).href))
+      if (matching.every(Boolean)) {
+        const selected=await fetch(endpoint+'/json/activate/'+matching[0].id,{signal})
+        assert.equal(selected.ok,true,'Could not activate '+active.name)
+        // Initialize the selected renderer's accessibility tree. A newly
+        // opened Edge window can paint its page before it exposes that page
+        // to Windows UI Automation. All preview assertions still use UIA.
+        const socket=new WebSocket(matching[0].webSocketDebuggerUrl)
+        try {
+          await once(socket,'open',{signal})
+          const response=once(socket,'message',{signal})
+          socket.send(JSON.stringify({id:1,method:'Accessibility.getFullAXTree'}))
+          const [event]=await response
+          const tree=JSON.parse(event.data).result?.nodes ?? []
+          assert.ok(tree.some(node=>node.name?.value===active.marker),'Fixture document is not accessible yet')
+        } finally { socket.close() }
+        return
+      }
+    }
+    await delay(100,undefined,{signal})
+  }
+  throw Error('Both fixture pages must finish opening before preview')
+}
+
 test('browser preview returns only the active document in a real two-tab Edge window', {
   skip:process.platform!=='win32' || process.env.LUMA_TEST_WINDOWS_UI!=='1', timeout:90000
 },async t=>{
@@ -165,18 +207,21 @@ test('browser preview returns only the active document in a real two-tab Edge wi
     const pages=['Alpha','Beta'].map(suffix=>({html:join(dir,suffix+'-only.html'),name:title+'-'+suffix,marker:'校对目录 '+suffix+' '+randomUUID().slice(0,8)}))
     for (const page of pages) await writeFile(page.html,'<!doctype html><meta charset="utf-8"><title>'+page.name+'</title><main><h1>'+page.marker+
       '</h1><button>Read page</button><input type="password" aria-label="Protected example" value="fixture-hidden-value"></main>')
-    browser=spawn(edge,['--user-data-dir='+join(dir,'browser-profile'),'--no-first-run','--no-default-browser-check',
-      '--disable-sync','--disable-background-networking','--force-renderer-accessibility','--window-size=500,340',
+    const profile=join(dir,'browser-profile')
+    browser=spawn(edge,['--user-data-dir='+profile,'--remote-debugging-port=0','--no-first-run','--no-default-browser-check',
+      '--disable-sync','--disable-background-networking','--enable-features=UiaProvider',
+      '--disable-renderer-backgrounding','--disable-backgrounding-occluded-windows',
+      '--force-renderer-accessibility=complete','--window-size=500,340',
       '--new-window',...pages.map(page=>pathToFileURL(page.html).href)],{windowsHide:false,stdio:'ignore'})
+    await activateLoadedFixtureTab(profile,pages)
+    const [active,background]=pages
     const desktop=createStudioDesktop(join(dir,'agent-desktop/agent-desktop.exe'))
     let picked,preview
     for (let i=0;i<40 && !picked;i++) {
-      picked=(await desktop.targets()).find(row=>row.browser && row.title.includes(title))
+      picked=(await desktop.targets()).find(row=>row.browser && row.title.includes(active.name))
       if (!picked) await delay(350)
     }
     assert.ok(picked,'Owned browser window was not discovered')
-    const active=pages.find(page=>picked.title.includes(page.name)), background=pages.find(page=>page!==active)
-    assert.ok(active)
     await desktop.run(picked.id,[],async messages=>{
       const rows=JSON.parse(messages.at(-1).content).desktop.lastObservation
       assert.ok(rows.some(row=>row.name.includes(background.name)),'The target window must contain the other tab in its browser shell')

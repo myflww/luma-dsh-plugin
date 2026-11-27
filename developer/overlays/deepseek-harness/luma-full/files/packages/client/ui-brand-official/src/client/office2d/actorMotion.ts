@@ -2,7 +2,8 @@ export type ActorMotion = 'held' | 'landing' | 'idle'
 
 export const LANDING_MS = 400
 const PICKUP_MS = 220
-const IDLE_MS = 3200
+// Briefly hold the neutral pose on arrival. Each actor begins breathing on a different beat.
+const MAX_IDLE_DELAY_MS = 811
 
 /** An interrupted lift starts at the matching recovery exposure. All times use
  * the caller's animation clock, including the independent canvas's paused clock. */
@@ -18,7 +19,7 @@ export function landingStartForRelease(releasedAt: number, liftedAt: number | un
 export function motionPhase(id: string) {
   let hash = 0
   for (const letter of id) hash = (31 * hash + letter.charCodeAt(0)) >>> 0
-  return hash % IDLE_MS
+  return hash % MAX_IDLE_DELAY_MS
 }
 
 export interface GripLag {
@@ -78,9 +79,10 @@ export function actorMotionFrame(motion: ActorMotion, elapsed: number, phase: nu
     return suspendedPose(lag?.horizontal ?? 0,lag?.vertical ?? 0)
   }
   const idleTime = time - (motion === 'landing' ? LANDING_MS : 0)
-  let beat = (idleTime + phase) % idleDurations.reduce((total,ms) => total + ms,0)
+  let beat = Math.max(0, idleTime - phase) % idleDurations.reduce((total,ms) => total + ms,0)
   for (let i=0; i<idleDurations.length; i++) {
-    if (beat < idleDurations[i]!) return i
+    // The original six rows keep their pickup, suspension and landing indices.
+    if (beat < idleDurations[i]!) return i < 8 ? i : i + 40
     beat -= idleDurations[i]!
   }
   return 0

@@ -1,0 +1,1431 @@
+{
+  "models": {
+    "bai-shuangming-base": {
+      "side": {
+        "src": "/luma-office/luma-plugin-art/bedroom-seated/bai-shuangming-base-side.a16019e87ff2.webp",
+        "sha256": "a16019e87ff21f3ec0be78016606685d8a0665181dc10248a583630dc24e6de6",
+        "look": "bai-shuangming-base",
+        "cell": [
+          512,
+          512
+        ],
+        "count": 4,
+        "hip": [
+          218,
+          353
+        ],
+        "head": [
+          224.86,
+          195.15
+        ],
+        "headWidth": 128,
+        "headHeight": 119.75,
+        "palms": [
+          [
+            307.14,
+            265.91
+          ],
+          [
+            332.29,
+            284.96
+          ]
+        ],
+        "knee": [
+          309.43,
+          323.06
+        ],
+        "sole": [
+          330.0,
+          393.82
+        ],
+        "soleY": 393.82,
+        "ankleLine": 358.44,
+        "nearElbow": [
+          263.71,
+          295.85
+        ],
+        "cuffRadius": 12,
+        "forearm": "M261.64 308.33 L333.23 290.89 L338.22 284.02 L331.35 279.03 L257.88 284.63Z"
+      },
+      "quarter": {
+        "src": "/luma-office/luma-plugin-art/bedroom-seated/bai-shuangming-base-quarter.f2e09d5c1ab7.webp",
+        "sha256": "f2e09d5c1ab7023785117f09c23c2a3917a6b8bce476f548db9ac07563dc06d8",
+        "look": "bai-shuangming-base",
+        "cell": [
+          512,
+          512
+        ],
+        "count": 4,
+        "hip": [
+          218,
+          353
+        ],
+        "head": [
+          224.69,
+          208.04
+        ],
+        "headWidth": 128,
+        "headHeight": 119.08,
+        "palms": [
+          [
+            284.87,
+            264.99
+          ],
+          [
+            313.52,
+            277.93
+          ]
+        ],
+        "knee": [
+          292.51,
+          321.94
+        ],
+        "sole": [
+          294.42,
+          384.06
+        ],
+        "soleY": 384.06,
+        "ankleLine": 353.0,
+        "nearElbow": [
+          260.03,
+          301.23
+        ],
+        "cuffRadius": 12,
+        "forearm": "M261.16 313.83 L315.92 283.43 L319.02 275.53 L311.12 272.43 L251.57 291.83Z"
+      }
+    },
+    "bai-shuangming-v1": {
+      "side": {
+        "src": "/luma-office/luma-plugin-art/bedroom-seated/bai-shuangming-v1-side.c5ec98354bc1.webp",
+        "sha256": "c5ec98354bc1238e9ba77c3cfc30ee0ada7c228cec4a2ff98a658380c845d0e7",
+        "look": "bai-shuangming-v1",
+        "cell": [
+          512,
+          512
+        ],
+        "count": 4,
+        "hip": [
+          218,
+          353
+        ],
+        "head": [
+          230.8,
+          187.03
+        ],
+        "headWidth": 128,
+        "headHeight": 93.18,
+        "palms": [
+          [
+            308.76,
+            248.18
+          ],
+          [
+            329.71,
+            265.65
+          ]
+        ],
+        "knee": [
+          306.44,
+          315.15
+        ],
+        "sole": [
+          332.04,
+          390.85
+        ],
+        "soleY": 390.85,
+        "ankleLine": 353.0,
+        "nearElbow": [
+          262.22,
+          280.21
+        ],
+        "cuffRadius": 12,
+        "forearm": "M260.84 292.78 L330.98 271.52 L335.58 264.38 L328.44 259.78 L255.78 269.32Z"
+      },
+      "quarter": {
+        "src": "/luma-office/luma-plugin-art/bedroom-seated/bai-shuangming-v1-quarter.fdc0990e6467.webp",
+        "sha256": "fdc0990e6467186627de0844b03e8fdac8890298423f0cdbb58a5bda4f06a59d",
+        "look": "bai-shuangming-v1",
+        "cell": [
+          512,
+          512
+        ],
+        "count": 4,
+        "hip": [
+          218,
+          353
+        ],
+        "head": [
+          225.11,
+          191.91
+        ],
+        "headWidth": 128,
+        "headHeight": 117.16,
+        "palms": [
+          [
+            285.05,
+            244.63
+          ],
+          [
+            313.49,
+            256.35
+          ]
+        ],
+        "knee": [
+          297.24,
+          312.0
+        ],
+        "sole": [
+          305.37,
+          370.57
+        ],
+        "soleY": 370.57,
+        "ankleLine": 341.28,
+        "nearElbow": [
+          264.73,
+          282.71
+        ],
+        "cuffRadius": 12,
+        "forearm": "M266.92 295.17 L316.34 261.63 L318.77 253.50 L310.64 251.07 L255.50 274.06Z"
+      }
+    },
+    "claude-base": {
+      "side": {
+        "src": "/luma-office/luma-plugin-art/bedroom-seated/claude-base-side.50314fea40e5.webp",
+        "sha256": "50314fea40e560b1a3335cc4ef016c6c0acc70aa08aedb2631e20ef506a21861",
+        "look": "claude-base",
+        "cell": [
+          512,
+          512
+        ],
+        "count": 4,
+        "hip": [
+          218,
+          353
+        ],
+        "head": [
+          223.61,
+          195.35
+        ],
+        "headWidth": 128,
+        "headHeight": 106.88,
+        "palms": [
+          [
+            294.35,
+            262.15
+          ],
+          [
+            321.3,
+            280.85
+          ]
+        ],
+        "knee": [
+          303.33,
+          320.94
+        ],
+        "sole": [
+          325.79,
+          387.74
+        ],
+        "soleY": 387.74,
+        "ankleLine": 354.34,
+        "nearElbow": [
+          260.67,
+          294.21
+        ],
+        "cuffRadius": 12,
+        "forearm": "M259.35 306.79 L322.59 286.71 L327.16 279.56 L320.01 274.99 L254.18 283.35Z"
+      },
+      "quarter": {
+        "src": "/luma-office/luma-plugin-art/bedroom-seated/claude-base-quarter.1f903ff5515c.webp",
+        "sha256": "1f903ff5515c13279644aed6b2734db6876ed6d410902df829517ab3c52ed4d1",
+        "look": "claude-base",
+        "cell": [
+          512,
+          512
+        ],
+        "count": 4,
+        "hip": [
+          218,
+          353
+        ],
+        "head": [
+          220.95,
+          187.16
+        ],
+        "headWidth": 128,
+        "headHeight": 117.7,
+        "palms": [
+          [
+            284.95,
+            246.0
+          ],
+          [
+            310.55,
+            248.68
+          ]
+        ],
+        "knee": [
+          286.92,
+          312.88
+        ],
+        "sole": [
+          298.74,
+          377.07
+        ],
+        "soleY": 377.07,
+        "ankleLine": 344.98,
+        "nearElbow": [
+          257.38,
+          275.43
+        ],
+        "cuffRadius": 12,
+        "forearm": "M259.20 287.95 L313.25 254.04 L315.91 245.98 L307.85 243.32 L248.41 266.51Z"
+      }
+    },
+    "claude-v1": {
+      "side": {
+        "src": "/luma-office/luma-plugin-art/bedroom-seated/claude-v1-side.bbd08324170f.webp",
+        "sha256": "bbd08324170ff13f5e65f9977d7dae8a7342c44c309bd310fc60252ff7981fb0",
+        "look": "claude-v1",
+        "cell": [
+          512,
+          512
+        ],
+        "count": 4,
+        "hip": [
+          218,
+          353
+        ],
+        "head": [
+          221.49,
+          194.12
+        ],
+        "headWidth": 128,
+        "headHeight": 102.33,
+        "palms": [
+          [
+            297.13,
+            258.75
+          ],
+          [
+            322.73,
+            277.6
+          ]
+        ],
+        "knee": [
+          306.44,
+          320.69
+        ],
+        "sole": [
+          327.38,
+          396.09
+        ],
+        "soleY": 396.09,
+        "ankleLine": 358.39,
+        "nearElbow": [
+          262.22,
+          291.06
+        ],
+        "cuffRadius": 12,
+        "forearm": "M260.92 303.64 L324.03 283.46 L328.59 276.30 L321.43 271.74 L255.71 280.21Z"
+      },
+      "quarter": {
+        "src": "/luma-office/luma-plugin-art/bedroom-seated/claude-v1-quarter.b515117f8b73.webp",
+        "sha256": "b515117f8b730b2cb3bec2c2d193db0f855aba899f54fa96bb7829742d91e9ba",
+        "look": "claude-v1",
+        "cell": [
+          512,
+          512
+        ],
+        "count": 4,
+        "hip": [
+          218,
+          353
+        ],
+        "head": [
+          221.88,
+          215.86
+        ],
+        "headWidth": 128,
+        "headHeight": 106.25,
+        "palms": [
+          [
+            283.94,
+            266.52
+          ],
+          [
+            309.15,
+            268.99
+          ]
+        ],
+        "knee": [
+          282.0,
+          333.23
+        ],
+        "sole": [
+          282.0,
+          392.54
+        ],
+        "soleY": 392.54,
+        "ankleLine": 362.88,
+        "nearElbow": [
+          258.73,
+          298.64
+        ],
+        "cuffRadius": 12,
+        "forearm": "M261.36 311.01 L312.19 274.16 L314.32 265.95 L306.11 263.82 L249.20 290.32Z"
+      }
+    },
+    "gemini-v1": {
+      "side": {
+        "src": "/luma-office/luma-plugin-art/bedroom-seated/gemini-v1-side.a0bcb8ed1b8c.webp",
+        "sha256": "a0bcb8ed1b8c718f306454ca133bbb5a48c3137608976f544e712f2637767f00",
+        "look": "gemini-v1",
+        "cell": [
+          512,
+          512
+        ],
+        "count": 4,
+        "hip": [
+          218,
+          353
+        ],
+        "head": [
+          229.85,
+          188.13
+        ],
+        "headWidth": 128,
+        "headHeight": 92.56,
+        "palms": [
+          [
+            303.33,
+            248.87
+          ],
+          [
+            329.41,
+            269.12
+          ]
+        ],
+        "knee": [
+          308.07,
+          315.4
+        ],
+        "sole": [
+          336.52,
+          387.71
+        ],
+        "soleY": 387.71,
+        "ankleLine": 351.55,
+        "nearElbow": [
+          267.78,
+          280.69
+        ],
+        "cuffRadius": 12,
+        "forearm": "M266.06 293.22 L330.52 275.02 L335.31 268.01 L328.30 263.22 L261.63 269.63Z"
+      },
+      "quarter": {
+        "src": "/luma-office/luma-plugin-art/bedroom-seated/gemini-v1-quarter.67ca22960bd2.webp",
+        "sha256": "67ca22960bd26bb5ba6c8b36d982a5aa356a6390cfd8dd83b38ebc9fdfac3132",
+        "look": "gemini-v1",
+        "cell": [
+          512,
+          512
+        ],
+        "count": 4,
+        "hip": [
+          218,
+          353
+        ],
+        "head": [
+          221.25,
+          195.11
+        ],
+        "headWidth": 128,
+        "headHeight": 97.81,
+        "palms": [
+          [
+            285.25,
+            241.22
+          ],
+          [
+            313.46,
+            257.99
+          ]
+        ],
+        "knee": [
+          296.1,
+          311.08
+        ],
+        "sole": [
+          309.12,
+          366.97
+        ],
+        "soleY": 366.97,
+        "ankleLine": 339.02,
+        "nearElbow": [
+          257.05,
+          283.14
+        ],
+        "cuffRadius": 12,
+        "forearm": "M258.28 295.73 L315.90 263.47 L318.94 255.55 L311.02 252.51 L248.51 273.81Z"
+      }
+    },
+    "grok-v1": {
+      "side": {
+        "src": "/luma-office/luma-plugin-art/bedroom-seated/grok-v1-side.ce285194625b.webp",
+        "sha256": "ce285194625bf99c76e6981c6bc0bcd122c5dd01afd33cdfdbac4a64dbe086e6",
+        "look": "grok-v1",
+        "cell": [
+          512,
+          512
+        ],
+        "count": 4,
+        "hip": [
+          218,
+          353
+        ],
+        "head": [
+          215.44,
+          168.01
+        ],
+        "headWidth": 128,
+        "headHeight": 103.33,
+        "palms": [
+          [
+            292.24,
+            236.34
+          ],
+          [
+            317.84,
+            256.34
+          ]
+        ],
+        "knee": [
+          312.72,
+          313.0
+        ],
+        "sole": [
+          335.76,
+          393.0
+        ],
+        "soleY": 393.0,
+        "ankleLine": 353.0,
+        "nearElbow": [
+          256.4,
+          273.0
+        ],
+        "cuffRadius": 12,
+        "forearm": "M255.68 285.63 L319.41 262.13 L323.63 254.77 L316.27 250.55 L249.40 262.47Z"
+      },
+      "quarter": {
+        "src": "/luma-office/luma-plugin-art/bedroom-seated/grok-v1-quarter.3251c8619a1c.webp",
+        "sha256": "3251c8619a1ce03aea78eb67c8076d4f1f5eda7c1b3efb331a4496221a44535c",
+        "look": "grok-v1",
+        "cell": [
+          512,
+          512
+        ],
+        "count": 4,
+        "hip": [
+          218,
+          353
+        ],
+        "head": [
+          224.89,
+          201.13
+        ],
+        "headWidth": 128,
+        "headHeight": 103.11,
+        "palms": [
+          [
+            286.92,
+            261.04
+          ],
+          [
+            306.62,
+            274.97
+          ]
+        ],
+        "knee": [
+          286.92,
+          319.56
+        ],
+        "sole": [
+          300.71,
+          386.44
+        ],
+        "soleY": 386.44,
+        "ankleLine": 353.0,
+        "nearElbow": [
+          255.42,
+          288.91
+        ],
+        "cuffRadius": 12,
+        "forearm": "M254.71 301.54 L308.20 280.76 L312.41 273.39 L305.04 269.18 L248.41 278.38Z"
+      }
+    },
+    "jingyuniang-base": {
+      "side": {
+        "src": "/luma-office/luma-plugin-art/bedroom-seated/jingyuniang-base-side.a9e944386838.webp",
+        "sha256": "a9e944386838cc79518b21bdc02839d0af1ef7dee53054c0ebfd0055b7f1c408",
+        "look": "jingyuniang-base",
+        "cell": [
+          512,
+          512
+        ],
+        "count": 4,
+        "hip": [
+          218,
+          353
+        ],
+        "head": [
+          219.08,
+          192.98
+        ],
+        "headWidth": 128,
+        "headHeight": 104.68,
+        "palms": [
+          [
+            293.93,
+            260.28
+          ],
+          [
+            317.8,
+            278.23
+          ]
+        ],
+        "knee": [
+          304.78,
+          314.12
+        ],
+        "sole": [
+          319.97,
+          394.87
+        ],
+        "soleY": 394.87,
+        "ankleLine": 354.5,
+        "nearElbow": [
+          254.88,
+          293.18
+        ],
+        "cuffRadius": 12,
+        "forearm": "M253.76 305.78 L319.19 284.07 L323.64 276.84 L316.41 272.39 L248.21 282.43Z"
+      },
+      "quarter": {
+        "src": "/luma-office/luma-plugin-art/bedroom-seated/jingyuniang-base-quarter.70ac673a2ead.webp",
+        "sha256": "70ac673a2eada56a7bd2e5c2891701286326debda41d1e6115c8efd74ef85667",
+        "look": "jingyuniang-base",
+        "cell": [
+          512,
+          512
+        ],
+        "count": 4,
+        "hip": [
+          218,
+          353
+        ],
+        "head": [
+          220.0,
+          191.53
+        ],
+        "headWidth": 128,
+        "headHeight": 109.73,
+        "palms": [
+          [
+            278.0,
+            258.94
+          ],
+          [
+            308.0,
+            268.35
+          ]
+        ],
+        "knee": [
+          282.0,
+          315.38
+        ],
+        "sole": [
+          288.0,
+          400.03
+        ],
+        "soleY": 400.03,
+        "ankleLine": 357.7,
+        "nearElbow": [
+          260.0,
+          290.29
+        ],
+        "cuffRadius": 12,
+        "forearm": "M261.35 302.87 L310.49 273.81 L313.46 265.86 L305.51 262.89 L251.37 281.04Z"
+      }
+    },
+    "jingyuniang-v1": {
+      "side": {
+        "src": "/luma-office/luma-plugin-art/bedroom-seated/jingyuniang-v1-side.799f8cea0bca.webp",
+        "sha256": "799f8cea0bca4ff03c8246820586a0e99a0835d500fa994192db64768e644314",
+        "look": "jingyuniang-v1",
+        "cell": [
+          512,
+          512
+        ],
+        "count": 4,
+        "hip": [
+          218,
+          353
+        ],
+        "head": [
+          218.0,
+          197.76
+        ],
+        "headWidth": 128,
+        "headHeight": 101.61,
+        "palms": [
+          [
+            299.66,
+            259.86
+          ],
+          [
+            319.52,
+            282.44
+          ]
+        ],
+        "knee": [
+          301.86,
+          313.48
+        ],
+        "sole": [
+          323.93,
+          389.69
+        ],
+        "soleY": 389.69,
+        "ankleLine": 351.59,
+        "nearElbow": [
+          257.72,
+          293.73
+        ],
+        "cuffRadius": 12,
+        "forearm": "M255.94 306.25 L320.60 288.34 L325.42 281.36 L318.44 276.54 L251.63 282.64Z"
+      },
+      "quarter": {
+        "src": "/luma-office/luma-plugin-art/bedroom-seated/jingyuniang-v1-quarter.a2d4fc616c5b.webp",
+        "sha256": "a2d4fc616c5b9597cfbc7887ae49fe5cb12f4a9949dc56543db7756ec73a48dd",
+        "look": "jingyuniang-v1",
+        "cell": [
+          512,
+          512
+        ],
+        "count": 4,
+        "hip": [
+          218,
+          353
+        ],
+        "head": [
+          221.05,
+          201.4
+        ],
+        "headWidth": 128,
+        "headHeight": 103.09,
+        "palms": [
+          [
+            287.08,
+            265.07
+          ],
+          [
+            313.49,
+            271.13
+          ]
+        ],
+        "knee": [
+          287.08,
+          325.71
+        ],
+        "sole": [
+          291.14,
+          398.48
+        ],
+        "soleY": 398.48,
+        "ankleLine": 362.1,
+        "nearElbow": [
+          266.76,
+          295.39
+        ],
+        "cuffRadius": 12,
+        "forearm": "M268.74 307.88 L316.25 276.46 L318.82 268.37 L310.73 265.80 L257.68 286.58Z"
+      }
+    },
+    "longmama-base": {
+      "side": {
+        "src": "/luma-office/luma-plugin-art/bedroom-seated/longmama-base-side.25789aea121d.webp",
+        "sha256": "25789aea121dedf64099c34b27ef251219e1ef7fd4651311ad298f4353d09fae",
+        "look": "longmama-base",
+        "cell": [
+          512,
+          512
+        ],
+        "count": 4,
+        "hip": [
+          218,
+          353
+        ],
+        "head": [
+          220.21,
+          199.29
+        ],
+        "headWidth": 128,
+        "headHeight": 89.43,
+        "palms": [
+          [
+            301.86,
+            260.77
+          ],
+          [
+            326.14,
+            283.13
+          ]
+        ],
+        "knee": [
+          304.07,
+          322.26
+        ],
+        "sole": [
+          323.93,
+          394.92
+        ],
+        "soleY": 394.92,
+        "ankleLine": 358.59,
+        "nearElbow": [
+          264.34,
+          291.52
+        ],
+        "cuffRadius": 12,
+        "forearm": "M261.99 303.95 L326.95 289.08 L332.09 282.32 L325.33 277.18 L258.76 280.17Z"
+      },
+      "quarter": {
+        "src": "/luma-office/luma-plugin-art/bedroom-seated/longmama-base-quarter.4a01fd944dc7.webp",
+        "sha256": "4a01fd944dc78fd79a50a4e849e1696e55ac650ab27b2c1e219070f58040239a",
+        "look": "longmama-base",
+        "cell": [
+          512,
+          512
+        ],
+        "count": 4,
+        "hip": [
+          218,
+          353
+        ],
+        "head": [
+          230.8,
+          182.08
+        ],
+        "headWidth": 128,
+        "headHeight": 100.54,
+        "palms": [
+          [
+            290.53,
+            246.72
+          ],
+          [
+            322.53,
+            252.46
+          ]
+        ],
+        "knee": [
+          292.67,
+          315.66
+        ],
+        "sole": [
+          309.73,
+          375.98
+        ],
+        "soleY": 375.98,
+        "ankleLine": 345.82,
+        "nearElbow": [
+          264.93,
+          281.19
+        ],
+        "cuffRadius": 12,
+        "forearm": "M266.71 293.71 L325.21 257.83 L327.90 249.78 L319.85 247.09 L255.99 272.24Z"
+      }
+    },
+    "longmama-v1": {
+      "side": {
+        "src": "/luma-office/luma-plugin-art/bedroom-seated/longmama-v1-side.88fb74d1d995.webp",
+        "sha256": "88fb74d1d995d7de3d6b47d822b633c25216a97d0fa06fd57af0bca283b32a08",
+        "look": "longmama-v1",
+        "cell": [
+          512,
+          512
+        ],
+        "count": 4,
+        "hip": [
+          218,
+          353
+        ],
+        "head": [
+          226.83,
+          194.79
+        ],
+        "headWidth": 128,
+        "headHeight": 96.3,
+        "palms": [
+          [
+            304.07,
+            259.45
+          ],
+          [
+            326.14,
+            278.71
+          ]
+        ],
+        "knee": [
+          304.07,
+          317.23
+        ],
+        "sole": [
+          323.93,
+          388.77
+        ],
+        "soleY": 388.77,
+        "ankleLine": 353.0,
+        "nearElbow": [
+          266.55,
+          289.72
+        ],
+        "cuffRadius": 12,
+        "forearm": "M264.80 302.25 L327.23 284.61 L332.04 277.62 L325.05 272.81 L260.44 278.65Z"
+      },
+      "quarter": {
+        "src": "/luma-office/luma-plugin-art/bedroom-seated/longmama-v1-quarter.8ab37aadd594.webp",
+        "sha256": "8ab37aadd59441bb5f720f8b3cda75e6e5d6cfcc0003d41698aed1a799a88328",
+        "look": "longmama-v1",
+        "cell": [
+          512,
+          512
+        ],
+        "count": 4,
+        "hip": [
+          218,
+          353
+        ],
+        "head": [
+          223.08,
+          194.91
+        ],
+        "headWidth": 128,
+        "headHeight": 94.59,
+        "palms": [
+          [
+            280.98,
+            255.71
+          ],
+          [
+            311.46,
+            263.82
+          ]
+        ],
+        "knee": [
+          289.11,
+          317.87
+        ],
+        "sole": [
+          297.24,
+          377.32
+        ],
+        "soleY": 377.32,
+        "ankleLine": 347.6,
+        "nearElbow": [
+          260.67,
+          285.44
+        ],
+        "cuffRadius": 12,
+        "forearm": "M261.69 298.05 L313.81 269.34 L316.98 261.47 L309.11 258.30 L252.29 275.97Z"
+      }
+    },
+    "lu-mi-base": {
+      "side": {
+        "src": "/luma-office/luma-plugin-art/bedroom-seated/lu-mi-base-side.f3157c6bfcdc.webp",
+        "sha256": "f3157c6bfcdc7c6bbd7c02a0b844ba66fd4cd47c3abcef2f5b8a72ae7585c62a",
+        "look": "lu-mi-base",
+        "cell": [
+          512,
+          512
+        ],
+        "count": 4,
+        "hip": [
+          218,
+          353
+        ],
+        "head": [
+          226.83,
+          198.1
+        ],
+        "headWidth": 128,
+        "headHeight": 92.11,
+        "palms": [
+          [
+            306.28,
+            263.69
+          ],
+          [
+            328.34,
+            283.22
+          ]
+        ],
+        "knee": [
+          308.48,
+          322.3
+        ],
+        "sole": [
+          330.55,
+          394.87
+        ],
+        "soleY": 394.87,
+        "ankleLine": 358.59,
+        "nearElbow": [
+          264.34,
+          294.39
+        ],
+        "cuffRadius": 12,
+        "forearm": "M262.46 306.90 L329.37 289.13 L334.25 282.19 L327.31 277.31 L258.34 283.26Z"
+      },
+      "quarter": {
+        "src": "/luma-office/luma-plugin-art/bedroom-seated/lu-mi-base-quarter.e3523dcc3d53.webp",
+        "sha256": "e3523dcc3d537b0aac9174c0b839cc5fecf1c56b8b46e680e30045613d0a143d",
+        "look": "lu-mi-base",
+        "cell": [
+          512,
+          512
+        ],
+        "count": 4,
+        "hip": [
+          218,
+          353
+        ],
+        "head": [
+          222.0,
+          192.59
+        ],
+        "headWidth": 128,
+        "headHeight": 106.94,
+        "palms": [
+          [
+            286.0,
+            257.32
+          ],
+          [
+            310.0,
+            260.13
+          ]
+        ],
+        "knee": [
+          290.0,
+          316.41
+        ],
+        "sole": [
+          302.0,
+          375.51
+        ],
+        "soleY": 375.51,
+        "ankleLine": 345.96,
+        "nearElbow": [
+          266.0,
+          288.27
+        ],
+        "cuffRadius": 12,
+        "forearm": "M269.10 300.53 L313.23 265.18 L315.05 256.90 L306.77 255.08 L256.16 280.32Z"
+      }
+    },
+    "lu-mi-v1": {
+      "side": {
+        "src": "/luma-office/luma-plugin-art/bedroom-seated/lu-mi-v1-side.7d7e3e6a5f99.webp",
+        "sha256": "7d7e3e6a5f99e42c28da8c57c18b82358ef5cd404b01dc64d2c697c253d82f40",
+        "look": "lu-mi-v1",
+        "cell": [
+          512,
+          512
+        ],
+        "count": 4,
+        "hip": [
+          218,
+          353
+        ],
+        "head": [
+          221.37,
+          196.69
+        ],
+        "headWidth": 128,
+        "headHeight": 94.9,
+        "palms": [
+          [
+            296.6,
+            260.89
+          ],
+          [
+            319.05,
+            283.22
+          ]
+        ],
+        "knee": [
+          305.58,
+          319.5
+        ],
+        "sole": [
+          325.79,
+          394.87
+        ],
+        "soleY": 394.87,
+        "ankleLine": 357.19,
+        "nearElbow": [
+          260.67,
+          286.01
+        ],
+        "cuffRadius": 12,
+        "forearm": "M257.25 298.19 L319.34 289.21 L325.04 282.93 L318.76 277.23 L256.10 274.21Z"
+      },
+      "quarter": {
+        "src": "/luma-office/luma-plugin-art/bedroom-seated/lu-mi-v1-quarter.26fed16c657b.webp",
+        "sha256": "26fed16c657be086472a18db4b3722f01eca4bbe4fc043351354cbf5d9391f23",
+        "look": "lu-mi-v1",
+        "cell": [
+          512,
+          512
+        ],
+        "count": 4,
+        "hip": [
+          218,
+          353
+        ],
+        "head": [
+          223.08,
+          195.11
+        ],
+        "headWidth": 128,
+        "headHeight": 107.19,
+        "palms": [
+          [
+            285.05,
+            251.6
+          ],
+          [
+            315.52,
+            260.3
+          ]
+        ],
+        "knee": [
+          293.17,
+          321.13
+        ],
+        "sole": [
+          295.21,
+          390.66
+        ],
+        "soleY": 390.66,
+        "ankleLine": 355.89,
+        "nearElbow": [
+          264.73,
+          292.16
+        ],
+        "cuffRadius": 12,
+        "forearm": "M267.72 304.45 L318.71 265.38 L320.60 257.11 L312.33 255.22 L254.96 284.12Z"
+      }
+    },
+    "shan-base": {
+      "side": {
+        "src": "/luma-office/luma-plugin-art/bedroom-seated/shan-base-side.76d4b623fc17.webp",
+        "sha256": "76d4b623fc17c78f21c52ffd8cafa455a10c480ba2049cd98e29c1ce31eb8cc6",
+        "look": "shan-base",
+        "cell": [
+          512,
+          512
+        ],
+        "count": 4,
+        "hip": [
+          218,
+          353
+        ],
+        "head": [
+          228.47,
+          193.37
+        ],
+        "headWidth": 128,
+        "headHeight": 94.26,
+        "palms": [
+          [
+            306.44,
+            261.78
+          ],
+          [
+            329.71,
+            280.03
+          ]
+        ],
+        "knee": [
+          308.76,
+          319.55
+        ],
+        "sole": [
+          329.71,
+          404.69
+        ],
+        "soleY": 404.69,
+        "ankleLine": 362.12,
+        "nearElbow": [
+          259.89,
+          289.15
+        ],
+        "cuffRadius": 12,
+        "forearm": "M257.48 301.57 L330.49 285.98 L335.66 279.25 L328.93 274.08 L254.37 277.77Z"
+      },
+      "quarter": {
+        "src": "/luma-office/luma-plugin-art/bedroom-seated/shan-base-quarter.2a4623b67455.webp",
+        "sha256": "2a4623b674559b9c06292146e20966b0f1679ed69596a19a9327b178182d10a7",
+        "look": "shan-base",
+        "cell": [
+          512,
+          512
+        ],
+        "count": 4,
+        "hip": [
+          218,
+          353
+        ],
+        "head": [
+          226.86,
+          200.98
+        ],
+        "headWidth": 128,
+        "headHeight": 114.36,
+        "palms": [
+          [
+            282.98,
+            258.16
+          ],
+          [
+            312.52,
+            263.74
+          ]
+        ],
+        "knee": [
+          290.86,
+          322.32
+        ],
+        "sole": [
+          308.58,
+          386.47
+        ],
+        "soleY": 386.47,
+        "ankleLine": 354.39,
+        "nearElbow": [
+          257.38,
+          288.85
+        ],
+        "cuffRadius": 12,
+        "forearm": "M258.71 301.43 L315.01 269.20 L317.98 261.25 L310.03 258.28 L248.77 279.59Z"
+      }
+    },
+    "shan-v1": {
+      "side": {
+        "src": "/luma-office/luma-plugin-art/bedroom-seated/shan-v1-side.14c793a7c7a7.webp",
+        "sha256": "14c793a7c7a7ff3bcfd4d1cd4baeb4d32ef236c2d8c72b8f19245901bfbca736",
+        "look": "shan-v1",
+        "cell": [
+          512,
+          512
+        ],
+        "count": 4,
+        "hip": [
+          218,
+          353
+        ],
+        "head": [
+          226.15,
+          190.45
+        ],
+        "headWidth": 128,
+        "headHeight": 98.69,
+        "palms": [
+          [
+            304.11,
+            257.21
+          ],
+          [
+            327.38,
+            280.43
+          ]
+        ],
+        "knee": [
+          308.76,
+          321.07
+        ],
+        "sole": [
+          327.38,
+          396.54
+        ],
+        "soleY": 396.54,
+        "ankleLine": 358.81,
+        "nearElbow": [
+          266.87,
+          283.33
+        ],
+        "cuffRadius": 12,
+        "forearm": "M263.45 295.51 L327.67 286.42 L333.37 280.14 L327.09 274.44 L262.30 271.54Z"
+      },
+      "quarter": {
+        "src": "/luma-office/luma-plugin-art/bedroom-seated/shan-v1-quarter.b7d021993eef.webp",
+        "sha256": "b7d021993eefa6b117ee3b81c741530cdc7228087156724f8c4226a9039258e6",
+        "look": "shan-v1",
+        "cell": [
+          512,
+          512
+        ],
+        "count": 4,
+        "hip": [
+          218,
+          353
+        ],
+        "head": [
+          224.49,
+          199.6
+        ],
+        "headWidth": 128,
+        "headHeight": 115.4,
+        "palms": [
+          [
+            286.64,
+            260.12
+          ],
+          [
+            307.04,
+            271.38
+          ]
+        ],
+        "knee": [
+          288.49,
+          324.85
+        ],
+        "sole": [
+          299.62,
+          386.78
+        ],
+        "soleY": 386.78,
+        "ankleLine": 355.81,
+        "nearElbow": [
+          256.96,
+          291.08
+        ],
+        "cuffRadius": 12,
+        "forearm": "M257.63 303.71 L309.24 276.96 L312.62 269.18 L304.84 265.80 L248.84 281.38Z"
+      }
+    }
+  },
+  "lighting": {
+    "classic": [
+      0.45,
+      0.45,
+      0.575
+    ],
+    "shan": [
+      0.8962,
+      0.8462,
+      0.9453
+    ],
+    "bai-shuangming": [
+      0.5754,
+      0.6117,
+      0.7387
+    ],
+    "lu-mi": [
+      0.6765,
+      0.7357,
+      0.8281
+    ],
+    "jingyuniang": [
+      0.45,
+      0.4768,
+      0.6174
+    ],
+    "longmama": [
+      0.5233,
+      0.5028,
+      0.581
+    ],
+    "claude": [
+      0.45,
+      0.45,
+      0.6667
+    ],
+    "gemini": [
+      0.45,
+      0.45,
+      0.4697
+    ],
+    "grok": [
+      0.5146,
+      0.45,
+      0.48
+    ],
+    "bedroom.shop.rose-sketchbook.v1": [
+      0.6531,
+      0.6133,
+      0.715
+    ],
+    "bedroom.shop.sapphire-music.v1": [
+      0.6667,
+      0.6831,
+      0.7987
+    ],
+    "bedroom.shop.alpine-library.v1": [
+      0.7077,
+      0.7062,
+      0.75
+    ],
+    "bedroom.shop.camellia-pavilion.v1": [
+      0.7393,
+      0.6647,
+      0.8112
+    ],
+    "bedroom.shop.blue-rose-gallery.v1": [
+      0.6851,
+      0.7206,
+      0.929
+    ],
+    "bedroom.shop.frostwing-glasshouse.v1": [
+      0.657,
+      0.6684,
+      0.7341
+    ]
+  },
+  "jointHeadWidths": {
+    "bedroom.shop.rose-sketchbook.v1": {
+      "shan-base": 137.252,
+      "bai-shuangming-base": 107.106,
+      "jingyuniang-base": 140.715,
+      "lu-mi-base": 133.059,
+      "lu-mi-v1": 117.879,
+      "shan-v1": 134.125,
+      "bai-shuangming-v1": 121.618,
+      "jingyuniang-v1": 141.625,
+      "longmama-base": 124.436,
+      "claude-base": 125.936,
+      "claude-v1": 134.082,
+      "gemini-v1": 142.47,
+      "grok-v1": 124.387,
+      "longmama-v1": 125.99
+    },
+    "bedroom.shop.alpine-library.v1": {
+      "jingyuniang-base": 130.869,
+      "bai-shuangming-base": 110.92,
+      "lu-mi-base": 123.63,
+      "lu-mi-v1": 132.915,
+      "bai-shuangming-v1": 112.859,
+      "jingyuniang-v1": 108.424,
+      "longmama-base": 115.018,
+      "longmama-v1": 127.341,
+      "claude-base": 131.778,
+      "claude-v1": 120.872,
+      "gemini-v1": 131.263,
+      "grok-v1": 121.099,
+      "shan-base": 118.415,
+      "shan-v1": 112.598
+    }
+  }
+}

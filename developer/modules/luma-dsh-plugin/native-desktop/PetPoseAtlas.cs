@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
 
@@ -8,52 +9,169 @@ public sealed class PetPoseStrip {
     public int[] cell,foot,grip,idleDurationsMs;
     public int columns,count,figureHeight;
     public int[][] eyes,faceOffsets;
+    public int[][][] idleEyes;
+    public PetGestureStrip gestures;
+    public PetLookStrip look;
+}
+public sealed class PetLookStrip {
+    public string path,eyesPath;
+    public int[] cell,foot,eyesCell,eyesOrigin;
+    public int figureHeight,columns,count,neutralIndex;
+    public double[] eyeCenter;
+}
+public sealed class PetGestureStrip {
+    public string path;
+    public int[] cell,foot;
+    public int columns,count,figureHeight;
+    public PetGestureAction[] actions;
+}
+public sealed class PetGestureAction {
+    public string id;
+    public int[] frames,durationsMs;
 }
 
-// Shared PNG rows: idle, lift, held, swing-left, swing-right, landing.
+// Rows 0..5 retain the original idle and drag/landing indices. Rows 6..7
+// continue the new idle cycle, with per-exposure gaze registration.
 // GDI+ can decode an entire PNG on every source-rectangle draw. Materialize
 // the cropped cells once so short pickup and landing frames survive at 25 Hz.
 internal sealed class PetPoseAtlas : IDisposable {
     public const int LiftMs=220, LandMs=400;
     public readonly PetPoseStrip Metadata;
-    readonly Bitmap[] cells=new Bitmap[48];
-    readonly PetFace[] faces=new PetFace[8];
+    readonly Bitmap[] cells;
+    readonly PetFace[] faces;
+    readonly int[] gestureMs=new int[2];
+    readonly int lookFirst;
+    Bitmap eyeSheet,composite;
+    int cachedHead=-1,cachedEyes=-1;
 
     public PetPoseAtlas(PetPoseStrip data) {
         if(data==null || data.cell==null || data.cell.Length!=2 || data.cell[0]<=0 || data.cell[1]<=0 ||
            data.foot==null || data.foot.Length!=2 || data.grip==null || data.grip.Length!=2 ||
-           data.columns!=8 || data.count!=48 || data.figureHeight<=0)
+           data.columns!=8 || (data.count!=48 && data.count!=64) || data.figureHeight<=0)
             throw new InvalidDataException("Incomplete desktop pose atlas");
         Metadata=data;
-        if(data.idleDurationsMs==null || data.idleDurationsMs.Length!=8 || Array.Exists(data.idleDurationsMs,v=>v<=0))
+        if(data.idleDurationsMs==null || data.idleDurationsMs.Length!=data.count-40 || Array.Exists(data.idleDurationsMs,v=>v<=0))
             throw new InvalidDataException("Invalid desktop idle timing");
-        try{
-            using(var source=new Bitmap(data.path)){
-                if(source.Width!=data.cell[0]*data.columns || source.Height!=data.cell[1]*(data.count/data.columns))
-                    throw new InvalidDataException("Mismatched desktop pose atlas");
-                using(var sheet=new Bitmap(source.Width,source.Height,PixelFormat.Format32bppPArgb)){
-                    using(var g=Graphics.FromImage(sheet))g.DrawImageUnscaled(source,Point.Empty);
-                    for(int i=0;i<cells.Length;i++){
-                        var rect=new Rectangle(i%data.columns*data.cell[0],i/data.columns*data.cell[1],data.cell[0],data.cell[1]);
-                        cells[i]=sheet.Clone(rect,PixelFormat.Format32bppPArgb);
-                    }
-                }
+        if(data.idleEyes!=null && data.idleEyes.Length!=data.idleDurationsMs.Length)
+            throw new InvalidDataException("Mismatched idle-eye registration");
+        foreach(int hold in data.idleDurationsMs)IdleCycleMs+=hold;
+        var extra=data.gestures;
+        if(extra!=null){
+            if(extra.cell==null || extra.cell.Length!=2 || extra.cell[0]!=data.cell[0] || extra.cell[1]!=data.cell[1] ||
+                extra.foot==null || extra.foot.Length!=2 || extra.figureHeight<=0 ||
+                extra.count!=16 || extra.columns!=8 || extra.actions==null || extra.actions.Length!=2)
+                throw new InvalidDataException("Invalid desktop gesture atlas");
+            for(int i=0;i<2;i++){
+                var action=extra.actions[i];
+                if(action==null || String.IsNullOrEmpty(action.id) || action.frames==null || action.frames.Length==0 ||
+                    action.durationsMs==null || action.frames.Length!=action.durationsMs.Length ||
+                    Array.Exists(action.frames,v=>v<0 || v>=extra.count) || Array.Exists(action.durationsMs,v=>v<=0))
+                    throw new InvalidDataException("Invalid desktop gesture timeline");
+                foreach(int ms in action.durationsMs)gestureMs[i]=checked(gestureMs[i]+ms);
             }
-            for(int i=0;i<faces.Length;i++)
-                faces[i]=new PetFace(cells[i],data.eyes,data.faceOffsets!=null && i<data.faceOffsets.Length?data.faceOffsets[i]:null);
+        }
+        lookFirst=data.count+(extra==null?0:extra.count);
+        var look=data.look;
+        if(look!=null && (look.count!=25 || look.columns!=5 || look.neutralIndex!=12 ||
+           look.figureHeight!=data.figureHeight || look.cell==null || look.cell.Length!=2 ||
+           look.cell[0]!=data.cell[0] || look.cell[1]!=data.cell[1] || look.foot==null || look.foot.Length!=2 ||
+           look.foot[0]!=data.foot[0] || look.foot[1]!=data.foot[1] || look.eyeCenter==null ||
+           look.eyeCenter.Length!=2 || look.eyesOrigin==null || look.eyesOrigin.Length!=2 || look.eyesCell==null ||
+           look.eyesCell.Length!=2 || look.eyesCell[0]<=0 || look.eyesCell[1]<=0))
+            throw new InvalidDataException("Invalid desktop gaze registration");
+        cells=new Bitmap[lookFirst+(look==null?0:look.count)];
+        faces=new PetFace[cells.Length];
+        try{
+            ReadCells(data.path,0,data.count,data.columns,data.cell);
+            if(extra!=null)ReadCells(extra.path,data.count,extra.count,extra.columns,extra.cell);
+            if(look!=null){
+                ReadCells(look.path,lookFirst,look.count,look.columns,look.cell);
+                using(var source=new Bitmap(look.eyesPath)){
+                    if(source.Width!=25*look.eyesCell[0] || source.Height!=25*look.eyesCell[1])
+                        throw new InvalidDataException("Mismatched desktop gaze overlays");
+                    eyeSheet=new Bitmap(source.Width,source.Height,PixelFormat.Format32bppPArgb);
+                    using(var g=Graphics.FromImage(eyeSheet))g.DrawImageUnscaled(source,Point.Empty);
+                }
+                composite=new Bitmap(look.cell[0],look.cell[1],PixelFormat.Format32bppPArgb);
+            }
+            for(int i=0;i<data.idleDurationsMs.Length;i++){
+                int index=IdleIndex(i);
+                var marks=data.idleEyes!=null?data.idleEyes[i]:data.eyes;
+                var offset=data.idleEyes==null && data.faceOffsets!=null && i<data.faceOffsets.Length?data.faceOffsets[i]:null;
+                faces[index]=new PetFace(cells[index],marks,offset);
+            }
         }catch{Dispose();throw;}
     }
+    void ReadCells(string path,int first,int count,int columns,int[] cell){
+        using(var source=new Bitmap(path)){
+            if(source.Width!=cell[0]*columns || source.Height!=cell[1]*(count/columns))
+                throw new InvalidDataException("Mismatched desktop pose atlas");
+            using(var sheet=new Bitmap(source.Width,source.Height,PixelFormat.Format32bppPArgb)){
+                using(var g=Graphics.FromImage(sheet))g.DrawImageUnscaled(source,Point.Empty);
+                for(int i=0;i<count;i++){
+                    var rect=new Rectangle(i%columns*cell[0],i/columns*cell[1],cell[0],cell[1]);
+                    cells[first+i]=sheet.Clone(rect,PixelFormat.Format32bppPArgb);
+                }
+            }
+        }
+    }
+    public static int IdleIndex(int ordinal){return ordinal<8?ordinal:ordinal+40;}
     public Bitmap Frame(int index){return cells[index];}
+    public Bitmap LookFrame(int head,int eyes){
+        var body=cells[lookFirst+head];
+        if(head==eyes)return body;
+        if(cachedHead==head && cachedEyes==eyes)return composite;
+        var look=Metadata.look;
+        int w=look.eyesCell[0],h=look.eyesCell[1];
+        using(var g=Graphics.FromImage(composite)){
+            g.CompositingMode=CompositingMode.SourceCopy;
+            g.DrawImageUnscaled(body,Point.Empty);
+            g.CompositingMode=CompositingMode.SourceOver;
+            g.InterpolationMode=InterpolationMode.NearestNeighbor;
+            g.PixelOffsetMode=PixelOffsetMode.Half;
+            var dest=new Rectangle(look.eyesOrigin[0],look.eyesOrigin[1],w,h);
+            g.DrawImage(eyeSheet,dest,eyes*w,head*h,w,h,GraphicsUnit.Pixel);
+        }
+        cachedHead=head;cachedEyes=eyes;
+        return composite;
+    }
     public PetFace Face(int frame){return faces[frame];}
+    public static int IdleDelay(string id){
+        uint hash=0;
+        foreach(char c in id)hash=unchecked(hash*31+c);
+        return (int)(hash%811);
+    }
+    public readonly int IdleCycleMs;
+    public int GestureDuration(int action){return gestureMs[action];}
+    // One breathing cycle separates every gesture. Returning the next action
+    // allows a pickup or costume change to interrupt without replaying it.
+    public int StandingFrame(long elapsed,int first,out int next){
+        next=first;
+        if(Metadata.gestures==null || elapsed<IdleCycleMs)return IdleFrame(elapsed);
+        long pair=2L*IdleCycleMs+gestureMs[0]+gestureMs[1];
+        long ms=elapsed%pair;
+        for(int i=0;i<2;i++){
+            if(ms<IdleCycleMs)return IdleFrame(ms);
+            ms-=IdleCycleMs;
+            int index=(first+i)%2;
+            next=1-index;
+            var action=Metadata.gestures.actions[index];
+            if(ms<gestureMs[index]){
+                for(int j=0;j<action.frames.Length;j++){
+                    if(ms<action.durationsMs[j])return Metadata.count+action.frames[j];
+                    ms-=action.durationsMs[j];
+                }
+            }else ms-=gestureMs[index];
+        }
+        return 0;
+    }
     public int IdleFrame(long elapsed){
-        int total=0;
-        foreach(int hold in Metadata.idleDurationsMs)total+=hold;
-        long ms=Math.Max(0,elapsed)%total;
-        for(int i=0;i<7;i++){
-            if(ms<Metadata.idleDurationsMs[i])return i;
+        long ms=Math.Max(0,elapsed)%IdleCycleMs;
+        for(int i=0;i<Metadata.idleDurationsMs.Length;i++){
+            if(ms<Metadata.idleDurationsMs[i])return IdleIndex(i);
             ms-=Metadata.idleDurationsMs[i];
         }
-        return 7;
+        return 0;
     }
     public static int DragFrame(long elapsed,double x,double y,bool quiet){
         if(quiet)return 16;
@@ -77,6 +195,44 @@ internal sealed class PetPoseAtlas : IDisposable {
     }
     public void Dispose(){
         foreach(var cell in cells)if(cell!=null)cell.Dispose();
+        if(eyeSheet!=null)eyeSheet.Dispose();
+        if(composite!=null)composite.Dispose();
+    }
+}
+
+internal sealed class PetDropAttention {
+    const int FollowMs=2450;
+    public const int DurationMs=FollowMs+480;
+    long start=-1,previous;
+    public bool Active {get{return start>=0;}}
+    double eyeX,eyeY,headX,headY;
+    public int Head {get;private set;}
+    public int Eyes {get;private set;}
+    public void Start(long afterLanding){
+        previous=start=afterLanding;
+        eyeX=eyeY=headX=headY=0;
+        Head=Eyes=12;
+    }
+    public void Stop(){start=-1;}
+    static double Clamp(double x){return Math.Max(-1,Math.Min(1,x));}
+    static int Index(double x,double y){
+        return (int)Math.Floor((Clamp(y)+1)*2+.5)*5+(int)Math.Floor((Clamp(x)+1)*2+.5);
+    }
+    public bool Sample(long now,double pointerX,double pointerY){
+        if(start<0 || now<start)return false;
+        long age=now-start;
+        if(age>=DurationMs){Stop();return false;}
+        double dt=Math.Max(0,now-previous);previous=now;
+        bool returning=age>=FollowMs;
+        double x=returning?0:Clamp(pointerX),y=returning?0:Clamp(pointerY);
+        double eyeStep=1-Math.Exp(-dt/(returning?145:55));
+        // The gaze finds its target first. The head starts 90 ms after touchdown.
+        double headDt=Math.Min(dt,Math.Max(0,age-90));
+        double headStep=1-Math.Exp(-headDt/(returning?145:165));
+        eyeX+=(x-eyeX)*eyeStep;eyeY+=(y-eyeY)*eyeStep;
+        headX+=(x-headX)*headStep;headY+=(y-headY)*headStep;
+        Eyes=Index(eyeX,eyeY);Head=Index(headX,headY);
+        return true;
     }
 }
 

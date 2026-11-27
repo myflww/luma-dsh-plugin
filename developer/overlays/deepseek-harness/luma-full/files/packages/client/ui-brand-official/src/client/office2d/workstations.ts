@@ -58,10 +58,9 @@ const workstation = (input: WorkstationInput): OfficeWorkstation => Object.freez
 
 /**
  * Single nine-seat catalog shared by scene geometry and Harness projections.
- * Central desks face away from the camera, including the ends of each curved
- * bank. Their left/right position is not a side-facing body direction. The
- * existing backLeft/backRight art is a near profile and must not be selected
- * merely because a desk is on that side of the room.
+ * The legacy fallback uses the broad facing groups below. The painted desk
+ * renderer registers the actual screen and keyboard of each seat separately,
+ * including shallow turns along the two curved banks.
  */
 export const OFFICE_WORKSTATION_DIRECTORY = Object.freeze([
   workstation({

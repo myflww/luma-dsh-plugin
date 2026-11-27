@@ -10,7 +10,8 @@ export interface ActorPoseAtlas {
   readonly foot: readonly [number, number]
   readonly grip: readonly [number, number]
   readonly eyes: readonly (readonly [number, number, number, number])[]
-  readonly faceOffsets: readonly (readonly [number, number])[]
+  readonly faceOffsets?: readonly (readonly [number, number])[]
+  readonly idleEyes?: readonly (readonly (readonly [number, number, number, number])[])[]
   readonly idleDurationsMs: readonly number[]
 }
 

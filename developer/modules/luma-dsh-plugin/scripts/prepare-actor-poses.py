@@ -1,8 +1,8 @@
 """Register complete, independently illustrated poses and articulate their hinges.
 
-The head, torso and clothes are never flow-interpolated. Each moving part is a
-painted cutout rotated about its own pivot. Each drawing's scale is calibrated
-from the character's eyes, independently of bent legs and dangling shoes.
+Idle poses use calibrated eyes, hands and fixed sole pixels. Pickup, suspension
+and landing use separately painted keys registered by eye spacing, with
+articulated cutouts for the sleeves, hair, shins and shoes.
 """
 from __future__ import annotations
 
@@ -20,44 +20,16 @@ import cv2
 import numpy as np
 from PIL import Image
 
+from standing_motion import make_idle
+
 ROOT = Path(__file__).resolve().parents[1]
 OFFICE = ROOT.parents[1] / 'overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d'
 SOURCE = ROOT / 'art/actor-poses-keys'
 ART = Path('luma-office/luma-plugin-art/actor-poses')
 W, H = 384, 336
 SOLE = 299
-IDLE_TIMING = [650, 400, 420, 120, 135, 265, 570, 640]
-
-# Eye landmarks and right/left legs' common seam on the original 288px working
-# board. The source portrait is retained whole, including eyelids and cheeks.
-NEUTRAL = {
-    'bai-shuangming-base': ((122,122),(156,127),141,240),
-    'bai-shuangming-v1': ((130,121),(164,114),149,237),
-    'claude-base': ((126,112),(161,105),143,245),
-    'claude-v1': ((129,114),(165,107),145,219),
-    'gemini-v1': ((125,130),(157,128),142,247),
-    'grok-v1': ((130,121),(163,125),143,241),
-    'jingyuniang-base': ((132,137),(166,132),144,246),
-    'jingyuniang-v1': ((130,121),(162,115),149,241),
-    'longmama-base': ((125,119),(160,125),143,245),
-    'longmama-v1': ((127,119),(162,123),143,246),
-    'lu-mi-base': ((133,130),(166,127),146,252),
-    'lu-mi-v1': ((130,119),(162,125),140,230),
-    'shan-base': ((126,125),(163,134),138,237),
-    'shan-v1': ((129,120),(164,126),142,242),
-}
-
-# Shoulder and palm centers from the original standing portraits. All endpoints
-# are in the same board coordinates as NEUTRAL; gestures follow the painted arm.
-STANDING_ARMS = {
-    'bai-shuangming-base': ((151,151),(195,212)), 'bai-shuangming-v1': ((159,148),(198,187)),
-    'claude-base': ((155,145),(189,190)), 'claude-v1': ((159,143),(195,198)),
-    'gemini-v1': ((157,149),(187,203)), 'grok-v1': ((156,148),(196,201)),
-    'jingyuniang-base': ((160,158),(205,213)), 'jingyuniang-v1': ((157,143),(197,191)),
-    'longmama-base': ((157,154),(195,201)), 'longmama-v1': ((125,148),(97,199)),
-    'lu-mi-base': ((160,152),(202,212)), 'lu-mi-v1': ((152,148),(186,202)),
-    'shan-base': ((125,156),(114,158)), 'shan-v1': ((154,155),(163,157)),
-}
+# Measurement board is 384 x 336 with the complete silhouette fit to 256 px.
+STANDING_MARKS = json.loads((SOURCE/'standing'/'landmarks.json').read_text(encoding='utf8'))
 
 
 def save_atomic(path, data):
@@ -267,24 +239,9 @@ class ArticulatedDrawing:
 
 
 def neutral_stance(key):
-    src=np.array(Image.open(ROOT/'native-desktop/pet-art/greet'/(key+'.png')).convert('RGBA'))
-    # Calibrate before removing backing, since the portrait's board alignment
-    # is also used by the hand-marked eye metadata.
-    mat=rectified(src,(192,44))
-    raw=transform(premult(clean_soft_backing(src)), mat)
-    rig=NEUTRAL[key]
-    seam,root=rig[2]+48,rig[3]
-    masks=[]; limbs=[]; feet=[]
-    for side in (-1,1):
-        lo,hi=(seam-36,seam) if side<0 else (seam,seam+36)
-        mask=polygon_mask([(lo,root),(hi-1,root),(hi-1,313),(lo,313)])
-        masks.append(mask);limbs.append(raw*mask[:,:,None])
-        y,x=np.where((raw[:,:,3]>.40)&(mask>.8)&(np.indices(mask.shape)[0]>265))
-        feet.append(int(y.max()))
-    back=raw*(1-np.maximum(*masks)[:,:,None])
-    for side,leg,sole in zip((-1,1),limbs,feet):
-        back=over(shift(leg, side*4, SOLE-sole), back)
-    return back, [[rig[0][0]+48,rig[0][1]],[rig[1][0]+48,rig[1][1]]]
+    src=np.array(Image.open(SOURCE/'standing'/(key+'.png')).convert('RGBA'))
+    mat=rectified(src,(W/2,44))
+    return transform(premult(src),mat), STANDING_MARKS[key]['eyes']
 
 
 def protect_face(eyes):
@@ -325,13 +282,7 @@ def outer_lock(art, eyes, side):
 
 
 def standing_layers(neutral, key, eyes):
-    shoulder, palm=(np.array(p, dtype=float)+[48,0] for p in STANDING_ARMS[key])
-    delta=palm-shoulder
-    if np.linalg.norm(delta)<17:
-        elbow=palm+[4,15]
-    else:
-        elbow=shoulder+.53*delta+[-np.sign(delta[0])*2,4]
-    parts=[forearm(elbow,palm,8,6)]
+    parts=[]
     tip=outer_lock(neutral,eyes,1 if key=='longmama-v1' else -1)
     if tip:
         parts.append(tip)
@@ -394,16 +345,13 @@ def swing_hips(drawing, waist, angle):
     return cv2.remap(drawing,wx+c*(x-wx)-s*(y-wy),wy+s*(x-wx)+c*(y-wy),cv2.INTER_LINEAR)
 
 
-def frame_sequences(neutral, caught, held, crouch, eyes):
-    hand=[0,.30,.71,1,.82,.38,-.16,-.09]
-    hair=[0,-.06,.18,.55,.86,.75,.31,.06]
-    idle=[neutral.frame({'arm':arm,'tip':tip}) for arm,tip in zip(hand,hair)]
-    brace=neutral.frame({'arm':-1.2,'tip':-.30})
+def frame_sequences(neutral, caught, held, crouch, eyes, idle):
+    brace=neutral.frame({'tip':-.30})
     # One relaxed hang and seven vertical reactions. Upward travel leaves the
     # shoes behind; a quick downward movement lifts and folds both knees.
     vertical=[0,-.30,-.64,-1,.25,.52,.78,1]
     rising=[held.frame({},vertical=v) for v in vertical]
-    rows=[idle,[neutral.src,bend_knees(brace,2),caught,shift(caught,0,-3),
+    rows=[idle[:8],[neutral.src,bend_knees(brace,2),caught,shift(caught,0,-3),
                 shift(caught,0,-6),rising[2],rising[1],held.src],rising]
     for side in (-1,1):
         # Cardinal and diagonal reactions use the same painted hinges. When
@@ -415,7 +363,7 @@ def frame_sequences(neutral, caught, held, crouch, eyes):
                                           vertical=y),waist,side*x*7.5) for x,y in reactions])
     rows.append([held.src,rising[3],bend_knees(crouch,-5),bend_knees(crouch,4),
                  crouch,bend_knees(crouch,-7),bend_knees(brace,3),neutral.src])
-    return rows
+    return rows+[idle[8:16],idle[16:]]
 
 
 def make_actor(key, entry, path):
@@ -426,11 +374,15 @@ def make_actor(key, entry, path):
     parts=held_layers(entry,regs[1],held,eyes)
     layered=ArticulatedDrawing(held, parts, protect_face(eyes))
     standing=standing_layers(neutral,key,eyes)
-    return frame_sequences(standing,caught,layered,crouch,eyes),eyes,regs
+    marks=STANDING_MARKS[key]
+    idle,eye_frames,durations=make_idle(key,neutral,eyes,marks['hands'],marks['mouth'],[0,1])
+    _,ground_x=np.where(neutral[SOLE-3:SOLE+1,:,3]>.55)
+    foot_x=int(np.median(ground_x))
+    return frame_sequences(standing,caught,layered,crouch,eyes,idle),eye_frames,durations,foot_x
 
 
 def export_png(frames):
-    atlas=Image.new('RGBA',(W*8,H*6))
+    atlas=Image.new('RGBA',(W*8,H*len(frames)))
     for r,row in enumerate(frames):
         for c,frame in enumerate(row):
             drawn=as_image(frame)
@@ -442,44 +394,34 @@ def export_png(frames):
     return stream.getvalue()
 
 
-def active_eyes(key, eyes):
-    if key in ('claude-base','gemini-v1'):
-        # The original Claude smile closes both eyes; Gemini wears a visor.
-        return []
-    if key.startswith('longmama-'):
-        eyes=eyes[1:]  # her standing portrait winks its left eye
-    return [[int(x),int(y),9,8] for x,y in eyes]
-
-
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--only',choices=NEUTRAL,help='Export a single preview without changing manifests')
+    parser.add_argument('--only',choices=STANDING_MARKS,help='Export a single preview without changing manifests')
     parser.add_argument('--output',type=Path,help='PNG destination for --only')
     args=parser.parse_args()
     entries=json.loads((SOURCE/'landmarks.json').read_text(encoding='utf-8-sig'))
-    if set(entries)!=set(NEUTRAL):
+    if set(entries)!=set(STANDING_MARKS):
         raise ValueError('Every costume must have its own plate landmarks')
     if args.only:
         if args.output is None:
             parser.error('--only requires --output')
-        frames,_,_=make_actor(args.only,entries[args.only],SOURCE/(args.only+'.png'))
+        frames,_,_,_=make_actor(args.only,entries[args.only],SOURCE/(args.only+'.png'))
         save_atomic(args.output,export_png(frames))
         return
     art_manifest=[]
     metadata={}
-    for key in sorted(NEUTRAL):
+    for key in sorted(STANDING_MARKS):
         path=SOURCE/(key+'.png')
-        frames,eyes,_=make_actor(key,entries[key],path)
+        frames,eye_frames,durations,foot_x=make_actor(key,entries[key],path)
         data=export_png(frames)
         digest=sha256(data).hexdigest()
         rel=(ART/(key+'.'+digest[:12]+'.png')).as_posix()
         for directory in (ROOT/'art/release-assets',ROOT/'public'):
             save_atomic(directory/rel,data)
         art_manifest.append({'path':rel,'sha256':digest,'bytes':len(data)})
-        metadata[key]={'src':'/'+rel,'sha256':digest,'cell':[W,H],'columns':8,'count':48,
-                       'figureHeight':256,'foot':[192,300],'grip':[192,60],
-                       'eyes':active_eyes(key,eyes),'idleDurationsMs':IDLE_TIMING,
-                       'faceOffsets':[[0,0]]*8}
+        metadata[key]={'src':'/'+rel,'sha256':digest,'cell':[W,H],'columns':8,'count':64,
+                       'figureHeight':256,'foot':[foot_x,300],'grip':[192,60],
+                       'eyes':eye_frames[0],'idleDurationsMs':durations,'idleEyes':eye_frames}
         print(key,flush=True)
     manifest=ROOT/'lib/asset-manifest.json'
     old=json.loads(manifest.read_text(encoding='utf8'))

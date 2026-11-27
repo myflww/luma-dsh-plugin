@@ -5,7 +5,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 import { createOfficeClockPolicy } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/office-time/domain/timePolicy.ts'
 
 interface Strip { path:string;gaitPath:string;frameWidth:number;frameHeight:number;frameCount:number;frameDurationsMs?:number[] }
-interface PoseStrip { path:string;cell:number[];count:number;columns:number;foot:number[];grip:number[];figureHeight:number;eyes:number[][];idleDurationsMs:number[] }
+interface PoseStrip { path:string;cell:number[];count:number;columns:number;foot:number[];grip:number[];figureHeight:number;eyes:number[][];idleDurationsMs:number[];gestures?:{path:string};look?:{path:string;eyesPath:string} }
 declare const __LUMA_PET_ART__: Record<string,{strips:Record<string,Strip>;poses:PoseStrip;sleep:string;sleepMirror:boolean;sleepAngle:number}>
 export type DesktopPetCalendar=Pick<NonNullable<Parameters<typeof createOfficeClockPolicy>[0]>,'calendar'|'officialCalendarCache'>
 export function desktopPetPeriod(date=new Date(), calendar:DesktopPetCalendar={}) {
@@ -32,7 +32,9 @@ export function desktopPets(directory:string, unlocked:()=>readonly string[], sk
     const assetPath=(p:string)=>join(directory,'../public',p)
     return {skinId:selected, strips:Object.fromEntries(Object.entries(source.strips).map(([dir,strip])=>
       [dir,{...strip,path:assetPath(strip.path),gaitPath:assetPath(strip.gaitPath)}])),
-      poses:{...source.poses,path:assetPath(source.poses.path)},
+      poses:{...source.poses,path:assetPath(source.poses.path),gestures:source.poses.gestures && {
+        ...source.poses.gestures,path:assetPath(source.poses.gestures.path)},look:source.poses.look && {
+        ...source.poses.look,path:assetPath(source.poses.look.path),eyesPath:assetPath(source.poses.look.eyesPath)}},
       sleep:assetPath(source.sleep),sleepAngle:source.sleepAngle,sleepMirror:source.sleepMirror,
       peek:join(directory,'pet-art',key+'.png'),ledge:join(directory,'pet-art','ledge',key+'.png'),
       sleepyPose:join(directory,'pet-art','drowsy',key+'.png'),greet:join(directory,'pet-art','greet',key+'.png'),

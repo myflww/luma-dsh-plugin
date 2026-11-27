@@ -4,6 +4,7 @@ import { afterEach, expect, it, vi } from 'vitest'
 import { initialRuntime } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/officeSceneActorRuntime.ts'
 import { OFFICE_SEAT_BOXES } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/officeSceneSeatTargets.ts'
 import { useOfficeSceneInteractions } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/useOfficeSceneInteractions.ts'
+import { PostDropLook } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/postDropLook.ts'
 import { uncrowdedFloorPoint } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/scenePlacement.ts'
 import { findOfficeDropFloor, findWorkstationRouteFromPoint, isOfficeFootAnchorBlocked, OFFICE_NAV_ACTION_POINTS, OFFICE_WORKSTATION_APPROACHES } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/navigation.ts'
 import { officeEmployeeAction } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/actorPortraitActivation.ts'
@@ -44,18 +45,19 @@ it('restores the pre-drag character when an asynchronous seat write fails',async
   canvas.remove()
 })
 
-it.each([true,false])('settles at pointerup even when moves are coalesced (intermediate move=%s)',intermediate=>{
-  const {employee,view,canvas,pointer,actorRef,open}=fixture(false,'contact')
+it.each([[true,'mouse'],[false,'mouse'],[true,'touch'],[false,'pen']] as const)('settles at pointerup and only watches a mouse (intermediate move=%s, input=%s)',(intermediate,input)=>{
+  const {employee,view,canvas,pointer,actorRef,open,look}=fixture(false,'contact')
   const start=actorRef.current.shan.position
   const stops=OFFICE_NAV_ACTION_POINTS.filter(p=>!isOfficeFootAnchorBlocked([p.x,p.y]) && !OFFICE_SEAT_BOXES.some(b=>p.x>=b.x && p.x<=b.x+b.width && p.y>=b.y && p.y<=b.y+b.height))
   const first=stops[0]!, last=stops.at(-1)!
   expect(first.id).not.toEqual(last.id)
   act(()=>{
-    view.result.current.startActorDrag(pointer(start.x,start.y,'pointerdown'),employee)
-    if(intermediate)view.result.current.moveActorDrag(pointer(first.x,first.y,'pointermove'))
-    view.result.current.finishActorDrag(pointer(last.x,last.y,'pointerup'))
+    view.result.current.startActorDrag(pointer(start.x,start.y,'pointerdown',input),employee)
+    if(intermediate)view.result.current.moveActorDrag(pointer(first.x,first.y,'pointermove',input))
+    view.result.current.finishActorDrag(pointer(last.x,last.y,'pointerup',input))
   })
   expect(actorRef.current.shan.position).toEqual({x:last.x,y:last.y})
+  expect(look.has('shan')).toBe(input==='mouse')
   expect(open).not.toHaveBeenCalled()
   canvas.remove()
 })
@@ -68,13 +70,14 @@ function fixture(working = false, destination:'workbench'|'contact'='workbench',
   const actor = initialRuntime('shan', 0, 0)
   const actorRef = { current: { shan: { ...actor, mode: working ? 'working' as const : 'idle' as const } } }
   const open = vi.fn(), bind = vi.fn(), pet = vi.fn()
+  const look=new PostDropLook()
   const view = renderHook(() => useOfficeSceneInteractions({ canvasRef: { current: canvas }, scrollerRef: { current: null },
-    actorRef, setActors: vi.fn(), officeBindingsRef: { current: [] }, presentationActive: true,
+    actorRef, setActors: vi.fn(), officeBindingsRef: { current: [] }, presentationActive: true,look,reducedMotion:false,
     closeActionMenu: vi.fn(), employeeDestination: destination, onDesktopPet: pet, onCharacterClick: open, onBindWorkstation: bind,paperPlanePick }))
-  function pointer(x: number, y: number, type: string) {
-    return { pointerId: 4, button: 0, isPrimary: true, currentTarget: canvas, clientX: x, clientY: y, stopPropagation() {}, type } as unknown as PointerEvent<HTMLButtonElement>
+  function pointer(x: number, y: number, type: string,pointerType='mouse') {
+    return { pointerId: 4, pointerType, button: 0, isPrimary: true, currentTarget: canvas, clientX: x, clientY: y, stopPropagation() {}, type } as unknown as PointerEvent<HTMLButtonElement>
   }
-  return { open, bind, pet, actorRef, actor, view, canvas, pointer, employee: { id: 'shan', name: '端木嫣', activity: '',
+  return { open, bind, pet, look, actorRef, actor, view, canvas, pointer, employee: { id: 'shan', name: '端木嫣', activity: '',
     availability: working ? 'working' as const : 'available' as const, sceneActivity: working ? 'working' as const : 'idle' as const, canDrag: !working } }
 }
 

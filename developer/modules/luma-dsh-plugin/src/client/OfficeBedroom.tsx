@@ -1,6 +1,8 @@
+import { IdleGestureSequence } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/idleGestures.ts'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { ActorMotionLayer } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/ActorMotionLayer.tsx'
-import { landingStartForRelease, type ActorMotion } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/actorMotion.ts'
+import { LANDING_MS, landingStartForRelease, type ActorMotion } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/actorMotion.ts'
+import { usePostDropLook } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/usePostDropLook.ts'
 import { getActorPoseAtlas } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/actorPoseAtlas.ts'
 import { standingFigureHeight } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/officeFigureScale.ts'
 import { PERSONAL_BEDROOMS } from './bedroom-personal-layouts.ts'
@@ -89,10 +91,12 @@ function walkingArt(id: ResidentId, skinId?:string) {
   return {catalog,durations,speeds}
 }
 
-function BedroomWalker({id,skinId,walk,point,direction,moving,elapsed,scale,paused,motion,landingStartedAt}:{
+function BedroomWalker({id,skinId,sequence,look,walk,point,direction,moving,elapsed,scale,paused,motion,landingStartedAt}:{
   id:ResidentId; skinId?:string | undefined; walk: ReturnType<typeof walkingArt>; point:Pair
   direction:OfficeWalkDirection; moving:boolean; elapsed:number; scale:number; paused:boolean; motion?:ActorMotion | undefined
   landingStartedAt?:number | undefined
+  sequence:IdleGestureSequence
+  look:ReturnType<typeof usePostDropLook>
 }) {
   const directionId=walk.catalog.walk[direction]
   const directionAtlas=getWalkAtlas(directionId)
@@ -114,7 +118,7 @@ function BedroomWalker({id,skinId,walk,point,direction,moving,elapsed,scale,paus
   return <g data-bedroom-pose={moving?'walking':'awake'} data-bedroom-direction={direction} data-bedroom-frame={frame} data-gait-frame={gait?.index}
       transform={`translate(${point[0]} ${point[1]})`}>
     <ellipse cx={0} cy={1} rx={width*(motion==='held'?.11:.14)} ry={width*.03} fill="#392f3b" opacity={motion==='held'?.1:.19}/>
-    {pose && failedPose!==pose.src && motion ? <ActorMotionLayer atlas={pose} id={id} motion={motion}
+    {pose && failedPose!==pose.src && motion ? <ActorMotionLayer atlas={pose} id={id} skinId={skinId} motion={motion} sequence={sequence} look={look}
       footX={point[0]} footY={point[1]} bodyHeight={bodyHeight} paused={paused} landingStartedAt={landingStartedAt}
       x={-pose.foot[0]*poseScale} y={-pose.foot[1]*poseScale}
       width={pose.cell[0]*poseScale} height={pose.cell[1]*poseScale}
@@ -134,7 +138,10 @@ export function OfficeBedroom({id,name,skinId,themeOwner,roomLayout,phase,bedtim
   onChat:()=>void; onOffice:()=>void; onAssign?:()=>void; hasInspector?:boolean
   fit?:boolean; actionsTarget?:HTMLElement|null; onDesktop?:boolean; onDesktopPet?:DesktopPetDrop|undefined
 }) {
+  const gestures=useMemo(()=>new IdleGestureSequence(),[id,skinId])
+  const look=usePostDropLook()
   const roomId=roomLayout ?? themeOwner ?? 'classic'
+  useEffect(()=>()=>look.cancel(id),[look,id,roomId,skinId])
   const room=getBedroomArt(roomId)
   const foregroundClip=useId()
   const foreground=Object.hasOwn(PERSONAL_BEDROOMS,roomId)?PERSONAL_BEDROOMS[roomId as keyof typeof PERSONAL_BEDROOMS].foreground:undefined
@@ -223,6 +230,9 @@ export function OfficeBedroom({id,name,skinId,themeOwner,roomLayout,phase,bedtim
   const returnTrip=visit && !visiting?visit.returnTrip:journey
   const detour=returnTrip && canInvite && sample<returnTrip.end ? bedroomDropFrame(returnTrip,sample) : null
   const pose=held ? 'idle' : !taskIdle ? 'computer' : detour ? detour.moving?'walk':'idle' : step.pose
+  useEffect(()=>{
+    if(!active || !atHome || reduceMotion || bedtime || !taskIdle || pose!=='idle') look.cancel(id)
+  },[look,id,active,atHome,reduceMotion,bedtime,taskIdle,pose])
   const onBed=pose==='phone' || pose==='recline' || pose==='get-up'
   const atDesk=pose==='computer' || pose==='sit' || pose==='rise'
   const elapsed=detour?.elapsed ?? Math.max(0,sample-step.start)
@@ -251,6 +261,7 @@ export function OfficeBedroom({id,name,skinId,themeOwner,roomLayout,phase,bedtim
   const invite=(target:BedroomFurniture)=>{
     const now=Date.now()
     if(!canInvite || document.hidden || held || (visit?.target===target && now<visit.leave)) return
+    look.cancel(id)
     const seated=onBed?{target:'bed' as const,contact}:atDesk?{target:'desk' as const,contact}:undefined
     setJourney(null)
     const from=onBed ? floor.bed : atDesk ? floor.desk : point
@@ -282,7 +293,7 @@ export function OfficeBedroom({id,name,skinId,themeOwner,roomLayout,phase,bedtim
       {atHome && <svg ref={layer} className="lumaBedroomResidentLayer" viewBox={`0 0 ${w} ${h}`} aria-hidden="true">
         {asleep && !held ? sleepingPose(bed,id,animate,skinId) : <g data-bedroom-action={pose}>
           {(!onBed && !atDesk || weight<1) && <g opacity={onBed || atDesk?1-weight:1}>
-            <BedroomWalker id={id} skinId={skinId} walk={walk} point={point}
+            <BedroomWalker id={id} skinId={skinId} sequence={gestures} look={look} walk={walk} point={point}
               motion={held ? 'held' : detour && !detour.moving && returnTrip===journey ? 'landing' : pose==='idle' ? 'idle' : undefined}
               landingStartedAt={lastDrop.current.landingStartedAt}
               direction={facing} elapsed={gaitTime} moving={pose==='walk' && animate} paused={!animate} scale={1}/>
@@ -310,6 +321,7 @@ export function OfficeBedroom({id,name,skinId,themeOwner,roomLayout,phase,bedtim
             if(!grip || grip.pointer!==event.pointerId) return
             if(grip.liftedAt===undefined) {
               if(Math.hypot(event.clientX-grip.start[0],event.clientY-grip.start[1])<7) return
+              look.cancel(id)
               grip.liftedAt=performance.now()
             }
             setHeld(draggedFoot(event,grip))
@@ -325,7 +337,9 @@ export function OfficeBedroom({id,name,skinId,themeOwner,roomLayout,phase,bedtim
             if(desktop){onDesktopPet?.(id,desktop);return}
             if(bedtime || !taskIdle || event.clientX<box.left || event.clientX>box.right || event.clientY<box.top || event.clientY>box.bottom) return
             const timestamp=Date.now()
-            lastDrop.current={facing:grip.facing,landingStartedAt:landingStartForRelease(performance.now(),grip.liftedAt)}
+            const landingStartedAt=landingStartForRelease(performance.now(),grip.liftedAt)
+            lastDrop.current={facing:grip.facing,landingStartedAt}
+            if(!reduceMotion && event.pointerType==='mouse') look.begin(id,event.clientX,event.clientY,landingStartedAt+LANDING_MS)
             setInvitation(null);setJourney(bedroomDropJourney(roomId,foot,routine,timestamp));setSample(timestamp)
           }}
           onPointerCancel={cancelGrab} onLostPointerCapture={cancelGrab}/>

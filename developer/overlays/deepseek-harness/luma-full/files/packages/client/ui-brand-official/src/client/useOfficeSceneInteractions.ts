@@ -1,7 +1,8 @@
 import type { Dispatch, MutableRefObject, KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent, SetStateAction } from 'react'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { advanceOfficeActorPortraitTap, type OfficeActorPortraitTap, type OfficeEmployeeDestination } from './office2d/actorPortraitActivation.ts'
-import { landingStartForRelease } from './office2d/actorMotion.ts'
+import { LANDING_MS, landingStartForRelease } from './office2d/actorMotion.ts'
+import type { PostDropLook } from './office2d/postDropLook.ts'
 import { desktopDropPoint, type DesktopPetDrop } from './office2d/scenePlacement.ts'
 import { OFFICE_NAV_HEIGHT, OFFICE_NAV_WIDTH, OFFICE_WORKSTATION_APPROACHES, findOfficeDropFloor } from './office2d/navigation.ts'
 import type { OfficeWorkstationId } from './office2d/workstationSeating.ts'
@@ -44,6 +45,8 @@ interface SeatDragState {
 
 
 interface OfficeSceneInteractionOptions {
+  readonly look: PostDropLook
+  readonly reducedMotion: boolean
   readonly canvasRef: Readonly<{ current: HTMLDivElement | null }>
   readonly scrollerRef: Readonly<{ current: HTMLDivElement | null }>
   readonly actorRef: MutableRefObject<Readonly<Record<string, ActorRuntime>>>
@@ -59,7 +62,7 @@ interface OfficeSceneInteractionOptions {
   readonly onBindWorkstation: ((employeeId: string, workstationId: OfficeWorkstationId) => void | Promise<unknown>) | undefined
 }
 /** One owner for pointer capture, cancel/restore, keyboard activation and seat drops. */
-export function useOfficeSceneInteractions({ canvasRef, scrollerRef, actorRef, setActors,
+export function useOfficeSceneInteractions({ canvasRef, scrollerRef, actorRef, setActors,look,reducedMotion,
   officeBindingsRef, presentationActive, closeActionMenu, onCharacterClick, paperPlanePick, onFloorDrop, onBindWorkstation, onDesktopPet, employeeDestination,
 }: OfficeSceneInteractionOptions) {
   const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -134,6 +137,7 @@ export function useOfficeSceneInteractions({ canvasRef, scrollerRef, actorRef, s
       try { captureTarget.setPointerCapture(pending.pointerId) }
       catch { pending.cancelled = true; return }
       pending.dragging = true
+      look.cancel(employee.id)
       pending.liftedAt = performance.now()
       pendingActorTapRef.current = null
       const next = { ...actorRef.current, [employee.id]: { ...liveActor, mode: 'drag' as const, route: null, trafficYield: null, waitStreak: 0 } }
@@ -147,7 +151,7 @@ export function useOfficeSceneInteractions({ canvasRef, scrollerRef, actorRef, s
       try { captureTarget.setPointerCapture(pending.pointerId) } catch { pending.cancelled = true; return }
     }
     holdTimerRef.current = setTimeout(pending.begin, OFFICE_ACTOR_HOLD_MS)
-  }, [employeeDestination])
+  }, [employeeDestination,look])
 
   const moveActorDrag = useCallback((event: Pick<ReactPointerEvent<HTMLElement>, 'pointerId' | 'clientX' | 'clientY' | 'stopPropagation'>) => {
     const drag = actorDragRef.current
@@ -187,7 +191,7 @@ export function useOfficeSceneInteractions({ canvasRef, scrollerRef, actorRef, s
     }
   }, [employeeDestination])
 
-  const finishActorDrag = useCallback((event: Pick<ReactPointerEvent<HTMLElement>, 'pointerId' | 'clientX' | 'clientY' | 'stopPropagation' | 'type'> & {screenX?:number; screenY?:number}) => {
+  const finishActorDrag = useCallback((event: Pick<ReactPointerEvent<HTMLElement>, 'pointerId' | 'clientX' | 'clientY' | 'stopPropagation' | 'type'> & {pointerType?:string;screenX?:number; screenY?:number}) => {
     const drag = actorDragRef.current
     if (!drag || drag.pointerId !== event.pointerId) return
     // Captured pointers can report a new position only with the release.
@@ -230,6 +234,7 @@ export function useOfficeSceneInteractions({ canvasRef, scrollerRef, actorRef, s
           .map(other=>[other.position.x,other.position.y])) : undefined
     const approach = workstationId && OFFICE_WORKSTATION_APPROACHES[workstationId].point
     const landedAt = landingStartForRelease(performance.now(), drag.liftedAt)
+    if(position && !reducedMotion && event.pointerType==='mouse')look.begin(drag.employeeId,event.clientX,event.clientY,landedAt+LANDING_MS)
     const next = {
       ...actorRef.current,
       [drag.employeeId]: approach ? {
@@ -265,7 +270,7 @@ export function useOfficeSceneInteractions({ canvasRef, scrollerRef, actorRef, s
         if(result===false) restore()
       },restore)
     } else if(freePlacement) onFloorDrop?.(drag.employeeId,!!position)
-  }, [moveActorDrag, onBindWorkstation, onDesktopPet, onFloorDrop, employeeDestination, registerActorTap])
+  }, [moveActorDrag, onBindWorkstation, onDesktopPet, onFloorDrop, employeeDestination, registerActorTap,look,reducedMotion])
 
   const startPan = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
     if (!presentationActiveRef.current || event.button !== 0 || (event.target instanceof Element && event.target.closest('button:not(.lumaOfficeEmployee)'))) return

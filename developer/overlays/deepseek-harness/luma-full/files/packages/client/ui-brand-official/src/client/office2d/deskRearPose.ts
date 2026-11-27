@@ -4,7 +4,9 @@ type Point=readonly [number,number]
 export interface DeskView {
   readonly hip:Point
   readonly head:Point
+  /** Projected keyboard contacts. A straight rear view can completely hide the wrists. */
   readonly palms:readonly [Point,Point]
+  readonly wristsOccluded?:boolean
   readonly forearm:string
   readonly nearElbow:Point
   readonly cuffRadius:number
@@ -32,6 +34,7 @@ interface DeskRearPose {
   readonly preferOblique:boolean
   readonly rear:DeskView
   readonly highOblique?:DeskView & {readonly src:string;readonly sha256:string}
+  readonly shallow?:DeskView
   readonly oblique:DeskView
 }
 

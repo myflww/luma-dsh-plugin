@@ -1,3 +1,4 @@
+import { gestureSequenceFor, type IdleGestureSequence } from './office2d/idleGestures.ts'
 import { ActorMotionLayer } from './ActorMotionLayer.tsx'
 import { LANDING_MS } from './office2d/actorMotion.ts'
 import { getActorPoseAtlas } from './office2d/actorPoseAtlas.ts'
@@ -67,6 +68,7 @@ import { OFFICE_SEAT_BOXES, type OfficeActorBinding } from './officeSceneSeatTar
 import { useOfficeAmbientViewportEligibility } from './useOfficeAmbientViewportEligibility.ts'
 import { hitOfficeActorAtPoint } from './officeActorHitTest.ts'
 import { useOfficeSceneInteractions } from './useOfficeSceneInteractions.ts'
+import { usePostDropLook } from './usePostDropLook.ts'
 import { OfficeSeatFeedback, useOfficeSeatFeedback } from './OfficeSeatFeedback.tsx'
 export type { ActorMode, ActorRuntime, OfficeSceneEmployee, OfficeSceneReport, OfficeSceneSurfaceProps, Point } from './OfficeSceneSurface.types.ts'
 export { advanceOfficeActorTrafficFrame, applyOfficeAutonomyDecision, canRenderOfficeActorOverlay, prepareActorRuntime, resolvePresentOfficeEmployeeIds, resolveVisibleOfficeMonitorIds } from './officeSceneActorRuntime.ts'
@@ -109,10 +111,13 @@ function ClassicOfficeSceneSurface({
   decorations,
   onAmbientEligibleChange,
   presentationActive = true,
-  reduceMotion: reduceMotionRequested = false,
+  reduceMotion: reducedMotion = false,
   seatReview,
 }: OfficeSceneSurfaceProps) {
   const scrollerRef = useRef<HTMLDivElement | null>(null)
+  const look=usePostDropLook()
+  useEffect(()=>()=>look.cancel(),[look,officeTheme])
+  useEffect(()=>{if(reducedMotion || !presentationActive)look.cancel()},[look,reducedMotion,presentationActive])
   const attachScroller = useCallback((element: HTMLDivElement | null) => {
     scrollerRef.current = element
     // Keep native inert behavior on both Harness React 18 and QA React 19.
@@ -137,6 +142,7 @@ function ClassicOfficeSceneSurface({
     if (!presentationActive || drawingPaused || seatReview) return
     setActionTarget({ employeeId: employee.id, name: employee.name, x: event.clientX, y: event.clientY })
   }
+  const gestureSequences=useRef(new Map<string,IdleGestureSequence>())
   const officeBindingsRef = useRef<readonly OfficeActorBinding[]>([])
   const employeeRef = useRef(employees)
   employeeRef.current = employees
@@ -172,11 +178,6 @@ function ClassicOfficeSceneSurface({
   const actorRef = useRef(actors)
   actorRef.current = actors
   const autonomyStateRef = useRef<Readonly<Record<string, OfficeAutonomyState>>>({})
-  const [systemReducedMotion, setSystemReducedMotion] = useState(() => typeof window !== 'undefined'
-    && (window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false))
-  const reducedMotion = reduceMotionRequested || systemReducedMotion
-  const reducedMotionRequestedRef = useRef(reduceMotionRequested)
-  reducedMotionRequestedRef.current = reduceMotionRequested
   const reducedMotionRef = useRef(reducedMotion)
   reducedMotionRef.current = reducedMotion
   const { lighting, lightingControllerRef } = useOfficeSceneLighting({ timePolicy, officeTheme, drawingPaused, reducedMotion })
@@ -216,20 +217,12 @@ function ClassicOfficeSceneSurface({
   }, [reports])
 
   useEffect(() => {
-    const media = window.matchMedia?.('(prefers-reduced-motion: reduce)')
-    const syncReducedMotion = () => {
-      reducedMotionRef.current = reducedMotionRequestedRef.current || (media?.matches ?? false)
-      setSystemReducedMotion(media?.matches ?? false)
-    }
-    syncReducedMotion()
-    media?.addEventListener?.('change', syncReducedMotion)
     const centered = requestSceneFrame(() => {
       const scroller = scrollerRef.current
       if (scroller) scroller.scrollLeft = Math.max(0, (scroller.scrollWidth - scroller.clientWidth) / 2)
     })
     return () => {
       cancelSceneFrame(centered)
-      media?.removeEventListener?.('change', syncReducedMotion)
     }
   }, [])
 
@@ -360,7 +353,7 @@ function ClassicOfficeSceneSurface({
   const seatFeedback=useOfficeSeatFeedback(employees,onBindWorkstation,officeTheme,presentationActive)
   const { seatDrag, actorDragRef, clearPendingActorTap, handleActorClick, startActorDrag,
     moveActorDrag, finishActorDrag, startPan, movePan, finishPan, onKeyDown } = useOfficeSceneInteractions({
-      canvasRef, scrollerRef, actorRef, setActors, officeBindingsRef, presentationActive,
+      canvasRef, scrollerRef, actorRef, setActors, officeBindingsRef, presentationActive,look,reducedMotion,
       closeActionMenu, onCharacterClick, paperPlanePick, onBindWorkstation:seatFeedback.bind, onFloorDrop:seatFeedback.floor, onDesktopPet, employeeDestination,
     })
 
@@ -611,7 +604,8 @@ function ClassicOfficeSceneSurface({
                     ? { transform: `translateY(-${walkRest.liftPercent ?? 0}%) scale(${walkRest.scale ?? 1})` }
                     : undefined}
                 >
-                  {pose && motion ? <ActorMotionLayer atlas={pose} id={employee.id} motion={motion}
+                  {pose && motion ? <ActorMotionLayer atlas={pose} id={employee.id} skinId={skinId} motion={motion} look={look}
+                    sequence={gestureSequenceFor(gestureSequences.current,pose.src)}
                     landingStartedAt={actor.landedAt}
                     footX={foot.x} footY={foot.y} bodyHeight={bodyHeight} paused={drawingPaused || reducedMotion}
                     asCanvas className="lumaOfficeArticulatedPose"
@@ -717,10 +711,20 @@ function ClassicOfficeSceneSurface({
 }
 
 export function OfficeSceneSurface(props: OfficeSceneSurfaceProps) {
+  const [systemReducedMotion,setSystemReducedMotion]=useState(() => typeof window !== 'undefined'
+    && (window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false))
+  useEffect(() => {
+    const media=window.matchMedia?.('(prefers-reduced-motion: reduce)')
+    const sync=()=>setSystemReducedMotion(media?.matches ?? false)
+    sync()
+    media?.addEventListener?.('change',sync)
+    return ()=>media?.removeEventListener?.('change',sync)
+  },[])
+  const reduceMotion=!!props.reduceMotion || systemReducedMotion
   const skins = normalizeOfficeSkinSelections(props.employeeSkins)
   const selected = skins === props.employeeSkins || skins === undefined ? props : { ...props, employeeSkins: skins }
-  return isIndependentOfficeTheme(props.officeTheme) ? <IndependentOfficeSceneSurface {...selected} /> : <>
-    <ClassicOfficeSceneSurface {...selected} />
+  return isIndependentOfficeTheme(props.officeTheme) ? <IndependentOfficeSceneSurface {...selected} reduceMotion={reduceMotion} /> : <>
+    <ClassicOfficeSceneSurface {...selected} reduceMotion={reduceMotion} />
     <OfficeSkinSelectionNotices active={props.presentationActive !== false} employees={props.employees} employeeSkins={skins} />
   </>
 }

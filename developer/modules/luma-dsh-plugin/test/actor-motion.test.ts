@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest'
-import { actorMotionFrame, LANDING_MS, landingStartForRelease, sampleGripLag } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/actorMotion.ts'
+import { actorMotionFrame, LANDING_MS, landingStartForRelease, motionPhase, sampleGripLag } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/actorMotion.ts'
 import { getActorPoseAtlas } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/actorPoseAtlas.ts'
 
 const roles = ['shan','bai-shuangming','lu-mi','jingyuniang','longmama','claude','gemini','grok']
@@ -15,15 +15,38 @@ it.each([[30,46],[100,42],[165,40],[600,40]])('joins a %i ms lift to landing exp
   expect(frames.at(-1)).toBe(0)
 })
 
-it('registers every selectable outfit to planted feet and supplies six complete action strips', () => {
+it('plants both feet before starting each character’s idle loop on their own beat', () => {
+  const holds=[120,90,80,100,95,105,120,95]
+  const phases=roles.map(motionPhase)
+  expect(new Set(phases).size).toBe(roles.length)
+  for(const delay of phases){
+    const draw=(motion:'idle'|'landing',elapsed:number,still=false)=>
+      actorMotionFrame(motion,elapsed,delay,undefined,still,holds)
+    expect(draw('idle',0)).toBe(0)
+    expect(draw('landing',LANDING_MS)).toBe(0)
+    expect(draw('idle',delay+119)).toBe(0)
+    expect(draw('idle',delay+120)).toBe(1)
+    expect(draw('idle',delay+120,true)).toBe(0)
+  }
+})
+
+it('registers every selectable outfit to planted feet and supplies a full idle cycle plus five action strips', () => {
   const sources = new Set<string>()
   for (const id of roles) for (const skin of [undefined, `skin.${id}.v1`]) {
     const atlas = getActorPoseAtlas(id,skin)!
-    expect(atlas.count).toBe(48)
+    expect(atlas.count).toBe(64)
     expect(atlas.columns).toBe(8)
     expect(atlas.foot[1]).toBeGreaterThan(atlas.grip[1] + atlas.figureHeight * .65)
-    expect(atlas.idleDurationsMs).toHaveLength(8)
+    expect(atlas.idleDurationsMs).toHaveLength(24)
     expect(atlas.idleDurationsMs.every(ms => ms > 0)).toBe(true)
+    let elapsed = 0
+    const idleFrames = atlas.idleDurationsMs.map(duration => {
+      const index = actorMotionFrame('idle', elapsed, 0, undefined, false, atlas.idleDurationsMs)
+      elapsed += duration
+      return index
+    })
+    expect(new Set(idleFrames).size).toBe(24)
+    expect(idleFrames.every(index => index < 8 || index >= 48 && index < atlas.count)).toBe(true)
     sources.add(atlas.src)
   }
   expect(sources.size).toBe(14)

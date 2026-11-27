@@ -1,0 +1,968 @@
+{
+  "bai-shuangming-base": {
+    "cell": [
+      384,
+      336
+    ],
+    "figureHeight": 256,
+    "foot": [
+      201,
+      300
+    ],
+    "grip": [
+      192,
+      60
+    ],
+    "src": "/luma-office/luma-plugin-art/idle-gestures/bai-shuangming-base.3392c80223c7.png",
+    "sha256": "3392c80223c7b813218fffb59b0cde07652d3ae5e2c133b86c00b62e3357d0ab",
+    "columns": 8,
+    "count": 16,
+    "actions": [
+      {
+        "id": "smooth-cape",
+        "label": "理顺披肩",
+        "frames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "durationsMs": [
+          85,
+          150,
+          95,
+          310,
+          110,
+          165,
+          100,
+          90
+        ]
+      },
+      {
+        "id": "examine-palm",
+        "label": "托手细看",
+        "frames": [
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "durationsMs": [
+          85,
+          155,
+          95,
+          490,
+          110,
+          150,
+          100,
+          90
+        ]
+      }
+    ]
+  },
+  "bai-shuangming-v1": {
+    "cell": [
+      384,
+      336
+    ],
+    "figureHeight": 256,
+    "foot": [
+      192,
+      300
+    ],
+    "grip": [
+      192,
+      60
+    ],
+    "src": "/luma-office/luma-plugin-art/idle-gestures/bai-shuangming-v1.38f85ede70d4.png",
+    "sha256": "38f85ede70d4ae3e8436e5a64556262b331e9bb07eb4021a5c9046c00615374b",
+    "columns": 8,
+    "count": 16,
+    "actions": [
+      {
+        "id": "smooth-pleats",
+        "label": "轻抚裙褶",
+        "frames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "durationsMs": [
+          85,
+          170,
+          95,
+          350,
+          110,
+          185,
+          100,
+          90
+        ]
+      },
+      {
+        "id": "listen",
+        "label": "拢发侧听",
+        "frames": [
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "durationsMs": [
+          85,
+          155,
+          95,
+          520,
+          110,
+          170,
+          100,
+          90
+        ]
+      }
+    ]
+  },
+  "claude-base": {
+    "cell": [
+      384,
+      336
+    ],
+    "figureHeight": 256,
+    "foot": [
+      184,
+      300
+    ],
+    "grip": [
+      192,
+      60
+    ],
+    "src": "/luma-office/luma-plugin-art/idle-gestures/claude-base.65bd41413800.png",
+    "sha256": "65bd41413800649e3c2704ccbacee846c7528b7e91ba23f3020664653ece4448",
+    "columns": 8,
+    "count": 16,
+    "actions": [
+      {
+        "id": "nod",
+        "label": "会意点头",
+        "frames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "durationsMs": [
+          85,
+          115,
+          95,
+          220,
+          110,
+          130,
+          100,
+          90
+        ]
+      },
+      {
+        "id": "count",
+        "label": "屈指数数",
+        "frames": [
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "durationsMs": [
+          85,
+          160,
+          95,
+          425,
+          110,
+          140,
+          100,
+          90
+        ]
+      }
+    ]
+  },
+  "claude-v1": {
+    "cell": [
+      384,
+      336
+    ],
+    "figureHeight": 256,
+    "foot": [
+      184,
+      300
+    ],
+    "grip": [
+      192,
+      60
+    ],
+    "src": "/luma-office/luma-plugin-art/idle-gestures/claude-v1.6a5afeb70758.png",
+    "sha256": "6a5afeb707586ed84f4f156d4d60925f20b4062474a79f570af1d800d0486ef9",
+    "columns": 8,
+    "count": 16,
+    "actions": [
+      {
+        "id": "adjust-bow",
+        "label": "理领结",
+        "frames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "durationsMs": [
+          85,
+          135,
+          95,
+          290,
+          110,
+          130,
+          100,
+          90
+        ]
+      },
+      {
+        "id": "raise-hand",
+        "label": "举手回应",
+        "frames": [
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "durationsMs": [
+          85,
+          110,
+          95,
+          370,
+          110,
+          135,
+          100,
+          90
+        ]
+      }
+    ]
+  },
+  "gemini-v1": {
+    "cell": [
+      384,
+      336
+    ],
+    "figureHeight": 256,
+    "foot": [
+      191,
+      300
+    ],
+    "grip": [
+      192,
+      60
+    ],
+    "src": "/luma-office/luma-plugin-art/idle-gestures/gemini-v1.ce00853f4cf3.png",
+    "sha256": "ce00853f4cf314edfbea61fafac995b2d518d36504d851912b1b7ba6a5945873",
+    "columns": 8,
+    "count": 16,
+    "actions": [
+      {
+        "id": "adjust-visor",
+        "label": "轻调面罩",
+        "frames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "durationsMs": [
+          85,
+          140,
+          95,
+          350,
+          110,
+          165,
+          100,
+          90
+        ]
+      },
+      {
+        "id": "trace-orbit",
+        "label": "指尖描星轨",
+        "frames": [
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "durationsMs": [
+          85,
+          160,
+          95,
+          440,
+          110,
+          175,
+          100,
+          90
+        ]
+      }
+    ]
+  },
+  "grok-v1": {
+    "cell": [
+      384,
+      336
+    ],
+    "figureHeight": 256,
+    "foot": [
+      182,
+      300
+    ],
+    "grip": [
+      192,
+      60
+    ],
+    "src": "/luma-office/luma-plugin-art/idle-gestures/grok-v1.47bc2984e821.png",
+    "sha256": "47bc2984e8219faba01c05ef62f21bf04fd813d9a9544d475e1188175926e727",
+    "columns": 8,
+    "count": 16,
+    "actions": [
+      {
+        "id": "straighten-crown",
+        "label": "扶正小皇冠",
+        "frames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "durationsMs": [
+          85,
+          135,
+          95,
+          320,
+          110,
+          130,
+          100,
+          90
+        ]
+      },
+      {
+        "id": "shrug",
+        "label": "摊手反问",
+        "frames": [
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "durationsMs": [
+          85,
+          125,
+          95,
+          415,
+          110,
+          145,
+          100,
+          90
+        ]
+      }
+    ]
+  },
+  "jingyuniang-base": {
+    "cell": [
+      384,
+      336
+    ],
+    "figureHeight": 256,
+    "foot": [
+      188,
+      300
+    ],
+    "grip": [
+      192,
+      60
+    ],
+    "src": "/luma-office/luma-plugin-art/idle-gestures/jingyuniang-base.bb9cb5092f31.png",
+    "sha256": "bb9cb5092f314ad23d19ccfd1a99421de82933d32630e498f75cc9a5f90bbccd",
+    "columns": 8,
+    "count": 16,
+    "actions": [
+      {
+        "id": "smooth-apron",
+        "label": "抚平围裙",
+        "frames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "durationsMs": [
+          85,
+          135,
+          95,
+          265,
+          110,
+          155,
+          100,
+          90
+        ]
+      },
+      {
+        "id": "watch-fluke",
+        "label": "回头看尾鳍",
+        "frames": [
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "durationsMs": [
+          85,
+          150,
+          95,
+          465,
+          110,
+          135,
+          100,
+          90
+        ]
+      }
+    ]
+  },
+  "jingyuniang-v1": {
+    "cell": [
+      384,
+      336
+    ],
+    "figureHeight": 256,
+    "foot": [
+      185,
+      300
+    ],
+    "grip": [
+      192,
+      60
+    ],
+    "src": "/luma-office/luma-plugin-art/idle-gestures/jingyuniang-v1.d81ed063f76a.png",
+    "sha256": "d81ed063f76aac048b70f8591a6252f068090760339b9cc0868229579c80ec71",
+    "columns": 8,
+    "count": 16,
+    "actions": [
+      {
+        "id": "stretch",
+        "label": "伸展肩臂",
+        "frames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "durationsMs": [
+          85,
+          165,
+          95,
+          395,
+          110,
+          165,
+          100,
+          90
+        ]
+      },
+      {
+        "id": "balance",
+        "label": "张臂稳住",
+        "frames": [
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "durationsMs": [
+          85,
+          100,
+          95,
+          255,
+          110,
+          140,
+          100,
+          90
+        ]
+      }
+    ]
+  },
+  "longmama-base": {
+    "cell": [
+      384,
+      336
+    ],
+    "figureHeight": 256,
+    "foot": [
+      198,
+      300
+    ],
+    "grip": [
+      192,
+      60
+    ],
+    "src": "/luma-office/luma-plugin-art/idle-gestures/longmama-base.06c90a69189e.png",
+    "sha256": "06c90a69189efd6ecc5604dc4baeed50441571ab8ec826c4d9ee13f19e1fc334",
+    "columns": 8,
+    "count": 16,
+    "actions": [
+      {
+        "id": "tuck-hair",
+        "label": "拢发至耳后",
+        "frames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "durationsMs": [
+          85,
+          160,
+          95,
+          280,
+          110,
+          160,
+          100,
+          90
+        ]
+      },
+      {
+        "id": "reassure",
+        "label": "垂掌安抚",
+        "frames": [
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "durationsMs": [
+          85,
+          155,
+          95,
+          400,
+          110,
+          170,
+          100,
+          90
+        ]
+      }
+    ]
+  },
+  "longmama-v1": {
+    "cell": [
+      384,
+      336
+    ],
+    "figureHeight": 256,
+    "foot": [
+      186,
+      300
+    ],
+    "grip": [
+      192,
+      60
+    ],
+    "src": "/luma-office/luma-plugin-art/idle-gestures/longmama-v1.78c1f61afd7f.png",
+    "sha256": "78c1f61afd7f1179d8a98a58eb66d037523e1414299b427da96366e0861e1731",
+    "columns": 8,
+    "count": 16,
+    "actions": [
+      {
+        "id": "brush-cloak",
+        "label": "拂披风下摆",
+        "frames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "durationsMs": [
+          85,
+          170,
+          95,
+          340,
+          110,
+          165,
+          100,
+          90
+        ]
+      },
+      {
+        "id": "watch-tail",
+        "label": "回望卷尾",
+        "frames": [
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "durationsMs": [
+          85,
+          155,
+          95,
+          485,
+          110,
+          150,
+          100,
+          90
+        ]
+      }
+    ]
+  },
+  "lu-mi-base": {
+    "cell": [
+      384,
+      336
+    ],
+    "figureHeight": 256,
+    "foot": [
+      186,
+      300
+    ],
+    "grip": [
+      192,
+      60
+    ],
+    "src": "/luma-office/luma-plugin-art/idle-gestures/lu-mi-base.4661b9223145.png",
+    "sha256": "4661b922314545de2fc7eacd7899797f0d54cf804c62f36dbd85a5a8dadf0aa6",
+    "columns": 8,
+    "count": 16,
+    "actions": [
+      {
+        "id": "straighten-ribbon",
+        "label": "整理丝带",
+        "frames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "durationsMs": [
+          85,
+          145,
+          95,
+          285,
+          110,
+          160,
+          100,
+          90
+        ]
+      },
+      {
+        "id": "acknowledge",
+        "label": "展掌致意",
+        "frames": [
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "durationsMs": [
+          85,
+          135,
+          95,
+          330,
+          110,
+          180,
+          100,
+          90
+        ]
+      }
+    ]
+  },
+  "lu-mi-v1": {
+    "cell": [
+      384,
+      336
+    ],
+    "figureHeight": 256,
+    "foot": [
+      200,
+      300
+    ],
+    "grip": [
+      192,
+      60
+    ],
+    "src": "/luma-office/luma-plugin-art/idle-gestures/lu-mi-v1.f630368f95c6.png",
+    "sha256": "f630368f95c6caa2f58367ece119a978252beeeb31503dd1c70c1be605f891fb",
+    "columns": 8,
+    "count": 16,
+    "actions": [
+      {
+        "id": "gather-cape",
+        "label": "拢好披肩",
+        "frames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "durationsMs": [
+          85,
+          160,
+          95,
+          325,
+          110,
+          180,
+          100,
+          90
+        ]
+      },
+      {
+        "id": "invite",
+        "label": "侧身相邀",
+        "frames": [
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "durationsMs": [
+          85,
+          145,
+          95,
+          400,
+          110,
+          155,
+          100,
+          90
+        ]
+      }
+    ]
+  },
+  "shan-base": {
+    "cell": [
+      384,
+      336
+    ],
+    "figureHeight": 256,
+    "foot": [
+      182,
+      300
+    ],
+    "grip": [
+      192,
+      60
+    ],
+    "src": "/luma-office/luma-plugin-art/idle-gestures/shan-base.5fbcdac2b491.png",
+    "sha256": "5fbcdac2b4913fcba77081480dd0b4649df5770c13870341f629b65d727cfad1",
+    "columns": 8,
+    "count": 16,
+    "actions": [
+      {
+        "id": "cheer",
+        "label": "握拳打气",
+        "frames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "durationsMs": [
+          85,
+          115,
+          95,
+          265,
+          110,
+          130,
+          100,
+          90
+        ]
+      },
+      {
+        "id": "clap",
+        "label": "合掌轻拍",
+        "frames": [
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "durationsMs": [
+          85,
+          90,
+          95,
+          120,
+          110,
+          115,
+          100,
+          90
+        ]
+      }
+    ]
+  },
+  "shan-v1": {
+    "cell": [
+      384,
+      336
+    ],
+    "figureHeight": 256,
+    "foot": [
+      204,
+      300
+    ],
+    "grip": [
+      192,
+      60
+    ],
+    "src": "/luma-office/luma-plugin-art/idle-gestures/shan-v1.332d743a8999.png",
+    "sha256": "332d743a89999a1863986b1ae8816b16c4fd1b35d4f07f8a63f89e8d8bee1971",
+    "columns": 8,
+    "count": 16,
+    "actions": [
+      {
+        "id": "curtsy",
+        "label": "提裙行礼",
+        "frames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "durationsMs": [
+          85,
+          155,
+          95,
+          385,
+          110,
+          170,
+          100,
+          90
+        ]
+      },
+      {
+        "id": "giggle",
+        "label": "掩嘴轻笑",
+        "frames": [
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "durationsMs": [
+          85,
+          110,
+          95,
+          310,
+          110,
+          125,
+          100,
+          90
+        ]
+      }
+    ]
+  }
+}
