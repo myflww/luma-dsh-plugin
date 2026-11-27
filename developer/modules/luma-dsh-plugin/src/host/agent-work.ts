@@ -1117,13 +1117,20 @@ export function createAgentWork(root: string, admitDesktopOwner?: (req: Incoming
     await call('run',{requestId:id,topic,roleIds:[owner],mode:'chat',text},pending=>{done=pending})
     await done
     const job=jobs.get(id)
-    if(job?.status!=='done' || !job.steps[0]?.output)throw Error(job?.error || '伙伴暂时没有完成回复，请稍后重试。')
+    if(job?.status!=='done' || !job.steps[0]?.output){
+      const message=job?.error || '伙伴暂时没有完成回复，请稍后重试。'
+      throw Error(/模型|订阅|API/.test(message) ? message+' 可在 Luma 的「联系 → 聊天设置 → 模型服务」为这位伙伴选择可用模型。' : message)
+    }
     return job.steps[0].output
   }
   const petFiles={
     async drop(owner:string,paths:readonly string[]) {
       if(disposed || !readUnlockedEmployees().includes(role(owner)))throw Error('这位伙伴当前不可用。')
-      if(!fileService(owner).model)throw Error('请先在联系页为这位伙伴选择模型服务，然后重新投递。')
+      if(!fileService(owner).model){
+        const selection=native?.get?.('agentDefaultModel')?.currentSelection()
+        const detail=selection?.model ? 'DSH 默认模型 '+selection.provider+' / '+selection.model+' 的服务当前未启用。' : 'DSH 当前没有可用的默认模型。'
+        throw Error('这位伙伴尚未单独设置模型，'+detail+'请打开 Luma「联系 → 聊天设置 → 模型服务」，为这位伙伴选择可用模型，再投递文件。')
+      }
       const excerpts=await readPetFiles(paths),topic='pet-file-'+randomUUID()
       if(disposed)throw Error('插件已停用。')
       db.prepare('INSERT INTO pet_file_material VALUES(?,?,?)').run(topic,owner,JSON.stringify(excerpts))

@@ -1,5 +1,5 @@
 import { gestureSequenceFor, type IdleGestureSequence } from './office2d/idleGestures.ts'
-import { actorLookFrame, getActorLookAtlas, type ActorLookAtlas } from './office2d/actorLookAtlas.ts'
+import { drawActorLook, getActorLookAtlas, type ActorLookAtlas } from './office2d/actorLookAtlas.ts'
 import { usePostDropLook } from './usePostDropLook.ts'
 import { getActorGestureAtlas } from './office2d/actorGestureAtlas.ts'
 import { LANDING_MS, landingStartForRelease, motionPhase, sampleGripLag, type ActorMotion } from './office2d/actorMotion.ts'
@@ -209,6 +209,7 @@ function IndependentOfficeSceneContent(props: OfficeSceneSurfaceProps & {retry()
   const cancelPaint = useRef<() => void>(() => {})
   // Full multi-frame strips load on demand. Compact redrawn costumes are
   // already available when the scene presents its first frame.
+  const lookComposite=useRef<{canvas:HTMLCanvasElement;src:string;head:number;eye:number}|null>(null)
   const walkingImages = useRef(new Map<string,SceneBitmapBatch<ImageBitmap>>())
   const floorBitmap = (atlas: {src: string; sha256: string}) => {
     const prepared = images.current.get(atlas.src)
@@ -241,6 +242,7 @@ function IndependentOfficeSceneContent(props: OfficeSceneSurfaceProps & {retry()
   useEffect(() => () => {
     for(const batch of walkingImages.current.values()) batch.release()
     walkingImages.current.clear()
+    lookComposite.current=null
   }, [space?.layout.theme])
   const landed = useRef(new Map<string,{start:number; pose:number|undefined}>())
   const gestureSequences=useRef(new Map<string,IdleGestureSequence>())
@@ -637,9 +639,9 @@ function IndependentOfficeSceneContent(props: OfficeSceneSurfaceProps & {retry()
           const y=box.top+(row.foot[1]+(lookArt.eyeCenter[1]-lookArt.foot[1])*scale)*sy
           const gaze=look.sample(row.employee.id,now,x,y,row.bodyHeight*sy)
           if(gaze){
-            headFrame=actorLookFrame(gaze.headX,gaze.headY)
-            looks.set(row.employee.id,{eyes:actorLookFrame(gaze.eyeX,gaze.eyeY),art:lookArt,
-              bitmap:floorBitmap({src:lookArt.eyesSrc,sha256:lookArt.eyesSha256})})
+            headFrame=gaze.head
+            const eyes=floorBitmap({src:lookArt.eyesSrc,sha256:lookArt.eyesSha256})
+            looks.set(row.employee.id,{eyes:eyes?gaze.eyes:gaze.head,art:lookArt,bitmap:eyes})
             idleStarted.current.set(idleKey,clock.current)
           }
         }
@@ -682,14 +684,24 @@ function IndependentOfficeSceneContent(props: OfficeSceneSurfaceProps & {retry()
             // Whole illustrated poses need area filtering when reduced to office size.
             context.imageSmoothingEnabled = true
             context.imageSmoothingQuality = 'high'
-            if (row.desk) drawOfficeDeskFrame(context, row.image, row.desk, row.frame, row.origin[0], row.origin[1], row.scale)
-            else if (row.gait) drawWalkAtlas(context, row.gait.bitmap, row.gait.atlas, row.gait.rect, row.origin[0], row.origin[1], row.scale)
-            else context.drawImage(row.bodyLayer??row.image, ...row.sourceOrigin, ...row.size, ...row.origin, row.size[0] * row.scale, row.size[1] * row.scale)
             const patch=looks.get(row.employee.id)
             if(patch?.bitmap && patch.eyes!==row.frame){
-              const [w,h]=patch.art.eyesCell, [x,y]=patch.art.eyesOrigin
-              context.drawImage(patch.bitmap,patch.eyes*w,row.frame*h,w,h,row.origin[0]+x*row.scale,row.origin[1]+y*row.scale,w*row.scale,h*row.scale)
-            }
+              const layer=lookComposite.current??(lookComposite.current={canvas:document.createElement('canvas'),src:'',head:-1,eye:-1})
+              const [w,h]=patch.art.cell
+              if(layer.src!==patch.art.src || layer.head!==row.frame || layer.eye!==patch.eyes){
+                if(layer.canvas.width!==w || layer.canvas.height!==h){layer.canvas.width=w;layer.canvas.height=h}
+                const nativeSize=layer.canvas.getContext('2d')
+                if(nativeSize){
+                  drawActorLook(nativeSize,patch.art,row.image,row.frame,patch.bitmap,patch.eyes)
+                  layer.src=patch.art.src;layer.head=row.frame;layer.eye=patch.eyes
+                }
+              }
+              if(layer.src===patch.art.src && layer.head===row.frame && layer.eye===patch.eyes)
+                context.drawImage(layer.canvas,...row.origin,w*row.scale,h*row.scale)
+              else context.drawImage(row.image,...row.sourceOrigin,...row.size,...row.origin,w*row.scale,h*row.scale)
+            }else if (row.desk) drawOfficeDeskFrame(context, row.image, row.desk, row.frame, row.origin[0], row.origin[1], row.scale)
+            else if (row.gait) drawWalkAtlas(context, row.gait.bitmap, row.gait.atlas, row.gait.rect, row.origin[0], row.origin[1], row.scale)
+            else context.drawImage(row.bodyLayer??row.image, ...row.sourceOrigin, ...row.size, ...row.origin, row.size[0] * row.scale, row.size[1] * row.scale)
           } finally { context.restore() }
         } else context.drawImage(row.bodyLayer??row.image, ...row.sourceOrigin, ...row.size, ...row.origin, row.size[0] * row.scale, row.size[1] * row.scale)
         if (row.reportNote) drawReportNote(context, row.reportNote)

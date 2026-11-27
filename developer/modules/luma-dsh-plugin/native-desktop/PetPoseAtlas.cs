@@ -26,7 +26,7 @@ public sealed class PetGestureStrip {
     public PetGestureAction[] actions;
 }
 public sealed class PetGestureAction {
-    public string id;
+    public string id,label;
     public int[] frames,durationsMs;
 }
 
@@ -155,13 +155,17 @@ internal sealed class PetPoseAtlas : IDisposable {
             ms-=IdleCycleMs;
             int index=(first+i)%2;
             next=1-index;
-            var action=Metadata.gestures.actions[index];
             if(ms<gestureMs[index]){
-                for(int j=0;j<action.frames.Length;j++){
-                    if(ms<action.durationsMs[j])return Metadata.count+action.frames[j];
-                    ms-=action.durationsMs[j];
-                }
+                return GestureFrame(index,ms);
             }else ms-=gestureMs[index];
+        }
+        return 0;
+    }
+    public int GestureFrame(int index,long elapsed){
+        var action=Metadata.gestures.actions[index];
+        for(int i=0;i<action.frames.Length;i++){
+            if(elapsed<action.durationsMs[i])return Metadata.count+action.frames[i];
+            elapsed-=action.durationsMs[i];
         }
         return 0;
     }
@@ -215,8 +219,12 @@ internal sealed class PetDropAttention {
     }
     public void Stop(){start=-1;}
     static double Clamp(double x){return Math.Max(-1,Math.Min(1,x));}
-    static int Index(double x,double y){
-        return (int)Math.Floor((Clamp(y)+1)*2+.5)*5+(int)Math.Floor((Clamp(x)+1)*2+.5);
+    static int Axis(double value,int previous){
+        double at=(Clamp(value)+1)*2;
+        return (int)Math.Floor(at+(at>previous?-.1:.1)+.5);
+    }
+    static int Index(double x,double y,int previous){
+        return Axis(y,previous/5)*5+Axis(x,previous%5);
     }
     public bool Sample(long now,double pointerX,double pointerY){
         if(start<0 || now<start)return false;
@@ -225,13 +233,13 @@ internal sealed class PetDropAttention {
         double dt=Math.Max(0,now-previous);previous=now;
         bool returning=age>=FollowMs;
         double x=returning?0:Clamp(pointerX),y=returning?0:Clamp(pointerY);
-        double eyeStep=1-Math.Exp(-dt/(returning?145:55));
+        double eyeStep=1-Math.Exp(-dt/(returning?100:55));
         // The gaze finds its target first. The head starts 90 ms after touchdown.
         double headDt=Math.Min(dt,Math.Max(0,age-90));
         double headStep=1-Math.Exp(-headDt/(returning?145:165));
         eyeX+=(x-eyeX)*eyeStep;eyeY+=(y-eyeY)*eyeStep;
-        headX+=(x-headX)*headStep;headY+=(y-headY)*headStep;
-        Eyes=Index(eyeX,eyeY);Head=Index(headX,headY);
+        headX+=(eyeX-headX)*headStep;headY+=(eyeY-headY)*headStep;
+        Eyes=Index(eyeX,eyeY,Eyes);Head=Index(headX,headY,Head);
         return true;
     }
 }

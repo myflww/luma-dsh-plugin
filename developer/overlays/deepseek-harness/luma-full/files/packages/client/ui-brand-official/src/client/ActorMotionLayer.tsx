@@ -1,5 +1,5 @@
 import { getActorGestureAtlas } from './office2d/actorGestureAtlas.ts'
-import { actorLookFrame, getActorLookAtlas } from './office2d/actorLookAtlas.ts'
+import { drawActorLook, getActorLookAtlas } from './office2d/actorLookAtlas.ts'
 import type { PostDropLook } from './office2d/postDropLook.ts'
 import type { IdleGestureSequence } from './office2d/idleGestures.ts'
 import { useEffect, useRef, type SVGProps } from 'react'
@@ -29,11 +29,11 @@ export function ActorMotionLayer({atlas, id, skinId, sequence, look, motion, lan
   const canvas = useRef<HTMLCanvasElement>(null)
   const baseLayer=useRef<SVGImageElement>(null)
   const gestureLayer=useRef<SVGImageElement>(null)
-  const headLayer=useRef<SVGImageElement>(null)
-  const eyeLayer=useRef<SVGSVGElement>(null)
+  const lookLayer=useRef<SVGForeignObjectElement>(null)
+  const lookCanvas=useRef<HTMLCanvasElement>(null)
   const lookArt=getActorLookAtlas(id,skinId)
   const decodedLook=useRef<{src:string;head:HTMLImageElement;eyes:HTMLImageElement}|undefined>(undefined)
-  useEffect(()=>()=>look?.cancel(id),[look,id,atlas.src])
+  useEffect(()=>()=>{decodedLook.current=undefined;look?.cancel(id)},[look,id,atlas.src])
   const decodedBase=useRef<{src:string; image:HTMLImageElement} | null>(null)
   const gestures=getActorGestureAtlas(id,skinId)
   useEffect(()=>()=>sequence.interrupt(),[sequence])
@@ -53,6 +53,7 @@ export function ActorMotionLayer({atlas, id, skinId, sequence, look, motion, lan
     const target = canvas.current ?? picture.current
     if (!target) return
     const context = canvas.current?.getContext('2d')
+    let lookContext = context
     if(asCanvas && decodedBase.current?.src!==atlas.src){
       const image=new Image()
       image.src=atlas.src
@@ -97,45 +98,42 @@ export function ActorMotionLayer({atlas, id, skinId, sequence, look, motion, lan
           }
         }
       }
-      if(!lookImages?.head.complete || !lookImages.head.naturalWidth)gaze=undefined
+      if(gaze && lookImages?.head.complete && lookImages.head.naturalWidth){
+        lookContext??=lookCanvas.current?.getContext('2d')
+      }else gaze=undefined
+      if(!lookContext)gaze=undefined
       if(looking && !gaze){elapsed=0;resumeIdle=true;neutralAt.current=now}
       looking=!!gaze
-      const exposure = gaze ? {frame:actorLookFrame(gaze.headX,gaze.headY),gesture:undefined} : sequence.sample(resumeIdle ? 'idle' : motion,
+      const exposure = gaze ? {frame:gaze.head,gesture:undefined} : sequence.sample(resumeIdle ? 'idle' : motion,
         landingStart === undefined || resumeIdle ? elapsed : now-landingStart,
         phase, lag, paused, atlas.idleDurationsMs,
         extras?.complete && extras.naturalWidth ? gestures?.actions : undefined,releasedPose.current)
       const index=exposure.frame
       const art=gaze && lookArt ? lookArt : exposure.gesture && gestures ? gestures : atlas
-      const eye=gaze?actorLookFrame(gaze.eyeX,gaze.eyeY):-1
+      const eyesImage=lookImages?.eyes.complete && lookImages.eyes.naturalWidth ? lookImages.eyes : undefined
+      const eye=gaze?(eyesImage?gaze.eyes:gaze.head):-1
       if(motion==='held') releasedPose.current=index
       if(motion==='idle') releasedPose.current=undefined
       if (frame !== index || lastGesture!==exposure.gesture || lastEye!==eye) {
         lastEye=eye
         lastGesture=exposure.gesture
         frame = index
-        if (sheet && context) {
+        if(gaze && lookArt && lookImages && lookContext){
+          drawActorLook(lookContext,lookArt,lookImages.head,index,eyesImage,eye)
+        }else if(sheet && context){
           context.clearRect(0,0,width,height)
-          context.drawImage(gaze ? lookImages!.head : exposure.gesture ? extras! : sheet,
+          context.drawImage(exposure.gesture ? extras! : sheet,
             (index % art.columns)*art.cell[0],Math.floor(index/art.columns)*art.cell[1],...art.cell,0,0,width,height)
-          if(gaze && eye!==index && lookArt && lookImages?.eyes.complete && lookImages.eyes.naturalWidth){
-            const [w,h]=lookArt.eyesCell
-            context.drawImage(lookImages.eyes,eye*w,index*h,w,h,...lookArt.eyesOrigin,w,h)
-          }
-        } else if (!asCanvas) {
+        }
+        if(!asCanvas){
           if(baseLayer.current)baseLayer.current.style.display=exposure.gesture||gaze?'none':''
           if(gestureLayer.current)gestureLayer.current.style.display=exposure.gesture?'':'none'
-          if(headLayer.current && lookArt){
-            headLayer.current.style.display=gaze?'':'none'
-            if(gaze)headLayer.current.setAttribute('href',lookArt.src)
-          }
-          if(eyeLayer.current && lookArt){
-            const layer=eyeLayer.current,[w,h]=lookArt.eyesCell
-            layer.style.display=gaze && eye!==index?'':'none'
-            if(gaze && eye!==index){
-              layer.firstElementChild?.setAttribute('href',lookArt.eyesSrc)
-              layer.setAttribute('x',String(index%art.columns*width+lookArt.eyesOrigin[0]))
-              layer.setAttribute('y',String(Math.floor(index/art.columns)*height+lookArt.eyesOrigin[1]))
-              layer.setAttribute('viewBox',[eye*w,index*h,w,h].join(' '))
+          if(lookLayer.current){
+            const layer=lookLayer.current
+            layer.style.display=gaze?'':'none'
+            if(gaze){
+              layer.setAttribute('x',String(index%art.columns*width))
+              layer.setAttribute('y',String(Math.floor(index/art.columns)*height))
             }
           }
           target.setAttribute('viewBox',[
@@ -185,9 +183,8 @@ export function ActorMotionLayer({atlas, id, skinId, sequence, look, motion, lan
     <image ref={baseLayer} href={atlas.src} width={atlas.columns * width} height={Math.ceil(atlas.count / atlas.columns) * height} onError={onError}/>
     {gestures && !paused && motion!=='held' && <image ref={gestureLayer} href={gestures.src} style={{display:'none'}}
       width={gestures.columns*gestures.cell[0]} height={Math.ceil(gestures.count/gestures.columns)*gestures.cell[1]}/>}
-    {lookArt && <><image ref={headLayer} width={lookArt.columns*width} height={Math.ceil(lookArt.count/lookArt.columns)*height} style={{display:'none'}}/>
-      <svg ref={eyeLayer} width={lookArt.eyesCell[0]} height={lookArt.eyesCell[1]} overflow="hidden" style={{display:'none'}}>
-        <image width={lookArt.eyesCell[0]*lookArt.count} height={lookArt.eyesCell[1]*lookArt.count}/>
-      </svg></>}
+    {lookArt && <foreignObject ref={lookLayer} width={width} height={height} style={{display:'none'}}>
+      <canvas ref={lookCanvas} width={width} height={height} style={{display:'block'}} aria-hidden="true"/>
+    </foreignObject>}
   </svg>
 }

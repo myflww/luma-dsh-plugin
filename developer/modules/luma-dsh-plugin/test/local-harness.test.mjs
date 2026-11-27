@@ -38,6 +38,7 @@ else if(provider==='claude' && !args.includes('--model')){
   else {
     send({type:'thread.started',thread_id:'af001122-ccdd-4321-8888-000000000123'})
     send({type:'turn.started'})
+    if(scenario==='warning')send({type:'item.completed',item:{type:'error',message:'Temporary transport warning'}})
     if(scenario==='tool') send({type:'item.started',item:{type:'command_execution'}})
     send({type:'item.completed',item:{type:'reasoning',text:'HIDDEN-REASONING'}})
     send({type:'item.completed',item:{type:'agent_message',text:reply}})
@@ -185,6 +186,8 @@ test('deadlines release stalled discovery and stalled protocol consumers without
 })
 
 test('rejects API-key-only Codex logins, unexpected tool calls and interrupted CLI turns',async t=>{
+  const {local:warning}=await setup(t,'warning')
+  assert.ok(await warning.request('codex','writer','',[],AbortSignal.timeout(5000)))
   const {local:api}=await setup(t,'apikey'),{local:tool}=await setup(t,'tool'),{local:slow}=await setup(t,'wait')
   assert.equal((await api.providers())[0].authenticated,false)
   await assert.rejects(api.models('codex'),/订阅登录/)

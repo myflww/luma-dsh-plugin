@@ -24,6 +24,15 @@ test('reads text and document content without consulting external relationships 
  await assert.rejects(readPetFiles([words,sheet,slide,plain,big]),/4/)
 })
 
+test('an unavailable host default gives a configuration path before any document is read',async t=>{
+ const dir=await mkdtemp(join(tmpdir(),'pet-unavailable-'))
+ const host={get:()=>({currentSelection:()=>({provider:'example',model:'selected-model'})}),llm:{listProviders:()=>[]}}
+ const desk=createAgentWork(dir,undefined,undefined,undefined,false,host)
+ t.after(async()=>{desk.dispose();await rm(dir,{recursive:true,force:true})})
+ await assert.rejects(desk.petFiles.drop('shan',[join(dir,'未创建.txt')]),/example \/ selected-model.*未启用.*联系 → 聊天设置 → 模型服务/)
+ assert.equal((await desk.call('state',{})).jobs.length,0)
+})
+
 test('pet drop, native follow-up and the contacts page reuse one private, durable model conversation',async t=>{
  const dir=await mkdtemp(join(tmpdir(),'pet-thread-'));let desk=createAgentWork(dir)
  const requests=[]

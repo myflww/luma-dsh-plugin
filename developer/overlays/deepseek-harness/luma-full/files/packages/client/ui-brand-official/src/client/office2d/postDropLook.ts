@@ -1,6 +1,19 @@
+// Keep each axis in its current cel until it clears the threshold by 0.05
+// of normalized travel, in either direction. The filtered motion stays continuous.
+export function actorLookFrame(x:number,y:number,previous?:number):number {
+  const step=(n:number,old:number|undefined)=>{
+    if(!Number.isFinite(n))return 2
+    const at=(Math.min(1,Math.max(-1,n))+1)*2
+    const bias=old===undefined?0:at>old?-.1:.1
+    return Math.round(at+bias)
+  }
+  return step(y,previous===undefined?undefined:Math.floor(previous/5))*5+
+    step(x,previous===undefined?undefined:previous%5)
+}
+
 type Follow = {
   start:number; x:number; y:number; last:number
-  eyeX:number; eyeY:number; headX:number; headY:number
+  eyeX:number; eyeY:number; headX:number; headY:number; eyes:number; head:number
 }
 
 // Each mouse release owns one reaction. Moving the pointer changes the target
@@ -9,7 +22,7 @@ export class PostDropLook {
   private actors=new Map<string,Follow>()
 
   begin(id:string, x:number, y:number, afterLanding:number) {
-    this.actors.set(id,{start:afterLanding,x,y,last:afterLanding,eyeX:0,eyeY:0,headX:0,headY:0})
+    this.actors.set(id,{start:afterLanding,x,y,last:afterLanding,eyeX:0,eyeY:0,headX:0,headY:0,eyes:12,head:12})
   }
   move(x:number,y:number) {
     for(const state of this.actors.values()){state.x=x;state.y=y}
@@ -36,7 +49,9 @@ export class PostDropLook {
     // eyes already across center while the head is still facing the old side.
     s.headX+=(s.eyeX-s.headX)*headRate
     s.headY+=(s.eyeY-s.headY)*headRate
+    s.eyes=actorLookFrame(s.eyeX,s.eyeY,s.eyes)
+    s.head=actorLookFrame(s.headX,s.headY,s.head)
     s.last=now
-    return {eyeX:s.eyeX,eyeY:s.eyeY,headX:s.headX,headY:s.headY}
+    return {eyeX:s.eyeX,eyeY:s.eyeY,headX:s.headX,headY:s.headY,eyes:s.eyes,head:s.head}
   }
 }
