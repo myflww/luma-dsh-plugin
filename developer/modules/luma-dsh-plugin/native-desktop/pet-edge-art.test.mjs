@@ -13,8 +13,8 @@ test('all costumes dock on both sides and rest their hands on the lower desktop 
     const file=(folder)=>join(art,folder,key+'.png')
     return [key,{roleId:role,skinId:key.endsWith('-v1')?'skin.'+role+'.v1':null,
       reduceMotion:true,poses:{...pose,path:resolve(native,'../art/release-assets',pose.src.slice(1))},
-      strips:{},peek:file(''),bottomPeek:file('bottom'),ledge:file('ledge'),
-      greet:file('greet'),sleepyPose:file('drowsy'),lunchPose:file('lunch')}]
+      strips:{},peek:file(''),bottomPeek:file('bottom'),bottomSleep:role==='lu-mi'?file('bottom-night'):undefined,ledge:file('ledge'),
+      greet:file('greet'),sleepyPose:file('drowsy'),lunchPose:file('lunch'),performance:file('performance')}]
   }))
   const temp=await mkdtemp(join(tmpdir(),'luma-edge-check-'))
   t.after(()=>rm(temp,{recursive:true,force:true}))

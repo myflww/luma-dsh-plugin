@@ -1,0 +1,44 @@
+{
+  "lu-mi-base": {
+    "sourceSha256": "5cef2e4611ef263167a83a3c83ca8138704676c0325ac69620a3ab743c6c5ea5",
+    "size": [
+      499,
+      371
+    ],
+    "backOfHead": [
+      0.16025,
+      0.296872
+    ],
+    "hips": [
+      0.629221,
+      0.60745
+    ],
+    "feetCenter": [
+      0.945143,
+      0.599837
+    ],
+    "src": "/luma-office/luma-plugin-art/bedroom-sleep/lu-mi-base.7c012b9906ad.png",
+    "sha256": "7c012b9906adec8ef851018c185e0dd55b38f8cce68f24cfd63c39d1615b155b"
+  },
+  "lu-mi-v1": {
+    "sourceSha256": "70fe69338faeba53902e0b69e831c0a2157a178ddcbfc332eb5890225eb75ada",
+    "size": [
+      489,
+      367
+    ],
+    "backOfHead": [
+      0.163527,
+      0.302833
+    ],
+    "hips": [
+      0.641917,
+      0.617194
+    ],
+    "feetCenter": [
+      0.962933,
+      0.604363
+    ],
+    "src": "/luma-office/luma-plugin-art/bedroom-sleep/lu-mi-v1.2cbed7303bfc.png",
+    "sha256": "2cbed7303bfcdd09694bd4e0d0675a3b117b970e238e80142be6502d1e516b19"
+  }
+}

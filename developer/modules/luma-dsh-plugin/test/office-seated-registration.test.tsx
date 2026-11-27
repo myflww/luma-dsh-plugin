@@ -1,3 +1,4 @@
+import { getRoomSeatedDrawing } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/roomSeated.ts'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { expect, it, vi } from 'vitest'
 import { SeatedActor } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/OfficeSceneSprites.tsx'
@@ -50,6 +51,20 @@ it('keeps the front portrait in scale at both depths with its hands still on the
   }
 })
 
+it('registers Lu Mi’s visible crown at the same camera scale in both outfits',()=>{
+  for(const skin of [undefined,'skin.lu-mi.v1']){
+    for(const [facing,angle,fraction] of [['front','front',.355],['back','rear',.35]] as const){
+      const front=facing==='front'
+      const pose=officeDeskPlacement('classic',front?{id:'reception',seat:[838,753],facing}:{id:'north-private',seat:[809,378],facing},'lu-mi',skin)!
+      const model=getRoomSeatedDrawing('lu-mi',skin,angle)!
+      expect(pose.src).toBe(model.src)
+      expect(pose.scale*model.crownWidth).toBeCloseTo(standingFigureHeight(front?753:378)*fraction,8)
+      expect(model.sourceSrc).toContain(front?'typing-front':'typing-back')
+      expect(model.count).toBe(8)
+    }
+  }
+})
+
 const employees=['shan','bai-shuangming','lu-mi','jingyuniang','longmama','claude','gemini','grok']
 it('registers every outfit on the actual chair, turning toward each private desk and keeping the palms on its keys',()=>{
   for(const id of employees){
@@ -64,7 +79,8 @@ it('registers every outfit on the actual chair, turning toward each private desk
       const facing=station.zone==='private-office'?'rearLeft':shallow?'rearRight':'rear'
       expect(button.dataset.deskView).toBe(facing)
       if(shallow){
-        expect(pose.bank).toBe(2)
+        if(id==='lu-mi')expect(pose.src).toContain('shallowRight')
+        else expect(pose.bank).toBe(2)
         expect(Math.abs(pose.hip[0]-station.seatPoint[0])).toBeLessThanOrEqual(7)
         const contact=officeKeyboardContact('classic',station.id,pose.palm)!
         expect(Math.hypot(contact[0]-pose.palm[0],contact[1]-pose.palm[1])).toBeLessThan(6)

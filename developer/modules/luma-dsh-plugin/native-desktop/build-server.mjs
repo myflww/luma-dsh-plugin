@@ -8,8 +8,8 @@ import { mkdir, readFile, readdir } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { getEmployeeCatalogWithSkin, getEmployeeSkinPack, getBrowserOfficeDefaultSkinId } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/employeeSkins.ts'
-import { createOfficeFrameTimeline } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/frameTimeline.ts'
 import { BEDROOM_SLEEP } from '../src/client/bedroom-art.generated.ts'
+import { createOfficeFrameTimeline } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/frameTimeline.ts'
 import { getOfficeAsset, resolveOfficeAssetUrl } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/assets.ts'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -57,7 +57,7 @@ for (const preset of Object.keys(employees)) {
       const asset = getOfficeAsset(employee.walk[direction])
       const {frameWidth,frameHeight,frameCount,frameDurationsMs} = asset.frameStrip
       const gait=gaits[asset.id]
-      if(!gait)throw Error('Missing authored gait: '+asset.id)
+      if(!gait || role==='lu-mi' && gait.sourceSha256!==asset.sha256)throw Error('Missing or mismatched desktop gait: '+asset.id)
       const timing=createOfficeFrameTimeline(asset.frameStrip), steps=gait.count/timing.order.length
       let nativeClock=0
       const durations=gait.frameDurationsMs?.map(value=>{

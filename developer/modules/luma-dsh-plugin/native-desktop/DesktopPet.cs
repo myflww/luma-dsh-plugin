@@ -21,7 +21,7 @@ public class PetStrip {
 
 public class PetCommand {
     public string requestId, topic, text, error;
-    public string action, roleId, skinId, peek, bottomPeek, sleep, ledge, sleepyPose, greet, lunchPose, performance;
+    public string action, roleId, skinId, peek, bottomPeek, bottomSleep, sleep, ledge, sleepyPose, greet, lunchPose, performance;
     public Dictionary<string, PetStrip> strips;
     public PetPoseStrip poses;
     public bool atCursor, reduceMotion, asleep, sleepMirror, lunch;
@@ -68,7 +68,7 @@ internal class Costume : IDisposable {
     public Dictionary<string,List<Bitmap>> Frames = new Dictionary<string,List<Bitmap>>();
     public Dictionary<string,int[]> Durations = new Dictionary<string,int[]>();
     public Dictionary<string,PetStrip> Gaits = new Dictionary<string,PetStrip>();
-    public Bitmap Peek,BottomPeek,Sleep,Sleepy,Greeting,Lunch;
+    public Bitmap Peek,BottomPeek,BottomSleep,Sleep,Sleepy,Greeting,Lunch;
     public PetPoseAtlas Poses;
     public PetPerformanceAtlas Performance;
     static Bitmap ReadPose(string path) {
@@ -146,6 +146,7 @@ internal class Costume : IDisposable {
             if(!String.IsNullOrEmpty(command.performance))Performance=new PetPerformanceAtlas(command.performance);
             using(var peek=new Bitmap(command.peek)) { Peek=Sample(peek,Visible(peek),224); }
             BottomPeek=ReadPose(command.bottomPeek);
+            BottomSleep=ReadPose(command.bottomSleep);
             if(String.IsNullOrEmpty(command.ledge)) Sleep=Rest(command);
             else using(var pose=new Bitmap(command.ledge)) Sleep=Sample(pose,Visible(pose),256);
             Sleepy=ReadPose(command.sleepyPose);Greeting=ReadPose(command.greet);Lunch=ReadPose(command.lunchPose);
@@ -183,7 +184,7 @@ internal class Costume : IDisposable {
         if(Performance!=null)Performance.Dispose();
         if(Poses!=null)Poses.Dispose();
         foreach(var list in Frames.Values)foreach(var sprite in list)sprite.Dispose();
-        foreach(var pose in new[]{Peek,BottomPeek,Sleep,Sleepy,Greeting,Lunch})if(pose!=null)pose.Dispose();
+        foreach(var pose in new[]{Peek,BottomPeek,BottomSleep,Sleep,Sleepy,Greeting,Lunch})if(pose!=null)pose.Dispose();
     }
 }
 
@@ -580,6 +581,7 @@ internal partial class PetWindow : Form {
         StopPerformance();
         releaseLook.Stop();
         if(asleep&&!manual) {
+            side=0;pinnedPeek=false;phase="field";moving=false;
             var work=display.WorkingArea;
             x=dir<0?work.Left:work.Right-Width;
             StartSettling();NightTick(clock.ElapsedMilliseconds);return;
@@ -673,7 +675,8 @@ internal partial class PetWindow : Form {
         bool seated=!asleep&&side==0&&dayActivity=="lunch"&&!dragging;
         var poses=costume.Poses;
         var meta=poses.Metadata;
-        bool bottomPortrait=side==2 && (asleep?costume.Sleep:costume.BottomPeek)!=null;
+        var bottomArt=asleep?(costume.BottomSleep??costume.Sleep):costume.BottomPeek;
+        bool bottomPortrait=side==2 && bottomArt!=null;
         bool verticalPeek=Math.Abs(side)==2 && !bottomPortrait;
         long sinceDrop=now-landedAt;
         bool landing=!quiet&&side==0&&!dragging&&sinceDrop>=0&&sinceDrop<PetPoseAtlas.LandMs;
@@ -707,7 +710,7 @@ internal partial class PetWindow : Form {
         if(performed==null&&pose<0&&!moving&&side==0&&restArt==null)pose=0;
         var face=pose>=0&&!looking?poses.Face(pose):null;
         var bitmap=performed!=null?performed.Image:looking?poses.LookFrame(releaseLook.Head,releaseLook.Eyes):
-            pose>=0?poses.Frame(pose):bottomPortrait?(asleep?costume.Sleep:costume.BottomPeek):
+            pose>=0?poses.Frame(pose):bottomPortrait?bottomArt:
             side!=0?costume.Peek:moving?costume.Frames[direction][frame]:restArt;
         Rectangle cell=new Rectangle(Point.Empty,bitmap.Size);
         double scale=spriteSide*(side!=0?.80:onLedge?.76:asleep||greeting?.79:seated?.73:.91)/Math.Max(cell.Width,cell.Height);

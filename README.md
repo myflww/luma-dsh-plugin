@@ -4,7 +4,7 @@
 
 在 DeepSeek Harness Desktop 里，伙伴有自己的工位、房间和聊天窗口。新档案从鲸鱼娘开始。在「联系」里和她聊两句，交给她一项工作，再邀请其他伙伴加入。
 
-[下载 Windows 正式版 0.6.6](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.6.6) · [工作室使用指南](docs/studio.md) · [安装与使用手册](docs/guide.md) · [记忆与爱之屋](docs/memory.md) · [使用许可](LICENSE.md)
+[下载 Windows 正式版 0.6.7](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.6.7) · [工作室使用指南](docs/studio.md) · [安装与使用手册](docs/guide.md) · [记忆与爱之屋](docs/memory.md) · [使用许可](LICENSE.md)
 
 ## 从工位走到桌面
 
@@ -36,24 +36,20 @@
 ## Windows 首次安装
 
 1. 安装并打开一次 **DeepSeek Harness Desktop**，让宿主建立桌面档案。[DeepSeek Harness 项目](https://github.com/deepseek-ai/deepseek-harness)
-2. 从发行页下载 **Luma-DSH-0.6.6-Installer.zip**，完整解压，双击 **Install-Luma-DSH.cmd**。首次安装会下载基础美术和本版更新；已安装的用户可以复用旧版资源。[0.6.6 正式发行页](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.6.6)
+2. 从发行页下载 **Luma-DSH-0.6.7-Installer.zip**，完整解压，双击 **Install-Luma-DSH.cmd**。首次安装会下载基础美术和本版更新；已安装的用户可以复用旧版资源。[0.6.7 正式发行页](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.6.7)
 3. 重新打开 DSH，在侧栏选择「Luma 办公室」。新档只有鲸鱼娘。下班后可以从办公室左下角直接去她的卧室。想开第一包卡时，打开「收藏」领取新册礼，再选择卡包。[安装、离线升级与回退](docs/guide.md)
 
 ## 工位、卧室与桌宠
 
-0.6.6 的桌宠放下后会在原处安静停留，轻点头顶会回应抚摸。也可以在右键菜单里选「吃点心」「原地转圈」「优雅行礼」。也可以把文本、带文字层的 PDF 或 Office 文档拖给她，她会读一段正文，再问你想怎样处理。白天从屏幕底边探出时，每套衣装都有自己的扶边或托腮姿势。[桌宠使用方法](docs/guide.md#拖动伙伴与桌面探头)
+0.6.7 的桌宠放下后会在原处安静停留，轻点头顶会回应抚摸。也可以在右键菜单里选「吃点心」「原地转圈」「优雅行礼」。也可以把文本、带文字层的 PDF 或 Office 文档拖给她，她会读一段正文，再问你想怎样处理。白天从屏幕底边探出时，每套衣装都有自己的扶边或托腮姿势。[桌宠使用方法](docs/guide.md#拖动伙伴与桌面探头)
 
 ![九间办公室的八人入座实拍](docs/images/offices-061.jpg)
 
 在「员工列表」点伙伴进入她的卧室，旁边可以换装或召唤桌宠。空闲伙伴会坐回自己的工位，行走时在狭路和交叉口让行。卧室中的等待确认、自由活动和睡眠按任务与本机作息切换。
 
-八位伙伴的 14 套衣装都有放松的日常站姿。双脚着地，手臂自然垂下，呼吸、眨眼和发梢轻晃让角色看起来仍在留意周围。站一会儿，伙伴会轮流做两个短动作，随后收回手脚。白霜命穿礼服时会拢发侧听，鲸鱼娘换上开衫后会抬起一膝找平衡。[日常站立与动作的同尺度对照](docs/images/standing-and-gestures-065.jpg) · [14 套造型的动作与设计](docs/standing-poses.md)
+陆弥的原装与换装按各自人设补做动作，显示大小以实装办公室里的伙伴为参照。陆弥原装保留长直黑发、金色发饰、无袖深蓝裙和黑丝袜。换装仍有它自己的发饰、袖口与裙摆。站立、移动和表情都以同套原画校准，走路、提起和回望各有独立动作帧。[陆弥与实装伙伴的同倍率对照](docs/images/original-actors-067.jpg)
 
-在经典办公室的弧形桌旁，人物随座位朝自己的显示器转身。15 间卧室分别按键盘和屏幕的位置校准朝向。雪原书斋、蔷薇画房和经典办公室前台沿用参照原椅绘制的人椅合图，起身后能看到同一把空椅。[三席弧桌的修改对照](docs/images/office-curved-workstations-065.jpg) · [15 间卧室同机位对照](docs/images/bedroom-seating-comparison-065.jpg) · [完整场景实拍](docs/scene-verification.md)
-
-14 套造型都重绘了正面、背面与两侧的行走原画。陆弥与吉米保留各自的角饰、光环和服装轮廓，鲸鱼娘两套衣装与端木嫣原装也各有自己的步态。可以在实际房间里对照换脚时的头身比例、脚底落点和裙摆。[陆弥、吉米等造型的步态对照](docs/images/walk-proportions.gif) · [鲸鱼娘与端木嫣的室内实录](docs/images/walk-last-three-064.gif)
-
-提起伙伴时，她会抬手收脚。往上提、往下放或斜向急转，手肘、小腿和发梢的反应各有先后；松手后，双脚着地，膝盖回弹再站稳。办公室、卧室和 Windows 桌宠共用这些动作。拖动后把伙伴放在地面，她先站稳，眼睛先去找光标，随后才轻轻转头。约两秒半后她会收回视线。再次提起会打断注视。[松手后的实际拖放动图](docs/images/post-drop-look.gif)把桌宠拖到屏幕边缘松手即可探头。[桌宠与卧室拖放实录](docs/images/drag-motion-064.gif) · [14 套造型动作对照](docs/images/drag-outfits-064.jpg)
+在办公室把伙伴拖到空椅子即可换座，在卧室可以走到桌前或回床上休息。放下伙伴时，她先落稳，再短暂看向光标。手动拖到屏幕边缘可进入探头状态。[场景与桌宠使用方法](docs/guide.md#拖动伙伴与桌面探头)
 
 白天轻点桌宠可以打招呼。午休时她会小憩，夜间召唤会先回应，再靠到屏幕底边打盹。工作室保留角色记忆、群聊、卡包收藏及六款可购买的通用卧室。[场景、动作与验收实拍](docs/scene-verification.md) · [工作室指南](docs/studio.md)
 

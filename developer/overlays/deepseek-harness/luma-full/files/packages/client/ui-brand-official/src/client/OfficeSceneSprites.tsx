@@ -316,7 +316,7 @@ export function SeatedActor({ employee, workstationId, command, onClick, onConte
       onPointerUp={onPointerUp} onPointerCancel={onPointerCancel}
       {...officeEmployeeAction(employee.name,employeeDestination,employee.canDrag&&!sessionWorking,paperPlane)}
       data-employee-id={employee.id} data-skin-id={skinId} data-workstation-id={workstationId}
-      data-typing-facing={workstation.typingFacing} data-desk-view={painted.facing}
+      data-typing-facing={workstation.typingFacing} data-desk-view={painted.facing} data-desk-source={painted.src}
       data-scene-activity={sessionWorking?'task':ambientTyping?'desk-practice':'desk-break'}
       data-presence-label={sessionWorking?'工作中':ambientTyping?'整理资料':'在席待命'}
       data-scene-command-id={command?.commandId} data-task-id={command?.taskId}

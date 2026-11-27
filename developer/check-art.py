@@ -145,12 +145,13 @@ def main():
     pet_art = package / "native-desktop/pet-art"
     pose_index = Path(__file__).resolve().parent / "overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/actorPoseAtlas.generated.json"
     costumes = set(json.loads(pose_index.read_text(encoding="utf8")))
-    for folder in ("", "bottom", "greet", "drowsy", "lunch", "ledge", "performance"):
+    for folder in ("", "bottom", "bottom-night", "greet", "drowsy", "lunch", "ledge", "performance"):
         directory = pet_art / folder
         actual = {file.stem for file in directory.glob("*.png")}
-        if actual != costumes:
+        expected_costumes = {"lu-mi-base", "lu-mi-v1"} if folder == "bottom-night" else costumes
+        if actual != expected_costumes:
             errors.append({"file": directory.relative_to(package).as_posix(),
-                           "error": "costume mismatch: " + ", ".join(sorted(actual ^ costumes))})
+                           "error": "costume mismatch: " + ", ".join(sorted(actual ^ expected_costumes))})
     for file in sorted(pet_art.rglob("*.png")):
         try:
             inspect(file, file.read_bytes())

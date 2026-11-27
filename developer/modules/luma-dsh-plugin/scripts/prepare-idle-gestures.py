@@ -15,6 +15,8 @@ import cv2
 import numpy as np
 from PIL import Image
 
+from original_pose_motion import CostumeMotion, ORIGINAL_COSTUMES
+
 ROOT = Path(__file__).resolve().parents[1]
 OFFICE = ROOT.parents[1] / 'overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d'
 SOURCE = ROOT / 'art/actor-poses-keys/idle-gestures'
@@ -176,11 +178,47 @@ def ease_towards(source, next_key, fraction, foot):
     return cv2.remap(source,x-fraction*field[:,:,0],y-fraction*field[:,:,1],cv2.INTER_LINEAR)
 
 
+def original_gestures(key, neutral):
+    marks_path=SOURCE.parent/'standing/landmarks.json'
+    marks=json.loads(marks_path.read_text(encoding='utf8'))[key]
+    motion=CostumeMotion(key,premultiply(neutral),marks)
+    w,h=neutral.size
+    sheet=Image.new('RGBA',(w*8,h*2))
+    actions=[]
+    for row,(name,label) in enumerate(ACTIONS[key]):
+        sources=[motion.gesture(row,t) for t in (.26,.64,1.,.84,.48,.20)]
+        pictures=[straight(frame) for frame in sources]
+        if key=='lu-mi-base':
+            with Image.open(SOURCE.parent/'original-gesture-overrides'/(key+'-'+str(row)+'.png')) as art:
+                peak=art.convert('RGBA')
+            if peak.size!=neutral.size:
+                raise ValueError(f'{key}: gesture {name} must match neutral registration')
+            # Preserve individually painted fingers and the original facial
+            # lines. Ease each adjacent drawing towards its own nearest key.
+            end=premultiply(peak)
+            pictures[1]=straight(ease_towards(sources[1],end,.69,marks['foot']))
+            pictures[2]=peak
+            pictures[3]=straight(ease_towards(end,sources[4],.55,marks['foot']))
+        for col,frame in enumerate([neutral,*pictures,neutral]):
+            box=frame.getchannel('A').getbbox()
+            if not box or min(box[0],box[1],w-box[2],h-box[3])<1:
+                raise ValueError(f'{key} {name} exposure {col} is clipped')
+            sheet.paste(frame,(col*w,row*h))
+        lead,accent,settle=HOLDS[name]
+        actions.append(dict(id=name,label=label,frames=list(range(row*8,row*8+8)),
+                            durationsMs=[85,lead,95,accent,110,settle,100,90]))
+    buffer=BytesIO()
+    sheet.save(buffer,format='PNG',compress_level=6)
+    return buffer.getvalue(),actions
+
+
 def build(key, meta, registration):
     path=meta['src'].lstrip('/')
     w,h=meta['cell']
     with Image.open(ROOT/'art/release-assets'/path) as sheet:
         neutral=sheet.crop((0,0,w,h)).convert('RGBA')
+    if key in ORIGINAL_COSTUMES:
+        return original_gestures(key,neutral)
     ready=premultiply(neutral)
     source=SOURCE/(key+'.png')
     reg=registration[key]
@@ -239,7 +277,8 @@ def main():
     if set(bases)!=set(ACTIONS):
         raise ValueError('Every selectable costume needs two small gestures')
     registration_path=SOURCE/'registration.json'
-    registration=json.loads(registration_path.read_text(encoding='utf8')) if registration_path.exists() else {}
+    needs_paintings = args.only not in ORIGINAL_COSTUMES
+    registration=json.loads(registration_path.read_text(encoding='utf8')) if needs_paintings and registration_path.exists() else {}
     metadata_path=OFFICE/'actorGestureAtlas.generated.json'
     index=json.loads(metadata_path.read_text(encoding='utf-8-sig')) if args.only and metadata_path.exists() else {}
     targets=[args.only] if args.only else list(bases)

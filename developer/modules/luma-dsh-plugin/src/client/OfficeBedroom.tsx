@@ -1,3 +1,4 @@
+import lumiSleep from './bedroomSleep.generated.json'
 import { IdleGestureSequence } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/idleGestures.ts'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { ActorMotionLayer } from '../../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/ActorMotionLayer.tsx'
@@ -51,6 +52,10 @@ export function EmployeeFigure({ id, skinId }: { id: ResidentId; skinId?: string
 }
 
 function sleepingArt(id: ResidentId, selected?: string) {
+  if(id==='lu-mi'){
+    const art=lumiSleep[selected==='skin.lu-mi.v1'?'lu-mi-v1':'lu-mi-base']
+    return {src:art.src,width:art.size[0]!,height:art.size[1]!,head:art.backOfHead as unknown as Pair,feet:art.feetCenter as unknown as Pair}
+  }
   const pack = getEmployeeSkinPack(id, selected ?? getBrowserOfficeDefaultSkinId(id))
   if (pack) {
     const { dimensions } = getOfficeAsset(pack.assets.sleep)
@@ -300,7 +305,7 @@ export function OfficeBedroom({id,name,skinId,themeOwner,roomLayout,phase,bedtim
           </g>}
           {(onBed || atDesk) && weight>0 && <g opacity={weight}>
             {onBed ? <BedroomPhonePose id={id} skinId={skinId} room={bed} approach={floor.bed} reclined={contact}
-              animate={animate && pose==='phone'}/> : <BedroomDeskPose id={id} skinId={skinId} roomId={roomId}
+              elapsed={elapsed} animate={animate && pose==='phone'}/> : <BedroomDeskPose id={id} skinId={skinId} roomId={roomId}
               room={room} background={background} approach={floor.desk} seated={contact} elapsed={elapsed} waiting={!taskIdle} animate={animate && taskIdle && pose==='computer'}/>}
           </g>}
         </g>}

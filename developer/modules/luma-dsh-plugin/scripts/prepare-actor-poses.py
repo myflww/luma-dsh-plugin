@@ -21,6 +21,7 @@ import numpy as np
 from PIL import Image
 
 from standing_motion import make_idle
+from original_pose_motion import CostumeMotion, ORIGINAL_COSTUMES, registered_cel
 
 ROOT = Path(__file__).resolve().parents[1]
 OFFICE = ROOT.parents[1] / 'overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d'
@@ -367,6 +368,11 @@ def frame_sequences(neutral, caught, held, crouch, eyes, idle):
 
 
 def make_actor(key, entry, path):
+    if key in ORIGINAL_COSTUMES:
+        # The official catalog cel is already registered to 384x336.
+        base=registered_cel(ROOT/'public',STANDING_MARKS[key],SOURCE/'standing'/(key+'.png'))
+        neutral=premult(np.array(base))
+        return CostumeMotion(key,neutral,STANDING_MARKS[key]).poses()
     neutral, eyes=neutral_stance(key)
     paintings=choose_cells(path)
     regs=[register(paintings[i], entry['eyes'][i], eyes, i==2) for i in range(3)]
@@ -396,23 +402,28 @@ def export_png(frames):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--only',choices=STANDING_MARKS,help='Export a single preview without changing manifests')
+    selection=parser.add_mutually_exclusive_group()
+    selection.add_argument('--only',choices=STANDING_MARKS,help='Export a single preview without changing manifests')
     parser.add_argument('--output',type=Path,help='PNG destination for --only')
+    selection.add_argument('--register', choices=STANDING_MARKS, nargs='+', help='Rebuild selected registered costumes')
     args=parser.parse_args()
-    entries=json.loads((SOURCE/'landmarks.json').read_text(encoding='utf-8-sig'))
-    if set(entries)!=set(STANDING_MARKS):
-        raise ValueError('Every costume must have its own plate landmarks')
+    targets=[args.only] if args.only else args.register or sorted(STANDING_MARKS)
+    painted=set(targets)-ORIGINAL_COSTUMES
+    entries=json.loads((SOURCE/'landmarks.json').read_text(encoding='utf-8-sig')) if painted else {}
+    if not painted.issubset(entries):
+        raise ValueError('Missing registration for a painted costume')
     if args.only:
         if args.output is None:
             parser.error('--only requires --output')
-        frames,_,_,_=make_actor(args.only,entries[args.only],SOURCE/(args.only+'.png'))
+        frames,_,_,_=make_actor(args.only,entries.get(args.only),SOURCE/(args.only+'.png'))
         save_atomic(args.output,export_png(frames))
         return
     art_manifest=[]
-    metadata={}
-    for key in sorted(STANDING_MARKS):
+    index_path=OFFICE/'actorPoseAtlas.generated.json'
+    metadata=json.loads(index_path.read_text(encoding='utf8')) if args.register else {}
+    for key in targets:
         path=SOURCE/(key+'.png')
-        frames,eye_frames,durations,foot_x=make_actor(key,entries[key],path)
+        frames,eye_frames,durations,foot_x=make_actor(key,entries.get(key),path)
         data=export_png(frames)
         digest=sha256(data).hexdigest()
         rel=(ART/(key+'.'+digest[:12]+'.png')).as_posix()
@@ -425,14 +436,14 @@ def main():
         print(key,flush=True)
     manifest=ROOT/'lib/asset-manifest.json'
     old=json.loads(manifest.read_text(encoding='utf8'))
-    retained=[row for row in old if Path(row['path']).parent!=ART]
+    retained=[row for row in old if Path(row['path']).parent!=ART or Path(row['path']).name.split('.')[0] not in targets]
     save_atomic(manifest,(json.dumps(retained+art_manifest,indent=2,ensure_ascii=False)+'\n').encode('utf8'))
     save_atomic(OFFICE/'actorPoseAtlas.generated.json',(json.dumps(metadata,indent=2)+'\n').encode('utf8'))
     valid={Path(entry['path']).name for entry in art_manifest}
     for directory in (ROOT/'public',ROOT/'art/release-assets'):
         for obsolete in (directory/ART).glob('*.png'):
             parts=obsolete.name.split('.')
-            if (obsolete.name not in valid and len(parts)==3 and parts[0] in metadata and
+            if (obsolete.name not in valid and len(parts)==3 and parts[0] in targets and
                     len(parts[1])==12 and all(c in '0123456789abcdef' for c in parts[1])):
                 obsolete.unlink()
 

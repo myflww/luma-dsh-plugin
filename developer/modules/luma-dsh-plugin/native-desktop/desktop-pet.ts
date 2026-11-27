@@ -39,9 +39,11 @@ export function desktopPets(directory:string, unlocked:()=>readonly string[], sk
       poses:{...source.poses,path:assetPath(source.poses.path),gestures:source.poses.gestures && {
         ...source.poses.gestures,path:assetPath(source.poses.gestures.path)},look:source.poses.look && {
         ...source.poses.look,path:assetPath(source.poses.look.path),eyesPath:assetPath(source.poses.look.eyesPath)}},
-      sleep:assetPath(source.sleep),sleepAngle:source.sleepAngle,sleepMirror:source.sleepMirror,
+      sleep:role==='lu-mi'?join(directory,'pet-art','ledge',key+'.png'):assetPath(source.sleep),
+      sleepAngle:role==='lu-mi'?0:source.sleepAngle,sleepMirror:role==='lu-mi'?false:source.sleepMirror,
       peek:join(directory,'pet-art',key+'.png'),ledge:join(directory,'pet-art','ledge',key+'.png'),
       bottomPeek:join(directory,'pet-art','bottom',key+'.png'),
+      bottomSleep:role==='lu-mi'?join(directory,'pet-art','bottom-night',key+'.png'):undefined,
       sleepyPose:join(directory,'pet-art','drowsy',key+'.png'),greet:join(directory,'pet-art','greet',key+'.png'),
       performance:join(directory,'pet-art','performance',key+'.png'),
       lunchPose:join(directory,'pet-art','lunch',key+'.png')}

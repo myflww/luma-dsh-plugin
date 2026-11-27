@@ -5,6 +5,7 @@ import catalog from './walkAtlas.generated.json'
 interface WalkAtlas {
   readonly src: string
   readonly sha256: string
+  readonly sourceSha256?:string
   /** The cropped region in the original cell's coordinates, after sole registration. */
   readonly bounds: readonly number[]
   readonly cell: readonly number[]

@@ -58,6 +58,7 @@ def build():
     output=PET/'performance'
     output.mkdir(exist_ok=True)
     for key,marks in registrations.items():
+        if key in ("lu-mi-base","lu-mi-v1"):continue
         cells=[place(im,mark) for im,mark in zip(drawings(key),marks,strict=True)]
         present,bite,ready,bow,pat_ready,pat_response=cells[4:]
         guide=[192,300]
@@ -74,4 +75,7 @@ def build():
             sheet.paste(frame,(384*(i%4),336*(i//4)))
         sheet.save(output/(key+'.png'),compress_level=8)
 
-if __name__=='__main__':build()
+if __name__=='__main__':
+    build()
+    from original_lumi_performances import build as build_lumi
+    build_lumi()

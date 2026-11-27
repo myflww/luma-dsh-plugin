@@ -346,30 +346,30 @@
     ],
     "figureHeight": 256,
     "foot": [
-      186,
+      192,
       300
     ],
     "grip": [
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/actor-look/lu-mi-base.a9ec098c90da.png",
-    "sha256": "a9ec098c90da2ebd168ef84233e55c1db548d3dd146aceb80232af8bf2b9f57c",
+    "src": "/luma-office/luma-plugin-art/actor-look/lu-mi-base.7e90f91ca260.png",
+    "sha256": "7e90f91ca2604f1cefb70bb81583c142c1331cfbef54cf007bafce1edb610fa2",
     "columns": 5,
     "count": 25,
     "neutralIndex": 12,
-    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/lu-mi-base-eyes.8beb2316db2a.png",
-    "eyesSha256": "8beb2316db2abce2e3ff6b26f2a6f6385f669f8b191b1d9416aee5f3b03eb99b",
+    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/lu-mi-base-eyes.c454afdba5bc.png",
+    "eyesSha256": "c454afdba5bc083ed2c9b2acc5ab8af297d613671655e833902505e9c1bbd61c",
     "eyeCenter": [
-      192.5,
-      129.0
+      195.5,
+      114.0
     ],
     "eyesOrigin": [
-      164,
-      121
+      169,
+      106
     ],
     "eyesCell": [
-      58,
+      54,
       18
     ]
   },
@@ -380,31 +380,31 @@
     ],
     "figureHeight": 256,
     "foot": [
-      200,
+      192,
       300
     ],
     "grip": [
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/actor-look/lu-mi-v1.f6a815c82bc2.png",
-    "sha256": "f6a815c82bc2435ffbacbff01b8527d25d9927814343a409df8bfc7543004a43",
+    "src": "/luma-office/luma-plugin-art/actor-look/lu-mi-v1.f6c35cac4564.png",
+    "sha256": "f6c35cac4564763d19c85de06bd1481994fa70a678941f20e4bdd15cce435867",
     "columns": 5,
     "count": 25,
     "neutralIndex": 12,
-    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/lu-mi-v1-eyes.601ad8d5d3c6.png",
-    "eyesSha256": "601ad8d5d3c692002228dd64bafcfb38ef4ccdf977b19b3076277c3d3246fa64",
+    "eyesSrc": "/luma-office/luma-plugin-art/actor-look/lu-mi-v1-eyes.fa664fc06997.png",
+    "eyesSha256": "fa664fc06997ab40ee5c1565eb571a420f2bc2ddc971c465cbbb27aea4974eea",
     "eyeCenter": [
-      193.5,
-      126.0
+      194.5,
+      114.5
     ],
     "eyesOrigin": [
-      165,
-      118
+      168,
+      106
     ],
     "eyesCell": [
-      58,
-      18
+      54,
+      19
     ]
   },
   "shan-base": {

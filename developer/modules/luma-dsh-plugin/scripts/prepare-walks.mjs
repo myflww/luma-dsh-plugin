@@ -16,7 +16,8 @@ for (const role of ['jingyuniang','longmama','claude','gemini','grok','shan','ba
       const anchor = getEmployeeSkinWalkProfile(role, direction, skin)?.anchor ?? strip.anchor
       const [height, sole] = OFFICE_SILHOUETTES[asset.sha256]
       const variant=skin || role==='gemini' || role==='grok' ? 'v1' : 'base'
-      assets.set(id, {id, costume:role+'-'+variant, direction, cycleMs:createOfficeFrameTimeline(strip).cycleMs,
+      const {order,durations}=createOfficeFrameTimeline(strip)
+      assets.set(id, {id,order,durations,costume:role+'-'+variant, direction, cycleMs:createOfficeFrameTimeline(strip).cycleMs,
         src: 'modules/luma-dsh-plugin/public' + resolveOfficeAssetUrl(id),
         sha: asset.sha256, strip, height, sole, center: anchor.x * strip.frameWidth})
     }

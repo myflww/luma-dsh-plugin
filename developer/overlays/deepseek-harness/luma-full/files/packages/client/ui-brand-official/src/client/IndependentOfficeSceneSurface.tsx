@@ -808,7 +808,7 @@ function IndependentOfficeSceneContent(props: OfficeSceneSurfaceProps & {retry()
       lastCompletePaint.current = composition
       if(canvas.current) canvas.current.dataset.officeActors = JSON.stringify(painted.current.map(row=>{
         const actor=row.arrivalKey?arrivals.current.get(row.arrivalKey):undefined
-        return {id:row.employee.id,mode:actor?.mode??(row.roaming?'floor':'seated'),position:actor?.position??row.origin,direction:actor?.direction,frame:row.frame,motion:row.motion,idleGesture:row.gesture,lookEyes:looks.get(row.employee.id)?.eyes,moving:row.roaming&&!!row.animated,station:row.station?.id,activity:row.station && row.employee.ambientDesk ? 'desk-practice' : row.employee.sceneActivity,source:row.image.width,deskView:row.desk?.facing}
+        return {id:row.employee.id,mode:actor?.mode??(row.roaming?'floor':'seated'),position:actor?.position??row.origin,direction:actor?.direction,frame:row.frame,motion:row.motion,idleGesture:row.gesture,lookEyes:looks.get(row.employee.id)?.eyes,moving:row.roaming&&!!row.animated,station:row.station?.id,activity:row.station && row.employee.ambientDesk ? 'desk-practice' : row.employee.sceneActivity,source:row.image.width,deskView:row.desk?.facing,deskSource:row.desk?.src}
       }))
       paintedSceneOccluders.current = occluders
       // No arrival event is inferred from a timer or a selected binding: confirm its actual complete paint.

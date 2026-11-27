@@ -6,7 +6,7 @@ import { getWalkAtlas, sampleWalkAtlas } from '../../../overlays/deepseek-harnes
 import { OFFICE_SILHOUETTES } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/client/office2d/officeSilhouettes.generated.ts'
 import { BEDROOM_FLOORS, bedroomFootAt, bedroomTravelAt, createBedroomRoutine } from '../src/client/bedroom-routine.ts'
 
-it('uses four individually painted walking poses for every outfit and direction', () => {
+it('preserves the installed gait for peers and each original pose and exposure for Lu Mi', () => {
   const ids = ['shan','lu-mi','bai-shuangming','jingyuniang','longmama','claude','gemini','grok']
   for (const id of ids) for (const skin of [undefined,'skin.'+id+'.v1']) {
     const catalog = getEmployeeCatalogWithSkin(id,skin)!
@@ -14,20 +14,26 @@ it('uses four individually painted walking poses for every outfit and direction'
       const atlas = getWalkAtlas(asset)!
       const strip = getOfficeAsset(asset).frameStrip!
       const timeline = createOfficeFrameTimeline(strip)
-      expect(atlas.count).toBe(4)
-      expect(atlas.frameDurationsMs).toHaveLength(4)
+      if(id==='lu-mi'){
+        expect(atlas.sourceSha256).toBe(getOfficeAsset(asset).sha256)
+        expect(atlas.count).toBe(timeline.order.length*2)
+        expect(atlas.frameDurationsMs).toEqual(timeline.durations.flatMap(d=>[d/2,d/2]))
+      }else{
+        expect(atlas.count).toBe(4)
+        expect(atlas.frameDurationsMs).toHaveLength(4)
+      }
       let phase=0
-      for (let i=0;i<4;i++) {
+      for (let i=0;i<atlas.count;i++) {
         const duration=atlas.frameDurationsMs![i]!
         const frame=sampleWalkAtlas(atlas,strip,phase+duration/2)
         expect(frame.index).toBe(i)
-        expect(frame.rect).toEqual([i*atlas.cell[0]!,0,atlas.cell[0],atlas.cell[1]])
+        expect(frame.rect).toEqual([(i%atlas.columns)*atlas.cell[0]!,Math.floor(i/atlas.columns)*atlas.cell[1]!,...atlas.cell])
         phase+=duration
       }
       expect(phase).toBeCloseTo(timeline.cycleMs,5)
       expect(sampleWalkAtlas(atlas,strip,phase).index).toBe(0)
       const last = sampleWalkAtlas(atlas,strip,phase,false)
-      expect(last.index).toBe(3)
+      expect(last.index).toBe(atlas.count-1)
       expect(last.nextDelayMs).toBeNull()
     }
   }
@@ -48,7 +54,7 @@ it('places every rebuilt direction on the scene floor at the same displayed figu
   }
 })
 
-it('keeps the planted foot phase and the same tangent through every room’s central aisle', () => {
+it('keeps the planted foot phase and the same tangent through every room鈥檚 central aisle', () => {
   for(const room of Object.keys(BEDROOM_FLOORS) as (keyof typeof BEDROOM_FLOORS)[]) {
     const steps=createBedroomRoutine('jingyuniang',room,new Date(2026,10,22,8),false,
       {left:75,right:75,up:80,down:80}).steps

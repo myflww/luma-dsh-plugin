@@ -73,6 +73,8 @@ internal static class PetEdgePortraitCheck {
                 }
                 using(var doze=Snapshot(pet,-1,false)) {
                     Check((string)Window.GetField("nightActivity",Private).GetValue(pet)=="dozing",row.Key+" nighttime settling");
+                    Check((int)Window.GetField("side",Private).GetValue(pet)==0,row.Key+" still showing the docked portrait after settling");
+                    if(args.Length>1)doze.Save(Path.Combine(args[1],row.Key+"-sleeping.png"),ImageFormat.Png);
                 }
             }
         }

@@ -302,62 +302,86 @@
   "lu-mi-base": {
     "eyes": [
       [
-        176,
-        129
+        180,
+        114
       ],
       [
-        209,
-        129
-      ]
-    ],
-    "hands": [
-      [
-        154,
-        220
-      ],
-      [
-        230,
-        220
-      ]
-    ],
-    "mouth": [
-      193,
-      143
-    ],
-    "chin": [
-      193,
-      152
-    ]
-  },
-  "lu-mi-v1": {
-    "eyes": [
-      [
-        177,
-        126
-      ],
-      [
-        210,
-        126
+        211,
+        114
       ]
     ],
     "hands": [
       [
         151,
-        219
+        190
       ],
       [
-        233,
-        219
+        237,
+        189
+      ]
+    ],
+    "mouth": [
+      197,
+      127
+    ],
+    "chin": [
+      197,
+      134
+    ],
+    "foot": [
+      192,
+      300
+    ],
+    "source": "/luma-office/assets/lu-mi-walk-down-v2.5cef2e4611ef.png",
+    "sha256": "5cef2e4611ef263167a83a3c83ca8138704676c0325ac69620a3ab743c6c5ea5",
+    "frame": 0,
+    "sourceFrameSize": [
+      592,
+      724
+    ],
+    "celPixelSha256": "b79ec7d1854d89b97bd489785cc46c26a8ae086357ddc79249672d9936accae5"
+  },
+  "lu-mi-v1": {
+    "eyes": [
+      [
+        179,
+        115
+      ],
+      [
+        210,
+        114
+      ]
+    ],
+    "hands": [
+      [
+        161,
+        185
+      ],
+      [
+        231,
+        194
       ]
     ],
     "mouth": [
       194,
-      140
+      126
     ],
     "chin": [
       194,
-      149
-    ]
+      131
+    ],
+    "foot": [
+      192,
+      300
+    ],
+    "source": "/luma-office/assets/lu-mi-skin-v1-walk-down.70fe69338fae.png",
+    "sha256": "70fe69338faeba53902e0b69e831c0a2157a178ddcbfc332eb5890225eb75ada",
+    "frame": 0,
+    "sourceFrameSize": [
+      592,
+      724
+    ],
+    "celPixelSha256": "def8c42b45b05d86d4d0e01b48c581f9bccdf2151a0d770ff02b25ffe7524fc2"
   },
   "shan-base": {
     "eyes": [

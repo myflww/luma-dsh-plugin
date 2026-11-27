@@ -696,15 +696,15 @@
     ],
     "figureHeight": 256,
     "foot": [
-      186,
+      192,
       300
     ],
     "grip": [
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/idle-gestures/lu-mi-base.96d2da984dba.png",
-    "sha256": "96d2da984dba1e795345e9aaec015641ebee5908dacc56c2304faa5076a3e118",
+    "src": "/luma-office/luma-plugin-art/idle-gestures/lu-mi-base.2137480720d4.png",
+    "sha256": "2137480720d4824fbff514604b20a7bc3a2034f90ca4bbfb2c7d15fa8b748b4a",
     "columns": 8,
     "count": 16,
     "actions": [
@@ -765,15 +765,15 @@
     ],
     "figureHeight": 256,
     "foot": [
-      200,
+      192,
       300
     ],
     "grip": [
       192,
       60
     ],
-    "src": "/luma-office/luma-plugin-art/idle-gestures/lu-mi-v1.7e86d7e29933.png",
-    "sha256": "7e86d7e2993357a4bba477500779403858a4476ce3381e2cab188d72edf1ebed",
+    "src": "/luma-office/luma-plugin-art/idle-gestures/lu-mi-v1.55f3b5fd15bc.png",
+    "sha256": "55f3b5fd15bc4e0be19e3877fa18132b67792582999d9dfd76b8c947073f7dd0",
     "columns": 8,
     "count": 16,
     "actions": [
