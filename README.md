@@ -6,7 +6,7 @@
 
 [下载 Windows 正式版 0.6.8](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.6.8) · [工作室使用指南](docs/studio.md) · [安装与使用手册](docs/guide.md) · [记忆与爱之屋](docs/memory.md) · [使用许可](LICENSE.md)
 
-换设备继续开发请从[三个窗口的交接书与任务清单](docs/handoff/README.md)开始。发行页同时提供已审查的未实装原画与开发交接包。
+换设备继续制作时，可下载[最新拖动原画与单席坐姿范本](docs/handoff/README.md)。工位范本附有落座、朝向、键鼠接触和衣发遮挡的制作要求。
 
 ## 从工位走到桌面
 
