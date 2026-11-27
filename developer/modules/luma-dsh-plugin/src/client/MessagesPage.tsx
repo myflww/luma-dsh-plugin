@@ -6,6 +6,8 @@ import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { ArrowLeft, ArrowUp, BriefcaseBusiness, Check, CheckCheck, List, Mail, MessageCircle, MessagesSquare, Plus, Search, Settings2, Square, UserRoundPlus, UsersRound } from 'lucide-react'
 import { MESSAGE_CHARACTERS, type MessagesRuntime } from './messages-runtime.ts'
 import { ContactTitle } from './ContactTitle.tsx'
+import { ContactPopup } from './ContactPopup.tsx'
+import { contactPersona, importContactCard, exportContactCard } from '../shared/contact-profile.ts'
 import { contactDisplayName, type RoleProfile } from '../messages-settings.ts'
 import { AgentMemoryPanel, AgentServicePanel, EmployeeFace, JobCard } from './AgentDeskPanels.tsx'
 import { agentRequest, inProgress, useAgentDesk, type AgentJob, type AgentMode, type WorkRoom } from './agent-desk-api.ts'
@@ -61,6 +63,7 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
     return () => window.clearTimeout(timer)
   }, [active, desk.state, desk.problem])
   const [rosterOpen, setRosterOpen] = useState(false)
+  useEffect(()=>{if(!active)setRosterOpen(false)},[active])
   const partners = MESSAGE_CHARACTERS.filter(role => unlockedEmployeeIds.includes(role.id))
   const visibleRoles = new Set(partners.map(role => role.id as string))
   const rooms = (desk.state?.rooms ?? []).filter(room => room.roleIds.every(id => visibleRoles.has(id)))
@@ -68,7 +71,7 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
   function showRoom(room: WorkRoom | 'new' | null) {
     setPanel(null); setRoomView(room); setRosterOpen(false);setWindowAssignment(undefined)
   }
-  useEffect(() => { setRoomView(null) }, [roleId, employeeVisit])
+  useEffect(() => { setRoomView(null);setRosterOpen(false) }, [roleId, employeeVisit])
   const names = Object.fromEntries(MESSAGE_CHARACTERS.map(role => [role.id, contactDisplayName(state.preferences, role.id, role.name)]))
   const contactName = names[roleId] ?? state.profile.name
   const skins = state.employeeSkins ?? {}
@@ -175,7 +178,7 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
     const requestId = previous?.signature === signature && sameFiles ? previous.id : crypto.randomUUID()
     const profiles = Object.fromEntries(roleIds.map(id => {
       const profile = state.preferences.profiles[id] ?? MESSAGE_CHARACTERS.find(role => role.id === id)!.profile
-      return [id, { name: profile.name, personality: profile.personality, scenario: profile.scenario }]
+      return [id, contactPersona(profile)]
     }))
     submitLock.current = true; setSending(true)
     const timeout = files.length ? undefined : AbortSignal.timeout(15_000)
@@ -228,11 +231,11 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
     if (!file) return
     try {
       if (file.size > 1_000_000) throw Error('请选择小于 1 MB 的角色 JSON。')
-      const json = JSON.parse(await file.text()), data = json.data ?? json
-      const next = { name: data.name, personality: data.personality ?? data.description ?? '', scenario: data.scenario ?? '', greeting: data.first_mes ?? data.greeting ?? '' }
-      if (typeof next.name !== 'string' || !next.name.trim() || next.name.length > 80
-        || typeof next.personality !== 'string' || next.personality.length > 12000 || typeof next.scenario !== 'string' || next.scenario.length > 8000
-        || typeof next.greeting !== 'string' || next.greeting.length > 4000) throw Error('角色卡字段或长度不受支持。')
+      const role = MESSAGE_CHARACTERS.find(person => person.id === roleId)
+      if (!role) return
+      const json = JSON.parse(await file.text())
+      if (runtime.getSnapshot().roleId !== role.id) return
+      const next = importContactCard(role.id, json)
       setProfile(next); setPanel('persona'); setNotice('角色设定已读取，请检查后保存。')
     } catch (error) { setNotice(error instanceof Error ? error.message : String(error)) }
   }
@@ -244,7 +247,7 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
     const items = [note, job && { text: job.steps.at(-1)?.output || job.text, time: job.createdAt },
       activeMessage && { text: activeMessage.text, time: activeMessage.time ?? 0 }].filter(item => item !== undefined)
     const latest = items.sort((a,b) => b.time - a.time)[0]
-    return { role, text: state.preferences.drafts[role.id] ? '［草稿］' + state.preferences.drafts[role.id] : latest?.text || role.profile.greeting, time: latest?.time ?? 0 }
+    return { role, text: state.preferences.drafts[role.id] ? '［草稿］' + state.preferences.drafts[role.id] : latest?.text || '暂无消息', time: latest?.time ?? 0 }
   }).sort((a,b) => b.time - a.time)
   const clockText = (time: number) => new Date(time).toLocaleTimeString('zh-CN', {hour:'2-digit', minute:'2-digit'})
   const search = query.trim().toLocaleLowerCase()
@@ -258,18 +261,24 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
     return () => window.removeEventListener('keydown', close)
   }, [active, panel, rosterOpen])
   return <ReplyToolsProvider scope={JSON.stringify([active,roleId,preferred,roomView && typeof roomView==='object' ? roomView.id : roomView])} reactions={state.preferences.reactions} rate={state.writable ? runtime.setReaction : undefined}><section className={'lumaMessages lumaContacts' + (rosterOpen ? ' show-roster' : '')} aria-label="联系">
-    <aside className="lumaMessagesRoster">
+    {rosterOpen && active && <ContactPopup kind="directory" label="联系人与群聊" close={()=>setRosterOpen(false)}>
       <header><h1><MessagesSquare size={21} aria-hidden="true"/>联系</h1><button type="button" className="lumaContactMobile" onClick={() => setRosterOpen(false)}><ArrowLeft size={15} aria-hidden="true"/>返回对话</button></header>
-      <label className="lumaRosterSearch"><Search size={15} aria-hidden="true"/><input type="search" aria-label="搜索联系人或群聊" placeholder="搜索联系人或群聊" value={query} onChange={event => setQuery(event.target.value)} /></label>
+      <label className="lumaRosterSearch"><Search size={15} aria-hidden="true"/><input data-initial-focus type="search" aria-label="搜索联系人或群聊" placeholder="搜索联系人或群聊" value={query} onChange={event => setQuery(event.target.value)} /></label>
       <div className="lumaMessagesCharacters" role="list" aria-label="联系人与群聊">
         {roomSupported && <div className="lumaStudioDirectory">
           <h2>协作工作室</h2><button type="button" title={partners.length < 2 ? '邀请伙伴组队' : '新建工作室'} aria-label={partners.length < 2 ? '邀请伙伴组队' : '新建工作室'} disabled={busy || !state.writable || (partners.length < 2 && !onOpenRewards)}
             onClick={showRoomCreator}><Plus size={16} aria-hidden="true"/></button>
         </div>}
-        {matchingRooms.map(room => <button type="button" key={room.id} aria-pressed={typeof roomView === 'object' && roomView?.id === room.id}
+        {matchingRooms.map(room => {
+          const turn = desk.state?.jobs.findLast(job => job.topic === room.id)
+          const reply = turn?.steps.findLast(step => step.status === 'done' && step.output)
+          const preview = reply ? (names[reply.roleId] ?? reply.roleId) + '：' + reply.output
+            : turn?.text || turn?.attachments?.[0]?.name || room.roleIds.map(id => names[id]).join('、')
+          return <button type="button" key={room.id} aria-pressed={typeof roomView === 'object' && roomView?.id === room.id}
           className={typeof roomView === 'object' && roomView?.id === room.id ? 'is-selected' : ''} onClick={() => showRoom(room)}>
           <span className="lumaContactGroupFaces">{room.roleIds.slice(0,2).map(id => <EmployeeFace key={id} id={id} skin={skins[id]} />)}</span>
-          <span className="lumaContactPreview"><strong>{room.name}</strong><small>{desk.state?.jobs.filter(job => job.topic === room.id).at(-1)?.text || room.roleIds.map(id => names[id]).join('、')}</small></span></button>)}
+          <span className="lumaContactPreview"><strong>{room.name}</strong><small>{preview}</small></span></button>
+        })}
         {matching.length > 0 && <h2 className="lumaRosterSection">角色联系人</h2>}
         {matching.map(({role,text,time}) => <button type="button" key={role.id}
           className={!roomView && state.roleId === role.id ? 'is-selected' : ''} aria-pressed={!roomView && state.roleId === role.id} disabled={busy}
@@ -280,14 +289,14 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
         {!matching.length && !matchingRooms.length && <p>没有找到这个联系人或群聊</p>}
       </div>
       {onOpenRewards && partners.length < MESSAGE_CHARACTERS.length && <footer><button type="button" onClick={onOpenRewards}><UserRoundPlus size={15} aria-hidden="true"/>邀请新伙伴</button></footer>}
-    </aside>
+    </ContactPopup>}
     {roomView && desk.state && (roomView === 'new' || rooms.some(room => room.id === roomView.id)) ? (roomView === 'new'
       ? <RoomCreator availableRoleIds={unlockedEmployeeIds} snapshot={state} state={desk.state} names={names} refresh={desk.refresh} close={() => showRoom(null)} onCreated={showRoom} />
-      : <RoomConversation key={roomView.id} active={active} room={rooms.find(room=>room.id===roomView.id) ?? roomView} snapshot={state} state={desk.state} names={names} refresh={desk.refresh} close={() => showRoom(null)} openContacts={() => setRosterOpen(true)} forgetReplyMarks={forgetReplyMarks}
+      : <RoomConversation key={roomView.id} active={active} room={rooms.find(room=>room.id===roomView.id) ?? roomView} snapshot={state} state={desk.state} names={names} refresh={desk.refresh} close={() => showRoom(null)} openContacts={() => setRosterOpen(true)} contactsOpen={rosterOpen} forgetReplyMarks={forgetReplyMarks}
           files={attachmentDrafts.filesFor(roomView.id)} changeFiles={next => attachmentDrafts.change(roomView.id, next)} />)
       : <div className="lumaMessagesConversation">
       <header className="lumaMessageToolbar">
-        <button type="button" className="lumaContactMobile" aria-label="联系人" title="联系人" onClick={() => setRosterOpen(true)}><List size={17} aria-hidden="true"/></button>
+        <button type="button" className="lumaContactMobile" data-contact-trigger="directory" aria-haspopup="dialog" aria-expanded={rosterOpen} aria-label="联系人" title="联系人" onClick={() => setRosterOpen(true)}><List size={17} aria-hidden="true"/><span>联系人</span></button>
         <div className="lumaEmployeeTitle lumaPrivateIdentity"><EmployeeFace id={roleId} skin={skins[roleId]} /><div><ContactTitle key={roleId} title={contactName} defaultName={state.profile.name}
           value={state.preferences.contactAliases?.[roleId] ?? ''} editable={state.writable && !state.pending}
           save={async (value,previous)=>{ if (await runtime.setContactAlias(roleId,value,previous)!==true) throw Error(runtime.getSnapshot().problem || '联系人备注未保存。') }}/><span data-working={Boolean(runningJob || state.running)}>{runningJob && runningJob.mode !== 'chat' ? '正在工作…' : state.running || runningJob ? '正在回复…' : state.preferences.contactAliases?.[roleId] ? state.profile.name : '一对一聊天'}</span></div></div>
@@ -321,7 +330,7 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
         {showNative && state.loading && <p role="status">正在读取对话…</p>}
         {!letters.length && !(showNative ? state.messages.length : jobs.length) && !state.loading && <article className="lumaRoleIntroduction">
           <div className="lumaIntroPortrait"><EmployeeFigure id={roleId as ResidentId} skinId={skins[roleId]}/></div>
-          <div><h3>{contactName}</h3><p>{state.profile.greeting}</p></div>
+          <div><h3>{contactName}</h3><p>发条消息，和{contactName}聊聊。</p></div>
         </article>}
         {[...jobs.map(job => ({time:job.createdAt, node:job.mode === 'chat' ? <div key={job.id} data-turn-key={job.id} data-turn-title={job.text.slice(0,64)}>
           <article className="lumaMessageBubble is-user"><div><header><strong>{state.preferences.userName}</strong><time>{clockText(job.createdAt)}</time></header><p>{job.text}</p><AttachmentNames items={job.attachments}/><SentMark/></div></article>
@@ -428,23 +437,20 @@ export function MessagesPage({ runtime, active = true, employeeVisit, onOpenNati
     {panel === 'memory' && <AgentMemoryPanel key={'memory-' + roleId} roleId={roleId} name={contactName} house={desk.state?.loveHouse} count={desk.state?.memories[roleId] ?? 0} canWrite={state.writable} refresh={desk.refresh} close={() => setPanel(null)} />}
     {panel === 'persona' && <aside className="lumaRoleEditor" aria-label="角色设定编辑">
       <header><h2>人格设定</h2><button type="button" aria-label="关闭角色设定" onClick={() => setPanel(null)}>×</button></header>
-      <p>为这位角色调整性格与场景，随下一条消息生效。原有对话继续保留。</p>
+      <p>保存后，这位角色从下一条消息起就会使用这些设定。</p>
       {notice && <p role="status">{notice}</p>}
       {JSON.stringify(profile) !== persistedProfile && <p role="status">有尚未保存的角色修改。</p>}
       <label>角色名称<input value={profile.name} maxLength={80} onChange={event => setProfile({ ...profile, name: event.target.value })} /></label>
       <label>性格与说话方式<textarea aria-label="性格与说话方式" value={profile.personality} maxLength={12000} onChange={event => setProfile({ ...profile, personality: event.target.value })} /></label>
       <label>对话场景<textarea aria-label="对话场景" value={profile.scenario} maxLength={8000} onChange={event => setProfile({ ...profile, scenario: event.target.value })} /></label>
-      <label>角色开场白<textarea aria-label="角色开场白" value={profile.greeting} maxLength={4000} onChange={event => setProfile({ ...profile, greeting: event.target.value })} /></label>
+      <label>对你的称呼或者印象<textarea aria-label="对你的称呼或者印象" placeholder="例如：叫我阿宁。我们很熟，有不同意见可以直接说。" value={profile.addressImpression} maxLength={4000} onChange={event => setProfile({ ...profile, addressImpression: event.target.value })} /></label>
       <div className="lumaRoleEditorActions"><button type="button" className="is-primary" disabled={!state.writable || state.pending || !profile.name.trim()} onClick={() => { void runtime.saveProfile(profile).then(saved => { if (saved) setNotice('角色设定已保存。') }) }}>保存设定</button>
         <button type="button" disabled={!state.writable || state.pending} onClick={() => { void runtime.resetProfile() }}>恢复作者设定</button></div>
       <label>导入角色设定 JSON<input type="file" accept=".json,application/json" onChange={event => { void importCard(event.target.files?.[0]); event.currentTarget.value = '' }} /></label>
-      <p>导入名称、性格、场景与开场白。</p>
-      <button type="button" onClick={() => downloadJson(`Luma-${profile.name}-角色卡.json`, { spec: 'chara_card_v2', spec_version: '2.0', data: { name: profile.name,
-        description: profile.personality, personality: profile.personality, scenario: profile.scenario, first_mes: profile.greeting, mes_example: '', creator_notes: 'Luma 本地角色设定',
-        system_prompt: '根据角色设定自然回应。情节与动作是虚构表达，不代替用户发言或编造现实执行结果。', post_history_instructions: '', alternate_greetings: [],
-        tags: ['Luma'], creator: '', character_version: '1.0', character_book: { name: '角色附录', description: '', entries: [], extensions: {} }, extensions: {} } })}>导出角色卡</button>
-      <details><summary>对话管理</summary><label>你的称呼<input maxLength={80} value={userName} onChange={event => setUserName(event.target.value)} /></label>
-        <button type="button" disabled={!state.writable || state.pending} onClick={() => { void runtime.setUserName(userName) }}>保存称呼</button>
+      <p>支持角色卡 JSON，Luma 角色卡还会保留对你的称呼或印象。</p>
+      <button type="button" onClick={() => downloadJson(`Luma-${profile.name}-角色卡.json`, exportContactCard(profile))}>导出角色卡</button>
+      <details><summary>对话管理</summary><label>你的消息署名<input maxLength={80} value={userName} onChange={event => setUserName(event.target.value)} /></label>
+        <button type="button" disabled={!state.writable || state.pending} onClick={() => { void runtime.setUserName(userName) }}>保存署名</button>
         <button type="button" disabled={!nativeView || !state.sessionId || state.running || state.pending} onClick={() => { if (window.confirm('将当前对话归档？DSH 中的历史记录会保留。')) void runtime.archiveTopic() }}>归档当前 DSH 对话</button></details>
     </aside>}
   </section></ReplyToolsProvider>

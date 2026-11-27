@@ -184,12 +184,12 @@ export function createRolePortraits(db:DatabaseSync, model:Model) {
     if (!match || match.browse) return db.prepare(selection+' LIMIT 16').all(role,scope)
     const local=db.prepare(selection).all(role,scope)
     if (includeOwnGroupWork && scope===privateScope) {
-      // For legacy items the evidence event is the original job ID. A tombstone
-      // can attest to room work because room chat turns cannot be deleted. No room transcript
-      // or second copy of the preference is read into the model context.
+      // Older tombstones predate deletion of room chat. New ones retain the mode
+      // so deleting a conversation cannot turn it into evidence of project work.
       const group=db.prepare("SELECT p.scope,p.text,p.kind,p.source,p.count FROM portrait_items p WHERE p.role=? AND p.scope!='private' AND "+visible+
-        " AND EXISTS(SELECT 1 FROM portrait_evidence e LEFT JOIN jobs j ON j.id=e.event LEFT JOIN deleted_jobs d ON d.id=e.event WHERE e.item=p.id"+
-        " AND (d.id IS NOT NULL OR (json_extract(j.value,'$.mode') IN ('team','task') AND json_extract(j.value,'$.topic')=p.scope"+
+        " AND EXISTS(SELECT 1 FROM portrait_evidence e LEFT JOIN jobs j ON j.id=e.event LEFT JOIN deleted_jobs d ON d.id=e.event"+
+        " LEFT JOIN deleted_record_access a ON a.id=e.event WHERE e.item=p.id"+
+        " AND ((d.id IS NOT NULL AND coalesce(a.mode,'task') IN ('team','task')) OR (json_extract(j.value,'$.mode') IN ('team','task') AND json_extract(j.value,'$.topic')=p.scope"+
         " AND EXISTS(SELECT 1 FROM json_each(j.value,'$.steps') s WHERE json_extract(s.value,'$.roleId')=p.role AND json_extract(s.value,'$.status')='done'))))"+
         " ORDER BY (kind='corrected') DESC, updatedAt DESC,p.id").all(role)
         .filter(item=>{

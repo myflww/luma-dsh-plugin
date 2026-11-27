@@ -120,7 +120,7 @@ test('a room selector can affect only its own work; a locked member or active jo
   await run('private',['lu-mi'],'separate','chat','PRIVATE-KEPT')
   const target={kind:'job',id:'room-work',roomId:r.id}
   for(const wrong of [{...target,roomId:r2.id},{kind:'job',id:'room-work',roleId:'shan'},{...target,id:'private'},
-    {...target,id:'room-chat'},{kind:'topic',roleId:'shan',topic:r.id}]) {
+    {kind:'job',id:'room-chat',roleId:'shan'},{kind:'topic',roleId:'shan',topic:r.id}]) {
     for(const op of ['archiverecord','readrecord','deleterecord'])await assert.rejects(call(op,wrong))
   }
   await call('archiverecord',target);f.restart()
@@ -139,6 +139,21 @@ test('a room selector can affect only its own work; a locked member or active jo
   const state=await call('state')
   assert.ok(state.rooms.some(room=>room.id===r.id))
   assert.ok(['room-chat','different-room','private'].every(id=>state.jobs.some(j=>j.id===id)))
+  const groupChat={...target,id:'room-chat'}
+  await call('archiverecord',groupChat)
+  assert.equal((await call('readrecord',groupChat)).jobs[0].mode,'chat')
+  await call('restorerecord',groupChat)
+  // Earlier hosts observed even room chat as a work portrait. Its room-only
+  // evidence must stay room-only after deletion and restart.
+  const preference='我的长期偏好是在海岸项目中将清样页脚写为海星6247。'
+  f.db.prepare('INSERT INTO portrait_items VALUES(?,?,?,?,?,?,?,?,?,?)')
+    .run('legacy-room-chat','shan',r.id,preference,preference,'stated','work',1,Date.now(),1)
+  f.db.prepare('INSERT INTO portrait_evidence VALUES(?,?)').run('legacy-room-chat','room-chat')
+  assert.deepEqual((await call('deleterecord',groupChat)).removed.jobs,['room-chat'])
+  f.restart()
+  const recalled=await call('recall',{roleId:'shan',topic:'new-private',privateChat:true,query:'在海岸项目中清样页脚怎么写？'})
+  assert.doesNotMatch(recalled.context,/海星6247/)
+  await assert.rejects(call('deletejob',{id:'room-chat'}))
   assert.match(JSON.stringify(await call('portrait',{roleId:'shan'})),/先确认目录/)
   assert.equal((await call('deleterecord',target)).ok,true)
   f.lock('lu-mi')

@@ -44,7 +44,7 @@ export function createEmployeePresetRoster(registry:DesktopPresetRegistry, readU
       const meta = __LUMA_DESKTOP_PRESETS__.employees[id]!
       const entries = structuredClone(await standardPlugins())
       const persona = entries.find(row=>row.id==='persona')!
-      persona.config={...persona.config, prefix:`你是 Luma 员工${meta.name}。${meta.description} 当前模型为 {{model}}。`}
+      persona.config={...persona.config, prefix:`你在 Luma 的默认身份是${meta.name}。${meta.description} 从联系页进入时，以本轮角色卡的姓名、语气、场景和称呼与对方交流。当前模型为 {{model}}。`}
       const remove = await registry.register({id,...meta,plugins:entries})
       try {
         if (closed) { await remove(); return }

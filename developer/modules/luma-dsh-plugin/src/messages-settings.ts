@@ -1,8 +1,9 @@
 import z from '@deepseek-ai/schemastery'
 import { OFFICE_EMPLOYEE_KEYS, isOfficeEmployeeKey } from '../../../overlays/deepseek-harness/luma-full/files/packages/client/ui-brand-official/src/office-employee-presets.ts'
+import { decodeRoleProfile, type RoleProfile } from './shared/contact-profile.ts'
 
 export const MESSAGES_NAMESPACE = 'luma-dsh-messages'
-export interface RoleProfile { name: string; personality: string; scenario: string; greeting: string }
+export type { RoleProfile } from './shared/contact-profile.ts'
 export interface MessagePreferences {
   schemaVersion: 1; selectedRole: string; userName: string; display: 'bubbles' | 'novel'
   reactions?: Record<string, 'up' | 'down'>
@@ -30,10 +31,17 @@ export function decodeMessageSettings(value: unknown): MessageSettings | undefin
       !/^reply\/[\w.%:~/-]{1,700}$/.test(key) || (value !== 'up' && value !== 'down'))))
     || !object(p.profiles) || !object(p.drafts) || !object(p.activeTopics)
     || Object.entries(p.drafts).some(([id, draft]) => !isOfficeEmployeeKey(id) || !text(draft, 32000))
-    || Object.entries(p.activeTopics).some(([id, topic]) => !isOfficeEmployeeKey(id) || !text(topic, 200) || !topic)
-    || Object.entries(p.profiles).some(([id, card]) => !isOfficeEmployeeKey(id) || !object(card)
-      || Object.keys(card).sort().join(',') !== 'greeting,name,personality,scenario' || !text(card.name, 80) || !card.name
-      || !text(card.personality, 12000) || !text(card.scenario, 8000) || !text(card.greeting, 4000)))) return
+    || Object.entries(p.activeTopics).some(([id, topic]) => !isOfficeEmployeeKey(id) || !text(topic, 200) || !topic))) return
+  if (object(p) && object(p.profiles)) {
+    const profiles: Record<string,RoleProfile> = {}
+    for (const [id, value] of Object.entries(p.profiles)) {
+      if (!isOfficeEmployeeKey(id)) return
+      const profile = decodeRoleProfile(id,value)
+      if (!profile) return
+      profiles[id] = profile
+    }
+    return { ...value, preferences: {...p, profiles} } as MessageSettings
+  }
   return value as MessageSettings
 }
 export function createMessageSettingsSchema(homes: Record<string, string> = {}) {

@@ -4,14 +4,14 @@ Luma 在 DeepSeek Harness Desktop 内提供办公室、伙伴卧室和联系人�
 
 ## 安装与升级
 
-拿到 0.6.7 正式版完整包后，将 `Luma-DSH-0.6.7-Windows.zip` 解压到长期保留的位置。在 DSH 的「插件 → 添加插件 → 安装第三方插件」中选择含有 `package.json` 的 `DesktopPlugin-0.6.7` 文件夹，然后重新打开 DSH。完整包已包含角色和场景美术。
+拿到 0.6.8 正式版完整包后，将 `Luma-DSH-0.6.8-Windows.zip` 解压到长期保留的位置。在 DSH 的「插件 → 添加插件 → 安装第三方插件」中选择含有 `package.json` 的 `DesktopPlugin-0.6.8` 文件夹，然后重新打开 DSH。完整包已包含角色和场景美术。
 
-先安装并启动一次 Windows 版 DeepSeek Harness。下载 **Luma-DSH-0.6.7-Installer.zip**，完整解压并双击 **Install-Luma-DSH.cmd**。安装器会自动寻找本机旧版资源并校验每个文件。首次安装需要下载约 1.87 GB 基础美术及本版更新，建议预留 6 GiB 空间。[下载正式版](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.6.7)
+先安装并启动一次 Windows 版 DeepSeek Harness。下载 **Luma-DSH-0.6.8-Installer.zip**，完整解压并双击 **Install-Luma-DSH.cmd**。安装器会自动寻找本机旧版资源并校验每个文件。首次安装需要下载约 1.87 GB 基础美术及本版更新，建议预留 6 GiB 空间。[下载正式版](https://github.com/myflww/luma-dsh-plugin/releases/tag/v0.6.8)
 
 安装后重新打开 DSH，从侧栏点「Luma 办公室」。保留安装器生成的插件目录，DSH 会直接读取里面的内容。
 
-- **离线升级**　将本版的 `Luma-DSH-0.6.7-Update.zip` 放在解压的安装器旁边，并准备之前保留的完整插件目录或 0.4.3 基础 ZIP。自定义位置可通过 `-Base` 指定。
-- **手动添加**　运行 `.\Get-Luma-DSH.ps1 -PrepareOnly`，从 DSH 的「插件 → 添加第三方插件」选择生成的 `DesktopPlugin-0.6.7`。使用 `-Directory` 可指定生成位置。
+- **离线升级**　将本版的 `Luma-DSH-0.6.8-Update.zip` 放在解压的安装器旁边，并准备之前保留的完整插件目录或 0.4.3 基础 ZIP。自定义位置可通过 `-Base` 指定。
+- **手动添加**　运行 `.\Get-Luma-DSH.ps1 -PrepareOnly`，从 DSH 的「插件 → 添加第三方插件」选择生成的 `DesktopPlugin-0.6.8`。使用 `-Directory` 可指定生成位置。
 - **回退**　关闭 DSH，用 `.\Get-Luma-DSH.ps1 -Rollback` 重新注册旧版，然后打开宿主。你也可以用 `-Base` 指定保留的旧版完整目录。收藏和会话保存在桌面档案内。
 
 ## 拖动伙伴与桌面探头
@@ -22,7 +22,7 @@ Luma 在 DeepSeek Harness Desktop 内提供办公室、伙伴卧室和联系人�
 
 在窗口模式下，把伙伴拖过 DSH 的外边缘再松手，她会出现在鼠标所在的显示器。全屏或使用键盘时，在「员工列表」点「桌宠」也可以带她出来。把桌宠拖到当前显示器工作区的任一边缘松手，她会从那里探出头来并停留。点她一下，或直接把她拖回桌面中央，就能继续互动。右键选择「回到房间」或在员工列表点「回到场景」，她会按当前作息回办公室或卧室。到了睡眠时段，桌宠也会安睡。
 
-### 桌宠动作与文件（0.6.7）
+### 桌宠动作与文件
 
 把清醒的伙伴拖到屏幕底边，她会把双手搭在边缘，或用手托着脸。左右探头会保留发梢、头饰和衣袖的轮廓。到了睡眠时段，她仍会在底边靠着打盹。把伙伴放在桌面中央，她会先站稳，用眼睛去找光标，再轻轻转头，约两秒半后恢复待机。
 

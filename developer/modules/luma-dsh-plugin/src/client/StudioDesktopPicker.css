@@ -1,16 +1,3 @@
-.lumaStudioDesktopPicker { box-sizing:border-box; flex:0 1 auto; min-width:0; max-width:100%; font-size:12px; color:var(--contact-ink,#193652); }
-.lumaStudioDesktopPicker summary {
-  box-sizing:border-box; display:flex; align-items:center; gap:6px; min-height:34px; width:fit-content; padding:3px 9px; list-style:none;
-  border:1px solid var(--contact-border,#d7e3ed); border-radius:18px; background:var(--luma-surface); cursor:pointer; font-weight:600;
-}
-.lumaStudioDesktopPicker summary svg:first-child { color:var(--luma-muted); }
-.lumaStudioDesktopPicker summary:hover { border-color:var(--luma-line); }
-.lumaStudioDesktopPicker .lumaAssignedCount {
-  display:grid; place-items:center; min-width:17px; height:17px; padding:0 1px; border-radius:50%; background:var(--luma-action); color:#fff; font-size:10px; line-height:1; font-weight:650;
-}
-.lumaStudioDesktopPicker[open] { flex:1 0 100%; }
-.lumaStudioDesktopPicker[open] .lumaPickerChevron { transform:rotate(180deg); }
-.lumaStudioDesktopPicker[open] summary { border-color:var(--luma-line); background:var(--luma-surface-muted); }
 .lumaStudioDesktopBody {
   box-sizing:border-box; margin-top:5px; padding:2px 8px 5px; max-height:min(240px,29vh); overflow:auto; scrollbar-width:thin;
   border:1px solid var(--contact-border,#d7e3ed); border-radius:10px; background:var(--luma-surface);

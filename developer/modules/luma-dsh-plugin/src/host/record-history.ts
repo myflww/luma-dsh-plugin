@@ -15,11 +15,13 @@ export function createRecordHistory<J extends Entry,L extends Letter>(
   omitUpload:(role:string,note:string)=>void,
 ) {
   db.exec("CREATE TABLE IF NOT EXISTS record_archives(kind TEXT NOT NULL,owner TEXT NOT NULL,target TEXT NOT NULL,at INTEGER NOT NULL,PRIMARY KEY(kind,owner,target));"+
-    "CREATE TABLE IF NOT EXISTS deleted_record_access(id TEXT PRIMARY KEY,room TEXT NOT NULL,roles TEXT NOT NULL,batch TEXT NOT NULL DEFAULT '');"+
+    "CREATE TABLE IF NOT EXISTS deleted_record_access(id TEXT PRIMARY KEY,room TEXT NOT NULL,roles TEXT NOT NULL,batch TEXT NOT NULL DEFAULT '',mode TEXT);"+
     "CREATE TABLE IF NOT EXISTS deleted_record_letters(batch TEXT NOT NULL,id TEXT NOT NULL,PRIMARY KEY(batch,id));"+
     "CREATE TABLE IF NOT EXISTS deleted_local_topics(role TEXT NOT NULL,topic TEXT NOT NULL,PRIMARY KEY(role,topic));")
   if(!db.prepare('PRAGMA table_info(deleted_record_access)').all().some(column=>column.name==='batch'))
     db.exec("ALTER TABLE deleted_record_access ADD COLUMN batch TEXT NOT NULL DEFAULT ''")
+  if(!db.prepare('PRAGMA table_info(deleted_record_access)').all().some(column=>column.name==='mode'))
+    db.exec('ALTER TABLE deleted_record_access ADD COLUMN mode TEXT')
   db.exec("CREATE INDEX IF NOT EXISTS deleted_record_batch ON deleted_record_access(batch)")
   const archive=db.prepare('INSERT OR IGNORE INTO record_archives VALUES(?,?,?,?)')
   const restore=db.prepare('DELETE FROM record_archives WHERE kind=? AND owner=? AND target=?')
@@ -75,7 +77,7 @@ export function createRecordHistory<J extends Entry,L extends Letter>(
     for(const owner of job.roleIds) clearNote(owner,job.topic,job.id)
     const names=job.mode==='chat'?[]:job.steps.map((s,i)=>(i+1)+'-'+s.roleId+'.md')
     deleted.mark(job.id,names)
-    db.prepare('INSERT INTO deleted_record_access(id,room,roles,batch) VALUES(?,?,?,?)').run(job.id,rooms.has(job.topic)?job.topic:'',JSON.stringify(job.roleIds),batch)
+    db.prepare('INSERT INTO deleted_record_access(id,room,roles,batch,mode) VALUES(?,?,?,?,?)').run(job.id,rooms.has(job.topic)?job.topic:'',JSON.stringify(job.roleIds),batch,job.mode)
     db.prepare('DELETE FROM jobs WHERE id=?').run(job.id)
     restore.run('job','',job.id)
   }
@@ -122,7 +124,7 @@ export function createRecordHistory<J extends Entry,L extends Letter>(
         return deletionReceipt(batch,target)
       throw denied()
     }
-    if(job && (!inScope(job.roleIds,rooms.has(job.topic)?job.topic:'',t,unlocked) || (t.roomId && job.mode==='chat'))) throw denied()
+    if(job && !inScope(job.roleIds,rooms.has(job.topic)?job.topic:'',t,unlocked)) throw denied()
     const selected=job?[job]:topicJobs(owner,target)
     const mail=isJob?[]:localLetters(owner,target)
     const archivedRow=archived.get(t.kind,owner,target)
@@ -163,8 +165,8 @@ export function createRecordHistory<J extends Entry,L extends Letter>(
     const job=jobs.get(id)
     if(job?.mode==='chat')throw denied()
     if(!job) {
-      const old=db.prepare('SELECT room,roles FROM deleted_record_access WHERE id=?').get(id)
-      if(!old || !JSON.parse(String(old.roles)).every((r:string)=>unlocked.includes(r))) throw denied()
+      const old=db.prepare('SELECT room,roles,mode FROM deleted_record_access WHERE id=?').get(id)
+      if(!old || old.mode==='chat' || !JSON.parse(String(old.roles)).every((r:string)=>unlocked.includes(r))) throw denied()
       if(old.room && !rooms.get(String(old.room))?.roleIds.every(r=>unlocked.includes(r)))throw denied()
       return {deleted:true,filesPending:!deleted.cleanup(id)}
     }

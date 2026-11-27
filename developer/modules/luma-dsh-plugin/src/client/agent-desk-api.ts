@@ -16,6 +16,7 @@ export interface AgentJob {
   status: JobStatus
   steps: { roleId: string; model?:string; status: JobStatus; output: string; phase?: StudioPhase; activity?: string; handoff?:PeerRequest;desktopReceipt?:StudioReceipt;desktopReview?:StudioReview[];reviewedReceiptIds?:string[] }[]
   workflow?: TeamWorkflow
+  roomRequired?: number
   reviewerId?:string
   desktopTargets?: Record<string,string>
   error?: string
@@ -36,7 +37,7 @@ export interface AgentState {
   previews?: Record<string, {text: string; time: number}>
   memories: Record<string, number>
 }
-export interface AgentMemory { id: string; text: string; createdAt: number }
+export interface AgentMemory { id: string; text: string; createdAt: number; reflection?:{thought:string;evidence:string} }
 type CloudAction = 'cloudstate' | 'cloudconfigure' | 'cloudprobe' | 'cloudsubmit' | 'cloudrefresh' | 'cloudretry' | 'cloudresult' | 'cloudcancel'
 type ModelAction = 'providers' | 'localproviders' | 'models' | 'reasoning' | 'discover' | 'configure'
 type WorkAction = 'deletejob' | 'desktopstatus' | 'desktoptargets' | 'desktoppreview' | 'readwindowtask' | 'outlookinbox'
